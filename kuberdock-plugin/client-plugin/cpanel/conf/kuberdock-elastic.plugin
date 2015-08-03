@@ -1,0 +1,21 @@
+#cpanel plugin file 1.0 (for use with /usr/local/cpanel/bin/register_cpanelplugin)
+version: 1.0
+name:kuberdock-elastic
+description:Setup ElasticSearch
+featuremanager:1
+url:KuberDock/kuberdock.live.php?c=app&a=install&image=elasticsearch
+acontent:Setup ElasticSearch
+onclick:
+if:
+itemorder:1000
+itemdesc:$LANG{Setup ElasticSearch}
+group:kuberdock_apps
+image:iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wMXDRky/t16ZwAAAGZQTFRFbbM
+/b7RCcbVEd7hMfrxVgL1Ygb1ZicJkjMNnkMVtksZwmsp6n82Boc6Ep9GLrtWUs9ebt9qhu9ylvd2ow+CxyuS60ObB1enI2uzO4O/W5PHb6fTi7fXn8vju
+9vrz+fz3/P37////ixEmkQAAAhZJREFUSMetVtsWoyAQi2KlVau2iFatYP7/J/ehXvB+ds/Ok0cTYUJmBnAvett1pt/9hM2br07vge95vgjjd91fEExx9
++FGkLUnBPMS2IQXN8Pnbk3QAXbDzwxJNumSYJ4ejiKsSSbCuoRW4iR8zY+UlUNoApyG9wqrdzoT2gs8gIxtOBGMvMTHPXvZjITkGm9JZmog6Et8akmyin
+4Ec5WA0IPywhIk8wuBku+o/b0mSCNO4XE9eyFTBKlO0DJfeE8nBLmR1BOhfMTPTFXflbfbkGC7tJDMq6/drx3SCgMWRxteRmdJMmzAp1MtFQ+jJElGFZw
+U7t0xvit+lijQT6JKc4znUKnpG3asYdGe4Ot44OXoRpHUCd6E9YYQ2GN8Hw8LuFvKThZIxXiC8Zz05/j/GYrxWZajrP6hpDZFMp/0dHDiyA1d5OhdCzta
+IzggfG4IZwu+7pP5/F2RTObj5lhW5rO9m51sdQhIB//xmrmA1BYuAcSOGH0kOZdouEiir7MAgK/ctxqaThN4z8KU6Q0AEC322YjQum3G1z9wJoezl+Vi0
+TaA5rKRJSq5Ta3ouTr6UiDq6bZKMbezIK1WKjexh5+hpmYcm14NXWA9Cdvi4QFe5c64NviQFIBM8zzPX29VaK11ofL08XOnVyyHYlOTnX/S0tR6itq6ep
+yOrM3YvRyK2zldno/dvx/s/+Hq8A+Xk+vrzx81CrAii6QlSAAAAABJRU5ErkJggg==

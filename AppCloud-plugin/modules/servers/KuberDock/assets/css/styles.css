@@ -1,0 +1,15 @@
+.red, .error { color: red; }
+.green, .success {color: green; }
+.center { text-align: center; }
+.left { text-align: left; }
+.right { text-align: right; }
+
+table.product-info { width: 100%; }
+table.product-info td { text-align: center; }
+table.client { border: 1px #ccc solid; border-collapse: collapse; }
+table.client th, table.client td { padding: 2px; border: 1px #ccc solid; }
+table.client th { background-color: #ccc; }
+
+.product .prodfeature { display: inline-block !important; float: none !important; }
+
+div.login-link { display: block; margin: 10px auto; text-align: left; }

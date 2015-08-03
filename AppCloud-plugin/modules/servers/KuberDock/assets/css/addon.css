@@ -1,0 +1,9 @@
+/* Fix bootstrap */
+* {  box-sizing: inherit !important; }
+body { background-color: #1A4D80 !important; }
+.container-fluid { box-sizing: border-box !important; }
+
+.search-show { text-decoration: underline; }
+.search-show:hover { cursor: pointer; text-decoration: none; }
+
+.loader { display: inline-block; background: url(../images/ajax-loader.gif) no-repeat no-repeat; width: 18px; height: 18px; margin-left: 20px; }

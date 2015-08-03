@@ -1,0 +1,73 @@
+<?php
+/**
+ * @project whmcs-plugin
+ * @author: Ruslan Rakhmanberdiev
+ */
+
+class KuberDock_ApiResponse {
+    /**
+     * @var string
+     */
+    public $raw = '';
+    /**
+     * @var array
+     */
+    public $parsed = array();
+
+    /**
+     * Getter method
+     *
+     * @param $name
+     * @return mixed
+     */
+    public function __get($name)
+    {
+        if(isset($this->{$name})) {
+            return $this->{$name};
+        } elseif(method_exists($this, 'get'.ucfirst($name))) {
+            return $this->{'get'.ucfirst($name)}();
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function getStatus()
+    {
+        return isset($this->parsed['status']) && ($this->parsed['status'] === 'OK');
+    }
+
+    /**
+     * @return string
+     */
+    public function getMessage()
+    {
+        if(isset($this->parsed['message'])) {
+            return $this->parsed['message'];
+        } elseif(isset($this->parsed['status'])) {
+            if(isset($this->parsed['data']) && $this->parsed['data']) {
+                return $this->parsed['data'];
+            } else {
+                return $this->parsed['status'];
+            }
+        } else {
+            return 'Undefined response message';
+        }
+    }
+
+    /**
+     * @param string $message
+     */
+    private function setMessage($message)
+    {
+        $this->parsed['message'] = $message;
+    }
+
+    /**
+     * @return array()
+     */
+    public function getData()
+    {
+        return isset($this->parsed['data']) && is_array($this->parsed['data']) ? $this->parsed['data'] : $this->parsed['data'];
+    }
+} 

@@ -1,0 +1,5 @@
+/.idea
+/CloudLinux-plugin/modules/addons/addonexample
+CloudLinux-plugin/whmcs-cl-plugin*.zip
+AppCloud-plugin/whmcs-kuberdock-plugin*.zip
+kuberdock-plugin/.idea

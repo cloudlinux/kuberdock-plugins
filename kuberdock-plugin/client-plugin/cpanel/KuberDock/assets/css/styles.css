@@ -1,0 +1,77 @@
+p {
+    font-size: 100%;
+}
+
+div.content {
+    width: 90%;
+    margin: 0 auto;
+    font-size: 100% !important;
+}
+
+.ajax-loader {
+    background: url(../images/ajax-loader.gif) no-repeat;
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+    margin: 7px;
+}
+
+.ajax-loader.buttons {
+    float: right;
+    margin: 2px;
+}
+
+.kube-slider, .kube-slider-value {
+    margin-top: 10px;
+}
+
+.kube-slider-value {
+    display: inline-block;
+}
+
+#port_table input[type=text], #volume_table input[type=text].short {
+    width: 90px;
+}
+
+#volume_table input[type=text].middle {
+    width: 120px;
+}
+
+.tooltip {
+    width: 200px;
+}
+
+.container-details {
+    display: none;
+}
+
+.env-more-link {
+    display: inline-block;
+    margin-top: 7px;
+}
+
+p.kube-name {
+    display: inline-block;
+}
+
+.kube-count {
+    display: inline-block;
+}
+
+.kube-count div {
+    display: inline-block;
+}
+
+.kube-count div span {
+    display: block;
+}
+
+/* fix paper_lantern */
+.modal-backdrop {
+    z-index: auto !important;
+    bottom: auto !important;
+}
+
+.navbar-brand > img {
+    display: inline-block !important;
+}

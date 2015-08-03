@@ -1,0 +1,56 @@
+[
+    {
+        "name" : "Setup ElasticSearch",
+        "group_id" : "kuberdock_apps",
+        "icon" : "elasticsearch-kuberdock.png",
+        "order" : 999,
+        "type" : "link",
+        "id" : "kuberdock-elastic",
+        "uri" : "KuberDock/kuberdock.live.php?c=app&a=install&image=elasticsearch"
+    },
+    {
+        "name" : "Setup Memchached",
+        "group_id" : "kuberdock_apps",
+        "icon" : "memcache-kuberdock.png",
+        "order" : 999,
+        "type" : "link",
+        "id" : "kuberdock-memcache",
+        "uri" : "KuberDock/kuberdock.live.php?c=app&a=install&image=memcached"
+    },
+    {
+        "name" : "Setup MySQL",
+        "group_id" : "kuberdock_apps",
+        "icon" : "mysql-kuberdock.png",
+        "order" : 999,
+        "type" : "link",
+        "id" : "kuberdock-mysql",
+        "uri" : "KuberDock/kuberdock.live.php?c=app&a=install&image=mysql"
+    },
+    {
+        "name" : "Setup Redis",
+        "group_id" : "kuberdock_apps",
+        "icon" : "redis-kuberdock.png",
+        "order" : 999,
+        "type" : "link",
+        "id" : "kuberdock-redis",
+        "uri" : "KuberDock/kuberdock.live.php?c=app&a=install&image=redis"
+    },
+    {
+        "name" : "More Apps",
+        "group_id" : "kuberdock_apps",
+        "icon" : "kuberdock-more.png",
+        "order" : 999,
+        "type" : "link",
+        "id" : "kuberdock-more",
+        "uri" : "KuberDock/kuberdock.live.php?a=search"
+    },
+    {
+        "name" : "My Apps",
+        "group_id" : "kuberdock_apps",
+        "icon" : "kuberdock.png",
+        "order" : 1000,
+        "type" : "link",
+        "id" : "kuberdock",
+        "uri" : "KuberDock/kuberdock.live.php"
+    }
+]
