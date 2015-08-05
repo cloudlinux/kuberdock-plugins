@@ -1,6 +1,5 @@
 $(document).ready(function() {
     if(window.location.href.indexOf('clientsservices')) {
-        console.log();
         $.ajax({
             url: 'addonmodules.php?module=KuberDock',
             data: { a: 'isKuberProduct', productId: $('select[name="packageid"]').val() },
