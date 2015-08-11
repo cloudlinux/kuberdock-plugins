@@ -237,31 +237,32 @@ class KcliCommand extends Command {
     }
 
     /**
-     * @param $values
-     * @param $index
-     * @param $params
+     * @param $name string
+     * @param $image string
+     * @param $values array [isPublic => '', containerPort => '', hostPort => '', protocol => ''], [...]
      * @return array
      */
-    public function setContainerPorts($values, $index, $params)
+    public function setContainerPorts($name, $image, $values)
     {
-        $values['index'] = $index;
-        $attributes = array(
-            'containerPort' => 'container-port',
-            'hostPort' => 'host-port',
-            'protocol' => 'protocol',
-        );
+        $ports = array_map(function($e) {
+            $port = '';
+            $port .= isset($e['isPublic']) && (bool) $e['isPublic'] ? '+' : '';
+            $port .= $e['containerPort'];
+            $port .= isset($e['hostPort']) ? ':'.$e['hostPort'] : '';
+            $port .= isset($e['protocol']) && in_array($e['protocol'], array('tcp', 'udp'))
+                ? ':'.$e['protocol'] : ':tcp';
+            return $port;
+        }, $values);
 
-        foreach($attributes as $containerAttr => $commandAttr) {
-            if(isset($params[$containerAttr]) && $params[$containerAttr]) {
-                $values[$commandAttr] = $params[$containerAttr];
-            }
-        }
-
-        if(isset($params['isPublic']) && $params['isPublic']) {
-            $values['public'] = '';
-        }
-
-        return $this->execute($values);
+        return $this->execute(array(
+            'user' => $this->username,
+            'password' => $this->password,
+            $this->returnType,
+            'kuberdock',
+            'set' => sprintf("'%s'", $name),
+            '--image' => $image,
+            'container-port' => $ports ? implode(',', $ports) : "''",
+        ));
     }
 
     /**

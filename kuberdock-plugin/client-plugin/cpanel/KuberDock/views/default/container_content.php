@@ -11,7 +11,7 @@
             ?>
             <tr>
                 <td><a href="javascript:void(0)" class="show-container-details"><?php echo $pod->name?></a></td>
-                <td><?php echo 'Public IP: ' . (isset($pod->labels['kuberdock-public-ip']) ? $details->labels['kuberdock-public-ip'] : 'none')?></td>
+                <td><?php echo 'Public IP: ' . (isset($pod->labels['kuberdock-public-ip']) ? $pod->labels['kuberdock-public-ip'] : 'none')?></td>
                 <td>
                     <button type="button" class="btn btn-default btn-xs <?php echo $statusClass?>" app="<?php echo $pod->name?>" title="<?php echo $statusText?>">
                         <span class="glyphicon glyphicon-<?php echo $statusText == 'Stop' ? 'stop' : 'play' ?>" aria-hidden="true"></span> <?php echo $statusText?>

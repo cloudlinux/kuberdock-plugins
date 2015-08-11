@@ -123,6 +123,7 @@ class Pod {
 
         $ports = array();
         $attributes = array('containerPort', 'hostPort', 'protocol', 'isPublic');
+
         foreach($values as $row) {
             $port = array(
                 'isPublic' => false,
@@ -481,10 +482,7 @@ class Pod {
         $container['env'] = $this->parseEnv($container['env']);
         $container['volumeMounts'] = $this->parseVolumeMounts($container['volumeMounts']);
 
-        foreach($container['ports'] as $index => $row) {
-            $this->command->setContainerPorts($podValues, $index, $row);
-        }
-
+        $this->command->setContainerPorts($this->name, $container['image'], $container['ports']);
         $this->command->setContainerEnvVars($this->name, $container['image'], $container['env']);
 
         foreach($container['volumeMounts'] as $index => $row) {
