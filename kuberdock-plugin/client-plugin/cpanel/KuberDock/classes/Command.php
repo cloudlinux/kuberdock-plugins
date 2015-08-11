@@ -1,6 +1,6 @@
 <?php
 
-class Command {
+abstract class Command {
     /**
      * JSON data type
      */
@@ -58,6 +58,15 @@ class Command {
     protected $dataType = self::DATA_TYPE_JSON;
 
     /**
+     * Get auth data for command authorization
+     *
+     * Token auth - array('token' => 'some_token')
+     * Plain auth - array('username' => 'some_login', 'password' => 'some_pass')
+     * @return array
+     */
+    abstract protected function getAuth();
+
+    /**
      * Execute command
      *
      * @param array|string $params
@@ -66,6 +75,7 @@ class Command {
      */
     public function execute($params = array())
     {
+        $params = array_merge($this->getAuth(), $params);
         $this->commandString = is_array($params) ? $this->getCommandString($params) : $params;
         //echo $this->commandString."\n";
 

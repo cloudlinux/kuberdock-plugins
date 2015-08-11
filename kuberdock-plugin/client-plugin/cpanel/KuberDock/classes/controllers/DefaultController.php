@@ -45,19 +45,16 @@ class DefaultController extends KuberDock_Controller {
 
     public function searchAction()
     {
-        $images = array();
         $search = Tools::getParam('search', Tools::getPost('search', ''));
         $page = Tools::getParam('page', Tools::getPost('page', 1));
-        $registryUrl = '';
 
         try {
-            $api = WHMCSApi::model();
-            $kuberProduct = $api->getUserKuberDockProduct();
-            list($username, $password) = $api->getAuthData();
-            $command = new KcliCommand($username, $password);
-            $images = $command->searchImages($search, $page-1);
-            $registryUrl = $command->getRegistryUrl();
+            $pod = new Pod();
+            $images = $pod->searchImages($search, $page);
+            $registryUrl = $pod->command->getRegistryUrl();
         } catch(CException $e) {
+            $images = array();
+            $registryUrl = '';
             $this->error = $e;
         }
 
@@ -84,6 +81,7 @@ class DefaultController extends KuberDock_Controller {
             $pod = new Pod();
             $pod = $pod->loadByImage($image);
         } catch(CException $e) {
+            $pod = new stdClass();
             $this->error = $e;
         }
 
@@ -105,8 +103,7 @@ class DefaultController extends KuberDock_Controller {
             try {
                 $pod->create();
                 $pod->save();
-
-                $pod->command->startContainer($pod->name);
+                $pod->start();
 
                 echo json_encode(array(
                     'message' => $this->renderPartial('success', array('message' => 'Application created'), false),

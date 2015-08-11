@@ -316,7 +316,8 @@ class WHMCSApi extends Base {
         } elseif($this->_kuberProduct) {
             $product = current($this->_kuberProduct);
             if(empty($product['server']['username'])) {
-                return array('TrialUser', 'TrialUser');
+                $conf = KcliCommand::getConfFile();
+                return array($conf['user'], $conf['password']);
             } else {
                 return array(
                     $product['server']['username'],
@@ -324,7 +325,8 @@ class WHMCSApi extends Base {
                 );
             }
         } else {
-            return array('TrialUser', 'TrialUser');
+            $conf = KcliCommand::getConfFile();
+            return array($conf['user'], $conf['password']);
         }
     }
 

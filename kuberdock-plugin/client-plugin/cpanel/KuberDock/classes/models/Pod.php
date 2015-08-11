@@ -110,7 +110,7 @@ class Pod {
         $this->setToken();
 
         list($username, $password) = $this->api->getAuthData();
-        $this->command = new KcliCommand($username, $password);
+        $this->command = new KcliCommand($username, $password, $this->token);
     }
 
     /**
@@ -192,7 +192,7 @@ class Pod {
     }
 
     /**
-     *
+     * @throws CException
      */
     public function setToken()
     {
@@ -206,6 +206,8 @@ class Pod {
 
         if(isset($data['results']) && $data['results']) {
             $this->token = current($data['results'])['token'];
+        } else {
+            throw new CException('Cannot get token');
         }
     }
 
@@ -413,9 +415,14 @@ class Pod {
     /**
      * @param $image
      * @return $this
+     * @throws CException
      */
     public function loadByImage($image)
     {
+        if(empty($image)) {
+            throw new CException('Fill image name');
+        }
+
         $imageInfo = $this->getImageInfo($image);
         $ci = $this->getContainerIndexByImage($image);
         $this->addContainer($ci, $imageInfo);
@@ -517,8 +524,18 @@ class Pod {
     }
 
     /**
-     * @param $index
-     * @param $values
+     * @param string $image
+     * @param int $page
+     * @return array
+     */
+    public function searchImages($image, $page = 1)
+    {
+        return $this->command->searchImages($image, $page-1);
+    }
+
+    /**
+     * @param int $index
+     * @param array $values
      */
     private function addContainer($index, $values)
     {

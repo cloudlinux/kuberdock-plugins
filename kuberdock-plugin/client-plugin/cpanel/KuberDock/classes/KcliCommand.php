@@ -15,12 +15,22 @@ class KcliCommand extends Command {
      * @var string
      */
     private $password;
+    /**
+     * @var string
+     */
+    private $token;
 
-    public function __construct($username, $password)
+    /**
+     * @param string $username
+     * @param string $password
+     * @param string $token
+     */
+    public function __construct($username, $password, $token = '')
     {
         $this->commandPath = '/usr/bin/kcli';
         $this->username = $username;
         $this->password = $password;
+        $this->token = $token;
 
         /*
          * List of available commands & their separators
@@ -112,7 +122,25 @@ class KcliCommand extends Command {
             ),
             'env',
             'mount-path',
+            'token',
         );
+    }
+
+    /**
+     * @return array
+     */
+    protected function getAuth()
+    {
+        if($this->token) {
+            return array(
+                'token' => sprintf("'%s'", $this->token),
+            );
+        } else {
+            return array(
+                'user' => $this->username,
+                'password' => $this->password,
+            );
+        }
     }
 
     /**
@@ -121,8 +149,6 @@ class KcliCommand extends Command {
     public function getPods()
     {
         return $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kubectl',
             'get',
@@ -137,8 +163,6 @@ class KcliCommand extends Command {
     public function getPod($podName)
     {
         return $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kubectl',
             'get',
@@ -153,8 +177,6 @@ class KcliCommand extends Command {
     public function describePod($podName)
     {
         return $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kubectl',
             'describe',
@@ -169,8 +191,6 @@ class KcliCommand extends Command {
     public function deletePod($podName)
     {
         return $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kubectl',
             'delete' => sprintf("'%s'", $podName),
@@ -183,8 +203,6 @@ class KcliCommand extends Command {
     public function getKubes()
     {
         $kubes = $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kuberdock',
             'kubes',
@@ -204,8 +222,6 @@ class KcliCommand extends Command {
     public function getContainers()
     {
         return $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'container',
             'list',
@@ -222,8 +238,6 @@ class KcliCommand extends Command {
     public function createContainer($name, $image, $kubeName, $kubeCount)
     {
         $values = array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kuberdock',
             'create' => sprintf("'%s'", $name),
@@ -255,8 +269,6 @@ class KcliCommand extends Command {
         }, $values);
 
         return $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kuberdock',
             'set' => sprintf("'%s'", $name),
@@ -280,8 +292,6 @@ class KcliCommand extends Command {
         }, $values);
 
         return $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kuberdock',
             'set' => sprintf("'%s'", $name),
@@ -319,8 +329,6 @@ class KcliCommand extends Command {
     public function saveContainer($name)
     {
         return $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kuberdock',
             'save' => sprintf("'%s'", $name),
@@ -334,8 +342,6 @@ class KcliCommand extends Command {
     public function startContainer($name)
     {
         return $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kuberdock',
             'start' => sprintf('"%s"', $name),
@@ -349,8 +355,6 @@ class KcliCommand extends Command {
     public function stopContainer($name)
     {
         return $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kuberdock',
             'stop' => sprintf('"%s"', $name),
@@ -364,8 +368,6 @@ class KcliCommand extends Command {
     public function deleteContainer($name)
     {
         return $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kuberdock',
             'delete' => sprintf('"%s"', $name),
@@ -384,8 +386,6 @@ class KcliCommand extends Command {
         }
 
         return $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kuberdock',
             'search' => $image,
@@ -417,8 +417,6 @@ class KcliCommand extends Command {
     public function getImage($image)
     {
         return $this->execute(array(
-            'user' => $this->username,
-            'password' => $this->password,
             $this->returnType,
             'kuberdock',
             'image_info' => sprintf('"%s"', $image),
@@ -430,7 +428,7 @@ class KcliCommand extends Command {
      */
     public function getRegistryUrl()
     {
-        $conf = $this->getConfFile();
+        $conf = self::getConfFile();
 
         return strpos($conf['registry'], 'http') !== false ?
             $conf['registry'] : sprintf('http://%s', $conf['registry']);
@@ -439,7 +437,7 @@ class KcliCommand extends Command {
     /**
      * @return array
      */
-    private function getConfFile()
+    static public function getConfFile()
     {
         $data = array();
         $fp = fopen(self::CONF_FILE, 'r');

@@ -14,6 +14,7 @@ class AppController extends KuberDock_Controller {
             $pod = new Pod();
             $pod = $pod->loadByImage($image);
         } catch(CException $e) {
+            $pod = new stdClass();
             $this->error = $e;
         }
 
