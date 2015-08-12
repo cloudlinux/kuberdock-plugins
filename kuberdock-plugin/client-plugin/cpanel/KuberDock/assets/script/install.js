@@ -14,7 +14,8 @@ $(function() {
         $('.product-description').html(kubeTemplate({
             cpu: getFormattedValue(kube.cpu_limit * kubeCount, units.cpu),
             memory: getFormattedValue(kube.memory_limit * kubeCount, units.memory, 0),
-            traffic: getFormattedValue(kube.traffic_limit * kubeCount, units.traffic)
+            traffic: getFormattedValue(kube.traffic_limit * kubeCount, units.traffic),
+            hdd: getFormattedValue(kube.hdd_limit * kubeCount, units.hdd)
         }));
 
         $('#product_id').val(productId);

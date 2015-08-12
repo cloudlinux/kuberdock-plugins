@@ -194,9 +194,11 @@
                 </div>
             </div>
 
-            <div class="text-center">
-                <button type="submit" class="btn btn-primary">Start your App</button>
-                <div class="ajax-loader buttons hidden"></div>
+            <div class="row">
+                <div class="col-sm-12 text-center">
+                    <button type="submit" class="btn btn-primary">Start your App</button>
+                    <div class="ajax-loader buttons hidden"></div>
+                </div>
             </div>
         </form>
     </div>

@@ -21,7 +21,7 @@ class KuberDock_Units {
     /**
      * Kube: HDD
      */
-    const HDD = 'GB';
+    const HDD = 'MB';
     /**
      * Kube & Package: Traffic
      */

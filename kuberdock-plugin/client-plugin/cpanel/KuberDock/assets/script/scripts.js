@@ -1,6 +1,7 @@
 var kubeTemplate = _.template('<pre>' +
     'CPU: <%= cpu %><br>' +
     'Memory: <%= memory %><br>' +
+    'Local storage: <%= hdd %><br>' +
     'Traffic: <%= traffic %>' +
 '</pre>');
 

@@ -21,12 +21,12 @@
             </div>
         </div>
 
-<!--        <div class="form-group">
+        <div class="form-group">
             <label for="hdd_limit" class="col-sm-3 control-label">HDD limit (<?php echo KuberDock_Units::getHDDUnits()?>)</label>
             <div class="col-sm-9">
                 <input type="text" class="form-control" name="hdd_limit" id="hdd_limit" value="<?php /*echo $kube->hdd_limit*/?>">
             </div>
-        </div>-->
+        </div>
 
         <div class="form-group">
             <label for="traffic_limit" class="col-sm-3 control-label">Traffic limit (<?php echo KuberDock_Units::getTrafficUnits()?>)</label>

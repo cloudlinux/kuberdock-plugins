@@ -92,15 +92,15 @@ class KuberDock_Addon extends CL_Component {
 
             $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`, `kube_price`, `kube_type`,
                 `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    array(0, 0, $product->id, 'Standard kube', 0, 1, 0.01, 64, 0, 0));
+                    array(0, 0, $product->id, 'Standard kube', 0, 1, 0.01, 64, 512, 0));
 
             $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`, `kube_price`, `kube_type`,
                 `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                array(1, 0, $product->id, 'High CPU', 1, 1, 0.02, 64, 0, 0));
+                array(1, 0, $product->id, 'High CPU', 1, 1, 0.02, 64, 512, 0));
 
             $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`, `kube_price`, `kube_type`,
                 `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                array(2, 0, $product->id, 'High memory', 2, 1, 0.01, 256, 0, 0));
+                array(2, 0, $product->id, 'High memory', 2, 1, 0.01, 256, 512, 0));
 
             $product->setDescription();
         }

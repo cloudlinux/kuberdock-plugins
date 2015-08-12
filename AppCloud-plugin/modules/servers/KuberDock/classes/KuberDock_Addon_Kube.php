@@ -32,7 +32,7 @@ class KuberDock_Addon_Kube extends CL_Model {
             'name' => $kubeName,
             'cpu' => $this->cpu_limit,
             'cpu_units' => 'Cores',
-            //'disk_space' => (int) $this->hdd_limit,
+            'disk_space' => $this->hdd_limit,
             'memory' => $this->memory_limit,
             'memory_units' => 'MB',
             'total_traffic' => (int) $this->traffic_limit,

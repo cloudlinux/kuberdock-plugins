@@ -15,6 +15,7 @@
                 <th>Use in cPanel</th>
                 <th>CPU limit (<?php echo KuberDock_Units::getCPUUnits()?>)</th>
                 <th>Memory limit (<?php echo KuberDock_Units::getMemoryUnits()?>)</th>
+                <th>HDD limit (<?php echo KuberDock_Units::getHDDUnits()?>)</th>
                 <th>Price per hour</th>
             </tr>
 
@@ -39,6 +40,7 @@
                 </td>
                 <td><?php echo $kube['cpu_limit']?></td>
                 <td><?php echo $kube['memory_limit']?></td>
+                <td><?php echo $kube['hdd_limit']?></td>
                 <?php echo $kube['kube_price'] ? '<td>'.$kube['kube_price'].'</td>' : '<td class="danger text-center">Empty</td>'; ?>
             </tr>
             <?php endforeach; ?>
