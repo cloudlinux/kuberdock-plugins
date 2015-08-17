@@ -21,12 +21,12 @@
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    Do you want proceed deletion?
+                    Some text
                 </div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary container-delete">Delete</button>
+                    <button type="button" class="btn btn-primary btn-action" data-action="delete">Action</button>
                 </div>
             </div>
         </div>

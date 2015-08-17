@@ -65,14 +65,8 @@ $(function() {
     };
 
     // Containers
-    $(document).on('click', '.container-delete', function(e) {
-        if($(this).data('target')) {
-            $($(this).data('target')).modal('show');
-            $($(this).data('target')).find('button.container-delete').data('app', $(this).data('app'));
-            return;
-        }
-
-        var el = $('tr button.container-delete[data-app="' + $(this).data('app') + '"]'),
+    var deletePod = function(pod) {
+        var el = $('tr button.container-delete[data-app="' + pod + '"]'),
             loader = el.parents('tr:eq(0)').find('.pod.ajax-loader');
 
         $.ajax({
@@ -95,17 +89,68 @@ $(function() {
             loader.addClass('hidden');
             displayMessage(data.responseJSON.message);
         });
-    });
+    };
 
-    $(document).on('click', '.container-stop, .container-start', function(e) {
-        var el = $(this),
-            loader = el.parents('tr:eq(0)').find('.pod.ajax-loader'),
-            action = el.hasClass('container-stop') ? 'stopContainer' : 'startContainer';
+    var stopPod = function(pod) {
+        var el = $('tr button.container-stop[data-app="' + pod + '"]'),
+            loader = el.parents('tr:eq(0)').find('.pod.ajax-loader');
 
         $.ajax({
             type: 'POST',
-            url: '?a=' + action,
-            data: { container: el.attr('app') },
+            url: '?a=stopContainer',
+            data: { container: el.data('app') },
+            dataType: 'json',
+            beforeSend: function() {
+                $('.confirm-modal').modal('hide');
+                loader.removeClass('hidden');
+            }
+        }).done(function(data) {
+            displayMessage(data.message);
+            if(data.content) {
+                $('.container-content').replaceWith(data.content);
+            }
+        }).error(function(data) {
+            loader.addClass('hidden');
+            displayMessage(data.responseJSON.message);
+        });
+    };
+
+    $(document).on('click', '.confirm-modal .btn-action', function(e) {
+        switch($(this).data('action')) {
+            case 'delete':
+                deletePod($(this).data('app'));
+                break;
+            case 'stop':
+                stopPod($(this).data('app'));
+                break;
+        }
+    });
+
+    // Popups
+    $(document).on('click', '.container-delete', function(e) {
+        $($(this).data('target')).find('.modal-header').html('Do you want to delete application?');
+        $($(this).data('target')).find('button.btn-action').text('Delete')
+            .data('action', 'delete')
+            .data('app', $(this).data('app'));
+        $($(this).data('target')).modal('show');
+    });
+
+    $(document).on('click', '.container-stop', function(e) {
+        $($(this).data('target')).find('.modal-header').html('Do you want to stop application?');
+        $($(this).data('target')).find('button.btn-action').text('Stop')
+            .data('action', 'stop')
+            .data('app', $(this).data('app'));
+        $($(this).data('target')).modal('show');
+    });
+
+    $(document).on('click', '.container-start', function(e) {
+        var el = $(this),
+            loader = el.parents('tr:eq(0)').find('.pod.ajax-loader');
+
+        $.ajax({
+            type: 'POST',
+            url: '?a=startContainer',
+            data: { container: el.data('app') },
             dataType: 'json',
             beforeSend: function() {
                 loader.removeClass('hidden');
