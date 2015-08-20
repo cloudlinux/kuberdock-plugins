@@ -11,7 +11,10 @@
             ?>
             <tr>
                 <td><a href="javascript:void(0)" class="show-container-details"><?php echo $pod->name?></a></td>
-                <td><?php echo 'Public IP: ' . (isset($pod->labels['kuberdock-public-ip']) ? $pod->labels['kuberdock-public-ip'] : 'none')?></td>
+                <td>
+                    <?php echo 'Public IP: ' . isset($pod->public_ip) && $pod->public_ip ? $pod->public_ip :
+                        (isset($pod->labels['kuberdock-public-ip']) ? $pod->labels['kuberdock-public-ip'] : 'none')?>
+                </td>
                 <td>
                     <button type="button" class="btn btn-default btn-xs <?php echo $statusClass?>" data-target=".confirm-modal" data-app="<?php echo $pod->name?>" title="<?php echo $statusText?>">
                         <span class="glyphicon glyphicon-<?php echo $statusText == 'Stop' ? 'stop' : 'play' ?>" aria-hidden="true"></span> <?php echo $statusText?>
@@ -123,12 +126,14 @@
                                     </tr>
 
                                     <?php foreach($pod->containers as $row):?>
-                                        <?php foreach($row['volumeMounts'] as $volume):?>
+                                        <?php foreach($row['volumeMounts'] as $volume):
+                                            $pd = $pod->getPersistentStorageByName($volume['name']);
+                                        ?>
                                             <tr>
                                                 <td><small><?php echo $volume['mountPath']?></small></td>
-                                                <td class="text-center"><input type="checkbox" disabled<?php //echo $volume['persistent'] ? ' checked' : ''?>></td>
-                                                <td><small><?php echo '-'//$volume['name']?></small></td>
-                                                <td><small><?php echo '-'//$volume['size']?></small></td>
+                                                <td class="text-center"><input type="checkbox" disabled<?php echo isset($volume['readOnly']) && !$volume['readOnly'] ? ' checked' : ''?>></td>
+                                                <td><small><?php echo isset($pd['persistentDisk']) ? $pd['persistentDisk']['pdName'] : '-'?></small></td>
+                                                <td><small><?php echo isset($pd['persistentDisk']) ? $pd['persistentDisk']['pdSize'] : '-'?></small></td>
                                             </tr>
                                         <?php endforeach;?>
                                     <?php endforeach;?>

@@ -75,3 +75,22 @@ p.kube-name {
 .navbar-brand > img {
     display: inline-block !important;
 }
+
+/* iselect */
+.iselect-popup {
+    display: none;
+    position: absolute;
+    margin: 2px;
+    border: solid 1px #cccccc;
+    background-color: #ffffff;
+}
+
+.iselect-popup span {
+    display: block;
+    margin: 5px 2px;
+}
+
+.iselect-popup span:hover {
+    cursor: pointer;
+    background-color: #c0c0c0;
+}

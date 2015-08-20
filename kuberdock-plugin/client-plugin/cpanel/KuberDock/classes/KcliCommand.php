@@ -1,12 +1,19 @@
 <?php
 
 class KcliCommand extends Command {
+    /**
+     * Global config file path
+     */
     const CONF_FILE = '/etc/kubecli.conf';
+    /**
+     * Command path
+     */
+    const COMMAND_PATH = '/usr/bin/kcli';
 
     /**
      * @var string
      */
-    protected $returnType = self::DATA_TYPE_JSON;
+    protected $returnType;
     /**
      * @var string
      */
@@ -27,103 +34,11 @@ class KcliCommand extends Command {
      */
     public function __construct($username, $password, $token = '')
     {
-        $this->commandPath = '/usr/bin/kcli';
+        $this->commandPath = self::COMMAND_PATH;
         $this->username = $username;
         $this->password = $password;
         $this->token = $token;
-
-        /*
-         * List of available commands & their separators
-         * parameter => separator
-         *
-         */
-        $this->paramSeparators = array(
-            'container' => array(
-                'prefix' => '',
-                'separator' => ' ',
-            ),
-            'image' => array(
-                'prefix' => '',
-            ),
-            'list' => array(
-                'prefix' => '',
-            ),
-            'search' => array(
-                'separator' => ' ',
-                'prefix' => '',
-            ),
-            'json',
-            'user' => '',
-            'password' => '',
-             'p' => array(
-                 'prefix' => '-',
-             ),
-            'delete' => array(
-                'prefix' => '',
-            ),
-            'create' => array(
-                'prefix' => '',
-            ),
-            'set' => array(
-                'prefix' => '',
-            ),
-            'stop' => array(
-                'prefix' => '',
-            ),
-            'start' => array(
-                'prefix' => '',
-            ),
-            'save' => array(
-                'prefix' => '',
-            ),
-            'run',
-            'kuberdock' => array(
-                'prefix' => '',
-            ),
-            'kubes' => array(
-                'prefix' => '',
-            ),
-            'kube-type',
-            '--image' => array(
-                'prefix' => '',
-            ),
-            'kubectl' => array(
-                'prefix' => '',
-            ),
-            'get' => array(
-                'prefix' => '',
-            ),
-            'pods' => array(
-                'prefix' => '',
-                'separator' => ' ',
-            ),
-            '--kubes' => array(
-                'prefix' => '',
-            ),
-            'describe' => array(
-                'prefix' => '',
-                'separator' => ' ',
-            ),
-            'index' => array(
-                'separator' => ' ',
-            ),
-            'host-port' => array(
-                'separator' => ' ',
-            ),
-            'container-port' => array(
-                'separator' => ' ',
-            ),
-            'protocol' => array(
-                'separator' => ' ',
-            ),
-            'public',
-            'image_info' => array(
-                'prefix' => '',
-            ),
-            'env',
-            'mount-path',
-            'token',
-        );
+        $this->returnType = '--'.self::DATA_TYPE_JSON;
     }
 
     /**
@@ -133,12 +48,12 @@ class KcliCommand extends Command {
     {
         if($this->token) {
             return array(
-                'token' => sprintf("'%s'", $this->token),
+                '--token' => sprintf("'%s'", $this->token),
             );
         } else {
             return array(
-                'user' => $this->username,
-                'password' => $this->password,
+                '--user' => $this->username,
+                '--password' => $this->password,
             );
         }
     }
@@ -242,7 +157,7 @@ class KcliCommand extends Command {
             'kuberdock',
             'create' => sprintf("'%s'", $name),
             '--image' => $image,
-            'kube-type' => sprintf("'%s'", $kubeName),
+            '--kube-type' => sprintf("'%s'", $kubeName),
             '--kubes' => $kubeCount,
         );
 
@@ -273,7 +188,7 @@ class KcliCommand extends Command {
             'kuberdock',
             'set' => sprintf("'%s'", $name),
             '--image' => $image,
-            'container-port' => $ports ? implode(',', $ports) : "''",
+            '--container-port' => $ports ? implode(',', $ports) : "''",
         ));
     }
 
@@ -296,27 +211,43 @@ class KcliCommand extends Command {
             'kuberdock',
             'set' => sprintf("'%s'", $name),
             '--image' => $image,
-            'env' => implode(',', $env),
+            '--env' => implode(',', $env),
         ));
     }
 
     /**
-     * @param $values
-     * @param $index
-     * @param $params
+     * @param string $name
+     * @param string $image
+     * @param int $index
+     * @param array $params
      * @return array
+     * @throws CException
      */
-    public function setMountPath($values, $index, $params)
+    public function setMountPath($name, $image, $index, $params)
     {
-        $values['index'] = $index;
-        $attributes = array(
-            'mountPath' => 'mount-path',
+        if(empty($params['mountPath'])) {
+            throw new CException('Mount path is empty.');
+        }
+
+        $values = array(
+            $this->returnType,
+            'kuberdock',
+            'set' => sprintf("'%s'", $name),
+            '--image' => $image,
+            '--mount-path' => $params['mountPath'],
+            '--read-only' => isset($params['readOnly']) ? (int) $params['readOnly'] : 0,
+            '--index' => $index,
         );
 
-        foreach($attributes as $containerAttr => $commandAttr) {
-            if(isset($params[$containerAttr]) && $params[$containerAttr]) {
-                $values[$commandAttr] = $params[$containerAttr];
+        if($params['name'] && $params['size']) {
+            if(!$this->findPersistentDriveByName($params['name'])) {
+                $this->addPersistentDrive($params['name'], $params['size']);
             }
+
+            $values = array_merge($values, array(
+                '-p' => $params['name'],
+                '-s' => $params['size'],
+            ));
         }
 
         return $this->execute($values);
@@ -389,7 +320,7 @@ class KcliCommand extends Command {
             $this->returnType,
             'kuberdock',
             'search' => $image,
-            'p' => $page,
+            '-p' => $page,
         ));
     }
 
@@ -435,12 +366,63 @@ class KcliCommand extends Command {
     }
 
     /**
+     * @param string $name
+     * @param float $size
+     * @return array
+     */
+    public function addPersistentDrive($name, $size)
+    {
+        return $this->execute(array(
+            $this->returnType,
+            'kuberdock',
+            'drives',
+            'add' => $name,
+            '--size' => $size,
+        ));
+    }
+
+    /**
+     * @param string $name
+     * @return array
+     */
+    public function deletePersistentDrive($name)
+    {
+        return $this->execute(array(
+            $this->returnType,
+            'kuberdock',
+            'drives',
+            'delete' => $name,
+        ));
+    }
+
+    /**
+     * @return array
+     */
+    public function getPersistentDrives()
+    {
+        return $this->execute(array(
+            $this->returnType,
+            'kuberdock',
+            'drives',
+            'list',
+        ));
+    }
+
+    /**
+     * Get config file data. user if exists or global
      * @return array
      */
     static public function getConfFile()
     {
+        $userConf = getenv('HOME') .DS . '.kubecli.conf';
+        if(file_exists($userConf)) {
+            $path = $userConf;
+        } else {
+            $path = self::CONF_FILE;
+        }
+
         $data = array();
-        $fp = fopen(self::CONF_FILE, 'r');
+        $fp = fopen($path, 'r');
 
         while($line = fgets($fp)) {
             if(in_array(substr($line, 0, 1), array('#', '/'))) continue;
@@ -453,5 +435,22 @@ class KcliCommand extends Command {
         fclose($fp);
 
         return $data;
+    }
+
+    /**
+     * @param string $name
+     * @return mixed bool|array
+     */
+    private function findPersistentDriveByName($name)
+    {
+        $drives = $this->getPersistentDrives();
+
+        foreach($drives as $row) {
+            if($row['name'] == $name) {
+                return $row;
+            }
+        }
+
+        return false;
     }
 }

@@ -1,4 +1,4 @@
-<link rel="stylesheet" type="text/css" href="assets/script/slider/jquery.nouislider.min.css" xmlns="http://www.w3.org/1999/html">
+<link rel="stylesheet" type="text/css" href="assets/script/slider/jquery.nouislider.min.css">
 <script src="assets/script/slider/jquery.nouislider.all.min.js"></script>
 <script src="assets/script/install.js"></script>
 
@@ -28,14 +28,14 @@
 
                 <div class="col-sm-4">
                     <select class="form-control" name="kuber_kube_id" id="kuber_kube_id">
-                        <?php foreach($pod->kuberProducts as $product):?>
-                            <?php if(!$product['showInCpanel']) continue; ?>
-                            <?php foreach($product['kubes'] as $kube):?>
-                                <option value="<?php echo $kube['kuber_kube_id']?>" data-pid="<?php echo $product['id']?>">
-                                    <?php echo $kube['kube_name'] . ' ('.$product['name'].')'?>
-                                </option>
-                            <?php endforeach;?>
+                    <?php foreach($pod->kuberProducts as $product):?>
+                        <?php if(!$product['showInCpanel']) continue; ?>
+                        <?php foreach($product['kubes'] as $kube):?>
+                        <option value="<?php echo $kube['kuber_kube_id']?>" data-pid="<?php echo $product['id']?>">
+                            <?php echo $kube['kube_name'] . ' ('.$product['name'].')'?>
+                        </option>
                         <?php endforeach;?>
+                    <?php endforeach;?>
                     </select>
                 </div>
 
@@ -67,41 +67,41 @@
                             <th><small>Container port</small></th>
                             <th><small>Protocol</small></th>
                             <th><small>
-                                    Host port
+                                Host port
                                 <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="right"
-                                      title="Host port is external port of a container used to access container port from using public_ip:host_port">
+                                    title="Host port is external port of a container used to access container port from using public_ip:host_port">
                                 </span>
-                                </small></th>
+                            </small></th>
                             <th><small>
                                     Public
                                 <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="right"
                                       title="Provides application public IP for marked ports">
                                 </span>
-                                </small></th>
+                            </small></th>
                             <th></th>
                         </tr>
 
-                        <?php if(isset($pod->containers[0]['ports'])):?>
-                            <?php foreach($pod->containers[0]['ports'] as $k => $port): ?>
-                                <tr>
-                                    <td><input type="text" name="Ports[<?php echo $k?>][containerPort]" placeholder="Empty" value="<?php echo $port['containerPort']?>"></td>
-                                    <td>
-                                        <select name="Ports[<?php echo $k?>][protocol]">
-                                            <?php foreach(array('tcp', 'udp') as $p):?>
-                                                <option value="<?php echo $p?>"<?php echo $p == $port['protocol'] ? ' selected' : ''?>><?php echo $p?></option>
-                                            <?php endforeach;?>
-                                        </select>
-                                    </td>
-                                    <td><input type="text" name="Ports[<?php echo $k?>][hostPort]" placeholder="Empty" value="<?php echo $port['hostPort']?>"></td>
-                                    <td class="text-center">
-                                        <input type="checkbox" name="Ports[<?php echo $k?>][isPublic]" value="1"<?php echo $port['isPublic'] ? ' checked' : ''?>>
-                                    </td>
-                                    <td><button type="button" class="btn btn-default btn-sm delete-port">
-                                            <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                                        </button></td>
-                                </tr>
-                            <?php endforeach;?>
-                        <?php endif;?>
+                    <?php if(isset($pod->containers[0]['ports'])):?>
+                    <?php foreach($pod->containers[0]['ports'] as $k => $port): ?>
+                        <tr>
+                            <td><input type="text" name="Ports[<?php echo $k?>][containerPort]" placeholder="Empty" value="<?php echo $port['containerPort']?>"></td>
+                            <td>
+                                <select name="Ports[<?php echo $k?>][protocol]">
+                                <?php foreach(array('tcp', 'udp') as $p):?>
+                                    <option value="<?php echo $p?>"<?php echo $p == $port['protocol'] ? ' selected' : ''?>><?php echo $p?></option>
+                                <?php endforeach;?>
+                                </select>
+                            </td>
+                            <td><input type="text" name="Ports[<?php echo $k?>][hostPort]" placeholder="Empty" value="<?php echo $port['hostPort']?>"></td>
+                            <td class="text-center">
+                                <input type="checkbox" name="Ports[<?php echo $k?>][isPublic]" value="1"<?php echo $port['isPublic'] ? ' checked' : ''?>>
+                            </td>
+                            <td><button type="button" class="btn btn-default btn-sm delete-port">
+                                <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                            </button></td>
+                        </tr>
+                    <?php endforeach;?>
+                    <?php endif;?>
                     </table>
                 </div>
             </div>
@@ -167,13 +167,13 @@
                                 <tr>
                                     <td><input type="text" class="middle" name="Volume[<?php echo $k?>][mountPath]" placeholder="Empty" value="<?php echo $volume['mountPath']?>"></td>
                                     <td class="text-center">
-                                        <input type="checkbox" name="Volume[<?php echo $k?>][persistent]" value="1"<?php //echo $volume['persistent'] ? ' checked' : ''?> disabled>
+                                        <input type="checkbox" name="Volume[<?php echo $k?>][persistent]" class="set-persistent" value="1">
                                     </td>
                                     <td>
-                                        <input type="text" name="Volume[<?php echo $k?>][name]" class="short" placeholder="Empty" value="<?php //echo $volume['name']?>" disabled>
+                                        <input type="text" name="Volume[<?php echo $k?>][name]" class="short volume-name" placeholder="Empty" disabled>
                                     </td>
                                     <td>
-                                        <input type="text" name="Volume[<?php echo $k?>][size]" class="short" placeholder="Empty" value="<?php //echo $volume['size']?>" disabled>
+                                        <input type="text" name="Volume[<?php echo $k?>][size]" class="short volume-size" placeholder="Empty" disabled>
                                     </td>
                                     <td class="text-center"><small>MB</small></td>
                                     <td>

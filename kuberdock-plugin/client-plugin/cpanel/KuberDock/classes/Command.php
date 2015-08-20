@@ -45,12 +45,6 @@ abstract class Command {
      */
     protected $params;
     /**
-     * List of available command and their separators
-     *
-     * @var array
-     */
-    protected $paramSeparators = array();
-    /**
      * Current command response data type
      *
      * @var string
@@ -106,23 +100,17 @@ abstract class Command {
      */
     protected function getCommandString($params = array())
     {
-        $commandParams = '';
+        $commandParams = array();
 
         foreach($params as $param => $value) {
             if(is_numeric($param)) {
-                $param = $value;
-                $value = '';
+                $commandParams[] = $value;
+            } else {
+                $commandParams[] = sprintf('%s %s', $param, $value);
             }
-
-            $separator = isset($this->paramSeparators[$param]['separator']) ?
-                $this->paramSeparators[$param]['separator'] : ' ';
-            $prefix = isset($this->paramSeparators[$param]['prefix']) ?
-                $this->paramSeparators[$param]['prefix'] : $this->paramsPrefix;
-
-            $commandParams .= ' '. $prefix . $param . $separator . $value;
         }
 
-        $command = $this->commandPath . ' '. $commandParams;
+        $command = $this->commandPath . ' '. implode(' ', $commandParams);
 
         return $command;
     }
@@ -166,7 +154,7 @@ abstract class Command {
     {
         $parsedResponse = json_decode($response, true);
 
-        if(empty($parsedResponse) && $response) {
+        if(!is_array($parsedResponse) && empty($parsedResponse) && $response) {
             throw new CException($response);
         }
 

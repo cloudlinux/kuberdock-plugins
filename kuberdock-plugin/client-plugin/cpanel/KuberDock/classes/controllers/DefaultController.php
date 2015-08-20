@@ -201,6 +201,34 @@ class DefaultController extends KuberDock_Controller {
         ));
     }
 
+    public function getPersistentDrivesAction()
+    {
+        if(!Tools::getIsAjaxRequest()) {
+            return;
+        }
+
+        try {
+            $pod = new Pod();
+
+            echo json_encode(array(
+                'data' => array(array(
+                    'id' => 1,
+                    'name' => 'name',
+                    'size' => 100,
+                    'in_use' => false,
+                ), array(
+                    'id' => 2,
+                    'name' => 'name2',
+                    'size' => 200,
+                    'in_use' => false,
+                )),
+            ));
+        } catch(CException $e) {
+            header('HTTP/1.1 500 Internal Server Error');
+            echo $e->getJSON();
+        }
+    }
+
     private function getContainersList()
     {
         try {

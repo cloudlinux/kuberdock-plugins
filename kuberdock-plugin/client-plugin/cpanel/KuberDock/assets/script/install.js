@@ -1,3 +1,104 @@
+(function($) {
+    $.fn.iselect = function(options) {
+        var ISelect = function(el, options) {
+            var _this = this;
+
+            this.options = _.extend({
+                async: false,
+                url: ''
+            }, options);
+            this.el = '';
+            this.$el = $(this.el);
+            this.$current = $;
+            this.className = this.options.className || 'iselect-popup';
+            this.$popup = $('div.' + this.className);
+            this.template = _.template('<div class="<%- className %>">' +
+                '<% _.each(data, function(v) { %> ' +
+                    '<span data-name="<%- v.name %>" data-size="<%- v.size %>"><%- v.name %> (<%- v.size %>)</span>' +
+                '<% }); %></div>');
+            this.data = [];
+
+            this.init = function(el) {
+                this.el = el;
+                this.$el = $(el);
+                this.createPopup();
+                this.bindEvents();
+            };
+
+            this.createPopup = function() {
+                if(!this.$popup.length) {
+                    $.ajax({
+                        async: this.options.async || false,
+                        method: 'GET',
+                        url: this.options.url,
+                        dataType: 'json'
+                    }).done(function(data) {
+                        _this.data = data.data;
+                        $('body').append(_this.options.template || _this.template({
+                            className: _this.className,
+                            data: _this.data
+                        }));
+                        _this.$popup = $('div.' + _this.className);
+                        $(document).on('click', _this.options.filled || _this.filled);
+                    });
+                }
+            };
+
+            this.bindEvents = function() {
+                this.$el.off('click').on('click', this.options.clicked || this.clicked);
+                this.$el.off('keyup').on('keyup', this.options.filled || this.filled);
+                this.$popup.find('span').off('click').on('click', this.options.selected || this.selected);
+            };
+
+            this.clicked = function(e) {
+                e.stopPropagation();
+                _this.setCurrent(e.target);
+                _this.popupShow();
+            };
+
+            this.filled = function(e) {
+                e.stopPropagation();
+                if(!$(e.target).is(_this.$current)) {
+                    _this.popupHide();
+                }
+            };
+
+            this.selected = function(e) {
+                e.stopPropagation();
+                var parent = _this.$current.parents('tr:eq(0)');
+
+                parent.find('input.volume-name').val($(this).data('name'));
+                parent.find('input.volume-size').val($(this).data('size'));
+                _this.popupHide();
+            };
+
+            this.popupShow = function() {
+                var offset = this.$current.offset(),
+                    top = offset.top + _this.$current.height() + 4,
+                    left = offset.left;
+                //this.$popup.offset({top: top, left: left});   // in this case on 2nd click values are added, instead replacing
+                this.$popup.css({top: top + 'px', left: left + 'px'});
+                this.$popup.show();
+            };
+
+            this.popupHide = function() {
+                this.$popup.hide();
+            };
+
+            this.setCurrent = function(el) {
+                this.$current = $(el);
+
+                return this;
+            };
+
+            this.init(el);
+        };
+
+        var S = new ISelect(this, options);
+        return this;
+    };
+}(jQuery));
+
 $(function() {
     var calculateTotal = function() {
         var el = $('#kuber_kube_id option:selected'),
@@ -22,6 +123,12 @@ $(function() {
         $('#priceBlock').html(price);
     };
 
+    var initISelect = function() {
+        $("input.volume-name").iselect({
+            url: '?a=getPersistentDrives'
+        });
+    };
+
     $('.kube-slider').noUiSlider({
         start: [ 1 ],
         range: {
@@ -37,7 +144,11 @@ $(function() {
     $('.kube-slider').Link('lower').to($('.kube-slider-value'));
     $('.kube-slider').Link('lower').to($('#kube_count'));
 
-    $(document).ready(calculateTotal);
+    $(document).ready(function() {
+        calculateTotal();
+        initISelect();
+    });
+
     $(document).on('change', '#kuber_kube_id', calculateTotal);
     $(document).on('change', '.kube-slider', calculateTotal);
 
@@ -76,14 +187,24 @@ $(function() {
     });
 
     // Volume mounts
+    $(document).on('click', 'input.set-persistent', function(e) {
+        var parent = $(this).parents('tr:eq(0)');
+
+        if($(this).is(':checked')) {
+            parent.find('input.volume-name, input.volume-size').prop('disabled', false);
+        } else {
+            parent.find('input.volume-name, input.volume-size').prop('disabled', true);
+        }
+    });
+
     $(document).on('click', 'button#add_volume', function(e) {
         e.preventDefault();
         var table = $('#volume_table'),
             k = table.find('tr').length - 1,
             template = '<tr><td><input type="text" class="middle" name="Volume[' + k + '][mountPath]" placeholder="Empty"></td>' +
-                '<td class="text-center"><input type="checkbox" name="Volume[' + k + '][persistent]" value="1" disabled></td>' +
-                '<td><input type="text" class="short" name="Volume[' + k + '][name]" placeholder="Empty" disabled></td>' +
-                '<td><input type="text" class="short" name="Volume[' + k + '][size]" placeholder="Empty" disabled></td>' +
+                '<td class="text-center"><input type="checkbox" name="Volume[' + k + '][persistent]" class="set-persistent" value="1"></td>' +
+                '<td><input type="text" class="short volume-name" name="Volume[' + k + '][name]" autocomplete="off" placeholder="Empty" disabled></td>' +
+                '<td><input type="text" class="short volume-size" name="Volume[' + k + '][size]" placeholder="Empty" disabled></td>' +
                 '<td><small>MB</small></td>' +
                 '<td><button type="button" class="btn btn-default btn-sm delete-port">' +
                 '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>' +
@@ -91,6 +212,7 @@ $(function() {
 
         table.removeClass('hidden');
         table.append(template);
+        initISelect();
     });
 
     $(document).on('click', 'button.delete-port, button.delete-env, button.delete-volume', function(e) {
@@ -101,5 +223,7 @@ $(function() {
         if(table.find('tr').length <= 1) {
             table.addClass('hidden');
         }
+
+        initISelect();
     });
 });

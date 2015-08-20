@@ -170,7 +170,7 @@ class Pod {
     {
         $values = is_array($values) ? $values : array();
         $volumes = array();
-        $attributes = array('mountPath'); // feature array('mountPath', 'size', 'persistent', 'name');
+        $attributes = array('mountPath', 'size', 'persistent', 'name');
 
         foreach($values as $row) {
             $volume = array();
@@ -492,8 +492,8 @@ class Pod {
         $this->command->setContainerPorts($this->name, $container['image'], $container['ports']);
         $this->command->setContainerEnvVars($this->name, $container['image'], $container['env']);
 
-        foreach($container['volumeMounts'] as $index => $row) {
-            $this->command->setMountPath($podValues, $index, $row);
+        foreach($container['volumeMounts'] as $index => $data) {
+            $this->command->setMountPath($this->name, $container['image'], $index, $data);
         }
 
         $this->command->saveContainer($this->name);
@@ -531,6 +531,29 @@ class Pod {
     public function searchImages($image, $page = 1)
     {
         return $this->command->searchImages($image, $page-1);
+    }
+
+    /**
+     * @return array
+     */
+    public function getPersistentDrives()
+    {
+        return $this->command->getPersistentDrives();
+    }
+
+    /**
+     * @param string $volumeName
+     * @return array
+     */
+    public function getPersistentStorageByName($volumeName)
+    {
+        foreach($this->volumes as $volume) {
+            if(isset($volume['name']) && $volume['name'] == $volumeName) {
+                return $volume;
+            }
+        }
+
+        return array();
     }
 
     /**

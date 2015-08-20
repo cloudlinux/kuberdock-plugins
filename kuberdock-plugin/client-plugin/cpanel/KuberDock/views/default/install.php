@@ -1,4 +1,4 @@
-<link rel="stylesheet" type="text/css" href="assets/script/slider/jquery.nouislider.min.css" xmlns="http://www.w3.org/1999/html">
+<link rel="stylesheet" type="text/css" href="assets/script/slider/jquery.nouislider.min.css">
 <script src="assets/script/slider/jquery.nouislider.all.min.js"></script>
 <script src="assets/script/install.js"></script>
 
@@ -167,13 +167,13 @@
                                 <tr>
                                     <td><input type="text" class="middle" name="Volume[<?php echo $k?>][mountPath]" placeholder="Empty" value="<?php echo $volume['mountPath']?>"></td>
                                     <td class="text-center">
-                                        <input type="checkbox" name="Volume[<?php echo $k?>][persistent]" value="1"<?php //echo $volume['persistent'] ? ' checked' : ''?> disabled>
+                                        <input type="checkbox" name="Volume[<?php echo $k?>][persistent]" class="set-persistent" value="1">
                                     </td>
                                     <td>
-                                        <input type="text" name="Volume[<?php echo $k?>][name]" class="short" placeholder="Empty" value="<?php //echo $volume['name']?>" disabled>
+                                        <input type="text" name="Volume[<?php echo $k?>][name]" class="short volume-name" autocomplete="off" placeholder="Empty" disabled>
                                     </td>
                                     <td>
-                                        <input type="text" name="Volume[<?php echo $k?>][size]" class="short" placeholder="Empty" value="<?php //echo $volume['size']?>" disabled>
+                                        <input type="text" name="Volume[<?php echo $k?>][size]" class="short volume-size" placeholder="Empty" disabled>
                                     </td>
                                     <td class="text-center"><small>MB</small></td>
                                     <td>
