@@ -12,7 +12,6 @@
             <tr class="active">
                 <th>Package name</th>
                 <th>Kube type name</th>
-                <th>Use in cPanel</th>
                 <th>CPU limit (<?php echo KuberDock_Units::getCPUUnits()?>)</th>
                 <th>Memory limit (<?php echo KuberDock_Units::getMemoryUnits()?>)</th>
                 <th>HDD limit (<?php echo KuberDock_Units::getHDDUnits()?>)</th>
@@ -35,9 +34,6 @@
             <tr>
                 <td><?php echo $product->name?></td>
                 <td><?php echo $kube['kube_name']?></td>
-                <td align="center">
-                    <?php echo $product->getConfigOption('showInCpanel') ? '<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>' : '' ?>
-                </td>
                 <td><?php echo $kube['cpu_limit']?></td>
                 <td><?php echo $kube['memory_limit']?></td>
                 <td><?php echo $kube['hdd_limit']?></td>

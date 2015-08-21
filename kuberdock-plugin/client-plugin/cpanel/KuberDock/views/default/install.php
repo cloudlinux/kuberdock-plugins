@@ -29,7 +29,6 @@
                 <div class="col-sm-4">
                     <select class="form-control" name="kuber_kube_id" id="kuber_kube_id">
                     <?php foreach($pod->kuberProducts as $product):?>
-                        <?php if(!$product['showInCpanel']) continue; ?>
                         <?php foreach($product['kubes'] as $kube):?>
                         <option value="<?php echo $kube['kuber_kube_id']?>" data-pid="<?php echo $product['id']?>">
                             <?php echo $kube['kube_name'] . ' ('.$product['name'].')'?>

@@ -211,17 +211,7 @@ class DefaultController extends KuberDock_Controller {
             $pod = new Pod();
 
             echo json_encode(array(
-                'data' => array(array(
-                    'id' => 1,
-                    'name' => 'name',
-                    'size' => 100,
-                    'in_use' => false,
-                ), array(
-                    'id' => 2,
-                    'name' => 'name2',
-                    'size' => 200,
-                    'in_use' => false,
-                )),
+                'data' => $pod->getPersistentDrives(),
             ));
         } catch(CException $e) {
             header('HTTP/1.1 500 Internal Server Error');

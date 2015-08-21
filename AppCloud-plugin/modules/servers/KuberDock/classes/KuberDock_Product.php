@@ -70,11 +70,6 @@ class KuberDock_Product extends CL_Product {
                 'Default' => '0',
                 'Description' => 'per '.KuberDock_Units::getTrafficUnits(),
             ),
-            'showInCpanel' => array(
-                'FriendlyName' => 'Use in cPanel',
-                'Type' => 'yesno',
-                'Description' => '',
-            ),
             'firstDeposit' => array(
                 'FriendlyName' => 'First Deposit',
                 'Type' => 'text',

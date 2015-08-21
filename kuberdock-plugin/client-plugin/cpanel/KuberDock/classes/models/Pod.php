@@ -192,7 +192,7 @@ class Pod {
     }
 
     /**
-     * @throws CException
+     *
      */
     public function setToken()
     {
@@ -206,8 +206,6 @@ class Pod {
 
         if(isset($data['results']) && $data['results']) {
             $this->token = current($data['results'])['token'];
-        } else {
-            throw new CException('Cannot get token');
         }
     }
 

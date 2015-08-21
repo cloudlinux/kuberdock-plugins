@@ -239,7 +239,7 @@ class KcliCommand extends Command {
             '--index' => $index,
         );
 
-        if($params['name'] && $params['size']) {
+        if(isset($params['name']) && isset($params['size']) && $params['name'] && $params['size']) {
             if(!$this->findPersistentDriveByName($params['name'])) {
                 $this->addPersistentDrive($params['name'], $params['size']);
             }

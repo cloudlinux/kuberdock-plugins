@@ -76,7 +76,6 @@ class KuberDock_Addon extends CL_Component {
                 //'order' => 1,
                 //'hidden' => '',
             ));
-            $product->setConfigOption('showInCpanel', 1);
             $product->setConfigOption('enableTrial', 0);
             $product->setConfigOption('firstDeposit', 0);
             $product->setConfigOption('priceOverTraffic', 0);

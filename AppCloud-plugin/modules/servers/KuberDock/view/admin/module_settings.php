@@ -10,7 +10,6 @@
     </tr>
 
     <tr>
-        <?php echo $product->renderConfigOption('showInCpanel', $product->getConfigOption('showInCpanel'))?>
         <?php echo $product->renderConfigOption('debug', $product->getConfigOption('debug'))?>
     </tr>
 

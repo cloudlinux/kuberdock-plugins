@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    if(window.location.href.indexOf('clientsservices')) {
+    if(window.location.href.indexOf('clientsservices') >= 0) {
         $.ajax({
             url: 'addonmodules.php?module=KuberDock',
             data: { a: 'isKuberProduct', productId: $('select[name="packageid"]').val() },
@@ -19,7 +19,6 @@ $(document).ready(function() {
 
 $(function() {
     $(document).on('change', 'input[name="password_hidden"]', function() {
-        console.log(1);
         $('input[name="password"]').val($(this).val());
     });
 });
