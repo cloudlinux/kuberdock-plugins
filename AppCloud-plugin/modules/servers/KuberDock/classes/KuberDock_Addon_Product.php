@@ -63,7 +63,7 @@ class KuberDock_Addon_Product extends CL_Model {
             'currency' => $currency->code,
             'prefix' => $currency->prefix,
             'suffix' => $currency->suffix,
-            'name' => $product->name,
+            'name' => $product->getName(),
             'period' => $product->getReadablePaymentType(),
             'price_ip' => $product->getConfigOption('priceIP'),
             'price_pstorage' => $product->getConfigOption('pricePersistentStorage'),

@@ -62,14 +62,16 @@ class KuberDock_Hosting extends CL_Hosting {
     public function calculate()
     {
         $date = new DateTime();
+        $date->setTime(0, 0, 0);
         $product = KuberDock_Product::model()->loadById($this->product_id);
         $clientDetails = CL_Client::model()->getClientDetails($this->userid);
 
         // trial time
+        $enableTrial = $product->getConfigOption('enableTrial');
         $trialTime = $product->getConfigOption('trialTime');
-        $regDate = new DateTime($this->regdate);
+        $regDate = CL_Tools::sqlDateToDateTime($this->regdate);
 
-        if($trialTime) {
+        if($enableTrial) {
             if(!$this->isTrialExpired($regDate, $trialTime)) {
                 CL_MailTemplate::model()->sendPreDefinedEmail($this->id, CL_MailTemplate::TRIAL_NOTICE_NAME, array(
                     'trial_end_date' => $regDate->modify('+'.$trialTime.' day')->format('Y-m-d'),
@@ -91,9 +93,6 @@ class KuberDock_Hosting extends CL_Hosting {
         }
 
         $paymentType = $product->getConfigOption('paymentType');
-        if(0 >= $date->format('H') and $date->format('H') <= 6) {
-            $date = $date->modify('-1 day');
-        }
 
         $kubes = KuberDock_Product::model()->loadById($this->packageid)->getKubes();
         $kubes = CL_Tools::getKeyAsField($kubes, 'kuber_kube_id');
@@ -106,7 +105,6 @@ class KuberDock_Hosting extends CL_Hosting {
                 return false;
             }
             $this->addInvoice($this->userid, $date, $factPrice);
-            $this->updateByApi($this->id, array('nextduedate' => date('Y-m-d', time())));
         }
 
         return true;
@@ -121,75 +119,35 @@ class KuberDock_Hosting extends CL_Hosting {
      */
     public function calculateUsageByDate(DateTime $date, $kubes, $paymentType = 'hourly')
     {
-        $api = $this->getAdminApi();
-        // TODO: api must return usage for period
-        $response = $api->getUsage($this->username);
-        $usage = $response->getData();
-
-        $method = 'get'.ucfirst($paymentType).'Usage';
-        if(method_exists($this, $method)) {
-            $usage = $this->{$method}($date, $kubes, $usage);
-            return $usage;
-        } else {
-            throw new Exception('Undefined payment type: '.$paymentType);
-        }
-    }
-
-    /**
-     * @param DateTime $date
-     * @param float $price
-     * @param array $usage
-     * @return float
-     */
-    public function getDailyUsage(DateTime $date, $price, $usage)
-    {
-        // Currently not used
-        return 0;
-        $dateStart = clone($date);
-        $dateEnd = clone($date);
-        $dateStart->setTime(0, 0, 0);
-        $dateEnd->setTime(23, 59, 59);
-        $timeStart = $dateStart->getTimestamp();
-        $timeEnd = $dateEnd->getTimestamp();
-
-        $podStat = array();
-        $timeSegment = 60*60*24;
-
-        foreach($usage as $pod) {
-            if($this->isPodDeleted($pod['name']) || empty($pod['time'])) {
-                continue;
-            }
-
-            $usageTime = 0;
-
-            foreach($pod['time'] as $k=>$period) {
-                if($period['start'] <= $timeStart && $timeEnd <= $period['end']) {
-                    $usageTime += $timeEnd - $timeStart;
-                } elseif($period['start'] >= $timeStart && $period['start'] <= $timeEnd) {
-                    $usageTime += $timeEnd - $period['start'];
-                } elseif($period['end'] >= $timeStart && $period['end'] <= $timeEnd) {
-                    $usageTime += $period['end'] - $timeStart;
+        switch($paymentType) {
+            case 'hourly':
+                $nextDueDate = CL_Tools::sqlDateToDateTime($this->nextduedate);
+                if($date == $nextDueDate || is_null($nextDueDate)) {
+                    return $this->getHourlyUsage($date, $kubes);
                 }
-            }
-
-            $podStat[] = $usageTime;
+            default:
+                return $this->getPeriodicUsage($date, $kubes, $paymentType);
         }
 
-        $usagePercent = array_sum($podStat) / count($podStat) / $timeSegment * 100;
-        $factPrice = $price / 100 * $usagePercent;
-
-        return $factPrice;
+        return 0;
     }
 
     /**
      * @param DateTime $date
      * @param array $kubes
-     * @param array $usage
      * @return float
      * @throws Exception
      */
-    public function getHourlyUsage(DateTime $date, $kubes, $usage)
+    public function getHourlyUsage(DateTime $date, $kubes)
     {
+        $currentDate = clone($date);
+        $date = $date->modify('-1 day');
+
+        $api = $this->getAdminApi();
+        // TODO: api must return usage for period
+        $response = $api->getUsage($this->username);
+        $usage = $response->getData();
+
         $dateStart = clone($date);
         $dateEnd = clone($date);
         $dateStart->setTime(0, 0, 0);
@@ -242,6 +200,129 @@ class KuberDock_Hosting extends CL_Hosting {
         }
 
         $factPrice = array_sum($podStat);
+
+        if($factPrice) {
+            $this->updateByApi($this->id, array('nextduedate' => $currentDate->modify('+1 day')->format('Y-m-d')));
+        }
+
+        return $factPrice;
+    }
+
+    /**
+     * @param DateTime $date
+     * @param array $kubes
+     * @param string $paymentType (monthly, quarterly, annually)
+     * @return float
+     * @throws Exception
+     */
+    public function getPeriodicUsage(DateTime $date, $kubes, $paymentType)
+    {
+        $api = $this->getAdminApi();
+        // TODO: api must return usage for period
+        $response = $api->getUsage($this->username);
+        $usage = $response->getData();
+        $product = KuberDock_Product::model()->loadById($this->packageid);
+
+        $nextDueDate = CL_Tools::sqlDateToDateTime($this->nextduedate);
+        $regDate = CL_Tools::sqlDateToDateTime($this->regdate);
+
+        switch($paymentType) {
+            case 'monthly':
+                $offset = '1 month';
+                break;
+            case 'quarterly':
+                $offset = '3 month';
+                break;
+            case 'annually':
+                $offset = '1 year';
+                break;
+        }
+
+        if(is_null($nextDueDate)) {
+            $dateStart = clone($regDate);
+            $dateEnd = clone($date);
+        } else {
+            $tmpNextDueDate = clone($nextDueDate);
+            $dateStart = $tmpNextDueDate->modify('-'.$offset);
+            if($dateStart < $regDate) {
+                $dateStart = clone($regDate);
+            }
+            $dateEnd = clone($nextDueDate);
+        }
+
+        if($product->proratabilling) {
+            if($product->proratadate >= 1 && $product->proratadate <= 31) {
+                $dateStart->setDate($dateStart->format('Y'), $dateStart->format('m'), $product->proratadate);
+                $dateEnd = clone($dateStart);
+                $dateEnd->modify('+'.$offset);
+            }
+        }
+
+        $timeStart = $dateStart->getTimestamp();
+        $timeEnd = $dateEnd->getTimestamp();
+
+        $podStat = array();
+        $factPrice = 0;
+        $totalKubeCount = 0;
+        $totalSum = 0;
+
+        // TODO: replace method when api can return actual usage
+        // TODO: kube price depends from package. waiting api
+        foreach($usage as $pod) {
+            if(empty($pod['time'])) {
+                continue;
+            }
+
+            $kubeId = $pod['kube_id'];
+            $kubeCount = 0;
+
+            foreach($pod['time'] as $cName => $container) {
+                foreach($container as $period) {
+                    if($period['start'] >= $timeStart || $period['end'] <= $timeEnd) {
+                        $kubeCount = max($period['kubes'], $kubeCount);
+                    }
+                }
+            }
+
+            $totalKubeCount += $kubeCount;
+            if(!isset($podStat[$kubeId]['sum'])) {
+                $podStat[$kubeId]['count'] = $kubeCount;
+                $podStat[$kubeId]['sum'] = $kubes[$kubeId]['kube_price'] * $kubeCount;
+                $totalSum = $kubes[$kubeId]['kube_price'] * $kubeCount;
+            } else {
+                $podStat[$kubeId]['count'] += $kubeCount;
+                $podStat[$kubeId]['sum'] += $kubes[$kubeId]['kube_price'] * $kubeCount;
+                $totalSum += $kubes[$kubeId]['kube_price'] * $kubeCount;
+            }
+        }
+
+        $lastState = KuberDock_Addon_States::model()->getLastState($this->id, $dateStart, $dateEnd);
+
+        if(!$lastState || $totalKubeCount > $lastState->kube_count) {
+            $factPrice = !$lastState ? $totalSum : $totalSum - $lastState->total_sum;
+
+            if($lastState && !is_null($nextDueDate) && $date < $nextDueDate) {
+                $checkInDate = CL_Tools::sqlDateToDateTime($lastState->checkin_date);
+                if($checkInDate == $date) return 0;
+                $period = CL_Tools::model()->getIntervalDiff($dateStart, $dateEnd);
+                $periodRemained = CL_Tools::model()->getIntervalDiff($checkInDate, $nextDueDate);
+                $factPrice = round($factPrice / $period * $periodRemained, 2);
+            } elseif(is_null($nextDueDate) || $date == $nextDueDate) {
+                $currentDate = clone($date);
+                $this->updateByApi($this->id, array('nextduedate' => $currentDate->modify('+'.$offset)->format('Y-m-d')));
+            }
+
+            $states = new KuberDock_Addon_States();
+            $states->setAttributes(array(
+                'hosting_id' => $this->id,
+                'product_id' => $this->packageid,
+                'checkin_date' => CL_Tools::getMySQLFormattedDate($date),
+                'kube_count' => $totalKubeCount,
+                'total_sum' => $totalSum,
+                'details' => json_encode($podStat),
+            ));
+            $states->save();
+        }
 
         return $factPrice;
     }

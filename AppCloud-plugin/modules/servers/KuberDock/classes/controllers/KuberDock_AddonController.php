@@ -88,6 +88,7 @@ class KuberDock_AddonController extends CL_Controller {
                 $productId = $base->getParam('product_id', CL_Base::model()->getPost('product_id'));
                 $addonProduct = KuberDock_Addon_Product::model()->loadById($productId);
                 $products = KuberDock_Product::model()->getActive();
+                $product  = KuberDock_Product::model()->loadById($productId);
                 $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NULL', array('order' => 'kube_name'));
                 $productKubes = KuberDock_Addon_Kube::model()->loadByAttributes(array('product_id' => $productId));
 
@@ -115,6 +116,7 @@ class KuberDock_AddonController extends CL_Controller {
                     'productId' => $productId,
                     'products' => $products,
                     'priceKubes' => $productId ? $kubes : array(),
+                    'paymentType' => $product ? $product->getReadablePaymentType() : '',
                 ));
             } catch(Exception $e) {
                 echo json_encode(array(
@@ -131,9 +133,14 @@ class KuberDock_AddonController extends CL_Controller {
     {
         if(CL_Tools::getIsAjaxRequest()) {
             $productId = CL_Base::model()->getParam('productId');
+            $serviceId = CL_Base::model()->getParam('serviceId');
+
+            $service = KuberDock_Hosting::model()->loadById($serviceId);
 
             echo json_encode(array(
                 'kuberdock' => KuberDock_Product::model()->loadById($productId)->isKuberProduct(),
+                'nextinvoicedate' => CL_Tools::getFormattedDate($service->nextinvoicedate),
+                'nextduedate' => CL_Tools::getFormattedDate($service->nextduedate),
             ));
         }
 

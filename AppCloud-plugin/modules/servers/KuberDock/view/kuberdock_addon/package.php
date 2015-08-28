@@ -18,7 +18,8 @@
                 <th>CPU limit (<?php echo KuberDock_Units::getCPUUnits()?>)</th>
                 <th>Memory limit (<?php echo KuberDock_Units::getMemoryUnits()?>)</th>
                 <th>HDD limit (<?php echo KuberDock_Units::getHDDUnits()?>)</th>
-                <th>Price per hour</th>
+                <th>Price</th>
+                <th>Price type</th>
             </tr>
 
             <?php foreach($kubes as $kube): ?>
@@ -37,6 +38,7 @@
                     </a>
                 <?php endif;?>
                 </td>
+                <td>per <?php echo $product->getReadablePaymentType()?></td>
             </tr>
             <?php endforeach; ?>
         </table>

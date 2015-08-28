@@ -1,7 +1,7 @@
 <?php if($product->getConfigOption('enableTrial')): ?>
 Free Trial: <strong><?php echo $product->getConfigOption('trialTime')?> days</strong>
 <?php else:?>
-Price for IP: <strong><?php echo $currency->getFullPrice($product->getConfigOption('priceIP'))?> / hour</strong><br/>
+Price for IP: <strong><?php echo $currency->getFullPrice($product->getConfigOption('priceIP'))?> / <?php echo $product->getReadablePaymentType()?></strong><br/>
 Price for Persistent Storage: <strong><?php echo $product->getReadablePersistentStorage()?> &nbsp;</strong><br/>
 Price for Additional Traffic: <strong><?php echo $product->getReadableOverTraffic()?> &nbsp;</strong><br/>
 <?php endif;?>

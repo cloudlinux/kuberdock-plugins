@@ -220,6 +220,10 @@ class CL_Model {
         $values = empty($values) ? $this->getAttributes() : $values;
 
         foreach($values as $field=>$value) {
+            if(array_key_exists($field, $this->relations())) {
+                unset($values[$field]);
+                continue;
+            }
             $fields[] = '?';
         }
 
@@ -268,6 +272,10 @@ class CL_Model {
         }
 
         foreach($values as $field=>$value) {
+            if(array_key_exists($field, $this->relations())) {
+                unset($values[$field]);
+                continue;
+            }
             $fields[] = "`$field`=?";
         }
 

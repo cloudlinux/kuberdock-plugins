@@ -3,7 +3,8 @@
         <tr class="active">
             <th>KuberDock package</th>
             <th>Kube type name</th>
-            <th>Price (per hour)</th>
+            <th>Price</th>
+            <th>Price type</th>
         </tr>
 
         <?php if($priceKubes):?>
@@ -28,6 +29,7 @@
             <td width="200px">
                 <input type="text" name="kube_price[]" class="form-control" value="<?php echo $kube['kube_price']?>">
             </td>
+            <td>per <?php echo $paymentType?></td>
         </tr>
         <?php endforeach;?>
         <?php else: ?>

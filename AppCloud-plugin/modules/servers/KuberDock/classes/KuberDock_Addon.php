@@ -13,38 +13,61 @@ class KuberDock_Addon extends CL_Component {
     public function activate()
     {
         $db = CL_Query::model();
+        $server = KuberDock_Server::model()->getActive();
 
-        $db->query('CREATE TABLE `KuberDock_products` (
-            product_id INT,
-            kuber_product_id INT,
-            UNIQUE KEY (product_id)
-        ) ENGINE=INNODB');
+        if(!$server) {
+            throw new Exception('Add KuberDock server before activating addon.');
+        }
+        try {
+            $db->query('CREATE TABLE `KuberDock_products` (
+                product_id INT,
+                kuber_product_id INT,
+                UNIQUE KEY (product_id)
+            ) ENGINE=INNODB');
 
-        $db->query('CREATE TABLE `KuberDock_kubes` (
-            id INT AUTO_INCREMENT,
-            kuber_kube_id INT,
-            product_id INT,
-            kuber_product_id INT,
-            kube_name VARCHAR(255),
-            kube_weight DECIMAL(10,2),
-            kube_price DECIMAL(10,2),
-            kube_type TINYINT(1) DEFAULT 0,
-            cpu_limit DECIMAL(10,2),
-            memory_limit INT,
-            hdd_limit DECIMAL(10,2),
-            traffic_limit DECIMAL(10,2),
-            PRIMARY KEY (id),
-            INDEX (kuber_kube_id),
-            FOREIGN KEY (product_id)
-                REFERENCES KuberDock_products(product_id)
-                ON UPDATE CASCADE ON DELETE CASCADE
-        ) ENGINE=INNODB');
+            $db->query('CREATE TABLE `KuberDock_kubes` (
+                id INT AUTO_INCREMENT,
+                kuber_kube_id INT,
+                product_id INT,
+                kuber_product_id INT,
+                kube_name VARCHAR(255),
+                kube_weight DECIMAL(10,2),
+                kube_price DECIMAL(10,2),
+                kube_type TINYINT(1) DEFAULT 0,
+                cpu_limit DECIMAL(10,2),
+                memory_limit INT,
+                hdd_limit DECIMAL(10,2),
+                traffic_limit DECIMAL(10,2),
+                PRIMARY KEY (id),
+                INDEX (kuber_kube_id),
+                FOREIGN KEY (product_id)
+                    REFERENCES KuberDock_products(product_id)
+                    ON UPDATE CASCADE ON DELETE CASCADE
+            ) ENGINE=INNODB');
 
-        $db->query('CREATE TABLE `KuberDock_trial` (
-            user_id INT,
-            service_id INT,
-            UNIQUE KEY (user_id)
-        ) ENGINE=INNODB');
+            $db->query('CREATE TABLE `KuberDock_trial` (
+                user_id INT,
+                service_id INT,
+                UNIQUE KEY (user_id)
+            ) ENGINE=INNODB');
+
+            $db->query('CREATE TABLE `KuberDock_states` (
+                id INT AUTO_INCREMENT,
+                hosting_id INT NOT NULL,
+                product_id INT,
+                checkin_date DATE NULL,
+                kube_count INT NOT NULL,
+                total_sum FLOAT NOT NULL,
+                details TEXT,
+                PRIMARY KEY (id)
+            ) ENGINE=INNODB');
+        } catch(Exception $e) {
+            $db->query('DROP TABLE IF EXISTS `KuberDock_kubes`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_products`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_trial`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_states`');
+            throw $e;
+        }
 
         // Create email templates
         $mailTemplate = CL_MailTemplate::model();
@@ -57,11 +80,10 @@ class KuberDock_Addon extends CL_Component {
         $mailTemplate->createTemplate($mailTemplate::MODULE_CREATE_NAME, 'KuberDock Module Created',
             $mailTemplate::TYPE_PRODUCT, 'module_create');
 
-        $server = KuberDock_Server::model()->getActive();
         $product = new KuberDock_Product();
 
         if(!KuberDock_Product::model()->loadByAttributes(array('name' => self::STANDARD_PRODUCT, 'servertype' => KUBERDOCK_MODULE_NAME))) {
-            // Create standart product
+            // Create standard product
             $group = CL_Query::model()->query('SELECT * FROM `tblproductgroups` WHERE hidden != 1 ORDER BY `order` ASC LIMIT 1')
                 ->getRow();
 
@@ -150,6 +172,7 @@ class KuberDock_Addon extends CL_Component {
         $db->query('DROP TABLE `KuberDock_kubes`');
         $db->query('DROP TABLE `KuberDock_products`');
         $db->query('DROP TABLE `KuberDock_trial`');
+        $db->query('DROP TABLE `KuberDock_states`');
 
         // Delete email templates
         $mailTemplate = CL_MailTemplate::model();

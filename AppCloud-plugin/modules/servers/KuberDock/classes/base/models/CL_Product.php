@@ -181,6 +181,21 @@ abstract class CL_Product extends CL_Model {
     }
 
     /**
+     * @param int $index
+     * @param string $value
+     * @return mixed
+     * @throws Exception
+     */
+    public function setConfigOptionByIndex($index, $value)
+    {
+        if(array_key_exists(($index-1), array_keys($this->getConfig()))) {
+            $this->{'configoption' . $index} = $value;
+        } else {
+            throw new Exception('Undefined option index: ' . $index);
+        }
+    }
+
+    /**
      * @param string $name
      * @return mixed
      * @throws Exception

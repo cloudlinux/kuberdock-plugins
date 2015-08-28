@@ -18,6 +18,7 @@ function KuberDock_DailyCronJob() {
 
     foreach($services as $service) {
         $service = $model->loadByParams($service);
+        //if($service->userid != 27) continue;
 
         try {
             $service->calculate();
@@ -37,12 +38,20 @@ add_hook('DailyCronJob', 1, 'KuberDock_DailyCronJob');
  */
 function KuberDock_ProductEdit($params)
 {
+    $options = CL_Base::model()->getPost('packageconfigoption');
     if($params['servertype'] == KUBERDOCK_MODULE_NAME) {
-        if(empty($params['configoption1'])) {
+        if(empty($options)) {
             return;
         }
 
-        $product = KuberDock_Product::model()->loadByParams($params);
+        $product = KuberDock_Product::model()->loadById($params['pid']);
+        $i = 1;
+        foreach($product->getConfig() as $row) {
+            $value = isset($options[$i]) ? $options[$i] : '';
+            $product->setConfigOptionByIndex($i, $value);
+            $i++;
+        }
+        $product->save();
         $product->setDescription();
 
         try {
@@ -242,20 +251,22 @@ function KuberDock_ClientAreaPage($params)
                 $values['services'][$k]['billingcycle'] = $product->getReadablePaymentType();
                 $values['services'][$k]['nextduedate'] = CL_Tools::getFormattedDate(new DateTime());
 
+                $enableTrial = $product->getConfigOption('enableTrial');
                 $trialTime = $product->getConfigOption('trialTime');
                 $regDate = DateTime::createFromFormat(CL_Tools::getDateFormat(), $serviceModel->regdate);
 
-                if($trialTime && $serviceModel->isTrialExpired($regDate, $trialTime)) {
+                if($enableTrial && $serviceModel->isTrialExpired($regDate, $trialTime)) {
                     $values['services'][$k]['statustext'] = 'Expired';
                 }
             }
         } elseif(isset($products[$values['pid']])) {
             $product = KuberDock_Product::model()->loadByParams($products[$values['pid']]);
 
+            $enableTrial = $product->getConfigOption('enableTrial');
             $trialTime = $product->getConfigOption('trialTime');
             $regDate = DateTime::createFromFormat(CL_Tools::getDateFormat(), $values['regdate']);
 
-            if($trialTime && KuberDock_Hosting::model()->isTrialExpired($regDate, $trialTime)) {
+            if($enableTrial && KuberDock_Hosting::model()->isTrialExpired($regDate, $trialTime)) {
                 $values['status'] = 'Expired';
             }
 
@@ -542,3 +553,17 @@ function KuberDock_ClientDelete($params)
     }
 }
 add_hook('ClientDelete', 1, 'KuberDock_ClientDelete');
+
+
+/**
+ * Runs when Save Changes is clicked on the service in the Admin area and after the details are saved.
+ * @param array $params
+ */
+function KuberDock_AdminServiceEdit($params)
+{
+    $nextDueDate = CL_Base::model()->getPost('nextduedate');
+    $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
+    $service->nextduedate = CL_Tools::getMySQLFormattedDate($nextDueDate);
+    $service->save();
+}
+add_hook('AdminServiceEdit', 1, 'KuberDock_AdminServiceEdit');

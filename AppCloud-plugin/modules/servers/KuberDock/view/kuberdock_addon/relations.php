@@ -15,16 +15,20 @@
                 <th>CPU limit (<?php echo KuberDock_Units::getCPUUnits()?>)</th>
                 <th>Memory limit (<?php echo KuberDock_Units::getMemoryUnits()?>)</th>
                 <th>HDD limit (<?php echo KuberDock_Units::getHDDUnits()?>)</th>
-                <th>Price per hour</th>
+                <th>Price</th>
+                <th>Price type</th>
             </tr>
 
-            <?php foreach($brokenPackages as $row):?>
+            <?php foreach($brokenPackages as $row):
+                $product = KuberDock_Product::model()->loadByParams($row);
+            ?>
             <tr class="danger">
                 <td><a href="configproducts.php?action=edit&id=<?php echo $row['id']?>" target="_blank"><?php echo $row['name']?></a></td>
-                <td colspan="6">
+                <td colspan="5">
                     <span class="glyphicon  glyphicon-exclamation-sign" aria-hidden="true"></span>
                     Package not added to KuberDock. Please edit <a href="configproducts.php?action=edit&id=<?php echo $row['id']?>">product</a>
                 </td>
+                <td>per <?php echo $product->getReadablePaymentType()?></td>
             </tr>
             <?php endforeach;?>
 
@@ -38,6 +42,7 @@
                 <td><?php echo $kube['memory_limit']?></td>
                 <td><?php echo $kube['hdd_limit']?></td>
                 <?php echo $kube['kube_price'] ? '<td>'.$kube['kube_price'].'</td>' : '<td class="danger text-center">Empty</td>'; ?>
+                <td>per <?php echo $product->getReadablePaymentType()?></td>
             </tr>
             <?php endforeach; ?>
         </table>

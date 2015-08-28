@@ -84,10 +84,11 @@ function KuberDock_AdminServicesTabFields($params) {
     $currency = CL_Currency::model()->getDefaultCurrency();
     $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
     $trialTime = $product->getConfigOption('trialTime');
+    $enableTrial = $product->getConfigOption('enableTrial');
     $regDate = new DateTime($service->regdate);
     $trialExpired = '';
 
-    if($trialTime && $service->isTrialExpired($regDate, $trialTime)) {
+    if($enableTrial && $service->isTrialExpired($regDate, $trialTime)) {
         $trialExpired = $regDate->modify('+'.$trialTime.' day')->format('Y-m-d');
     }
 
@@ -127,10 +128,11 @@ function KuberDock_ClientArea($params) {
     $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
     $server = KuberDock_Server::model()->loadById($service->server);
     $trialTime = $product->getConfigOption('trialTime');
+    $enableTrial = $product->getConfigOption('enableTrial');
     $regDate = new DateTime($service->regdate);
     $trialExpired = '';
 
-    if($trialTime && $service->isTrialExpired($regDate, $trialTime)) {
+    if($enableTrial && $service->isTrialExpired($regDate, $trialTime)) {
         $trialExpired = $regDate->modify('+'.$trialTime.' day')->format('Y-m-d');
     }
 

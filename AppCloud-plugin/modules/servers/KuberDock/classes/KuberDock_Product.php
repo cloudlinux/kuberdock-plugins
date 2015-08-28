@@ -325,6 +325,10 @@ class KuberDock_Product extends CL_Product {
     public function getReadablePaymentType()
     {
         switch($this->getConfigOption('paymentType')) {
+            case 'annually':
+                return 'annual';
+            case 'quarterly':
+                return 'quarter';
             case 'monthly':
                 return 'month';
             case 'daily':
@@ -341,7 +345,7 @@ class KuberDock_Product extends CL_Product {
     {
         $tr = JTransliteration::transliterate($this->name);
 
-        return $tr == KuberDock_Addon::STANDARD_PRODUCT ? 'basic' : $tr;
+        return $tr;
     }
 
     /**
@@ -380,8 +384,9 @@ class KuberDock_Product extends CL_Product {
     private function getPaymentType()
     {
         return array(
+            'annually',
+            'quarterly',
             'monthly',
-            'daily',
             'hourly',
         );
     }

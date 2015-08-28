@@ -28,7 +28,7 @@ class KuberDock_Api {
     /**
      * seconds
      */
-    const API_CONNECTION_TIMEOUT = 5;
+    const API_CONNECTION_TIMEOUT = 10;
 
     /**
      * @var string

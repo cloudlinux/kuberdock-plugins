@@ -35,7 +35,7 @@ class KuberDock_Addon_Kube extends CL_Model {
             'disk_space' => $this->hdd_limit,
             'memory' => $this->memory_limit,
             'memory_units' => 'MB',
-            'total_traffic' => (int) $this->traffic_limit,
+            'included_traffic' => (int) $this->traffic_limit,
         );
 
         $response = $api->createKube($attributes);
