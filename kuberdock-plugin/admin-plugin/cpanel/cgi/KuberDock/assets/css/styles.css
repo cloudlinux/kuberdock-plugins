@@ -1,0 +1,16 @@
+/* cPanel icon fix */
+div#doctitle h1 span img {
+    top: 0;
+}
+
+.table, .top-offset {
+    margin-top: 20px;
+}
+
+.table input[type="text"], .table input[type="password"] {
+    width: 100%;
+}
+
+.CodeMirror {
+    border: 1px solid #ddd;
+}

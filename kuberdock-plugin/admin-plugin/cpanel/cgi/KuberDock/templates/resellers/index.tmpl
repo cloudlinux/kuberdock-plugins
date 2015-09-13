@@ -1,0 +1,56 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6">
+            <form action="?a=saveReseller" method="post">
+                [% IF data.size %]
+                <table class="table table-bordered" id="resellers">
+                    <tr>
+                        <th>WHMCS server URL\IP</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th></th>
+                    </tr>
+                    [% FOREACH reseller IN data %]
+                    <tr>
+                        <td>
+                            <input type="hidden" name="[% reseller.key %]:owner">
+                            <input type="text" name="[% reseller.key %]:server" value="[% reseller.value.server %]">
+                        </td>
+                        <td><input type="text" name="[% reseller.key %]:username" value="[% reseller.value.username %]"></td>
+                        <td><input type="password" name="[% reseller.key %]:password" value="[% reseller.value.password %]"></td>
+                        <td colspan="6" align="center">
+                            <input type="submit" id="res-delete" value="Delete" owner="[% reseller.key %]" onclick="return resDelete(this);">
+                        </td>
+                    </tr>
+                    [% END%]
+
+                    <tr>
+                        <td colspan="6" align="center"><input type="submit" id="save" value="Save"></td>
+                    </tr>
+                </table>
+                [% END%]
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+        [% IF !data.size %]
+            <form action="?a=addReseller" method="post">
+                <input type="hidden" name="newOwner" value="ALL">
+                <fieldset class="new-assign">
+                    <legend>Assign to WHMCS</legend>
+                    <table class="table">
+                        <tr>
+                            <td><input type="text" name="newServer" placeholder="WHMCS server URL\IP"></td>
+                            <td><input type="text" name="newUsername" placeholder="WHMCS Admin Username"></td>
+                            <td><input type="text" name="newPassword" placeholder="WHMCS Admin Password"></td>
+                            <td><input type="submit" id="add" value="Add"></td>
+                        </tr>
+                    </table>
+                </fieldset>
+            </form>
+        [% END %]
+        </div>
+    </div>
+</div>

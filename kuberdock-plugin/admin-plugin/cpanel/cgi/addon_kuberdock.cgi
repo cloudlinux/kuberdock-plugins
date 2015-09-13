@@ -23,177 +23,30 @@ if 0;
 #WHMADDON:kuberdock:KuberDock
 
 #Title: cPanel KuberDock plugin.
-#Version: 0.0.1
+#Version: 0.1.5
 #Author:
 #Site: http://cloudLinux.com 
 
-BEGIN { unshift @INC, '/usr/local/cpanel'; }
+BEGIN {
+    unshift @INC, '/usr/local/cpanel';
+    use CGI::Carp qw(fatalsToBrowser);
+}
 
 use warnings;
 use diagnostics;
-
 use strict;
-use Whostmgr::ACLS;
-use Whostmgr::HTMLInterface;
-use Whostmgr::Resellers;
-use Cpanel::Form;
-use JSON::XS;
-use Template;
+use CGI ();
+
+use File::Basename;
+use Cwd qw(abs_path);
+use lib dirname(Cwd::abs_path($0)).qw(/KuberDock/libs);
+
 use Data::Dumper;
-
-use constant KUBERDOCK_TEMPLATE_PATH => '/usr/local/cpanel/whostmgr/docroot/cgi/KuberDock/templates';
-use constant KUBERDOCK_WHMCS_DATA_FILE => '/var/cpanel/apps/kuberdock_whmcs.json';
+use Controller;
     
-Whostmgr::ACLS::init_acls();
+my $app = CGI->new;
+#print $app->header();
 
-print "Content-type: text/html\n\n";
-Whostmgr::HTMLInterface::defheader('KuberDock', '/images/kuberdock.png.', '/cgi/addon_kuberdock.cgi');
-
-my $user = $ENV{'REMOTE_USER'};
-
-if(!Whostmgr::ACLS::hasroot() && !Whostmgr::Resellers::is_reseller($user)) {
-    print qq(<div align="center"><h1>Permission denied</h1></div>);
-    exit;
-}
-
-my %FORM = Cpanel::Form::parseform();
-
-if(exists $FORM{'a'}) {
-    if($FORM{'a'} eq 'add') {
-        add();
-    } elsif($FORM{'a'} eq 'save') {
-        save();
-    } elsif($FORM{'a'} eq 'delete' && exists $FORM{'o'}) {
-        deleteReseller($FORM{'o'});
-    }
-}
-
-my $tt = Template->new({
-    INCLUDE_PATH => KUBERDOCK_TEMPLATE_PATH,
-    INTERPOLATE  => 1,
-}) || die "$Template::ERROR\n";
-
-
-my $data = loadFile();
-
-if(Whostmgr::Resellers::is_reseller($user)) {
-    if(exists $data->{$user}) {
-        $data = {
-            $user => $data->{$user}
-        };
-    } else {
-        $data = {};
-    }
-}
-
-my $vars = {
-    resellers => [getResellers()],
-    data => $data,
-};
-
-# Render template
-$tt->process('index.tmpl', $vars) || die $tt->error(), "\n";
-
-sub add() {
-    my $owner = $FORM{'newOwner'};
-    my $server = $FORM{'newServer'};
-    my $username = $FORM{'newUsername'};
-    my $password = $FORM{'newPassword'};
-    my %data;
-
-    if($owner ne 'ALL') {
-        return 0;
-    }
-
-    if($owner && $server && $username && $password) {
-        $data{$owner} = {
-            server => $server,
-            username => $username,
-            password => $password,
-        };
-        saveFile(%data);
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-sub save() {
-    my %data;
-
-    foreach my $key (keys %FORM) {
-        next if $key eq 'a';
-
-        my ($reseller, $param) = split(':', $key);
-        next if $param eq 'owner' || $reseller ne 'ALL';
-
-        $data{$reseller}{$param} = $FORM{$key};
-    }
-
-    saveFile(%data);
-}
-
-sub deleteReseller() {
-    my $owner = shift;
-    my $fileData = loadFile();
-
-    if(Whostmgr::Resellers::is_reseller($user) && $user != $owner) {
-        return;
-    }
-
-    delete $fileData->{$owner};
-    my $coder = JSON::XS->new->utf8->pretty->allow_nonref;
-    my $json = $coder->encode($fileData);
-
-    open my $fh, '>', KUBERDOCK_WHMCS_DATA_FILE;
-    print $fh $json;
-    close $fh;
-}
-
-sub getResellers() {
-    my @users = ();
-
-    if(Whostmgr::Resellers::is_reseller($user)) {
-        @users = ($user);
-    } else {
-        @users = ('root', keys Whostmgr::Resellers::list());
-    }
-
-    return sort @users;
-}
-
-sub loadFile() {
-    if(-e KUBERDOCK_WHMCS_DATA_FILE && !-z KUBERDOCK_WHMCS_DATA_FILE) {
-        my $json;
-        {
-          local $/;
-          open my $fh, '<', KUBERDOCK_WHMCS_DATA_FILE;
-          $json = <$fh>;
-          close $fh;
-        }
-
-        my $coder = JSON::XS->new->utf8->pretty->allow_nonref;
-        return $coder->decode($json);
-    } else {
-        return undef;
-    }
-}
-
-sub saveFile() {
-    my %data = @_;
-    my $fileData = loadFile();
-    my $coder = JSON::XS->new->utf8->pretty->allow_nonref;
-
-    foreach my $key (keys %data) {
-        if(Whostmgr::Resellers::is_reseller($user) && $key != $user) {
-            next;
-        }
-        $fileData->{$key} = $data{$key};
-    }
-
-    my $json = $coder->encode($fileData);
-
-    open my $fh, '>', KUBERDOCK_WHMCS_DATA_FILE;
-    print $fh $json;
-    close $fh;
-}
+my %form = Cpanel::Form::parseform();
+my $controller = Controller->new(\%form, $app);
+$controller->run();

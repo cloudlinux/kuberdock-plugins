@@ -1,48 +1,24 @@
 [% INCLUDE 'header.tmpl' %]
 
-<form action="?a=save" method="post">
-    [% IF data.size %]
-    <table class="table bordered" id="resellers">
-        <tr>
-            <th>WHMCS server URL\IP</th>
-            <th>Username</th>
-            <th>Password</th>
-            <th></th>
-        </tr>
-        [% FOREACH reseller IN data %]
-        <tr>
-            <td>
-                <input type="hidden" name="[% reseller.key %]:owner">
-                <input type="text" name="[% reseller.key %]:server" value="[% reseller.value.server %]">
-            </td>
-            <td><input type="text" name="[% reseller.key %]:username" value="[% reseller.value.username %]"></td>
-            <td><input type="text" name="[% reseller.key %]:password" value="[% reseller.value.password %]"></td>
-            <td colspan="6" align="center">
-                <input type="submit" id="res-delete" value="Delete" owner="[% reseller.key %]" onclick="return resDelete(this);">
-            </td>
-        </tr>
-        [% END%]
+<div>
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active">
+            <a href="#resellers" aria-controls="resellers" role="tab" data-toggle="tab">Resellers</a>
+        </li>
 
-        <tr>
-            <td colspan="6" align="center"><input type="submit" id="save" value="Save"></td>
-        </tr>
-    </table>
-    [% END%]
-</form>
+        <li role="presentation">
+            <a href="#pre_apps" aria-controls="pre_apps" role="tab" data-toggle="tab">Pre-defined applications</a>
+        </li>
+    </ul>
 
-[% IF !data.size %]
-<form action="?a=add" method="post">
-    <input type="hidden" name="newOwner" value="ALL">
-    <fieldset class="new-assign">
-        <legend>Assign to WHMCS</legend>
-        <table>
-            <tr>
-                <td><input type="text" name="newServer" placeholder="WHMCS server URL\IP"></td>
-                <td><input type="text" name="newUsername" placeholder="WHMCS Admin Username"></td>
-                <td><input type="text" name="newPassword" placeholder="WHMCS Admin Password"></td>
-                <td><input type="submit" id="add" value="Add"></td>
-            </tr>
-        </table>
-    </fieldset>
-</form>
-[% END %]
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="resellers">
+            [% INCLUDE 'resellers/index.tmpl' data=data resellers=resellers %]
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="pre_apps">
+            [% INCLUDE 'pre-apps/index.tmpl' %]
+        </div>
+    </div>
+
+</div>
