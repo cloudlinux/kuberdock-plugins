@@ -46,7 +46,20 @@ class KuberDock_ApiResponse {
             return $this->parsed['message'];
         } elseif(isset($this->parsed['status'])) {
             if(isset($this->parsed['data']) && $this->parsed['data']) {
-                return $this->parsed['data'];
+                if(is_array($this->parsed['data'])) {
+                    $response = array();
+                    foreach($this->parsed['data'] as $k=>$v) {
+                        if(is_array($v)) {
+                            $response[] = sprintf("%s: %s", $k, implode('; ', $v));
+                        } else {
+                            $response[] = sprintf("%s: %s", $k, $v);
+                        }
+                    }
+
+                    return implode('| ', $response);
+                } else {
+                    return $this->parsed['data'];
+                }
             } else {
                 return $this->parsed['status'];
             }

@@ -120,7 +120,6 @@ class KuberDock_Product extends CL_Product {
                 'email' => $this->client->email,
                 'rolename' => $role,
                 'package' => $productName,
-                'password_hash' => '',
             ));
 
             $token = $service->setAttributes(array(

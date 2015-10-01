@@ -62,7 +62,6 @@ class WHMCSApi extends Base {
                 $this->_kuberKubes[$row['id']][$attr] = $row[$attr];
             }
         }
-
         return $products;
     }
 

@@ -7,6 +7,7 @@
             'productId' => $productId,
             'products' => $products,
             'priceKubes' => array(),
+            'serverPackages' => $serverPackages,
         ))?>
         </div>
     </div>

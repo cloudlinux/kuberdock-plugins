@@ -24,11 +24,11 @@ class KuberDock_Api {
     /**
      *
      */
-    const API_URL = 'https://148.251.158.55';
+    const API_URL = 'https://KUBERDOCK_MASTER_IP';
     /**
      * seconds
      */
-    const API_CONNECTION_TIMEOUT = 10;
+    const API_CONNECTION_TIMEOUT = 30;
 
     /**
      * @var string
@@ -465,7 +465,7 @@ class KuberDock_Api {
      */
     public function getPackageKubes($packageId)
     {
-        $this->url = sprintf($this->serverUrl . '/api/pricing/kubes/%d/kubes', $packageId);
+        $this->url = sprintf($this->serverUrl . '/api/pricing/packages/%d/kubes', $packageId);
         $response = $this->call(array(), 'GET');
 
         if(!$response->getStatus()) {
@@ -596,9 +596,9 @@ class KuberDock_Api {
      * @return KuberDock_ApiResponse
      * @throws Exception
      */
-    public function getPackage()
+    public function getPackages()
     {
-        $this->url = $this->serverUrl . '/api/pricing';
+        $this->url = $this->serverUrl . '/api/pricing/packages';
         $response = $this->call(array(), 'GET');
 
         if(!$response->getStatus()) {

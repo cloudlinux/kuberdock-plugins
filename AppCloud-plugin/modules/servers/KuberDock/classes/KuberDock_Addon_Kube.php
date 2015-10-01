@@ -128,6 +128,33 @@ class KuberDock_Addon_Kube extends CL_Model {
     }
 
     /**
+     * @return array
+     * @throws Exception
+     */
+    public function getServerKubes()
+    {
+        $api = $this->getApi();
+
+        $kubes = $api->getKubes()->getData();
+
+        return CL_Tools::getKeyAsField($kubes, 'id');
+    }
+
+    /**
+     * @param int $packageId
+     * @return array
+     * @throws Exception
+     */
+    public function getServerPackageKubes($packageId)
+    {
+        $api = $this->getApi();
+
+        $kubes = $api->getPackageKubes($packageId)->getData();
+
+        return CL_Tools::getKeyAsField($kubes, 'id');
+    }
+
+    /**
      *
      */
     public function beforeSave()
@@ -154,11 +181,11 @@ class KuberDock_Addon_Kube extends CL_Model {
      */
     public function beforeDelete()
     {
-        if(empty($this->kube_price) && trim($this->kube_price) === '' && $this->kuber_product_id) {
+        if(empty($this->kube_price) && trim($this->kube_price) === '' && !is_null($this->kuber_product_id)) {
             $this->deleteKubeFromPackage();
         }
 
-        if(empty($this->kuber_product_id)) {
+        if(is_null($this->kuber_product_id)) {
             $this->deleteKube();
         }
 

@@ -112,6 +112,49 @@ class KuberDock_Addon_Product extends CL_Model {
     }
 
     /**
+     * @return array
+     */
+    public function getActiveServerProducts()
+    {
+        $products = KuberDock_Product::model()->getActive();
+        $addonProducts = $this->loadByAttributes();
+        $serverPackages = $this->getServerPackages();
+
+        return array_filter($products, function($e) use ($addonProducts, $serverPackages) {
+            foreach($addonProducts as $row) {
+                if($e['id'] == $row['product_id'] && in_array($row['kuber_product_id'], array_keys($serverPackages))) {
+                    return $e;
+                }
+            }
+        });
+    }
+
+    /**
+     * @return array
+     * @throws Exception
+     */
+    public function getServerPackages()
+    {
+        $api = $this->getApi();
+
+        $packages = $api->getPackages()->getData();
+
+        return CL_Tools::getKeyAsField($packages, 'id');
+    }
+
+    /**
+     * @return KuberDock_Api
+     */
+    private function getApi()
+    {
+        if($this->product_id) {
+            return KuberDock_Product::model()->loadById($this->product_id)->getApi();
+        } else {
+            return KuberDock_Server::model()->getActive()->getApi();
+        }
+    }
+
+    /**
      * Class loader
      *
      * @param string $className

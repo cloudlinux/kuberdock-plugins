@@ -25,7 +25,7 @@ class CL_User extends CL_Model {
      */
     public function getCurrentAdmin()
     {
-        $results = localAPI('getadmindetails', array(), 'admin');
+        $results = localAPI('getadmindetails', array());
         return ($results['result'] == 'success') ? $results : array();
     }
 

@@ -210,6 +210,9 @@ function KuberDock_TestConnection($params) {
     try {
         $protocol = $params['serversecure'] ? KuberDock_Api::PROTOCOL_HTTPS : KuberDock_Api::PROTOCOL_HTTP;
         $url = sprintf('%s://%s', $protocol, $params['serverip']);
+        if(empty($params['serverusername']) || empty($params['serverpassword'])) {
+            throw new Exception('Username is missing for the selected server. Please save configuration before testing connection.');
+        }
         $api = new KuberDock_Api($params['serverusername'], $params['serverpassword'], $url);
         $response = $api->getToken();
         return array(

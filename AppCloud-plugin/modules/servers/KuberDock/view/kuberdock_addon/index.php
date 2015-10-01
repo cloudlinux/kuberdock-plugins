@@ -10,6 +10,7 @@
             <?php $this->renderPartial('kubes', array(
                 'products' => $products,
                 'kubes' => $kubes,
+                'serverKubes' => $serverKubes,
                 'productKubes' => $productKubes,
             ))?>
         </div>
@@ -19,7 +20,9 @@
                 'products' => $products,
                 'search' => $search,
                 'productKubes' => $productKubes,
+                'serverKubes' => $serverKubes,
                 'brokenPackages' => $brokenPackages,
+                'serverPackages' => $serverPackages,
             ))?>
         </div>
 
@@ -27,6 +30,7 @@
             <?php $this->renderPartial('price', array(
                 'products' => $products,
                 'kubes' => $kubes,
+                'serverPackages' => $serverPackages,
             ))?>
         </div>
     </div>
