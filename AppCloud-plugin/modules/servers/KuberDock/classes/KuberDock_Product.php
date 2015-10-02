@@ -305,6 +305,45 @@ class KuberDock_Product extends CL_Product {
     }
 
     /**
+     *
+     */
+    public function getDescription()
+    {
+        $description = array();
+        $id = $this->pid ? $this->pid : $this->id;
+        $currency = CL_Currency::model()->getDefaultCurrency();
+        $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(
+            'product_id' => $id,
+        ));
+
+        if($this->getConfigOption('enableTrial')) {
+            $description['Free Trial'] = sprintf('<strong>%s days</strong><br/>',$this->getConfigOption('trialTime'));
+        }
+
+        $description['Price for IP'] = sprintf('<strong>%s / %s</strong><br/>',
+            $currency->getFullPrice($this->getConfigOption('priceIP')), $this->getReadablePaymentType());
+
+        $description['Price for Persistent Storage'] = sprintf('<strong>%s </strong><br/>', $this->getReadablePersistentStorage());
+        $description['Price for Additional Traffic'] = sprintf('<strong>%s </strong><br/>', $this->getReadableOverTraffic());
+
+        foreach($kubes as $kube) {
+            $description['Kube '.$kube['kube_name']] = vsprintf(
+                '<strong>%s / %s</strong><br/><em>CPU %s, Memory %s, <br/>Disk Usage %s, Traffic %s</em>',
+                array(
+                    $currency->getFullPrice($kube['kube_price']),
+                    $this->getReadablePaymentType(),
+                    $kube['cpu_limit'].' '.KuberDock_Units::getCPUUnits(),
+                    $kube['memory_limit'].' '.KuberDock_Units::getMemoryUnits(),
+                    $kube['hdd_limit'].' '.KuberDock_Units::getHDDUnits(),
+                    $kube['traffic_limit'].' '.KuberDock_Units::getTrafficUnits()
+                )
+            );
+        }
+
+        return $description;
+    }
+
+    /**
      * @return KuberDock_Api
      */
     public function getApi()

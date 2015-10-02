@@ -52,7 +52,6 @@ function KuberDock_ProductEdit($params)
             $i++;
         }
         $product->save();
-        $product->setDescription();
 
         try {
             $addonProduct = KuberDock_Addon_Product::model();
@@ -289,6 +288,8 @@ function KuberDock_ClientAreaPage($params)
                 }
 
                 $p = KuberDock_Product::model()->loadById($product['pid']);
+                $product['features'] = $p->getDescription();
+
                 if($depositPrice = $p->getConfigOption('firstDeposit')) {
                     $product['pricing']['minprice']['price'] = ' First Deposit '.$currency->getFullPrice($depositPrice);
 

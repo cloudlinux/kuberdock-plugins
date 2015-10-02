@@ -15,6 +15,7 @@
                 <th>CPU limit (<?php echo KuberDock_Units::getCPUUnits()?>)</th>
                 <th>Memory limit (<?php echo KuberDock_Units::getMemoryUnits()?>)</th>
                 <th>HDD limit (<?php echo KuberDock_Units::getHDDUnits()?>)</th>
+                <th>Traffic limit (<?php echo KuberDock_Units::getTrafficUnits()?>)</th>
                 <th>Price</th>
                 <th>Price type</th>
             </tr>
@@ -24,7 +25,7 @@
             ?>
             <tr class="danger">
                 <td><a href="configproducts.php?action=edit&id=<?php echo $row['id']?>" target="_blank"><?php echo $row['name']?></a></td>
-                <td colspan="5">
+                <td colspan="6">
                     <span class="glyphicon  glyphicon-exclamation-sign" aria-hidden="true"></span>
                     Package not added to KuberDock. Please edit <a href="configproducts.php?action=edit&id=<?php echo $row['id']?>">product</a>
                 </td>
@@ -41,6 +42,7 @@
                 <td><?php echo $kube['cpu_limit']?></td>
                 <td><?php echo $kube['memory_limit']?></td>
                 <td><?php echo $kube['hdd_limit']?></td>
+                <td><?php echo $kube['traffic_limit']?></td>
                 <?php echo $kube['kube_price'] ? '<td>'.$kube['kube_price'].'</td>' : '<td class="danger text-center">Empty</td>'; ?>
                 <td>per <?php echo $product->getReadablePaymentType()?></td>
             </tr>

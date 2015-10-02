@@ -18,6 +18,7 @@
                 <th>CPU limit (<?php echo KuberDock_Units::getCPUUnits()?>)</th>
                 <th>Memory limit (<?php echo KuberDock_Units::getMemoryUnits()?>)</th>
                 <th>HDD limit (<?php echo KuberDock_Units::getHDDUnits()?>)</th>
+                <th>Traffic limit (<?php echo KuberDock_Units::getTrafficUnits()?>)</th>
                 <th>Price</th>
                 <th>Price type</th>
             </tr>
@@ -28,6 +29,7 @@
                 <td><?php echo $kube['cpu_limit']?></td>
                 <td><?php echo $kube['memory_limit']?></td>
                 <td><?php echo $kube['hdd_limit']?></td>
+                <td><?php echo $kube['traffic_limit']?></td>
                 <?php echo $kube['kube_price'] ? '<td>'.$kube['kube_price'].'</td>' : '<td class="danger text-center">Empty</td>'; ?>
                 <td class="text-center">
                 <?php if($kube['kube_type']):?>

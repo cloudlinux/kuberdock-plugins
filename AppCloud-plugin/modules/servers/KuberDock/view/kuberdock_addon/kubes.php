@@ -14,6 +14,7 @@
                 <th>CPU limit (<?php echo KuberDock_Units::getCPUUnits()?>)</th>
                 <th>Memory limit (<?php echo KuberDock_Units::getMemoryUnits()?>)</th>
                 <th>HDD limit (<?php echo KuberDock_Units::getHDDUnits()?>)</th>
+                <th>Traffic limit (<?php echo KuberDock_Units::getTrafficUnits()?>)</th>
                 <th></th>
             </tr>
 
@@ -25,6 +26,7 @@
                 <td><?php echo $kube['cpu_limit']?></td>
                 <td><?php echo $kube['memory_limit']?></td>
                 <td><?php echo $kube['hdd_limit']?></td>
+                <td><?php echo $kube['traffic_limit']?></td>
                 <td class="text-center">
                     <?php if(!isset($productKubes[$kube['kuber_kube_id']])):?>
                         <a href="<?php echo CL_Base::model()->baseUrl?>&a=delete&id=<?php echo $kube['id']?>">
