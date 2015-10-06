@@ -9,6 +9,7 @@ use File::Basename;
 use Archive::Tar;
 
 use JSON;
+use KCLI;
 use Data::Dumper;
 
 use constant KUBERDOCK_APPS_DIR => '.kuberdock_pre_apps';
@@ -20,10 +21,11 @@ sub new {
     my $class = shift;
     my $self = {
         _cgi => shift,
-        _appId => shift || 'undefined-id',
+        _templateId => shift,
         _appsDir => glob('~/' . KUBERDOCK_APPS_DIR),
     };
 
+    $self->{_appId} = 'kuberdock_' . ($self->{'_templateId'} || 'undefined'),
     $self->{_appDir} = $self->{_appsDir} . '/' . $self->{_appId};
 
     return bless $self, $class;
@@ -52,23 +54,21 @@ sub getFilePath() {
 
 sub getList() {
     my ($self) = @_;
-    my @items = glob($self->{_appsDir} . '/*/install.json');
+    my $templates = KCLI::getTemplates();
     my @data;
-    my $json = JSON->new();
 
-    return @data if scalar @items eq 0;
+    return @data if scalar @$templates eq 0;
 
-    foreach my $i (@items) {
-        my @s = split('/', dirname($i));
-        next unless -e $i;
+    foreach my $i (@$templates) {
+        my $yaml = $self->readYaml($i->{'template'});
+        my $appId = 'kuberdock_' . $i->{'id'};
+        my $path = $self->{_appsDir} . '/'. $appId . '/install.json';
 
-        my $details = $json->loadFile($i);
+        $i->{'installed'} = -e dirname($path) . '/' . 'installed' ? 1 : 0;
+        $i->{'name'} = $yaml->{'kuberdock'}->{'application'}->{'name'};
+        $i->{'appId'} = $appId;
 
-        push @data, {
-            id => $s[-1],
-            name => $details->{name},
-            installed => -e dirname($i) . '/' . 'installed' ? 1 : 0,
-        };
+        push @data, $i;
     }
 
     return @data;
@@ -147,14 +147,15 @@ sub createInstall() {
     my ($self, $data) = @_;
     my $json = JSON->new();
     my $path = $self->getFilePath('install.json');
+
     my $defaults = {
         group_id => 'kuberdock_apps',
-        name => 'Setup Memchached',
+        name => 'App name',
         icon => 'default.png',
         order => 999,
         type => 'link',
-        id => 'kuberdock-memcache',
-        uri => 'KuberDock/kuberdock.live.php'
+        id => 'kuberdock-id',
+        uri => 'KuberDock/kuberdock.live.php?c=app&a=installPredefined&template='.$self->{'_templateId'},
     };
 
     if(!-e $self->getFilePath($data->{icon})) {
@@ -171,8 +172,7 @@ sub install() {
     my ($self) = @_;
 
     if(-e $self->getFilePath('installed')) {
-        print 'App already installed';
-        return;
+        return 0;
     }
     my $json = JSON->new();
     my $details = $json->loadFile($self->getFilePath('install.json'));
@@ -194,19 +194,20 @@ sub install() {
             '/usr/local/cpanel/base/frontend/x3/branding/'.$self->{_appId}.'.png');
         $self->execute('/usr/local/cpanel/bin/rebuild_sprites', '-force');
     }
+
+    return 1;
 }
 
 sub uninstall() {
     my ($self) = @_;
 
     if(!-e $self->getFilePath('installed')) {
-        print 'App not installed';
-        return;
+        return 0;
     }
     my $json = JSON->new();
     my $details = $json->loadFile($self->getFilePath('install.json'));
 
-    foreach my $theme ('x3', 'paper-lantern') {
+    foreach my $theme ('x3', 'paper_lantern') {
         my $pluginPath = '/usr/local/cpanel/base/frontend/'. $theme .'/dynamicui/dynamicui_' . $details->{id} . '.conf';
         if(-e $pluginPath) {
             $self->execute('/bin/rm', '-f', $pluginPath);
@@ -215,6 +216,8 @@ sub uninstall() {
 
     $self->execute('/bin/rm', '-f', $self->getFilePath('installed'));
     $self->execute('/usr/local/cpanel/bin/rebuild_sprites', '-force');
+
+    return 1;
 }
 
 sub delete() {
@@ -225,6 +228,7 @@ sub delete() {
     }
 
     $self->execute('/bin/rm', '-R', $self->getAppDir());
+    KCLI::deleteTemplate($self->{'_templateId'});
 }
 
 sub execute() {
@@ -245,6 +249,20 @@ sub getTypeByContent() {
     } else {
         return $type;
     }
+}
+
+sub setTemplateId {
+    my ($self, $id) = @_;
+    $self->{'_templateId'} = $id;
+    $self->{'_appId'} = 'kuberdock_' . $id;
+    $self->{_appDir} = $self->{_appsDir} . '/' . $self->{_appId};
+
+    return $self;
+}
+
+sub isInstalled {
+    my ($self) = @_;
+    return -e $self->getFilePath('installed');
 }
 
 1;

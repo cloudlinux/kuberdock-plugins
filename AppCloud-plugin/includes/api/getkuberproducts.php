@@ -24,21 +24,29 @@ try {
     $currency = CL_Currency::model()->getDefaultCurrency();
     $products = KuberDock_Product::model()->loadByAttributes(array(
         'servertype' => KUBERDOCK_MODULE_NAME
-    ), 'servergroup != 0');
+    ), 'servergroup > 0');
 
     foreach($products as &$row) {
         $row['currency'] = $currency->getAttributes();
         $product = KuberDock_Product::model()->loadByParams($row);
-        $server = KuberDock_ServerGroup::model()->loadById($product->servergroup)->getActiveServer();
         $row['kubes'] = $product->getKubes();
-        $row['server'] = $server->getAttributes();
-        $row['serverFullUrl'] = $server->getApiServerUrl();
-        $row['server']['password'] = $server->decryptPassword();
 
         $i = 1;
         foreach($product->getConfig() as $option => $settings) {
             $row[$option] = $product->{'configoption' . $i};
             $i++;
+        }
+
+        $serverGroup = KuberDock_ServerGroup::model()->loadById($product->servergroup);
+        if($serverGroup) {
+            try {
+                $server = $serverGroup->getActiveServer();
+                $row['server'] = $server->getAttributes();
+                $row['serverFullUrl'] = $server->getApiServerUrl();
+                $row['server']['password'] = $server->decryptPassword();
+            } catch(Exception $e) {
+                unset($row);
+            }
         }
     }
 

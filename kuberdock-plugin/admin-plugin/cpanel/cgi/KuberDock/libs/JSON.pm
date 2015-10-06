@@ -12,6 +12,20 @@ sub new {
     return bless $self, $class;
 }
 
+sub decode() {
+    my ($self, $data) = @_;
+    my $coder = JSON::XS->new->utf8->pretty->allow_nonref;
+
+    return $coder->decode($data);
+}
+
+sub encode() {
+    my ($self, $data) = @_;
+    my $coder = JSON::XS->new->utf8->pretty->allow_nonref;
+
+    return $coder->encode($data);
+}
+
 sub loadFile() {
     my ($self, $file) = @_;
     my $json = $self->readFile($file);

@@ -23,7 +23,11 @@ class CL_Currency extends CL_Model {
      */
     public function getDefaultCurrency()
     {
-        $this->setAttributes(current($this->loadByAttributes(array('default' => 1))));
+        $values = array('default' => 1);
+        if(isset($_GET['currency'])) {
+            $values = array('id' => (int) $_GET['currency']);
+        }
+        $this->setAttributes(current($this->loadByAttributes($values)));
 
         return $this;
     }
@@ -34,6 +38,8 @@ class CL_Currency extends CL_Model {
      */
     public function getFullPrice($price)
     {
+        $price = $price * $this->rate;
+
         if(function_exists('formatCurrency')) {
             return formatCurrency($price);
         } else {

@@ -54,4 +54,21 @@ class AppController extends KuberDock_Controller {
             'pod' => $pod,
         ));
     }
+
+    public function installPredefinedAction()
+    {
+        $templateId = Tools::getParam('template', '');
+
+        try {
+            $app = new PredefinedApp();
+            $template = $app->getTemplate($templateId);
+        } catch(Exception $e) {
+            $this->error = $e;
+        }
+
+        $this->render('installPredefined', array(
+            'image' => 'Predefined app',
+            'app' => $app,
+        ));
+    }
 }

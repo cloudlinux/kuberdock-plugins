@@ -409,12 +409,44 @@ class KcliCommand extends Command {
     }
 
     /**
+     * @return array
+     */
+    public function getYAMLTemplate($id)
+    {
+        return $this->execute(array(
+            $this->returnType,
+            'kubectl',
+            'get',
+            'template',
+            '--id' => $id,
+        ));
+    }
+
+    /**
+     * @return array
+     */
+    public function getYAMLTemplates()
+    {
+        return $this->execute(array(
+            $this->returnType,
+            'kubectl',
+            'get',
+            'templates',
+        ));
+    }
+
+    /**
      * Get config file data. user if exists or global
      * @return array
      */
-    static public function getConfFile()
+    static public function getConfFile($isAdmin = false)
     {
         $userConf = getenv('HOME') .DS . '.kubecli.conf';
+
+        if($isAdmin) {
+            $userConf = self::CONF_FILE;
+        }
+
         if(file_exists($userConf)) {
             $path = $userConf;
         } else {

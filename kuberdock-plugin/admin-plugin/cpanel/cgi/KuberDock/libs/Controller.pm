@@ -120,14 +120,12 @@ sub deleteResellerAction() {
 sub createAppAction() {
     my ($self) = @_;
     my $appName = $self->{_cgi}->param('app_name') || 'Undefined';
-    my $appId = $self->{_cgi}->param('app_id') || '';
-    my $app = PreApps->new($self->{_cgi}, $appId);
+    my $app = PreApps->new($self->{_cgi});
     my $uploadYaml = $self->{_cgi}->param('yaml_file');
     my $appIcon = $self->{_cgi}->param('app_icon');
     my $code = $self->{_cgi}->param('code');
     my $vars = {
         yaml => $code || '#Some yaml',
-        appId => $appId,
         appName => $appName,
     };
 
@@ -135,7 +133,74 @@ sub createAppAction() {
         if($app->uploadFile('yaml_file', 'app.yaml', ('yaml'))) {
             my $yaml = $app->readYamlFile('app.yaml');
             $vars->{appName} = $yaml->{kuberdock}->{application}->{name} || $appName;
-            $vars->{appId} = $yaml->{kuberdock}->{application}->{id} || $appId;
+            $vars->{appId} = $yaml->{kuberdock}->{application}->{id} || $app->{'_appId'};
+            $vars->{yaml} = $app->readYamlFile('app.yaml', 1),
+        }
+    }
+
+    if(defined $self->{_cgi}->param('save') && $code) {
+        my $yaml = $app->readYaml($code);
+        $yaml->{kuberdock}->{application}->{name} = $appName;
+
+        $app->saveYaml('app.yaml', $yaml);
+        my $template = KCLI::createTemplate($app->getFilePath('app.yaml'));
+
+        if(!$template) {
+            return 0;
+        }
+
+        $app = $app->setTemplateId($template->{'id'});
+
+        if($appIcon) {
+            my $iconPath = $app->uploadFile('app_icon', $appIcon, ('png'));
+            if($iconPath) {
+                $yaml->{kuberdock}->{application}->{icon} = "${appIcon}";
+                # fix x3 theme icon
+                $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_32.png'), 32, 32, 1);
+                $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_48.png'), 48, 48);
+            }
+        }
+
+        $app->saveYaml('app.yaml', $yaml);
+        KCLI::updateTemplate($template->{'id'}, $app->getFilePath('app.yaml'));
+
+        my $installData = {
+            id => $app->{'_appId'},
+            name => $appName,
+            icon => $app->{'_appId'} . '_48.png',
+        };
+        $app->createInstall($installData);
+        $vars->{'created'} = 1;
+    }
+
+    $self->render('pre-apps/add.tmpl', $vars);
+}
+
+sub updateAppAction() {
+    my ($self) = @_;
+    my $app = PreApps->new($self->{_cgi}, $self->{_form}->{'app'});
+    my $uploadYaml = $self->{_cgi}->param('yaml_file');
+    my $appIcon = $self->{_cgi}->param('app_icon');
+    my $code = $self->{_cgi}->param('code');
+    my $template = KCLI::getTemplate($app->{'_templateId'});
+
+    if(!$template) {
+        return 0;
+    }
+
+    my $appName = $self->{_cgi}->param('app_name') || 'Undefined';
+    my $yaml = $app->readYaml($template->{'template'});
+    my $vars = {
+        yaml => $code || $template->{'template'},
+        appName => $yaml->{kuberdock}->{application}->{name} || $appName,
+        update => 1,
+    };
+
+    if($uploadYaml) {
+        if($app->uploadFile('yaml_file', 'app.yaml', ('yaml'))) {
+            my $yaml = $app->readYamlFile('app.yaml');
+            $vars->{appName} = $yaml->{kuberdock}->{application}->{name} || $appName;
+            $vars->{appId} = $yaml->{kuberdock}->{application}->{id} || $app->{'_appId'};
             $vars->{yaml} = $app->readYamlFile('app.yaml', 1),
         }
     }
@@ -149,18 +214,27 @@ sub createAppAction() {
             if($iconPath) {
                 $yaml->{kuberdock}->{application}->{icon} = "${appIcon}";
                 # fix x3 theme icon
-                $app->resizeImage($iconPath, $app->getFilePath($appId . '_32.png'), 32, 32, 1);
-                $app->resizeImage($iconPath, $app->getFilePath($appId . '_48.png'), 48, 48);
+                $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_32.png'), 32, 32, 1);
+                $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_48.png'), 48, 48);
             }
         }
+
+        my $installed = $app->isInstalled();
+        $app->uninstall();
         $app->saveYaml('app.yaml', $yaml);
+        my $template = KCLI::updateTemplate($app->{'_templateId'}, $app->getFilePath('app.yaml'));
+
         my $installData = {
-            id => $appId,
+            id => $app->{'_appId'},
             name => $appName,
-            icon => $appId . '_48.png',
+            icon => $app->{'_appId'} . '_48.png',
         };
         $app->createInstall($installData);
         $vars->{'created'} = 1;
+
+        if($installed) {
+            $app->install();
+        }
     }
 
     $self->render('pre-apps/add.tmpl', $vars);

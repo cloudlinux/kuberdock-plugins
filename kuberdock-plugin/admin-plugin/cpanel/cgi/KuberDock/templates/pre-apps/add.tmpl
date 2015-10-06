@@ -19,7 +19,9 @@
                 <input type="file" id="yaml_file" name="yaml_file" style="display: inline-block">
             </div>
         </div>
+    </form>
 
+    <form method="post" enctype="multipart/form-data" class="form-horizontal">
         <div class="row top-offset">
             <div class="col-md-4">
                 <textarea id="code" class="code-editor" name="code">[% yaml %]</textarea>
@@ -27,18 +29,10 @@
 
             <div class="col-md-5">
                 <div class="form-group">
-                    <label for="app_id" class="col-sm-3 control-label" >Unique app id</label>
-                    <div class="col-sm-5">
-                        <input type="text" id="app_id" name="app_id" class="form-control" value="[% appId %]"
-                               data-validation="custom" data-validation-regexp="^([a-zA-Z_-]+)$">
-                    </div>
-                </div>
-
-                <div class="form-group">
                     <label for="app_name" class="col-sm-3 control-label">App name</label>
                     <div class="col-sm-5">
                         <input type="text" id="app_name" name="app_name" class="form-control" value="[% appName %]"
-                               data-validation="required">
+                               data-validation="custom" data-validation-regexp="^([a-zA-Z_-\s]+)$">
                     </div>
                 </div>
 
@@ -50,7 +44,13 @@
                 </div>
 
                 <div>
-                    <button type="submit" class="btn btn-primary" name="save">Create</button>
+                    <button type="submit" class="btn btn-primary" name="save">
+                    [% IF update %]
+                        Update
+                    [% ELSE %]
+                        Create
+                    [% END %]
+                    </button>
                 </div>
             </div>
         </div>

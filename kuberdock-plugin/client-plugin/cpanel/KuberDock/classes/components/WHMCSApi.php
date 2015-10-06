@@ -332,6 +332,16 @@ class WHMCSApi extends Base {
     /**
      * @return array
      */
+    public function getAdminAuthData()
+    {
+        $conf = KcliCommand::getConfFile(true);
+
+        return array($conf['user'], $conf['password']);
+    }
+
+    /**
+     * @return array
+     */
     public function getKuberKubes()
     {
         if(!$this->_kuberKubes) {
