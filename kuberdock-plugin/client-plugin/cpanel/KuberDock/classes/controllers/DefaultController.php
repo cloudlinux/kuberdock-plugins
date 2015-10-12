@@ -10,6 +10,8 @@ class DefaultController extends KuberDock_Controller {
 
     public function indexAction()
     {
+        $postDescription = Tools::getParam('postDescription', '');
+
         try {
             $pod = new Pod();
             $pods = $pod->getPods();
@@ -24,6 +26,7 @@ class DefaultController extends KuberDock_Controller {
 
         $this->render('index', array(
             'pods' => $pods,
+            'postDescription' => $postDescription,
         ));
     }
 

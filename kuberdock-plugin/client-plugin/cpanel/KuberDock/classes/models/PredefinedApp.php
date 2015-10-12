@@ -10,6 +10,10 @@ class PredefinedApp {
      *
      */
     const TEMPLATE_REGEXP = '/\$(?<variable>\w+)\|default:(?<default>[[:alnum:]\s]+)\|(?<description>[[:alnum:]\s]+)\$/';
+    /**
+     *
+     */
+    const VARIABLE_REGEXP = '/\$(?<variable>\w+)\$/';
 
     /**
      * @var array
@@ -239,6 +243,7 @@ class PredefinedApp {
 
         foreach($data as $k => $v) {
             if(isset($this->variables[$k])) {
+                $this->variables[$k]['value'] = $v;
                 $this->setByPath($template, $this->variables[$k]['path'], $this->variables[$k]['replace'], $v);
             }
         }
@@ -302,6 +307,26 @@ class PredefinedApp {
     {
         return isset($this->template['kuberdock']['preDescription']) ?
             $this->template['kuberdock']['preDescription'] : '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getPostDescription()
+    {
+        if(!isset($this->template['kuberdock']['postDescription'])) {
+            return 'Application started.';
+        }
+
+        $variables = $this->variables;
+
+        return preg_replace_callback(self::VARIABLE_REGEXP, function($matches) use ($variables) {
+            if(isset($variables[$matches['variable']])) {
+                return $variables[$matches['variable']]['value'];
+            } else {
+                return 'Undefined';
+            }
+        }, $this->template['kuberdock']['postDescription']);
     }
 
     /**

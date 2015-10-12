@@ -152,6 +152,12 @@ abstract class Command {
      */
     private function parseJsonResponse($response)
     {
+        // TODO: temp. Need fixes in kcli
+        if(in_array(trim(preg_replace('/\s+/', '', $response)), array(
+            '{"status":"pending"}{"status":"ERROR","message":"401ClientError:UNAUTHORIZED"}'))) {
+            return '';
+        }
+
         $parsedResponse = json_decode($response, true);
 
         if(!is_array($parsedResponse) && empty($parsedResponse) && $response) {

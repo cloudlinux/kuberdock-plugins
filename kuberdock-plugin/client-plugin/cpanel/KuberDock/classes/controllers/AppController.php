@@ -74,7 +74,7 @@ class AppController extends KuberDock_Controller {
 
                 echo json_encode(array(
                     'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
-                    'redirect' => $_SERVER['SCRIPT_URI'],
+                    'redirect' => $_SERVER['SCRIPT_URI'] . '?postDescription=' . $app->getPostDescription(),
                 ));
             } catch (CException $e) {
                 echo $e->getJSON();
