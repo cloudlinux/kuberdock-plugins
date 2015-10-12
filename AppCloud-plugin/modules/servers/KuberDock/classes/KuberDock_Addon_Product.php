@@ -90,11 +90,14 @@ class KuberDock_Addon_Product extends CL_Model {
     }
 
     /**
-     *
+     * @throws Exception
      */
     public function deletePackage()
     {
         $product = KuberDock_Product::model()->loadById($this->product_id);
+        if(!$product) {
+            throw new Exception('Product not founded');
+        }
         $product->getApi()->deletePackage($this->kuber_product_id);
     }
 

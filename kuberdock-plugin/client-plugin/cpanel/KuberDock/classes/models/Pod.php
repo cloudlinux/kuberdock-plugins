@@ -215,12 +215,12 @@ class Pod {
      */
     public function setContainers($values)
     {
-        if(isset($values['image'])) {
+        /*if(isset($values['image'])) {
             $ci = $this->getContainerIndexByImage($values['image']);
             $this->addContainer($ci, $values);
-        } else {
-            $this->addContainer(-1, $values);
-        }
+        } else {*/
+            $this->addContainer(0, $values);
+        /*}*/
 
         return $this;
     }

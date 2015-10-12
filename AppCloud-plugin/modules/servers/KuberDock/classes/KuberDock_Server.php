@@ -30,10 +30,15 @@ class KuberDock_Server extends CL_Server {
     /**
      * @param null|int $serverId
      * @return KuberDock_Api
+     * @throws Exception
      */
     public function getApi($serverId = null)
     {
         $serverId = $serverId ? $serverId : $this->id;
+
+        if(!$serverId) {
+            throw new Exception('Cannot get api');
+        }
 
         if(isset(self::$_api[$serverId])) {
             return self::$_api[$serverId];

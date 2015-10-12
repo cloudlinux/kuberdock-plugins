@@ -65,7 +65,7 @@ sub getList() {
         my $path = $self->{_appsDir} . '/'. $appId . '/install.json';
 
         $i->{'installed'} = -e dirname($path) . '/' . 'installed' ? 1 : 0;
-        $i->{'name'} = $yaml->{'kuberdock'}->{'application'}->{'name'};
+        $i->{'name'} = $yaml->{'kuberdock'}->{'name'};
         $i->{'appId'} = $appId;
 
         push @data, $i;
@@ -109,7 +109,7 @@ sub resizeImage() {
 
     if(!-e $file) {
         print 'Image file not exists.';
-        return;
+        return 0;
     }
 
     $self->execute($convertBin, '-size', "${width}x${height}", $file, '-resize', "${width}x${height}", $newFile);
@@ -120,6 +120,8 @@ sub resizeImage() {
 
 sub readYaml() {
     my ($self, $data) = @_;
+
+    $data = 'Empty data' if !defined $data;
 
     return Cpanel::YAML::Load($data);
 }

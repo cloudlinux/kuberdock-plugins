@@ -39,6 +39,7 @@ class KcliCommand extends Command {
         $this->password = $password;
         $this->token = $token;
         $this->returnType = '--'.self::DATA_TYPE_JSON;
+        $this->confPath = '';
     }
 
     /**
@@ -46,6 +47,12 @@ class KcliCommand extends Command {
      */
     protected function getAuth()
     {
+        if($this->confPath) {
+            return array(
+                '-c' => $this->confPath,
+            );
+        }
+
         if($this->token) {
             return array(
                 '--token' => sprintf("'%s'", $this->token),
@@ -156,7 +163,7 @@ class KcliCommand extends Command {
             $this->returnType,
             'kuberdock',
             'create' => sprintf("'%s'", $name),
-            '--image' => $image,
+            '-C' => $image,
             '--kube-type' => sprintf("'%s'", $kubeName),
             '--kubes' => $kubeCount,
         );
@@ -187,7 +194,7 @@ class KcliCommand extends Command {
             $this->returnType,
             'kuberdock',
             'set' => sprintf("'%s'", $name),
-            '--image' => $image,
+            '-C' => $image,
             '--container-port' => $ports ? implode(',', $ports) : "''",
         ));
     }
@@ -210,7 +217,7 @@ class KcliCommand extends Command {
             $this->returnType,
             'kuberdock',
             'set' => sprintf("'%s'", $name),
-            '--image' => $image,
+            '-C' => $image,
             '--env' => implode(',', $env),
         ));
     }
@@ -233,7 +240,7 @@ class KcliCommand extends Command {
             $this->returnType,
             'kuberdock',
             'set' => sprintf("'%s'", $name),
-            '--image' => $image,
+            '-C' => $image,
             '--mount-path' => $params['mountPath'],
             '--read-only' => isset($params['readOnly']) ? (int) $params['readOnly'] : 0,
             '--index' => $index,
@@ -433,6 +440,34 @@ class KcliCommand extends Command {
             'get',
             'templates',
         ));
+    }
+
+    /**
+     * @param string $filePath
+     * @return array
+     */
+    public function createPodFromYaml($filePath)
+    {
+        return $this->execute(array(
+            $this->returnType,
+            'kubectl',
+            'create',
+            'pod',
+            '--file' => $filePath,
+        ));
+    }
+
+    /**
+     * @param string $path
+     * @return $this
+     */
+    public function setConfPath($path)
+    {
+        if(file_exists($path)) {
+            $this->confPath = $path;
+        }
+
+        return $this;
     }
 
     /**

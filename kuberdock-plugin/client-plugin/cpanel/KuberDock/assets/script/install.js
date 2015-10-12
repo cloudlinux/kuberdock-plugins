@@ -101,8 +101,8 @@
 
 $(function() {
     var calculateTotal = function() {
-        var el = $('#kuber_kube_id option:selected'),
-            kubeCount = $('#kube_count').val(),
+        var el = $('#kuber_kube_id option:selected, #KUBE_TYPE option:selected'),
+            kubeCount = $('#kube_count, #KUBES').val(),
             productId = el.data('pid'),
             kube = kubes[productId].kubes[el.val()],
             currency = kubes[productId].currency,
@@ -149,8 +149,8 @@ $(function() {
         initISelect();
     });
 
-    $(document).on('change', '#kuber_kube_id', calculateTotal);
-    $(document).on('change', '.kube-slider', calculateTotal);
+    $(document).on('change', '#kuber_kube_id, #KUBE_TYPE', calculateTotal);
+    $(document).on('change', '.kube-slider, #KUBES', calculateTotal);
 
     // Ports
     $(document).on('click', 'button#add_port', function(e) {

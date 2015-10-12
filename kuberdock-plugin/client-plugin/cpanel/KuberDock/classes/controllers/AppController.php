@@ -36,8 +36,7 @@ class AppController extends KuberDock_Controller {
             try {
                 $pod->create();
                 $pod->save();
-
-                $pod->command->startContainer($pod->name);
+                $pod->start();
 
                 echo json_encode(array(
                     'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
@@ -61,14 +60,31 @@ class AppController extends KuberDock_Controller {
 
         try {
             $app = new PredefinedApp();
+            $app->packageId = Tools::getPost('product_id');
             $template = $app->getTemplate($templateId);
+            $variables = $app->getVariables($template);
         } catch(Exception $e) {
             $this->error = $e;
         }
 
+        if($_POST) {
+            try {
+                $app->createApp($_POST);
+                $app->start();
+
+                echo json_encode(array(
+                    'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
+                    'redirect' => $_SERVER['SCRIPT_URI'],
+                ));
+            } catch (CException $e) {
+                echo $e->getJSON();
+            }
+            exit();
+        }
+
         $this->render('installPredefined', array(
-            'image' => 'Predefined app',
             'app' => $app,
+            'variables' => $variables,
         ));
     }
 }

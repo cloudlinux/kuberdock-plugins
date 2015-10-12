@@ -94,3 +94,7 @@ p.kube-name {
     cursor: pointer;
     background-color: #c0c0c0;
 }
+
+.container-install.predefined input[type=text], .container-install.predefined select {
+    width: 100%;
+}

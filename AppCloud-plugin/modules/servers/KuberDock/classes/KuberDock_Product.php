@@ -176,7 +176,7 @@ class KuberDock_Product extends CL_Product {
             'email' => $this->client->email,
             'rolename' => $role,
             'package' => $productName,
-        ), $service->username);
+        ), $data['id']);
 
         $service->updateById($serviceId, array(
             'username' => $service->username,
@@ -343,8 +343,10 @@ class KuberDock_Product extends CL_Product {
         return $description;
     }
 
+
     /**
      * @return KuberDock_Api
+     * @throws Exception
      */
     public function getApi()
     {
@@ -354,6 +356,7 @@ class KuberDock_Product extends CL_Product {
         } else {
             $api = KuberDock_Server::model()->getActive()->getApi()->setDebugMode($this->getConfigOption('debug'));
         }
+
         return $api;
     }
 

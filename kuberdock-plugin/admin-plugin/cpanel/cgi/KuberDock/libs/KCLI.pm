@@ -39,7 +39,7 @@ sub execute {
 
     my $response = `$command`;
     if($response eq '') {
-        return 0;
+        return {};
     }
 
     my $answer = $json->decode($response);
