@@ -21,7 +21,7 @@ class Units {
     /**
      * Kube: HDD
      */
-    const HDD = 'MB';
+    const HDD = 'GB';
     /**
      * Kube & Package: Traffic
      */
