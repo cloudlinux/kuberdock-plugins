@@ -1,5 +1,7 @@
 <?php
 
+defined(SELECTOR_DEBUG) or define(SELECTOR_DEBUG, falase);
+
 defined(DS) or define(DS, DIRECTORY_SEPARATOR);
 defined(KUBERDOCK_ROOT_DIR) or define(KUBERDOCK_ROOT_DIR, dirname(__FILE__));
 defined(KUBERDOCK_CLASS_DIR) or define(KUBERDOCK_CLASS_DIR, KUBERDOCK_ROOT_DIR . DS . 'classes');

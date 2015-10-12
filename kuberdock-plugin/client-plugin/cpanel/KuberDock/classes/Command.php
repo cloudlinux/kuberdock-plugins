@@ -74,7 +74,7 @@ abstract class Command {
         //echo $this->commandString."\n";
 
         ob_start();
-        passthru($this->commandString, $code);
+        passthru($this->commandString . ' 2>&1');
         $response = ob_get_contents();
         ob_end_clean();
 

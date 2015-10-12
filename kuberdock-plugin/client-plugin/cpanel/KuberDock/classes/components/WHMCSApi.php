@@ -115,7 +115,7 @@ class WHMCSApi extends Base {
             return $data['products']['product'];
         }
 
-        throw new CException('Can not find assigned WHMCS product (user has no cPanel product)');
+        throw new CException('Can not find assigned WHMCS product (user has no cPanel product). Reason: ' . $data['message']);
     }
 
     /**
@@ -133,7 +133,7 @@ class WHMCSApi extends Base {
             return $data['results'];
         }
 
-        throw new CException('Can not find assigned WHMCS product (user has no cPanel product)');
+        throw new CException('Can not find assigned WHMCS product (user has no cPanel product). Reason: ' . $data['message']);
     }
 
     /**

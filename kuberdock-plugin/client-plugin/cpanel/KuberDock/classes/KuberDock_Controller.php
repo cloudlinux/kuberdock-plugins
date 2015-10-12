@@ -28,7 +28,7 @@ class KuberDock_Controller {
      */
     public $action;
     /**
-     * @var string
+     * @var Exception
      */
     public $error;
 
@@ -83,6 +83,13 @@ class KuberDock_Controller {
      */
     public function render($view, $values = array(), $output = true)
     {
+        if($this->error) {
+            $view = new KuberDock_View();
+            return $view->render('errors/default', array(
+                'message' => $this->error->getMessage(),
+            ));
+        }
+
         return $this->_view->render($view, $values, $output);
     }
 
