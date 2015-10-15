@@ -23,7 +23,7 @@ class CL_Hosting extends CL_Model {
     {
         $admin = CL_User::model()->getCurrentAdmin();
         $values['serviceid'] = $id;
-        $results = localAPI('updateclientproduct', $values, $admin['name']);
+        $results = localAPI('updateclientproduct', $values, $admin['username']);
 
         if(($results['result'] != 'success')) {
             throw new Exception($results['message']);
@@ -50,7 +50,7 @@ class CL_Hosting extends CL_Model {
         $admin = CL_User::model()->getCurrentAdmin();
         $values['password2'] = $password ? $password : $this->password;
 
-        $results = localAPI('decryptpassword', $values, $admin['name']);
+        $results = localAPI('decryptpassword', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -69,7 +69,7 @@ class CL_Hosting extends CL_Model {
         $admin = CL_User::model()->getCurrentAdmin();
         $values['password2'] = $password;
 
-        $results = localAPI('encryptpassword', $values, $admin['name']);
+        $results = localAPI('encryptpassword', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -112,7 +112,7 @@ class CL_Hosting extends CL_Model {
     public function addPayment($invoiceId, $amount)
     {
         $admin = CL_User::model()->getCurrentAdmin();
-        $adminuser = $admin['name'];
+        $adminuser = $admin['username'];
         $values['amount'] = $amount;
         $values['invoiceid'] = $invoiceId;
 
@@ -132,7 +132,7 @@ class CL_Hosting extends CL_Model {
         $values['accountid'] = $this->id;
         $values['suspendreason'] = $reason;
 
-        $results = localAPI('modulesuspend', $values, $admin['name']);
+        $results = localAPI('modulesuspend', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -150,7 +150,7 @@ class CL_Hosting extends CL_Model {
         $admin = CL_User::model()->getCurrentAdmin();
         $values['accountid'] = $this->id;
 
-        $results = localAPI('moduleunsuspend', $values, $admin['name']);
+        $results = localAPI('moduleunsuspend', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -168,7 +168,7 @@ class CL_Hosting extends CL_Model {
         $admin = CL_User::model()->getCurrentAdmin();
         $values['accountid'] = $this->id;
 
-        $results = localAPI('moduleterminate', $values, $admin['name']);
+        $results = localAPI('moduleterminate', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);

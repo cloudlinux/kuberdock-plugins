@@ -1,6 +1,6 @@
 <?php
 
-defined(SELECTOR_DEBUG) or define(SELECTOR_DEBUG, falase);
+defined(SELECTOR_DEBUG) or define(SELECTOR_DEBUG, true);
 
 defined(DS) or define(DS, DIRECTORY_SEPARATOR);
 defined(KUBERDOCK_ROOT_DIR) or define(KUBERDOCK_ROOT_DIR, dirname(__FILE__));

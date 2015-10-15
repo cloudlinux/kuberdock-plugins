@@ -1,4 +1,4 @@
-<?php if(is_array($stat)): ?>
+<?php if(is_array($stat) && isset($stat['pods_usage'])): ?>
     <table class="datatable product-info">
         <tr>
             <th>Id</th>
@@ -7,8 +7,8 @@
             <th>Actions</th>
         </tr>
 
-        <?php foreach($stat as $pod):
-            if(strpos($pod['name'], '__')) continue;
+        <?php foreach($stat['pods_usage'] as $pod):
+            if(strpos($pod['name'], KuberDock_Hosting::DELETED_POD_SIGN)) continue;
         ?>
         <tr>
             <td><?php echo $pod['id']?></td>

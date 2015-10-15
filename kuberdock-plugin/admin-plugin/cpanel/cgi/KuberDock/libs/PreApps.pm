@@ -10,6 +10,7 @@ use Archive::Tar;
 
 use JSON;
 use KCLI;
+use Exception;
 use Data::Dumper;
 
 use constant KUBERDOCK_APPS_DIR => '.kuberdock_pre_apps';
@@ -57,7 +58,7 @@ sub getList() {
     my $templates = KCLI::getTemplates();
     my @data;
 
-    return @data if scalar @$templates eq 0;
+    return @data if !defined $templates || scalar @$templates eq 0;
 
     foreach my $i (@$templates) {
         my $yaml = $self->readYaml($i->{'template'});
@@ -129,7 +130,14 @@ sub readYaml() {
 sub readYamlFile() {
     my ($self, $fileName, $asText) = @_;
     my $path = $self->getFilePath($fileName);
-    my $yaml = Cpanel::YAML::LoadFile($path);
+    my $yaml;
+    eval {
+        $yaml = Cpanel::YAML::LoadFile($path);
+    };
+
+    if($@) {
+        Exception::throw($@);
+    }
 
     if(defined $asText && $asText) {
         return Cpanel::YAML::Dump($yaml);
@@ -174,6 +182,7 @@ sub install() {
     my ($self) = @_;
 
     if(-e $self->getFilePath('installed')) {
+        Exception::throw('Plugin already installed');
         return 0;
     }
     my $json = JSON->new();
@@ -204,6 +213,7 @@ sub uninstall() {
     my ($self) = @_;
 
     if(!-e $self->getFilePath('installed')) {
+        Exception::throw('Plugin already uninstalled');
         return 0;
     }
     my $json = JSON->new();
@@ -241,6 +251,8 @@ sub execute() {
 
 sub getTypeByContent() {
     my ($self, $type) = @_;
+
+    return 'yaml';
     my $types = {
         'application/x-yaml' => 'yaml',
         'image/png' => 'png',

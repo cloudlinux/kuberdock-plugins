@@ -319,6 +319,10 @@ class KcliCommand extends Command {
      */
     public function searchImages($image, $page = 0)
     {
+        if(empty($image)) {
+            return array();
+        }
+
         if($page < 0) {
             $page = 0;
         }

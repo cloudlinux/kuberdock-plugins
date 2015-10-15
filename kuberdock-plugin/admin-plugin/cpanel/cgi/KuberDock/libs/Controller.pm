@@ -140,7 +140,16 @@ sub createAppAction() {
     }
 
     if(defined $self->{_cgi}->param('save') && $code) {
-        my $yaml = $app->readYaml($code);
+        my $yaml;
+        eval {
+            $yaml = $app->readYaml($code);
+        };
+
+        if($@) {
+            Exception::throw($@);
+            $self->render('pre-apps/form.tmpl', $vars);
+            return 0;
+        }
         $yaml->{kuberdock}->{name} = $appName;
 
         $app->saveYaml('app.yaml', $yaml);
@@ -171,10 +180,10 @@ sub createAppAction() {
             icon => $app->{'_appId'} . '_48.png',
         };
         $app->createInstall($installData);
-        $vars->{'created'} = 1;
+        Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#pre_apps');
     }
 
-    $self->render('pre-apps/add.tmpl', $vars);
+    $self->render('pre-apps/form.tmpl', $vars);
 }
 
 sub updateAppAction() {
@@ -185,12 +194,14 @@ sub updateAppAction() {
     my $code = $self->{_cgi}->param('code');
     my $template = KCLI::getTemplate($app->{'_templateId'});
 
-    if(!$template) {
-        return 0;
-    }
+    #if(!%{$template}) {
+    #    Exception::throw('Template not founded');
+    #    return 0;
+    #}
 
     my $appName = $self->{_cgi}->param('app_name') || 'Undefined';
     my $yaml = $app->readYaml($template->{'template'});
+
     my $vars = {
         yaml => $code || $template->{'template'},
         appName => $yaml->{kuberdock}->{name} || $appName,
@@ -207,7 +218,17 @@ sub updateAppAction() {
     }
 
     if(defined $self->{_cgi}->param('save') && $code) {
-        my $yaml = $app->readYaml($code);
+        my $yaml;
+        eval {
+            $yaml = $app->readYaml($code);
+        };
+
+        if($@) {
+            Exception::throw($@);
+            $self->render('pre-apps/form.tmpl', $vars);
+            return 0;
+        }
+
         $yaml->{kuberdock}->{name} = $appName;
 
         if($appIcon) {
@@ -220,8 +241,6 @@ sub updateAppAction() {
             }
         }
 
-        #my $installed = $app->isInstalled();
-        #$app->uninstall();
         $app->saveYaml('app.yaml', $yaml);
         my $template = KCLI::updateTemplate($app->{'_templateId'}, $app->getFilePath('app.yaml'));
 
@@ -231,14 +250,10 @@ sub updateAppAction() {
             icon => $app->{'_appId'} . '_48.png',
         };
         $app->createInstall($installData);
-        $vars->{'created'} = 1;
-
-        #if($installed) {
-        #    $app->install();
-        #}
+        Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#pre_apps');
     }
 
-    $self->render('pre-apps/add.tmpl', $vars);
+    $self->render('pre-apps/form.tmpl', $vars);
 }
 
 sub installAppAction() {
@@ -246,7 +261,7 @@ sub installAppAction() {
     my $apps = PreApps->new($self->{_cgi}, $self->{_cgi}->param('app'));
 
     $apps->install();
-    $self->indexAction();
+    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#pre_apps');
 }
 
 sub uninstallAppAction() {
@@ -254,7 +269,7 @@ sub uninstallAppAction() {
     my $apps = PreApps->new($self->{_cgi}, $self->{_cgi}->param('app'));
 
     $apps->uninstall();
-    $self->indexAction();
+    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#pre_apps');
 }
 
 sub deleteAppAction() {
@@ -262,7 +277,7 @@ sub deleteAppAction() {
     my $apps = PreApps->new($self->{_cgi}, $self->{_cgi}->param('app'));
 
     $apps->delete();
-    $self->indexAction();
+    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#pre_apps');
 }
 
 1;

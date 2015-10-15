@@ -17,7 +17,7 @@ class CL_User extends CL_Model {
      */
     public function setTableName()
     {
-        $this->tableName = 'tblaccounts';
+        $this->tableName = 'tblclients';
     }
 
     /**
@@ -25,8 +25,7 @@ class CL_User extends CL_Model {
      */
     public function getCurrentAdmin()
     {
-        $results = localAPI('getadmindetails', array());
-        return ($results['result'] == 'success') ? $results : array();
+        return CL_Admin::model()->getDefault();
     }
 
     /**
@@ -39,7 +38,7 @@ class CL_User extends CL_Model {
         $values["clientid"] = $userId;
         $values["stats"] = true;
 
-        $results = localAPI('getclientsdetails', $values, $admin['name']);
+        $results = localAPI('getclientsdetails', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -52,7 +51,7 @@ class CL_User extends CL_Model {
      * Class loader
      *
      * @param string $className
-     * @return CL_User
+     * @return $this
      */
     public static function model($className = __CLASS__)
     {

@@ -22,7 +22,7 @@ class CL_Server extends CL_Model {
         $admin = CL_User::model()->getCurrentAdmin();
         $values['password2'] = $this->password;
 
-        $results = localAPI('decryptpassword', $values, $admin['name']);
+        $results = localAPI('decryptpassword', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -41,7 +41,7 @@ class CL_Server extends CL_Model {
         $admin = CL_User::model()->getCurrentAdmin();
         $values['password2'] = $password;
 
-        $results = localAPI('encryptpassword', $values, $admin['name']);
+        $results = localAPI('encryptpassword', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);

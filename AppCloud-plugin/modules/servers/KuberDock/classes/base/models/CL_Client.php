@@ -22,7 +22,7 @@ class CL_Client extends CL_Model {
     {
         $admin = CL_User::model()->getCurrentAdmin();
 
-        $results = localAPI('getclients', $attributes, $admin['name']);
+        $results = localAPI('getclients', $attributes, $admin['username']);
 
         return ($results['result'] == 'success') ? $results['clients']['client'] : array();
     }
@@ -34,7 +34,7 @@ class CL_Client extends CL_Model {
     public function getClientDetails($userId)
     {
         $admin = CL_User::model()->getCurrentAdmin();
-        $adminuser = $admin['name'];
+        $adminuser = $admin['username'];
         $values['clientid'] = $userId;
         $values['stats'] = true;
 

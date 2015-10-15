@@ -5,6 +5,13 @@
  */
 
 class KuberDock_Addon extends CL_Component {
+    /**
+     *
+     */
+    const REQUIRED_PHP_VERSION = '5.3';
+    /**
+     *
+     */
     const STANDARD_PRODUCT = 'KuberDock Standard';
 
     /**
@@ -12,13 +19,16 @@ class KuberDock_Addon extends CL_Component {
      */
     public function activate()
     {
+        if(version_compare(phpversion(), self::REQUIRED_PHP_VERSION) < 0) {
+            throw new Exception('KuberDock plugin requires PHP version' . self::REQUIRED_PHP_VERSION . ' or greater.');
+        }
+
         $db = CL_Query::model();
         $server = KuberDock_Server::model()->getActive();
 
         if(!$server) {
             throw new Exception('Add KuberDock server before activating addon.');
-        }
-        try {
+        } try {
             $db->query('CREATE TABLE `KuberDock_products` (
                 product_id INT,
                 kuber_product_id INT,
@@ -57,6 +67,8 @@ class KuberDock_Addon extends CL_Component {
                 product_id INT,
                 checkin_date DATE NULL,
                 kube_count INT NOT NULL,
+                ps_size FLOAT NOT NULL,
+                ip_count INT NOT NULL,
                 total_sum FLOAT NOT NULL,
                 details TEXT,
                 PRIMARY KEY (id)

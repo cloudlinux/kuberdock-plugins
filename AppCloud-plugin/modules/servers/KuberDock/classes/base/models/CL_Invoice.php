@@ -51,7 +51,7 @@ class CL_Invoice extends CL_Model {
         $values['itemamount1'] = $price;
         $values['autoapplycredit'] = $autoApply;
 
-        $results = localAPI('createinvoice', $values, $admin['name']);
+        $results = localAPI('createinvoice', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -82,7 +82,7 @@ class CL_Invoice extends CL_Model {
         $values['paymentmethod'] = $gateway;
         $values['date'] = $date ? $date->format('d/m/Y') : date('d/m/Y', time());
 
-        $results = localAPI('addtransaction', $values, $admin['name']);
+        $results = localAPI('addtransaction', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -104,7 +104,7 @@ class CL_Invoice extends CL_Model {
         $values['description'] = $description;
         $values['amount'] = $amount;
 
-        $results = localAPI('addcredit', $values, $admin['name']);
+        $results = localAPI('addcredit', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -126,7 +126,7 @@ class CL_Invoice extends CL_Model {
         $values['invoiceid'] = $invoiceId;
         $values['amount'] = $amount;
 
-        $results = localAPI('applycredit', $values, $admin['name']);
+        $results = localAPI('applycredit', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -146,7 +146,7 @@ class CL_Invoice extends CL_Model {
 
         $values['invoiceid'] = $invoiceId;
 
-        $results = localAPI('getinvoice', $values, $admin['name']);
+        $results = localAPI('getinvoice', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);

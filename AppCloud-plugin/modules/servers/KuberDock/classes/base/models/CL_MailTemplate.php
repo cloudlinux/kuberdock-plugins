@@ -75,7 +75,7 @@ class CL_MailTemplate extends CL_Model {
         $values['customvars'] = base64_encode(serialize($params));
         $values['id'] = $relId;
 
-        $results = localAPI('sendemail', $values, $admin['name']);
+        $results = localAPI('sendemail', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -100,7 +100,7 @@ class CL_MailTemplate extends CL_Model {
         $values['custommessage'] = $view->renderPartial('emails/'.$viewName, $params, false);
         $values['id'] = $relId;
 
-        $results = localAPI('sendemail', $values, $admin['name']);
+        $results = localAPI('sendemail', $values, $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);

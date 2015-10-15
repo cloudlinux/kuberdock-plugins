@@ -38,8 +38,9 @@ sub execute {
     my $command = join(' ', (@defaults, @_));
 
     my $response = `$command`;
+
     if($response eq '') {
-        return {};
+        return ();
     }
 
     my $answer = $json->decode($response);

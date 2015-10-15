@@ -84,7 +84,7 @@ class CL_Currency extends CL_Model {
     {
         $admin = KuberDock_User::model()->getCurrentAdmin();
 
-        $results = localAPI('getpaymentmethods', array(), $admin['name']);
+        $results = localAPI('getpaymentmethods', array(), $admin['username']);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);

@@ -9,7 +9,7 @@ class KuberDock_Units {
     /**
      * Package: persistent storage
      */
-    const PS = 'MB';
+    const PS = 'GB';
     /**
      * Kube: CPU
      */

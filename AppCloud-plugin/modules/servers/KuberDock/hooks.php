@@ -514,8 +514,11 @@ function KuberDock_ServerAdd($params)
     $server = KuberDock_Server::model()->loadById($params['serverid']);
     if($server->isKuberDock()) {
         $server->accesshash = '';
-        $server->accesshash = $server->getApi()->getToken();
-        $server->save();
+        try {
+            $server->accesshash = $server->getApi()->getToken();
+            $server->save();
+        } catch(Exception $e) {
+        }
     }
 }
 add_hook('ServerAdd', 1, 'KuberDock_ServerAdd');
@@ -529,8 +532,11 @@ function KuberDock_ServerEdit($params)
     $server = KuberDock_Server::model()->loadById($params['serverid']);
     if($server->isKuberDock()) {
         $server->accesshash = '';
-        $server->accesshash = $server->getApi()->getToken();
-        $server->save();
+        try {
+            $server->accesshash = $server->getApi()->getToken();
+            $server->save();
+        } catch(Exception $e) {
+        }
     }
 }
 add_hook('ServerEdit', 1, 'KuberDock_ServerEdit');

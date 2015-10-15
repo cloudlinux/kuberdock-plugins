@@ -61,7 +61,7 @@ class KuberDock_Product extends CL_Product {
                 'Type' => 'text',
                 'Size' => '10',
                 'Default' => '0',
-                'Description' => 'per '.KuberDock_Units::getPSUnits(),
+                'Description' => 'per '.KuberDock_Units::getHDDUnits(),
             ),
             'priceOverTraffic' => array(
                 'FriendlyName' => 'Price for additional traffic',
@@ -397,7 +397,7 @@ class KuberDock_Product extends CL_Product {
         $currency = CL_Currency::model()->getDefaultCurrency();
 
         return $currency->getFullPrice($this->getConfigOption('pricePersistentStorage'))
-            .' / 1 '.KuberDock_Units::getPSUnits();
+            .' / 1 '.KuberDock_Units::getHDDUnits();
     }
 
     /**

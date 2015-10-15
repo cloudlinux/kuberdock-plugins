@@ -19,23 +19,6 @@
         <input type="hidden" name="product_id" id="product_id" value="">
 
     <div class="row">
-        <div class="col-sm-5">
-            <div class="product-description"></div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4">
-            <strong>Total: </strong><span id="priceBlock"></span>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="page-header">
-        </div>
-    </div>
-
-    <div class="row">
         <?php foreach($variables as $variable => $row):?>
             <div class="form-group">
                 <label for="<?php echo $variable?>" class="col-sm-3 control-label"><?php echo $row['description']?></label>
@@ -56,6 +39,18 @@
                 </div>
             </div>
         <?php endforeach;?>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-5">
+            <div class="product-description"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <strong>Total: </strong><span id="priceBlock"></span>
+        </div>
     </div>
 
     <div class="row">
