@@ -718,6 +718,41 @@ class KuberDock_Api {
     }
 
     /**
+     * @param string $yaml
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function createPodFromYaml($yaml)
+    {
+        $this->url = $this->serverUrl . '/api/yamlapi';
+        $response = $this->call(array(
+            'data' => $yaml,
+        ), 'POST');
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    public function startPod($podId)
+    {
+        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
+        $response = $this->call(array(
+            'command' => 'start',
+        ), 'PUT');
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    /**
      * @param string $error
      */
     private function logError($error)

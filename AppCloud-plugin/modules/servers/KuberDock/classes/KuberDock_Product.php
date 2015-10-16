@@ -412,6 +412,30 @@ class KuberDock_Product extends CL_Product {
     }
 
     /**
+     * Add current product to cart
+     */
+    public function addToCart()
+    {
+        $sessionProducts = &$_SESSION['cart']['products'];
+
+        foreach($sessionProducts as $row) {
+            if($row['pid'] == $this->id) {
+                throw new CException('Product already in cart.');
+            }
+        }
+
+        $sessionProducts[] = array(
+            'pid' => $this->id,
+            'domain' => '',
+            'billingcycle' => null,
+            'configoptions' => null,
+            'customfields' => null,
+            'addons' => null,
+            'server' => null,
+        );
+    }
+
+    /**
      * @return bool
      */
     public function isKuberProduct()

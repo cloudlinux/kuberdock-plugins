@@ -146,6 +146,24 @@ class KuberDock_Addon_Product extends CL_Model {
     }
 
     /**
+     * @param int $id
+     * @return $this
+     * @throws CException
+     */
+    public function getByKuberId($id)
+    {
+        $rows = $this->loadByAttributes(array(
+            'kuber_product_id' => $id,
+        ));
+
+        if(!$rows) {
+            throw new CException('Product not founded');
+        }
+
+        return $this->loadByParams(current($rows));
+    }
+
+    /**
      * @return KuberDock_Api
      */
     private function getApi()

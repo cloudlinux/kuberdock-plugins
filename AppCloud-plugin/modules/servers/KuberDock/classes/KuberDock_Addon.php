@@ -20,7 +20,7 @@ class KuberDock_Addon extends CL_Component {
     public function activate()
     {
         if(version_compare(phpversion(), self::REQUIRED_PHP_VERSION) < 0) {
-            throw new Exception('KuberDock plugin requires PHP version' . self::REQUIRED_PHP_VERSION . ' or greater.');
+            throw new Exception('KuberDock plugin require PHP version' . self::REQUIRED_PHP_VERSION . ' or greater.');
         }
 
         $db = CL_Query::model();
@@ -73,11 +73,25 @@ class KuberDock_Addon extends CL_Component {
                 details TEXT,
                 PRIMARY KEY (id)
             ) ENGINE=INNODB');
+
+            $db->query('CREATE TABLE `KuberDock_preapps` (
+                id INT AUTO_INCREMENT,
+                session_id varchar(64) NOT NULL,
+                product_id INT NOT NULL,
+                kuber_product_id INT NOT NULL,
+                data TEXT,
+                PRIMARY KEY (id),
+                UNIQUE KEY (session_id),
+                FOREIGN KEY (product_id)
+                    REFERENCES KuberDock_products(product_id)
+                    ON UPDATE CASCADE ON DELETE CASCADE
+            ) ENGINE=INNODB');
         } catch(Exception $e) {
             $db->query('DROP TABLE IF EXISTS `KuberDock_kubes`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_products`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_trial`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_states`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_preapps`');
             throw $e;
         }
 
@@ -175,6 +189,7 @@ class KuberDock_Addon extends CL_Component {
         $db->query('DROP TABLE `KuberDock_products`');
         $db->query('DROP TABLE `KuberDock_trial`');
         $db->query('DROP TABLE `KuberDock_states`');
+        $db->query('DROP TABLE `KuberDock_preapps`');
 
         // Delete email templates
         $mailTemplate = CL_MailTemplate::model();

@@ -281,6 +281,39 @@ function KuberDock_ClientAreaPage($params)
             'servertype' => KUBERDOCK_MODULE_NAME,
         )), 'id');
 
+
+        // Buy product by link
+        $predefinedApp = KuberDock_Addon_PredefinedApp::model();
+        if(isset($_GET[$predefinedApp::KUBERDOCK_PRODUCT_ID_FIELD])
+            && isset($_GET[$predefinedApp::KUBERDOCK_YAML_FIELD])) {
+            $kdProductId = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_PRODUCT_ID_FIELD);
+            $yaml = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_YAML_FIELD);
+
+            try {
+                $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId);
+                $product = KuberDock_Product::model()->loadById($kdProduct->product_id);
+
+                $predefinedApp = $predefinedApp->loadBySessionId();
+                if(!$predefinedApp) {
+                    $predefinedApp = new KuberDock_Addon_PredefinedApp();
+                }
+
+                $predefinedApp->setAttributes(array(
+                    'session_id' => session_id(),
+                    'kuber_product_id' => $kdProductId,
+                    'product_id' => $product->id,
+                    'data' => $yaml,
+                ));
+                $predefinedApp->save();
+
+                $product->addToCart();
+            } catch(Exception $e) {
+                // product not founded
+            }
+
+            header('Location: /cart.php?a=view');
+        }
+
         if(isset($values['products'])) {
             foreach($values['products'] as $k => &$product) {
                 if(!isset($products[$product['pid']])) {
