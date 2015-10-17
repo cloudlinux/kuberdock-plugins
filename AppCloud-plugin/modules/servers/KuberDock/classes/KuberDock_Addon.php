@@ -87,11 +87,11 @@ class KuberDock_Addon extends CL_Component {
                     ON UPDATE CASCADE ON DELETE CASCADE
             ) ENGINE=INNODB');
         } catch(Exception $e) {
-            $db->query('DROP TABLE IF EXISTS `KuberDock_kubes`');
-            $db->query('DROP TABLE IF EXISTS `KuberDock_products`');
-            $db->query('DROP TABLE IF EXISTS `KuberDock_trial`');
-            $db->query('DROP TABLE IF EXISTS `KuberDock_states`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_preapps`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_states`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_kubes`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_trial`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_products`');
             throw $e;
         }
 
@@ -152,27 +152,36 @@ class KuberDock_Addon extends CL_Component {
 
         // Remove KuberDock packages\kubes
         $products = KuberDock_Addon_Product::model()->loadByAttributes();
-        $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NULL');
-        $productKubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NOT NULL');
 
-        foreach($productKubes as $row) {
-            if($row['kuber_product_id'] == 0) continue;
 
-            try {
-                KuberDock_Addon_Kube::model()->loadByParams($row)->deleteKubeFromPackage();
-            } catch(Exception $e) {
-                // pass
+        try {
+            $productKubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NOT NULL');
+            foreach ($productKubes as $row) {
+                if ($row['kuber_product_id'] == 0) continue;
+
+                try {
+                    KuberDock_Addon_Kube::model()->loadByParams($row)->deleteKubeFromPackage();
+                } catch(Exception $e) {
+                    // pass
+                }
             }
+        } catch(Exception $e) {
+            // pass
         }
 
-        foreach($kubes as $row) {
-            if($row['kuber_kube_id'] < 3) continue;
+        try {
+            $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NULL');
+            foreach($kubes as $row) {
+                if($row['kuber_kube_id'] < 3) continue;
 
-            try {
-                KuberDock_Addon_Kube::model()->loadByParams($row)->deleteKube();
-            } catch(Exception $e) {
-                // pass
+                try {
+                    KuberDock_Addon_Kube::model()->loadByParams($row)->deleteKube();
+                } catch(Exception $e) {
+                    // pass
+                }
             }
+        } catch(Exception $e) {
+            // pass
         }
 
         foreach($products as $row) {
@@ -185,11 +194,11 @@ class KuberDock_Addon extends CL_Component {
             }
         }
 
-        $db->query('DROP TABLE `KuberDock_kubes`');
-        $db->query('DROP TABLE `KuberDock_products`');
-        $db->query('DROP TABLE `KuberDock_trial`');
-        $db->query('DROP TABLE `KuberDock_states`');
-        $db->query('DROP TABLE `KuberDock_preapps`');
+        $db->query('DROP TABLE IF EXISTS `KuberDock_preapps`');
+        $db->query('DROP TABLE IF EXISTS `KuberDock_states`');
+        $db->query('DROP TABLE IF EXISTS `KuberDock_kubes`');
+        $db->query('DROP TABLE IF EXISTS `KuberDock_trial`');
+        $db->query('DROP TABLE IF EXISTS `KuberDock_products`');
 
         // Delete email templates
         $mailTemplate = CL_MailTemplate::model();

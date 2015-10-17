@@ -1,4 +1,4 @@
-package Exception;
+package KuberDock::Exception;
 use strict;
 use warnings FATAL => 'all';
 
@@ -8,7 +8,7 @@ sub throw {
     my ($message) = @_;
     return if $errors > 1;
 
-    print Exception::getFormattedMessage($message);
+    print KuberDock::Exception::getFormattedMessage($message);
     $errors++;
 }
 

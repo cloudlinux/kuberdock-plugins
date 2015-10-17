@@ -1,4 +1,4 @@
-package Resellers;
+package KuberDock::Resellers;
 
 use strict;
 use warnings FATAL => 'all';
@@ -13,7 +13,7 @@ sub new {
     my $class = shift;
     my $self = {
         _user => $ENV{'REMOTE_USER'},
-        _json => JSON->new(),
+        _json => KuberDock::JSON->new(),
     };
 
     return bless $self, $class;

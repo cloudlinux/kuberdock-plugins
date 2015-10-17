@@ -42,11 +42,11 @@ use Cwd qw(abs_path);
 use lib dirname(Cwd::abs_path($0)).qw(/KuberDock/libs);
 
 use Data::Dumper;
-use Controller;
+use KuberDock::Controller;
     
 my $app = CGI->new;
 #print $app->header();
 
 my %form = Cpanel::Form::parseform();
-my $controller = Controller->new(\%form, $app);
+my $controller = KuberDock::Controller->new(\%form, $app);
 $controller->run();

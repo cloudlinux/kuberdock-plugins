@@ -1,4 +1,4 @@
-package PreApps;
+package KuberDock::PreApps;
 
 use strict;
 use warnings FATAL => 'all';
@@ -9,9 +9,9 @@ use File::Basename;
 use File::Fetch;
 use Archive::Tar;
 
-use JSON;
-use KCLI;
-use Exception;
+use KuberDock::JSON;
+use KuberDock::KCLI;
+use KuberDock::Exception;
 use Data::Dumper;
 
 use constant KUBERDOCK_APPS_DIR => '.kuberdock_pre_apps';
@@ -56,7 +56,7 @@ sub getFilePath() {
 
 sub getList() {
     my ($self) = @_;
-    my $templates = KCLI::getTemplates();
+    my $templates = KuberDock::KCLI::getTemplates();
     my @data;
 
     return @data if !defined $templates || scalar @$templates eq 0;
@@ -164,7 +164,7 @@ sub readYamlFile() {
     };
 
     if($@) {
-        Exception::throw($@);
+        KuberDock::Exception::throw($@);
     }
 
     if(defined $asText && $asText) {
@@ -210,7 +210,7 @@ sub install() {
     my ($self) = @_;
 
     if(-e $self->getFilePath('installed')) {
-        Exception::throw('Plugin already installed');
+        KuberDock::Exception::throw('Plugin already installed');
         return 0;
     }
     my $json = JSON->new();
@@ -241,7 +241,7 @@ sub uninstall() {
     my ($self) = @_;
 
     if(!-e $self->getFilePath('installed')) {
-        Exception::throw('Plugin already uninstalled');
+        KuberDock::Exception::throw('Plugin already uninstalled');
         return 0;
     }
     my $json = JSON->new();
@@ -268,7 +268,7 @@ sub delete() {
     }
 
     $self->execute('/bin/rm', '-R', $self->getAppDir());
-    KCLI::deleteTemplate($self->{'_templateId'});
+    KuberDock::KCLI::deleteTemplate($self->{'_templateId'});
 }
 
 sub execute() {

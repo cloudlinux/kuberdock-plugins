@@ -1,4 +1,4 @@
-package JSON;
+package KuberDock::JSON;
 
 use strict;
 use warnings FATAL => 'all';

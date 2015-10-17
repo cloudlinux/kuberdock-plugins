@@ -1,4 +1,4 @@
-package Controller;
+package KuberDock::Controller;
 
 use strict;
 use warnings FATAL => 'all';
@@ -6,11 +6,12 @@ use warnings FATAL => 'all';
 use Whostmgr::ACLS;
 use Whostmgr::HTMLInterface;
 use Template;
+use LWP::UserAgent;
 use Data::Dumper;
 
-use Resellers;
-use PreApps;
-use KCLI;
+use KuberDock::Resellers;
+use KuberDock::PreApps;
+use KuberDock::KCLI;
 
 use constant KUBERDOCK_TEMPLATE_PATH => '/usr/local/cpanel/whostmgr/docroot/cgi/KuberDock/templates';
 
@@ -65,8 +66,8 @@ sub render() {
 
 sub indexAction() {
     my ($self) = @_;
-    my $resellers = Resellers->new();
-    my $apps = PreApps->new($self->{_cgi});
+    my $resellers = KuberDock::Resellers->new();
+    my $apps = KuberDock::PreApps->new($self->{_cgi});
 
     my $vars = {
         resellers => [$resellers->get()],
@@ -79,7 +80,7 @@ sub indexAction() {
 
 sub addResellerAction() {
     my ($self) = @_;
-    my $reseller = Resellers->new();
+    my $reseller = KuberDock::Resellers->new();
     my %data = (
         $self->{_cgi}->param('newOwner') => {
             server => $self->{_cgi}->param('newServer'),
@@ -94,7 +95,7 @@ sub addResellerAction() {
 
 sub saveResellerAction() {
     my ($self) = @_;
-    my $resellers = Resellers->new();
+    my $resellers = KuberDock::Resellers->new();
 
     my %data = (
         ALL => {
@@ -112,7 +113,7 @@ sub deleteResellerAction() {
     my ($self) = @_;
     my $owner = $self->{_form}->{'o'};
 
-    my $reseller = Resellers->new();
+    my $reseller = KuberDock::Resellers->new();
 
     $reseller->delete($owner);
     $self->indexAction();
@@ -121,7 +122,7 @@ sub deleteResellerAction() {
 sub createAppAction() {
     my ($self) = @_;
     my $appName = $self->{_cgi}->param('app_name') || 'Undefined';
-    my $app = PreApps->new($self->{_cgi});
+    my $app = KuberDock::PreApps->new($self->{_cgi});
     my $uploadYaml = $self->{_cgi}->param('yaml_file');
     my $code = $self->{_cgi}->param('code');
     my $vars = {
@@ -145,17 +146,17 @@ sub createAppAction() {
         };
 
         if($@) {
-            Exception::throw($@);
+            KuberDock::Exception::throw($@);
             $self->render('pre-apps/form.tmpl', $vars);
             return 0;
         }
         $yaml->{kuberdock}->{name} = $appName;
 
         $app->saveYaml('app.yaml', $yaml);
-        my $template = KCLI::createTemplate($app->getFilePath('app.yaml'), $appName);
+        my $template = KuberDock::KCLI::createTemplate($app->getFilePath('app.yaml'), $appName);
 
         if(!$template) {
-            Exception::throw('Cannot create template in KuberDock');
+            KuberDock::Exception::throw('Cannot create template in KuberDock');
             $self->render('pre-apps/form.tmpl', $vars);
             return 0;
         }
@@ -168,7 +169,7 @@ sub createAppAction() {
                 $iconPath = $app->uploadFileByUrl($yaml->{'kuberdock'}->{'icon'});
             };
             if($@) {
-                Exception::throw('Cannot upload icon by link or link used https connection');
+                KuberDock::Exception::throw('Cannot upload icon by link or link used https connection');
                 $self->render('pre-apps/form.tmpl', $vars);
                 return 0;
             }
@@ -180,7 +181,7 @@ sub createAppAction() {
         }
 
         $app->saveYaml('app.yaml', $yaml);
-        KCLI::updateTemplate($template->{'id'}, $app->getFilePath('app.yaml'), $appName);
+        KuberDock::KCLI::updateTemplate($template->{'id'}, $app->getFilePath('app.yaml'), $appName);
 
         my $installData = {
             id => $app->{'_appId'},
@@ -196,13 +197,13 @@ sub createAppAction() {
 
 sub updateAppAction() {
     my ($self) = @_;
-    my $app = PreApps->new($self->{_cgi}, $self->{_form}->{'app'});
+    my $app = KuberDock::PreApps->new($self->{_cgi}, $self->{_form}->{'app'});
     my $uploadYaml = $self->{_cgi}->param('yaml_file');
     my $code = $self->{_cgi}->param('code');
-    my $template = KCLI::getTemplate($app->{'_templateId'});
+    my $template = KuberDock::KCLI::getTemplate($app->{'_templateId'});
 
     #if(!%{$template}) {
-    #    Exception::throw('Template not founded');
+    #    KuberDock::Exception::throw('Template not founded');
     #    return 0;
     #}
 
@@ -231,7 +232,7 @@ sub updateAppAction() {
         };
 
         if($@) {
-            Exception::throw($@);
+            KuberDock::Exception::throw($@);
             $self->render('pre-apps/form.tmpl', $vars);
             return 0;
         }
@@ -244,7 +245,7 @@ sub updateAppAction() {
                 $iconPath = $app->uploadFileByUrl($yaml->{'kuberdock'}->{'icon'});
             };
             if($@) {
-                Exception::throw('Cannot upload icon by link or link used https connection');
+                KuberDock::Exception::throw('Cannot upload icon by link or link used https connection');
                 $self->render('pre-apps/form.tmpl', $vars);
                 return 0;
             }
@@ -257,7 +258,7 @@ sub updateAppAction() {
         }
 
         $app->saveYaml('app.yaml', $yaml);
-        my $template = KCLI::updateTemplate($app->{'_templateId'}, $app->getFilePath('app.yaml'), $appName);
+        my $template = KuberDock::KCLI::updateTemplate($app->{'_templateId'}, $app->getFilePath('app.yaml'), $appName);
 
         my $installData = {
             id => $app->{'_appId'},
@@ -273,7 +274,7 @@ sub updateAppAction() {
 
 sub installAppAction() {
     my ($self) = @_;
-    my $apps = PreApps->new($self->{_cgi}, $self->{_cgi}->param('app'));
+    my $apps = KuberDock::PreApps->new($self->{_cgi}, $self->{_cgi}->param('app'));
 
     $apps->install();
     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#pre_apps');
@@ -281,7 +282,7 @@ sub installAppAction() {
 
 sub uninstallAppAction() {
     my ($self) = @_;
-    my $apps = PreApps->new($self->{_cgi}, $self->{_cgi}->param('app'));
+    my $apps = KuberDock::PreApps->new($self->{_cgi}, $self->{_cgi}->param('app'));
 
     $apps->uninstall();
     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#pre_apps');
@@ -289,7 +290,7 @@ sub uninstallAppAction() {
 
 sub deleteAppAction() {
     my ($self) = @_;
-    my $apps = PreApps->new($self->{_cgi}, $self->{_cgi}->param('app'));
+    my $apps = KuberDock::PreApps->new($self->{_cgi}, $self->{_cgi}->param('app'));
 
     $apps->delete();
     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#pre_apps');
