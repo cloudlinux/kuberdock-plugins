@@ -123,7 +123,6 @@ sub createAppAction() {
     my $appName = $self->{_cgi}->param('app_name') || 'Undefined';
     my $app = PreApps->new($self->{_cgi});
     my $uploadYaml = $self->{_cgi}->param('yaml_file');
-    my $appIcon = $self->{_cgi}->param('app_icon');
     my $code = $self->{_cgi}->param('code');
     my $vars = {
         yaml => $code || '#Some yaml',
@@ -153,18 +152,27 @@ sub createAppAction() {
         $yaml->{kuberdock}->{name} = $appName;
 
         $app->saveYaml('app.yaml', $yaml);
-        my $template = KCLI::createTemplate($app->getFilePath('app.yaml'));
+        my $template = KCLI::createTemplate($app->getFilePath('app.yaml'), $appName);
 
         if(!$template) {
+            Exception::throw('Cannot create template in KuberDock');
+            $self->render('pre-apps/form.tmpl', $vars);
             return 0;
         }
 
         $app = $app->setTemplateId($template->{'id'});
 
-        if($appIcon) {
-            my $iconPath = $app->uploadFile('app_icon', $appIcon, ('png'));
+        if(defined $yaml->{kuberdock}->{'icon'} && $yaml->{kuberdock}->{'icon'}) {
+            my $iconPath;
+            eval {
+                $iconPath = $app->uploadFileByUrl($yaml->{'kuberdock'}->{'icon'});
+            };
+            if($@) {
+                Exception::throw('Cannot upload icon by link or link used https connection');
+                $self->render('pre-apps/form.tmpl', $vars);
+                return 0;
+            }
             if($iconPath) {
-                $yaml->{kuberdock}->{icon} = "${appIcon}";
                 # fix x3 theme icon
                 $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_32.png'), 32, 32, 1);
                 $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_48.png'), 48, 48);
@@ -172,7 +180,7 @@ sub createAppAction() {
         }
 
         $app->saveYaml('app.yaml', $yaml);
-        KCLI::updateTemplate($template->{'id'}, $app->getFilePath('app.yaml'));
+        KCLI::updateTemplate($template->{'id'}, $app->getFilePath('app.yaml'), $appName);
 
         my $installData = {
             id => $app->{'_appId'},
@@ -190,7 +198,6 @@ sub updateAppAction() {
     my ($self) = @_;
     my $app = PreApps->new($self->{_cgi}, $self->{_form}->{'app'});
     my $uploadYaml = $self->{_cgi}->param('yaml_file');
-    my $appIcon = $self->{_cgi}->param('app_icon');
     my $code = $self->{_cgi}->param('code');
     my $template = KCLI::getTemplate($app->{'_templateId'});
 
@@ -231,10 +238,18 @@ sub updateAppAction() {
 
         $yaml->{kuberdock}->{name} = $appName;
 
-        if($appIcon) {
-            my $iconPath = $app->uploadFile('app_icon', $appIcon, ('png'));
+        if(defined $yaml->{kuberdock}->{'icon'} && $yaml->{kuberdock}->{'icon'}) {
+            my $iconPath;
+            eval {
+                $iconPath = $app->uploadFileByUrl($yaml->{'kuberdock'}->{'icon'});
+            };
+            if($@) {
+                Exception::throw('Cannot upload icon by link or link used https connection');
+                $self->render('pre-apps/form.tmpl', $vars);
+                return 0;
+            }
+
             if($iconPath) {
-                $yaml->{kuberdock}->{icon} = "${appIcon}";
                 # fix x3 theme icon
                 $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_32.png'), 32, 32, 1);
                 $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_48.png'), 48, 48);
@@ -242,7 +257,7 @@ sub updateAppAction() {
         }
 
         $app->saveYaml('app.yaml', $yaml);
-        my $template = KCLI::updateTemplate($app->{'_templateId'}, $app->getFilePath('app.yaml'));
+        my $template = KCLI::updateTemplate($app->{'_templateId'}, $app->getFilePath('app.yaml'), $appName);
 
         my $installData = {
             id => $app->{'_appId'},

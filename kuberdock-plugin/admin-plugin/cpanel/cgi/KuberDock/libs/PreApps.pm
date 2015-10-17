@@ -6,6 +6,7 @@ use warnings FATAL => 'all';
 use Cpanel::YAML;
 use Cpanel::Binaries;
 use File::Basename;
+use File::Fetch;
 use Archive::Tar;
 
 use JSON;
@@ -79,9 +80,14 @@ sub uploadFile() {
     my ($self, $inputName, $fileName, @allowed) = @_;
     my $buffer;
     my $bytesRead;
+    my $type = '';
+    my $fName;
 
     if(@allowed) {
-        my $type = $self->getTypeByContent($self->{_cgi}->uploadInfo($self->{_cgi}->param($inputName))->{'Content-Type'});
+        my $cd = $self->{_cgi}->uploadInfo($self->{_cgi}->param($inputName))->{'Content-Disposition'};
+        if($fName = $self->getFileName($cd)) {
+            $type = (split /\./, $fName)[1];
+        }
         if(!grep {$_ eq $type} @allowed) {
             print "Type '${type}' not allowed";
             return '';
@@ -101,6 +107,28 @@ sub uploadFile() {
     }
 
     return $appPath;
+}
+
+sub uploadFileByUrl() {
+    my ($self, $url, @allowed) = @_;
+    my $type = '';
+    my $fileName;
+
+    if($fileName = $self->getFileName($url)) {
+        $type = (split /\./, $fileName)[1];
+    }
+
+    if(@allowed) {
+        if(!grep {$_ eq $type} @allowed) {
+            print "Type '${type}' not allowed";
+            return '';
+        }
+    }
+
+    my $ff = File::Fetch->new(uri => $url);
+    my $where = $ff->fetch(to => $self->getAppDir()) or die $ff->error;
+
+    return $self->getFilePath($fileName);
 }
 
 sub resizeImage() {
@@ -249,20 +277,18 @@ sub execute() {
     system(join(' ', @_));
 }
 
-sub getTypeByContent() {
-    my ($self, $type) = @_;
+sub getFileName() {
+    my ($self, $data) = @_;
 
-    return 'yaml';
-    my $types = {
-        'application/x-yaml' => 'yaml',
-        'image/png' => 'png',
-    };
-
-    if(defined $types->{$type}) {
-        return $types->{$type};
-    } else {
-        return $type;
+    if($data =~ /(filename="(.+)\.(\w+)")|(.*\/(.+)\.(\w+))$/) {
+        if($2) {
+            return $2 . '.' . lc($3);
+        } else {
+            return $5 . '.' . lc($6);
+        }
     }
+
+    return 0;
 }
 
 sub setTemplateId {

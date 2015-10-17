@@ -18,13 +18,14 @@ sub getTemplates {
 }
 
 sub createTemplate {
-    my ($filename) = @_;
-    return KCLI::execute('kubectl', 'create', 'template', '-f', $filename);
+    my ($filename, $name) = @_;
+    return KCLI::execute('kubectl', 'create', 'template', '-f', $filename, '--name', sprintf("'%s'", $name));
 }
 
 sub updateTemplate {
-    my ($templateId, $filename) = @_;
-    return KCLI::execute('kubectl', 'update', 'template', '--id', $templateId, '-f', $filename);
+    my ($templateId, $filename, $name) = @_;
+    return KCLI::execute('kubectl', 'update', 'template', '--id', $templateId,
+        '-f', $filename, '--name', sprintf("'%s'", $name));
 }
 
 sub deleteTemplate {
