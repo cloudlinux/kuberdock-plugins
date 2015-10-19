@@ -16,7 +16,9 @@
     <div class="message"><?php echo $this->controller->error?></div>
 
     <form class="form-horizontal container-install predefined" method="post" action="<?php echo $_SERVER['REQUEST_URI']?>">
-        <input type="hidden" name="product_id" id="product_id" value="">
+        <input type="hidden" name="product_id" id="product_id" value="<?php echo $app->getPackageId(true)?>">
+        <input type="hidden" name="kube_type" id="kube_type" value="<?php echo $app->getKubeTypeId()?>" data-pid="<?php echo $app->getPackageId(true)?>">
+        <input type="hidden" name="total_kube_count" id="total_kube_count" value="<?php echo $app->getTotalKubes()?>">
 
     <div class="row">
         <?php foreach($variables as $variable => $row):?>

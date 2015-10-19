@@ -154,14 +154,14 @@ abstract class Command {
     {
         // TODO: temp. Need fixes in kcli
         if(in_array(trim(preg_replace('/\s+/', '', $response)), array(
-            '{"status":"pending"}{"status":"ERROR","message":"401ClientError:UNAUTHORIZED"}'))) {
+            '{"status":"pending"}{"status":"ERROR","message":"401ClientError:UNAUTHORIZED"}', 'null'))) {
             return '';
         }
 
         $parsedResponse = json_decode($response, true);
 
         if(!is_array($parsedResponse) && empty($parsedResponse) && $response) {
-            throw new CException($response);
+            throw new CException((SELECTOR_DEBUG ? $this->commandString . '<br>' : '') . $response);
         }
 
         if(isset($parsedResponse['status']) && $parsedResponse['status'] == self::STATUS_ERROR) {

@@ -173,7 +173,7 @@ class KuberDock_Product extends CL_Product {
             'password' => $password,
             'active' => 1,
             'suspended' => 0,
-            'email' => $this->client->email,
+            //'email' => $this->client->email,
             'rolename' => $role,
             'package' => $productName,
         ), $data['id']);

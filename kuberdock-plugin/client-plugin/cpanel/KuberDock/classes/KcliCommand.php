@@ -476,6 +476,7 @@ class KcliCommand extends Command {
 
     /**
      * Get config file data. user if exists or global
+     * @param bool $isAdmin
      * @return array
      */
     static public function getConfFile($isAdmin = false)

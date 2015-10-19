@@ -9,13 +9,6 @@
         <div class="page-header">
             <h2>Your Apps</h2>
         </div>
-
-        <?php if($postDescription):?>
-        <div class="alert alert-dismissible alert-success"  role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <strong><?php echo $postDescription?></strong>
-        </div>
-        <?php endif;?>
     </div>
 
     <div class="message"><?php echo $this->controller->error?></div>

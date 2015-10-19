@@ -12,7 +12,7 @@
                     <label for="packageId">Default package</label>
                     <select name="packageId" id="packageId">
                     [% FOREACH row IN packages %]
-                        <option value="[% row.id %]">[% row.name %]</option>
+                        <option value="[% row.id %]"[% IF row.id == defaults.packageId %] selected[% END %]>[% row.name %]</option>
                     [% END %]
                     </select>
                 </div>
@@ -21,7 +21,7 @@
                     <label for="kubeType">Default kube type</label>
                     <select name="kubeType" id="kubeType">
                     [% FOREACH row IN kubes %]
-                        <option value="[% row.id %]">[% row.name %]</option>
+                        <option value="[% row.id %]"[% IF row.id == defaults.kubeType %] selected[% END %]>[% row.name %]</option>
                     [% END %]
                     </select>
                 </div>

@@ -35,6 +35,10 @@ class PredefinedApp {
     /**
      * @var int
      */
+    private $packageId;
+    /**
+     * @var int
+     */
     private $templateId;
     /**
      * Yaml template
@@ -163,6 +167,19 @@ class PredefinedApp {
     }
 
     /**
+     * @param $packageId
+     * @throws CException
+     */
+    public function setPackageId($packageId)
+    {
+        if(!isset($this->kuberProducts[$packageId])) {
+            throw new CException('Unknown package');
+        }
+
+        $this->packageId = $packageId;
+    }
+
+    /**
      * @param $id
      * @return array
      * @throws CException
@@ -233,6 +250,7 @@ class PredefinedApp {
 
     /**
      * @param array $data
+     * @return array
      * @throws CException
      */
     public function createApp($data = array())
@@ -271,7 +289,7 @@ class PredefinedApp {
         }
 
         file_put_contents($this->getAppPath(), Spyc::YAMLDump($template));
-        $this->userCommand->createPodFromYaml($this->getAppPath());
+        return $this->userCommand->createPodFromYaml($this->getAppPath());
     }
 
     /**
@@ -330,6 +348,58 @@ class PredefinedApp {
     }
 
     /**
+     * @param bool $fromBilling
+     * @return string
+     * @throws CException
+     */
+    public function getPackageId($fromBilling = false)
+    {
+        $packageId = isset($this->template['kuberdock']['package_id']) ?
+            $this->template['kuberdock']['package_id'] : 0;
+
+        if(!$fromBilling) {
+            return $packageId;
+        }
+
+        foreach($this->kuberProducts as $productId => $row) {
+            if(!$row['kubes']) continue;
+
+            if($row['kubes'][0]['kuber_product_id'] == $packageId) return $productId;
+        }
+
+        throw new CException('Cannot get KuberDock package');
+    }
+
+    /**
+     * @return string
+     */
+    public function getKubeTypeId()
+    {
+        return isset($this->template['kuberdock']['kube_type']) ?
+            $this->template['kuberdock']['kube_type'] : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTotalKubes()
+    {
+        $total = 0;
+        $containers = isset($this->template['spec']['template']['spec']['containers']) ?
+            $this->template['spec']['template']['spec']['containers'] : $this->template['spec']['containers'];
+
+        foreach($containers as $image) {
+            if(isset($image['kubes'])) {
+                $total += $image['kubes'];
+            } else {
+                $total++;
+            }
+        }
+
+        return $total;
+    }
+
+    /**
      * @return array
      */
     public function getUnits()
@@ -340,6 +410,14 @@ class PredefinedApp {
             'hdd' => Units::getHDDUnits(),
             'traffic' => Units::getTrafficUnits(),
         );
+    }
+
+    /**
+     *
+     */
+    public function getPageType()
+    {
+
     }
 
     /**

@@ -98,3 +98,7 @@ p.kube-name {
 .container-install.predefined input[type=text], .container-install.predefined select {
     width: 100%;
 }
+
+.top-offset {
+    margin-top: 15px;
+}

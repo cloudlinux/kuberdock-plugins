@@ -19,5 +19,7 @@
         <?php endforeach;?>
     </table>
 <?php else: ?>
-    <div class="error"><?php echo $stat; ?></div>
+    <div class="error">
+        <?php echo is_array($stat) && !isset($stat['pods_usage']) ? 'Please update KuberDock server' : $stat; ?>
+    </div>
 <?php endif; ?>

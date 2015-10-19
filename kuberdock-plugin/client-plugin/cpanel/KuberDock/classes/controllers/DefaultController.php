@@ -10,8 +10,6 @@ class DefaultController extends KuberDock_Controller {
 
     public function indexAction()
     {
-        $postDescription = Tools::getParam('postDescription', '');
-
         try {
             $pod = new Pod();
             $pods = $pod->getPods();
@@ -26,7 +24,6 @@ class DefaultController extends KuberDock_Controller {
 
         $this->render('index', array(
             'pods' => $pods,
-            'postDescription' => $postDescription,
         ));
     }
 
@@ -44,6 +41,20 @@ class DefaultController extends KuberDock_Controller {
             header('HTTP/1.1 500 Internal Server Error');
             echo $e->getJSON();
         }
+    }
+
+    public function podDetailsAction()
+    {
+        $podName = Tools::getParam('podName', 'Undefined');
+        $postDescription = Tools::getParam('postDescription', '');
+
+        $pod = new Pod();
+        $pod = $pod->loadByName($podName);
+
+        $this->render('pod_details', array(
+            'pod' => $pod,
+            'postDescription' => $postDescription,
+        ));
     }
 
     public function searchAction()

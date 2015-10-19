@@ -371,8 +371,9 @@ class Pod {
     public function getKubeCount()
     {
         $count = 0;
+
         foreach($this->containers as $row) {
-            $count =+ $row['kubes'];
+            $count += isset($row['kubes']) ? $row['kubes'] : 1;
         }
 
         return $count;
@@ -436,7 +437,6 @@ class Pod {
     {
         $details = $this->command->describePod($name);
         $this->_data = $details;
-
         return $this;
     }
 
@@ -545,6 +545,10 @@ class Pod {
      */
     public function getPersistentStorageByName($volumeName)
     {
+        if(!isset($this->volumes)) {
+            return array();
+        }
+
         foreach($this->volumes as $volume) {
             if(isset($volume['name']) && $volume['name'] == $volumeName) {
                 return $volume;
@@ -560,11 +564,7 @@ class Pod {
      */
     private function addContainer($index, $values)
     {
-        if($index < 0) {
-            $this->_data['containers'][] = $values;
-        } else {
-            $this->_data['containers'][$index] = $values;
-        }
+        $this->_data['containers'][$index] = $values;
     }
 
     /**

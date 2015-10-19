@@ -102,11 +102,18 @@
 $(function() {
     var calculateTotal = function() {
         var el = $('#kuber_kube_id option:selected, #KUBE_TYPE option:selected'),
-            kubeCount = $('#kube_count, #KUBES').val(),
+            el = el.length ? el : $('#kube_type'),
+            kubeCount = 0,
+            kubeEl = $('#kube_count, input[id*="KUBE_COUNT"]') || $('#total_kube_count'),
             productId = el.data('pid'),
             kube = kubes[productId].kubes[el.val()],
-            currency = kubes[productId].currency,
-            price = wNumb({
+            currency = kubes[productId].currency;
+
+        $.each(kubeEl, function() {
+            kubeCount += parseInt($(this).val());
+        });
+
+        var price = wNumb({
                 decimals: 2,
                 prefix: kubes[productId].currency.prefix,
                 postfix: kubes[productId].currency.suffix  + ' / ' + kubes[productId].paymentType.replace('ly', '')

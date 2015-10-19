@@ -286,6 +286,25 @@ class WHMCSApi extends Base {
 
     /**
      * @return array
+     * @throws CException
+     */
+    public function getDefaults() {
+        if(!file_exists(self::OWNER_DATA_PATH)) {
+            throw new CException('Defaults file not exists. Please fill in defaults via admin area.');
+        }
+
+        $ownerData = file_get_contents(self::OWNER_DATA_PATH);
+        $ownerData = $ownerData ? json_decode($ownerData, true) : array();
+
+        if(isset($ownerData['defaults'])) {
+            return $ownerData['defaults'];
+        } else {
+            throw new CException('Defaults file broken. Please fill in defaults via admin area.');
+        }
+    }
+
+    /**
+     * @return array
      */
     public function getUserDomain()
     {
@@ -324,7 +343,7 @@ class WHMCSApi extends Base {
                 );
             }
         } else {
-            $conf = KcliCommand::getConfFile();
+            $conf = KcliCommand::getConfFile(true);
             return array($conf['user'], $conf['password']);
         }
     }

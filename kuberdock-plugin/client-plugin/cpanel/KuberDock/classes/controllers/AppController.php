@@ -40,7 +40,7 @@ class AppController extends KuberDock_Controller {
 
                 echo json_encode(array(
                     'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
-                    'redirect' => $_SERVER['SCRIPT_URI'],
+                    'redirect' => sprintf('%s?a=podDetails&podName=%s', $_SERVER['SCRIPT_URI'], $pod->name),
                 ));
             } catch(CException $e) {
                 echo $e->getJSON();
@@ -60,7 +60,6 @@ class AppController extends KuberDock_Controller {
 
         try {
             $app = new PredefinedApp();
-            $app->packageId = Tools::getPost('product_id');
             $template = $app->getTemplate($templateId);
             $variables = $app->getVariables($template);
         } catch(Exception $e) {
@@ -69,12 +68,14 @@ class AppController extends KuberDock_Controller {
 
         if($_POST) {
             try {
-                $app->createApp($_POST);
+                $app->setPackageId(Tools::getPost('product_id'));
+                $pod = $app->createApp($_POST);
                 $app->start();
 
                 echo json_encode(array(
                     'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
-                    'redirect' => $_SERVER['SCRIPT_URI'] . '?postDescription=' . $app->getPostDescription(),
+                    'redirect' => sprintf('%s?a=podDetails&podName=%s&postDescription=%s',
+                        $_SERVER['SCRIPT_URI'], $pod['name'], $app->getPostDescription()),
                 ));
             } catch (CException $e) {
                 echo $e->getJSON();

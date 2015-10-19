@@ -4,7 +4,6 @@ use strict;
 use warnings FATAL => 'all';
 
 use LWP::UserAgent;
-use KuberDock::Agent;
 use Config::Tiny;
 
 use KuberDock::KCLI;

@@ -66,8 +66,9 @@ $(function() {
 
     // Containers
     var deletePod = function(pod) {
-        var el = $('tr button.container-delete[data-app="' + pod + '"]'),
-            loader = el.parents('tr:eq(0)').find('.pod.ajax-loader');
+        var el = $('button.container-delete[data-app="' + pod + '"]'),
+            loaderParent = el.parents('tr:eq(0)').length ? el.parents('tr:eq(0)') : el.parents('div:eq(1)'),
+            loader = loaderParent.find('.pod.ajax-loader');
 
         $.ajax({
             type: 'POST',
@@ -92,8 +93,9 @@ $(function() {
     };
 
     var stopPod = function(pod) {
-        var el = $('tr button.container-stop[data-app="' + pod + '"]'),
-            loader = el.parents('tr:eq(0)').find('.pod.ajax-loader');
+        var el = $('button.container-stop[data-app="' + pod + '"]'),
+            loaderParent = el.parents('tr:eq(0)').length ? el.parents('tr:eq(0)') : el.parents('div:eq(1)'),
+            loader = loaderParent.find('.pod.ajax-loader');
 
         $.ajax({
             type: 'POST',

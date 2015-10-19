@@ -74,6 +74,7 @@ sub indexAction() {
     my $apps = KuberDock::PreApps->new($self->{_cgi});
     my $api = KuberDock::API->new;
     my $packages = $api->getPackages();
+    my $defaults = $resellers->loadData()->{defaults} || {};
 
     my $vars = {
         resellers => [$resellers->get()],
@@ -81,6 +82,7 @@ sub indexAction() {
         data => $resellers->loadData(),
         packages => $packages,
         kubes => $api->getPackageKubes(@$packages[0]->{id}),
+        defaults => $defaults,
     };
 
     $self->render('index.tmpl', $vars);
@@ -133,6 +135,8 @@ sub createAppAction() {
     my $app = KuberDock::PreApps->new($self->{_cgi});
     my $uploadYaml = $self->{_cgi}->param('yaml_file');
     my $code = $self->{_cgi}->param('code');
+    my $resellers = KuberDock::Resellers->new;
+    my $defaults = $resellers->loadData()->{defaults} || {};
     my $vars = {
         yaml => $code || '#Some yaml',
         appName => $appName,
@@ -159,6 +163,16 @@ sub createAppAction() {
             return 0;
         }
         $yaml->{kuberdock}->{name} = $appName;
+
+        if(!defined $yaml->{kuberdock}->{kube_type} && !$yaml->{kuberdock}->{kube_type}
+            && defined $defaults->{kubeType}) {
+            $yaml->{kuberdock}->{kube_type} = $defaults->{kubeType};
+        }
+
+        if(!defined $yaml->{kuberdock}->{package_id} && !$yaml->{kuberdock}->{package_id}
+            && defined $defaults->{packageId}) {
+            $yaml->{kuberdock}->{package_id} = $defaults->{packageId};
+        }
 
         $app->saveYaml('app.yaml', $yaml);
         my $template = KuberDock::KCLI::createTemplate($app->getFilePath('app.yaml'), $appName);
@@ -249,12 +263,12 @@ sub updateAppAction() {
 
         $yaml->{kuberdock}->{name} = $appName;
 
-        if(!defined $yaml->{kuberdock}->{kube_type} || !$yaml->{kuberdock}->{kube_type}
+        if(!defined $yaml->{kuberdock}->{kube_type} && !$yaml->{kuberdock}->{kube_type}
                 && defined $defaults->{kubeType}) {
             $yaml->{kuberdock}->{kube_type} = $defaults->{kubeType};
         }
 
-        if(!defined $yaml->{kuberdock}->{package_id} || !$yaml->{kuberdock}->{package_id}
+        if(!defined $yaml->{kuberdock}->{package_id} && !$yaml->{kuberdock}->{package_id}
             && defined $defaults->{packageId}) {
             $yaml->{kuberdock}->{package_id} = $defaults->{packageId};
         }
