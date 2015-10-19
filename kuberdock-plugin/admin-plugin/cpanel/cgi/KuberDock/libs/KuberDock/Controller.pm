@@ -6,12 +6,12 @@ use warnings FATAL => 'all';
 use Whostmgr::ACLS;
 use Whostmgr::HTMLInterface;
 use Template;
-use LWP::UserAgent;
-use Data::Dumper;
 
 use KuberDock::Resellers;
 use KuberDock::PreApps;
 use KuberDock::KCLI;
+use KuberDock::API;
+use Data::Dumper;
 
 use constant KUBERDOCK_TEMPLATE_PATH => '/usr/local/cpanel/whostmgr/docroot/cgi/KuberDock/templates';
 
@@ -33,8 +33,12 @@ sub new {
 
     Whostmgr::ACLS::init_acls();
 
-    print "Content-type: text/html\n\n";
-    Whostmgr::HTMLInterface::defheader('KuberDock', '/cgi/KuberDock/assets/images/kuberdock.png', '/cgi/addon_kuberdock.cgi');
+    if($self->{_action} eq 'getPackageKubesAction') {
+        print "Content-type: application/json\n\n";
+    } else {
+        print "Content-type: text/html\n\n";
+        Whostmgr::HTMLInterface::defheader('KuberDock', '/cgi/KuberDock/assets/images/kuberdock.png', '/cgi/addon_kuberdock.cgi');
+    }
 
     if(!Whostmgr::ACLS::hasroot() && !Whostmgr::Resellers::is_reseller($self->{_user})) {
         print qq(<div align="center"><h1>Permission denied</h1></div>);
@@ -68,11 +72,15 @@ sub indexAction() {
     my ($self) = @_;
     my $resellers = KuberDock::Resellers->new();
     my $apps = KuberDock::PreApps->new($self->{_cgi});
+    my $api = KuberDock::API->new;
+    my $packages = $api->getPackages();
 
     my $vars = {
         resellers => [$resellers->get()],
         apps => [$apps->getList()],
         data => $resellers->loadData(),
+        packages => $packages,
+        kubes => $api->getPackageKubes(@$packages[0]->{id}),
     };
 
     $self->render('index.tmpl', $vars);
@@ -201,6 +209,8 @@ sub updateAppAction() {
     my $uploadYaml = $self->{_cgi}->param('yaml_file');
     my $code = $self->{_cgi}->param('code');
     my $template = KuberDock::KCLI::getTemplate($app->{'_templateId'});
+    my $resellers = KuberDock::Resellers->new;
+    my $defaults = $resellers->loadData()->{defaults} || {};
 
     #if(!%{$template}) {
     #    KuberDock::Exception::throw('Template not founded');
@@ -238,6 +248,16 @@ sub updateAppAction() {
         }
 
         $yaml->{kuberdock}->{name} = $appName;
+
+        if(!defined $yaml->{kuberdock}->{kube_type} || !$yaml->{kuberdock}->{kube_type}
+                && defined $defaults->{kubeType}) {
+            $yaml->{kuberdock}->{kube_type} = $defaults->{kubeType};
+        }
+
+        if(!defined $yaml->{kuberdock}->{package_id} || !$yaml->{kuberdock}->{package_id}
+            && defined $defaults->{packageId}) {
+            $yaml->{kuberdock}->{package_id} = $defaults->{packageId};
+        }
 
         if(defined $yaml->{kuberdock}->{'icon'} && $yaml->{kuberdock}->{'icon'}) {
             my $iconPath;
@@ -294,6 +314,41 @@ sub deleteAppAction() {
 
     $apps->delete();
     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#pre_apps');
+}
+
+sub getPackageKubesAction {
+    my ($self) = @_;
+    my $api = KuberDock::API->new;
+    my $json = KuberDock::JSON->new;
+    my $packageId = $self->{_form}->{packageId};
+
+    my $response = $api->getPackageKubes($packageId);
+    print $json->encode($response);
+}
+
+sub setDefaultsAction {
+    my ($self) = @_;
+    my $reseller = KuberDock::Resellers->new();
+    my $data = $reseller->loadData();
+    my $api = KuberDock::API->new;
+    my $packageId = $self->{_cgi}->param('packageId');
+    my $kubeType = $self->{_cgi}->param('kubeType');
+
+    my $kubes = $api->getPackageKubesById($packageId);
+
+    if(!grep {$_ eq $kubeType} @$kubes) {
+        KuberDock::Exception::throw('There is no such kube type in package');
+        $self->indexAction();
+        exit;
+    }
+
+    $data->{defaults} = {
+        packageId => $packageId,
+        kubeType => $kubeType,
+    };
+
+    $reseller->save(%{$data});
+    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#defaults');
 }
 
 1;

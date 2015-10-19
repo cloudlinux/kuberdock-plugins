@@ -183,7 +183,7 @@ sub saveYaml() {
 
 sub createInstall() {
     my ($self, $data) = @_;
-    my $json = JSON->new();
+    my $json = KuberDock::JSON->new;
     my $path = $self->getFilePath('install.json');
 
     my $defaults = {
@@ -213,7 +213,7 @@ sub install() {
         KuberDock::Exception::throw('Plugin already installed');
         return 0;
     }
-    my $json = JSON->new();
+    my $json = KuberDock::JSON->new();
     my $details = $json->loadFile($self->getFilePath('install.json'));
     my $tar = Archive::Tar->new();
 
@@ -244,7 +244,7 @@ sub uninstall() {
         KuberDock::Exception::throw('Plugin already uninstalled');
         return 0;
     }
-    my $json = JSON->new();
+    my $json = KuberDock::JSON->new();
     my $details = $json->loadFile($self->getFilePath('install.json'));
 
     foreach my $theme ('x3', 'paper_lantern') {

@@ -45,7 +45,6 @@ use Data::Dumper;
 use KuberDock::Controller;
     
 my $app = CGI->new;
-#print $app->header();
 
 my %form = Cpanel::Form::parseform();
 my $controller = KuberDock::Controller->new(\%form, $app);

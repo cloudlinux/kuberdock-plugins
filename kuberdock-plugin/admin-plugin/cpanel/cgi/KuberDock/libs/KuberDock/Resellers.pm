@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Whostmgr::Resellers;
-use JSON;
+use KuberDock::JSON;
 use Data::Dumper;
 
 use constant KUBERDOCK_WHMCS_DATA_FILE => '/var/cpanel/apps/kuberdock_whmcs.json';

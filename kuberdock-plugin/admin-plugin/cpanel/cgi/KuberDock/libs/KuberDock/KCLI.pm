@@ -3,7 +3,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Data::Dumper;
-use JSON;
+use KuberDock::JSON;
 
 use constant KUBERDOCK_KCLI_PATH => '/usr/bin/kcli';
 use constant KUBERDOCK_CONF_PATH => '/etc/kubecli.conf';
@@ -35,7 +35,7 @@ sub deleteTemplate {
 }
 
 sub execute {
-    my $json = JSON->new();
+    my $json = KuberDock::JSON->new();
     my @defaults = (KUBERDOCK_KCLI_PATH, '--json', '-c', KUBERDOCK_CONF_PATH);
     my $command = join(' ', (@defaults, @_));
 

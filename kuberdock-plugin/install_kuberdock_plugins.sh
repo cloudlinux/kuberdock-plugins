@@ -40,6 +40,7 @@ function install
     /bin/cp -R $ADMIN_SOURCE_PATH/cgi/$PLUGIN_NAME $CPANEL_CGI_PATH/$PLUGIN_NAME
     /bin/cp $ADMIN_SOURCE_PATH/cgi/addon_kuberdock.cgi $CPANEL_CGI_PATH
     /bin/chmod ugo+x $CPANEL_CGI_PATH/addon_kuberdock.cgi
+    /bin/chmod -R 600 $CPANEL_CGI_PATH/$PLUGIN_NAME
 
     echo "Plugin installed"
 }
@@ -124,6 +125,7 @@ function upgrade
     /bin/cp -R $ADMIN_SOURCE_PATH/cgi/$PLUGIN_NAME $CPANEL_CGI_PATH/$PLUGIN_NAME
     /bin/cp $ADMIN_SOURCE_PATH/cgi/addon_kuberdock.cgi $CPANEL_CGI_PATH
     /bin/chmod ugo+x $CPANEL_CGI_PATH/addon_kuberdock.cgi
+    /bin/chmod -R 600 $CPANEL_CGI_PATH/$PLUGIN_NAME
 
     echo "Plugin upgraded"
 }
