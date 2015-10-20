@@ -128,19 +128,28 @@ class KuberDock_Product extends CL_Product {
             ))->getApi()->getToken();
             $service->updateToken($token);
             $created = true;
-        }
 
-        $service->updateById($serviceId, array(
-            'username' => $service->username,
-            'password' => $service->encryptPassword($password),
-            'domainstatus' => 'Active',
-        ));
+            $service->updateById($serviceId, array(
+                'username' => $service->username,
+                'password' => $service->encryptPassword($password),
+                'domainstatus' => 'Active',
+            ));
+        }
 
         if(isset($created) && $created) {
             // Send module create email
             CL_MailTemplate::model()->sendPreDefinedEmail($serviceId, CL_MailTemplate::MODULE_CREATE_NAME, array(
                 'kuberdock_link' => $service->getServer()->getLoginPageLink(),
             ));
+        }
+
+        $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+        $service = KuberDock_Hosting::model()->loadById($serviceId);
+        if($service->isActive() && $predefinedApp) {
+            if(!$predefinedApp->isPodExists($service->id)) {
+                $pod = $predefinedApp->create($service->id);
+                $predefinedApp->start($pod['id'], $service->id);
+            }
         }
     }
 
@@ -165,14 +174,13 @@ class KuberDock_Product extends CL_Product {
         }
 
         $api->updateUser(array(
-            'active' => 1,
             'package' => $productName,
             'first_name' => $this->client->firstname,
             'last_name' => $this->client->lastname,
             'username' => $service->username,
             'password' => $password,
-            'active' => 1,
-            'suspended' => 0,
+            'active' => $service->isTerminated() ? 0 : 1,
+            'suspended' => $service->isSuspended() ? 1 : 0,
             //'email' => $this->client->email,
             'rolename' => $role,
             'package' => $productName,
@@ -181,13 +189,16 @@ class KuberDock_Product extends CL_Product {
         $service->updateById($serviceId, array(
             'username' => $service->username,
             'password' => $service->encryptPassword($password),
-            'domainstatus' => 'Active',
         ));
 
-        if(!$token = $service->getToken()) {
-            $token = $service->getApi()->getToken();
-            $service->updateToken($token);
+        if(!$service->isTerminated() && !$service->isSuspended()) {
+            $service->updateById($serviceId, array(
+                'domainstatus' => 'Active',
+            ));
         }
+
+        $token = $service->getApi(true)->getToken();
+        $service->updateToken($token);
     }
 
     /**
@@ -350,14 +361,22 @@ class KuberDock_Product extends CL_Product {
      */
     public function getApi()
     {
-        $serverGroup = KuberDock_ServerGroup::model()->loadById($this->servergroup);
-        if($serverGroup) {
-            $api = $serverGroup->getActiveServer()->getApi()->setDebugMode($this->getConfigOption('debug'));
-        } else {
-            $api = KuberDock_Server::model()->getActive()->getApi()->setDebugMode($this->getConfigOption('debug'));
-        }
+        return $this->getServer()->getApi()->setDebugMode($this->getConfigOption('debug'));
+    }
 
-        return $api;
+    /**
+     * @return KuberDock_Server
+     * @throws Exception
+     */
+    public function getServer()
+    {
+        $serverGroup = KuberDock_ServerGroup::model()->loadById($this->servergroup);
+
+        if($serverGroup) {
+            return $serverGroup->getActiveServer();
+        } else {
+            return KuberDock_Server::model()->getActive();
+        }
     }
 
     /**

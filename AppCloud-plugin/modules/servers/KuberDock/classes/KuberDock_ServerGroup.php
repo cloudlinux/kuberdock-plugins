@@ -70,7 +70,7 @@ class KuberDock_ServerGroup extends CL_Model {
         ))->getRow();
 
         if(!$server) {
-            throw new Exception('Server not found');
+            throw new Exception('Active server not founded');
         }
 
         return KuberDock_Server::model()->loadByParams($server);

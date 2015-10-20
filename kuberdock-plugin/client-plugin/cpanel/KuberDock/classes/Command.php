@@ -154,7 +154,7 @@ abstract class Command {
     {
         // TODO: temp. Need fixes in kcli
         if(in_array(trim(preg_replace('/\s+/', '', $response)), array(
-            '{"status":"pending"}{"status":"ERROR","message":"401ClientError:UNAUTHORIZED"}', 'null'))) {
+            '{"status":"pending"}{"status":"ERROR","message":"401ClientError:UNAUTHORIZED"}', ''))) {
             return '';
         }
 

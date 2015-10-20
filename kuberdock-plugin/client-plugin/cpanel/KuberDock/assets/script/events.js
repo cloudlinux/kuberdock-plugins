@@ -78,16 +78,16 @@ $(function() {
             beforeSend: function() {
                 $('.confirm-modal').modal('hide');
                 loader.removeClass('hidden');
+            },
+            complete: function() {
+                loader.addClass('hidden');
             }
         }).done(function(data) {
-            loader.addClass('hidden');
             displayMessage(data.message);
-            if(!data.error) {
-                el.parents('tr:eq(0)').next('tr.container-details').remove();
-                el.parents('tr:eq(0)').remove();
+            if(data.redirect) {
+                window.location.href = data.redirect;
             }
         }).error(function(data) {
-            loader.addClass('hidden');
             displayMessage(data.responseJSON.message);
         });
     };
@@ -105,14 +105,15 @@ $(function() {
             beforeSend: function() {
                 $('.confirm-modal').modal('hide');
                 loader.removeClass('hidden');
+            },
+            complete: function() {
+                loader.addClass('hidden');
             }
         }).done(function(data) {
             displayMessage(data.message);
-            if(data.content) {
-                $('.container-content').replaceWith(data.content);
-            }
+            el.toggleClass('container-stop').addClass('container-start').attr('title', 'Start');
+            el.html('<span class="glyphicon glyphicon-play" aria-hidden="true"></span> Start');
         }).error(function(data) {
-            loader.addClass('hidden');
             displayMessage(data.responseJSON.message);
         });
     };
@@ -147,7 +148,8 @@ $(function() {
 
     $(document).on('click', '.container-start', function(e) {
         var el = $(this),
-            loader = el.parents('tr:eq(0)').find('.pod.ajax-loader');
+            loaderParent = el.parents('tr:eq(0)').length ? el.parents('tr:eq(0)') : el.parents('div:eq(1)'),
+            loader = loaderParent.find('.pod.ajax-loader');
 
         $.ajax({
             type: 'POST',
@@ -156,14 +158,15 @@ $(function() {
             dataType: 'json',
             beforeSend: function() {
                 loader.removeClass('hidden');
+            },
+            complete: function() {
+                loader.addClass('hidden');
             }
         }).done(function(data) {
             displayMessage(data.message);
-            if(data.content) {
-                $('.container-content').replaceWith(data.content);
-            }
+            el.toggleClass('container-start').addClass('container-stop').attr('title', 'Stop');
+            el.html('<span class="glyphicon glyphicon-stop" aria-hidden="true"></span> Stop');
         }).error(function(data) {
-            loader.addClass('hidden');
             displayMessage(data.responseJSON.message);
         });
     });

@@ -157,7 +157,7 @@ $(function() {
     });
 
     $(document).on('change', '#kuber_kube_id, #KUBE_TYPE', calculateTotal);
-    $(document).on('change', '.kube-slider, #KUBES', calculateTotal);
+    $(document).on('change', '.kube-slider, input[id*="KUBE_COUNT"]', calculateTotal);
 
     // Ports
     $(document).on('click', 'button#add_port', function(e) {

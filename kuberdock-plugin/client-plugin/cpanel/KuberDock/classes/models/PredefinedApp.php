@@ -13,7 +13,7 @@ class PredefinedApp {
     /**
      *
      */
-    const VARIABLE_REGEXP = '/\$(?<variable>\w+)\$/';
+    const VARIABLE_REGEXP = '/\%(?<variable>\w+)\%/';
 
     /**
      * @var array

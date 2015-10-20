@@ -8,7 +8,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     /**
      *
      */
-    const KUBERDOCK_PRODUCT_ID_FIELD = 'kd_pid';
+    const KUBERDOCK_PRODUCT_ID_FIELD = 'pkgid';
     /**
      *
      */
@@ -23,7 +23,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     }
 
     /**
-     * @return $this|bool
+     * @return $this
      */
     public function loadBySessionId()
     {
@@ -46,7 +46,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     public function create($serviceId)
     {
         $api = KuberDock_Hosting::model()->loadById($serviceId)->getApi();
-        $response = $api->createPodFromYaml(unserialize($this->data));
+        $response = $api->createPodFromYaml($this->data);
 
         return $response->getData();
     }
@@ -60,6 +60,28 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     {
         $api = KuberDock_Hosting::model()->loadById($serviceId)->getApi();
         $api->startPod($podId);
+    }
+
+    /**
+     * @param int $serviceId
+     * @return bool
+     * @throws Exception
+     */
+    public function isPodExists($serviceId)
+    {
+        $yaml = Spyc::YAMLLoadString($this->data);
+        $podName = isset($yaml['metadata']['name']) ? $yaml['metadata']['name'] : '';
+
+        $api = KuberDock_Hosting::model()->loadById($serviceId)->getApi();
+        $pods = $api->getPods();
+
+        foreach($pods->getData() as $row) {
+            if($row['name'] == $podName) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

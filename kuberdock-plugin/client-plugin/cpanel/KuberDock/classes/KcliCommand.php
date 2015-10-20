@@ -242,7 +242,6 @@ class KcliCommand extends Command {
             'set' => sprintf("'%s'", $name),
             '-C' => $image,
             '--mount-path' => $params['mountPath'],
-            '--read-only' => isset($params['readOnly']) ? (int) $params['readOnly'] : 0,
             '--index' => $index,
         );
 

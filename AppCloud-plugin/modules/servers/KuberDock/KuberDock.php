@@ -39,12 +39,6 @@ function KuberDock_CreateAccount($params) {
             }
         }
 
-        $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-        if($params['status'] != 'Active') {
-            $pod = $predefinedApp->create($params['serviceid']);
-            $predefinedApp->start($pod['id'], $params['serviceid']);
-        }
-
         return 'success';
     } catch(Exception $e) {
         return 'ERROR: ' . $e->getMessage();

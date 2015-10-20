@@ -63,6 +63,8 @@ class AppController extends KuberDock_Controller {
             $template = $app->getTemplate($templateId);
             $variables = $app->getVariables($template);
         } catch(Exception $e) {
+            $app = new stdClass();
+            $variables = array();
             $this->error = $e;
         }
 

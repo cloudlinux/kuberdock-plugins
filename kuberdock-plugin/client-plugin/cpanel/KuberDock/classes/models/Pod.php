@@ -321,7 +321,17 @@ class Pod {
     public function getPods()
     {
         $data = array();
-        $pods = $this->command->getPods();
+
+        if(!$this->userKuberProduct) {
+            return array();
+        }
+
+        try {
+            $pods = $this->command->getPods();
+        } catch(CException $e) {
+            // TODO: KCLI !!!!
+            return array();
+        }
 
         foreach($pods as $pod) {
             $pod = $this->loadByName($pod['name']);
@@ -423,8 +433,7 @@ class Pod {
         }
 
         $imageInfo = $this->getImageInfo($image);
-        $ci = $this->getContainerIndexByImage($image);
-        $this->addContainer($ci, $imageInfo);
+        $this->addContainer(0, $imageInfo);
 
         return $this;
     }

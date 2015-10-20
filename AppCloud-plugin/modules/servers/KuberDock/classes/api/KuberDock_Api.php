@@ -737,6 +737,28 @@ class KuberDock_Api {
         return $response;
     }
 
+    /**
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function getPods()
+    {
+        $this->url = $this->serverUrl . '/api/podapi';
+        $response = $this->call(array(), 'GET');
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param $podId
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
     public function startPod($podId)
     {
         $this->url = $this->serverUrl . '/api/podapi/' . $podId;

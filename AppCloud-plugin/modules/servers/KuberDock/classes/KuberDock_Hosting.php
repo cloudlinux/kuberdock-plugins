@@ -377,11 +377,12 @@ class KuberDock_Hosting extends CL_Hosting {
     }
 
     /**
+     * @param bool $plainAuth
      * @return KuberDock_Api
      */
-    public function getApi()
+    public function getApi($plainAuth = false)
     {
-        if($token = $this->getToken()) {
+        if(($token = $this->getToken()) && !$plainAuth) {
             $api = KuberDock_Server::model()->getApiByToken($token, $this->server);
         } else {
             $api = KuberDock_Server::model()
@@ -407,8 +408,10 @@ class KuberDock_Hosting extends CL_Hosting {
     public function getServer()
     {
         if(!$this->server) {
-            throw new CException('Service has no server');
+            $product = KuberDock_Product::model()->loadById($this->packageid);
+            return $product->getServer();
         }
+
         return KuberDock_Server::model()->loadById($this->server);
     }
 
@@ -428,12 +431,36 @@ class KuberDock_Hosting extends CL_Hosting {
     }
 
     /**
+     * @return bool
+     */
+    public function isActive()
+    {
+        return $this->domainstatus == 'Active';
+    }
+
+    /**
+     * @return bool
+     */
+    public function isTerminated()
+    {
+        return $this->domainstatus == 'Terminated';
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSuspended()
+    {
+        return $this->domainstatus == 'Suspended';
+    }
+
+    /**
      * @return string
      */
     public function getToken()
     {
         $customField = KuberDock_Product::model()->getCustomField($this->packageid, 'Token');
-        $sql = 'SELECT * FROM `tblcustomfieldsvalues` WHERE relid=? AND fieldid';
+        $sql = 'SELECT * FROM `tblcustomfieldsvalues` WHERE relid=? AND fieldid=?';
         $row = $this->_db->query($sql, array($this->id, $customField['id']))->getRow();
 
         return $row['value'];

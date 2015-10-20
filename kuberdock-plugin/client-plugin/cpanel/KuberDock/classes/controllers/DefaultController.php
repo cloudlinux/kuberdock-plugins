@@ -69,7 +69,7 @@ class DefaultController extends KuberDock_Controller {
             $images = $pod->searchImages($search, $page);
             $registryUrl = $pod->command->getRegistryUrl();
         } catch(CException $e) {
-            $images = array();
+            $images = $templates = array();
             $registryUrl = '';
             $this->error = $e;
         }
@@ -153,7 +153,6 @@ class DefaultController extends KuberDock_Controller {
 
             echo json_encode(array(
                 'message' => $this->renderPartial('success', array('message' => 'Application started'), false),
-                'content' => $this->getContainersList(),
             ));
         } catch(CException $e) {
             header('HTTP/1.1 500 Internal Server Error');
@@ -176,7 +175,6 @@ class DefaultController extends KuberDock_Controller {
 
             echo json_encode(array(
                 'message' => $this->renderPartial('success', array('message' => 'Application stopped'), false),
-                'content' => $this->getContainersList(),
             ));
         } catch(CException $e) {
             header('HTTP/1.1 500 Internal Server Error');
@@ -199,11 +197,16 @@ class DefaultController extends KuberDock_Controller {
 
             echo json_encode(array(
                 'message' => $this->renderPartial('success', array('message' => 'Application deleted'), false),
-                'content' => $this->getContainersList(),
+                'redirect' => $_SERVER['SCRIPT_URI'],
             ));
         } catch(CException $e) {
-            header('HTTP/1.1 500 Internal Server Error');
-            echo $e->getJSON();
+            // TODO: temporary, until it fixed in kcli
+            echo json_encode(array(
+                'message' => 'Deleted',
+                'redirect' => $_SERVER['SCRIPT_URI'],
+            ));
+            /*header('HTTP/1.1 500 Internal Server Error');
+            echo $e->getJSON();*/
         }
     }
 

@@ -9,6 +9,8 @@
             <strong><?php echo $postDescription?></strong>
         </div>
     <?php endif;?>
+
+    <div class="message"><?php echo $this->controller->error?></div>
 </div>
 
 <div class="row">
