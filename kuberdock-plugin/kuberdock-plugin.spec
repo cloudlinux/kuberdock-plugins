@@ -1,7 +1,7 @@
 Version: 0.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 6%{?dist}.cloudlinux
+Release: 7%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -50,6 +50,27 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Tue Oct 20 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-7
+- cPanel. Fixed few notice errors, no whmcs product er
+- AC-1309 cPanel. Add list of predefined apps on search page, search bugfix - page should start from 1
+- AC-1305 cPanel. Separate page for each app WHMCS. Notice admin if KD return old format usage
+- AC-1307 cPanel. Set default package&kube_type
+- cPanel. Move libs to KuberDock dir
+- AC-1304 cPanel. Upload app icon by url from yaml section
+- cPanel. Added cgi exceptions
+- AC-674 cPanel. User notice about app start
+- AC-1188 cPanel > Apps > Not handled error when it cannot connect to whmcs
+- AC-999 cPanel. Parse and start yaml app
+
+* Tue Oct 6 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-6
+- AC-997 cPanel. Admin interface for yaml apps WHMCS. API handle server not found error
+- AC-998 cPanel. Create pre-setup applications within admin interface
+- AC-673 cPanel. Added volumes functionality
+- AC-651 cPanel. Added stop and delete notifications
+- AC-762 cPanel. Local storage limits
+- AC-765 cPanel. Use token for kcli requests
+- AC-566 cPanel Changes for kcli new port syntax
 
 * Fri Jul 31 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-5
 - Fix pod deletion
