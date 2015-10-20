@@ -63,6 +63,8 @@ class DefaultController extends KuberDock_Controller {
         $page = Tools::getParam('page', Tools::getPost('page', 1));
 
         try {
+            $apps = new PredefinedApp();
+            $templates = $apps->getTemplates();
             $pod = new Pod();
             $images = $pod->searchImages($search, $page);
             $registryUrl = $pod->command->getRegistryUrl();
@@ -78,6 +80,7 @@ class DefaultController extends KuberDock_Controller {
             'search' => $search,
             'pagination' => new Pagination($page, 0),
             'registryUrl' => $registryUrl,
+            'templates' => $templates,
         );
 
         if($this->isAjaxRequest()) {

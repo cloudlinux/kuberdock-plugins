@@ -313,18 +313,18 @@ class KcliCommand extends Command {
     }
 
     /**
-     * @param $image
+     * @param string $image
      * @param int $page
      * @return array
      */
-    public function searchImages($image, $page = 0)
+    public function searchImages($image, $page = 1)
     {
         if(empty($image)) {
             return array();
         }
 
-        if($page < 0) {
-            $page = 0;
+        if($page < 1) {
+            $page = 1;
         }
 
         return $this->execute(array(

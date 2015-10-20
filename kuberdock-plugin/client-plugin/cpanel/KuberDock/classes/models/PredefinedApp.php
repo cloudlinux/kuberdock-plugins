@@ -199,6 +199,21 @@ class PredefinedApp {
     }
 
     /**
+     * @return array
+     * @throws CException
+     */
+    public function getTemplates()
+    {
+        $templates = $this->adminCommand->getYAMLTemplates();
+
+        foreach($templates as &$row) {
+            $row['template'] = Spyc::YAMLLoadString($row['template']);
+        }
+
+        return $templates;
+    }
+
+    /**
      * @param $template
      * @return array
      */
