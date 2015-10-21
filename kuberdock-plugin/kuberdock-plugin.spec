@@ -1,7 +1,7 @@
 Version: 0.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 7%{?dist}.cloudlinux
+Release: 8%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -51,8 +51,11 @@ fi
 
 %changelog
 
+* Tue Oct 21 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-8
+- cPanel. Fixed api connect to ssl host. Cgi empty values in methods.
+
 * Tue Oct 20 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-7
-- cPanel. Fixed few notice errors, no whmcs product er
+- Fixed few notice errors, no whmcs product error, predefined app bugfix, added Spyc - yaml parser
 - AC-1309 cPanel. Add list of predefined apps on search page, search bugfix - page should start from 1
 - AC-1305 cPanel. Separate page for each app WHMCS. Notice admin if KD return old format usage
 - AC-1307 cPanel. Set default package&kube_type

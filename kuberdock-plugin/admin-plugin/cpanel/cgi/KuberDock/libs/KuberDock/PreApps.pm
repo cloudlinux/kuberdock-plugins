@@ -67,7 +67,7 @@ sub getList() {
         my $path = $self->{_appsDir} . '/'. $appId . '/install.json';
 
         $i->{'installed'} = -e dirname($path) . '/' . 'installed' ? 1 : 0;
-        $i->{'name'} = $yaml->{'kuberdock'}->{'name'};
+        $i->{'name'} = $yaml->{'kuberdock'}->{'name'} || 'Not setted in cPanel. Please update template.';
         $i->{'appId'} = $appId;
 
         push @data, $i;

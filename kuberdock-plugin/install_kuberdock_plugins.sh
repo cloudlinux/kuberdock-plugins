@@ -102,6 +102,9 @@ function upgrade
 
     for template in $( /bin/find $CPANEL_TEMPLATE_PATH -mindepth 1 -maxdepth 1 -type d ! -type l ); do
         /bin/cp $CONF_PATH/dynamicui_kuberdockgroup.conf $template/dynamicui
+        if [ -e $template/$PLUGIN_NAME ]; then
+            /bin/rm -R $template/$PLUGIN_NAME
+        fi
         /bin/cp -R $CLIENT_SOURCE_PATH/$PLUGIN_NAME $template
     done
 
@@ -122,6 +125,7 @@ function upgrade
         /usr/local/cpanel/bin/register_appconfig $conf
     done
 
+    /bin/rm -R $CPANEL_CGI_PATH/$PLUGIN_NAME
     /bin/cp -R $ADMIN_SOURCE_PATH/cgi/$PLUGIN_NAME $CPANEL_CGI_PATH/$PLUGIN_NAME
     /bin/cp $ADMIN_SOURCE_PATH/cgi/addon_kuberdock.cgi $CPANEL_CGI_PATH
     /bin/chmod ugo+x $CPANEL_CGI_PATH/addon_kuberdock.cgi

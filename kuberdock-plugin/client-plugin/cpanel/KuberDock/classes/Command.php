@@ -78,6 +78,12 @@ abstract class Command {
         $response = ob_get_contents();
         ob_end_clean();
 
+        // TODO: fix KCLI
+        $userConf = getenv('HOME') .DS . '.kubecli.conf';
+        if(file_exists($userConf)) {
+            unlink($userConf);
+        }
+
         return $this->parseResponse($response);
     }
 

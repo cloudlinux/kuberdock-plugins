@@ -295,7 +295,7 @@ class PredefinedApp {
 
             $this->userKuberProduct = $this->api->getUserKuberDockProduct();
             list($username, $password) = $this->api->getAuthData($this->packageId);
-            $this->command = new KcliCommand($username, $password);
+            $this->userCommand = new KcliCommand($username, $password, '');
         }
 
         if(stripos($this->userKuberProduct[$this->packageId]['server']['status'], 'Active') === false) {

@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 
 use LWP::UserAgent;
 use Config::Tiny;
+use Net::SSL;
 
 use KuberDock::KCLI;
 use KuberDock::JSON;
@@ -46,7 +47,7 @@ sub getPackageKubesById {
 
 sub request {
     my ($self, $url, $requestType, $data) = @_;
-    my $agent = LWP::UserAgent->new;
+    my $agent = LWP::UserAgent->new(ssl_opts => { verify_hostname => 0 },);
 
     my $endpoint = $self->{_server} . $url;
 

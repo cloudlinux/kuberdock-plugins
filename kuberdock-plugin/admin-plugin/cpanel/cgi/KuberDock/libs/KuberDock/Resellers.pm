@@ -100,7 +100,7 @@ sub loadFile() {
     if(-e KUBERDOCK_WHMCS_DATA_FILE && !-z KUBERDOCK_WHMCS_DATA_FILE) {
         return $self->{_json}->loadFile(KUBERDOCK_WHMCS_DATA_FILE);
     } else {
-        return undef;
+        return {};
     }
 }
 
