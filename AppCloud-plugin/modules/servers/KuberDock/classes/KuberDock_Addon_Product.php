@@ -26,7 +26,7 @@ class KuberDock_Addon_Product extends CL_Model {
         $product = KuberDock_Product::model()->loadById($productId);
         $currency = CL_Currency::model()->getDefaultCurrency();
         $api = $product->getApi();
-        $product->createCustomField($product->pid, 'Token', $product::FIELD_TYPE_TEXT);
+        $product->createCustomField($productId, 'Token', $product::FIELD_TYPE_TEXT);
 
         if($pricing = $this->loadById($productId)) {
             $this->setKubePricing($product);
