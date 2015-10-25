@@ -1,5 +1,5 @@
-<link rel="stylesheet" type="text/css" href="assets/css/styles.css">
 <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="assets/css/styles.css">
 
 <script src="assets/script/jquery.min.js"></script>
 <script src="assets/script/bootstrap.min.js"></script>

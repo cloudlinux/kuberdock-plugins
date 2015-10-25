@@ -5,7 +5,7 @@
 <div class="container-fluid content">
     <div class="row">
         <p>
-            <?php echo $app->getPreDescription()?>
+            <?php echo $app->getPreDescription();?>
         </p>
 
         <div class="page-header">
@@ -29,7 +29,7 @@
                 <?php if(isset($row['data'])):?>
                     <select name="<?php echo $variable?>" id="<?php echo $variable?>">
                     <?php foreach($row['data'] as $k => $r):?>
-                        <option value="<?php echo $r['id']?>" data-pid="<?php echo $r['product_id']?>"<?php echo ($k == $row['default']) ? ' selected' : ''?>>
+                        <option value="<?php echo $r['id']?>" data-pid="<?php echo $r['product_id']?>"<?php echo ($r['id'] == $row['default']) ? ' selected' : ''?>>
                             <?php echo $r['name']?>
                         </option>
                     <?php endforeach;?>

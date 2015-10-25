@@ -171,17 +171,19 @@
 
 <div class="row">
     <div class="col-md-5">
-        <?php if($templateId):?>
-            <a href="kuberdock.live.php?c=app&a=installPredefined&template=<?php echo $templateId?>">
-                < < Back to apps
-            </a>
-        <?php else:?>
-            <a href="kuberdock.live.php">< < Back to main page</a>
-        <?php endif;?>
+    <?php if($podsCount > 1):?>
+        <a href="kuberdock.live.php?c=app&a=installPredefined&template=<?php echo $app->getTemplateId()?>">
+            < < Back to "<?php echo $app->getName()?>" apps
+        </a>
+    <?php else:?>
+        <a href="kuberdock.live.php">< < Back to main page</a>
+    <?php endif;?>
     </div>
 
     <div class="col-md-5 text-right">
-        <a href="?kuberdock.live.php?a=search"><button type="button" class="btn btn-primary">Add more apps</button></a>
+        <a href="kuberdock.live.php?c=app&a=installPredefined&new=1&template=<?php echo $app->getTemplateId()?>">
+            <button type="button" class="btn btn-primary">Add more "<?php echo $app->getName()?>" apps</button>
+        </a>
     </div>
 </div>
 

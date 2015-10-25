@@ -57,37 +57,62 @@ class AppController extends KuberDock_Controller {
     public function installPredefinedAction()
     {
         $templateId = Tools::getParam('template', '');
+        $new = Tools::getParam('new', '');
 
         try {
-            $app = new PredefinedApp();
-            $template = $app->getTemplate($templateId);
-            $variables = $app->getVariables($template);
-        } catch(Exception $e) {
-            $app = new stdClass();
-            $variables = array();
-            $this->error = $e;
-        }
+            $app = new PredefinedApp($templateId);
+            $variables = $app->getVariables();
+            $pods = $app->getExistingPods();
+            $podsCount = count($pods);
+            $podsCount = $new ? 0 : $podsCount;
 
-        if($_POST) {
-            try {
-                $app->setPackageId(Tools::getPost('product_id'));
-                $pod = $app->createApp($_POST);
-                $app->start();
+            if($_POST) {
+                try {
+                    $app->setPackageId(Tools::getPost('product_id'));
+                    $pod = $app->createApp($_POST);
+                    $app->start();
 
-                echo json_encode(array(
-                    'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
-                    'redirect' => sprintf('%s?a=podDetails&podName=%s&postDescription=%s',
-                        $_SERVER['SCRIPT_URI'], $pod['name'], $app->getPostDescription()),
-                ));
-            } catch (CException $e) {
-                echo $e->getJSON();
+                    echo json_encode(array(
+                        'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
+                        'redirect' => sprintf('%s?c=app&a=installPredefined&template=%s&postDescription=%s',
+                            $_SERVER['SCRIPT_URI'], $templateId, $app->getPostDescription()),
+                    ));
+                } catch (CException $e) {
+                    echo $e->getJSON();
+                }
+                exit();
             }
-            exit();
-        }
 
-        $this->render('installPredefined', array(
-            'app' => $app,
-            'variables' => $variables,
-        ));
+            switch($podsCount) {
+                case 0:
+                    $this->render('installPredefined', array(
+                        'app' => $app,
+                        'variables' => $variables,
+                        'podsCount' => $podsCount,
+                    ));
+                    break;
+                case 1:
+                    $postDescription = Tools::getParam('postDescription', '');
+
+                    $pod = new Pod();
+                    $pod = $pod->loadByName(current($pods)['name']);
+
+                    $this->render('pod_details', array(
+                        'app' => $app,
+                        'pod' => $pod,
+                        'postDescription' => $postDescription,
+                        'podsCount' => $podsCount,
+                    ));
+                    break;
+                default:
+                    $this->render('index', array(
+                        'app' => $app,
+                        'pods' => $app->getExistingPods(),
+                    ));
+                    break;
+            }
+        } catch(CException $e) {
+            echo $e;
+        }
     }
 }

@@ -104,7 +104,8 @@ $(function() {
         var el = $('#kuber_kube_id option:selected, #KUBE_TYPE option:selected'),
             el = el.length ? el : $('#kube_type'),
             kubeCount = 0,
-            kubeEl = $('#kube_count, input[id*="KUBE_COUNT"]') || $('#total_kube_count'),
+            kubeEl = $('#kube_count, input[id*="KUBE_COUNT"]').length
+                ? $('#kube_count, input[id*="KUBE_COUNT"]') : $('#total_kube_count'),
             productId = el.data('pid'),
             kube = kubes[productId].kubes[el.val()],
             currency = kubes[productId].currency;

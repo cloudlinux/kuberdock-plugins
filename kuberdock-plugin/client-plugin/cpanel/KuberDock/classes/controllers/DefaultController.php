@@ -47,6 +47,7 @@ class DefaultController extends KuberDock_Controller {
     {
         $podName = Tools::getParam('podName', 'Undefined');
         $postDescription = Tools::getParam('postDescription', '');
+        $templateId = Tools::getParam('templateId', null);
 
         $pod = new Pod();
         $pod = $pod->loadByName($podName);
@@ -54,6 +55,7 @@ class DefaultController extends KuberDock_Controller {
         $this->render('pod_details', array(
             'pod' => $pod,
             'postDescription' => $postDescription,
+            'templateId' => $templateId,
         ));
     }
 

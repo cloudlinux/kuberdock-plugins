@@ -60,7 +60,7 @@ class KcliCommand extends Command {
         } else {
             return array(
                 '--user' => $this->username,
-                '--password' => $this->password,
+                '--password' => sprintf("'%s'", $this->password),
             );
         }
     }

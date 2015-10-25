@@ -79,10 +79,11 @@ class PredefinedApp {
     );
 
     /**
-     *
+     * @param int $templateId
      */
-    public function __construct()
+    public function __construct($templateId = null)
     {
+        $this->templateId = $templateId;
         $this->init();
     }
 
@@ -150,6 +151,10 @@ class PredefinedApp {
         list($username, $password) = $this->api->getAdminAuthData();
         $this->adminCommand = new KcliCommand($username, $password);
         $this->adminCommand->setConfPath(KcliCommand::CONF_FILE);
+
+        if($this->templateId) {
+            $this->getTemplate($this->templateId);
+        }
     }
 
     /**
@@ -214,13 +219,12 @@ class PredefinedApp {
     }
 
     /**
-     * @param $template
      * @return array
      */
-    public function getVariables($template)
+    public function getVariables()
     {
         $this->parsedTemplate = array();
-        $iterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($template));
+        $iterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($this->template));
 
         foreach($iterator as $row) {
             $path = array();
@@ -254,8 +258,8 @@ class PredefinedApp {
                     'path' => $path,
                 );
 
-                if($row == 'KUBE_TYPE') {
-                    $data[$row]['data'] = $this->getKubeTypes(is_string($row));
+                if($row == 'KUBETYPE') {
+                    $data[$row]['data'] = $this->getKubeTypes();
                 }
             }
         }
@@ -270,14 +274,13 @@ class PredefinedApp {
      */
     public function createApp($data = array())
     {
-        $template = $this->template;
         $ownerData = $this->api->getOwnerData();
         $billingLink = sprintf('<a href="%s" target="_blank">%s</a>', $ownerData['server'], $ownerData['server']);
 
         foreach($data as $k => $v) {
             if(isset($this->variables[$k])) {
                 $this->variables[$k]['value'] = $v;
-                $this->setByPath($template, $this->variables[$k]['path'], $this->variables[$k]['replace'], $v);
+                $this->setByPath($this->template, $this->variables[$k]['path'], $this->variables[$k]['replace'], $v);
             }
         }
 
@@ -303,7 +306,7 @@ class PredefinedApp {
                         Please activate your product in billing system at '.$billingLink);
         }
 
-        file_put_contents($this->getAppPath(), Spyc::YAMLDump($template));
+        file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template));
         return $this->userCommand->createPodFromYaml($this->getAppPath());
     }
 
@@ -430,9 +433,30 @@ class PredefinedApp {
     /**
      *
      */
-    public function getPageType()
+    public function getExistingPods()
     {
+        try {
+            $pods = $this->userCommand->getPods();
+        } catch(CException $e) {
+            return array();
+        }
 
+        $existingPods = array_map(function($e) {
+            $pod = $this->userCommand->describePod($e['name']);
+            if(isset($pod['template_id']) && $pod['template_id']) {
+                return $pod;
+            }
+        }, $pods);
+
+        return $existingPods;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTemplateId()
+    {
+        return $this->templateId;
     }
 
     /**
@@ -477,17 +501,15 @@ class PredefinedApp {
     }
 
     /**
-     * @param bool|false $nameAsKey
      * @return array
      */
-    private function getKubeTypes($nameAsKey = false)
+    private function getKubeTypes()
     {
         $data = array();
 
         foreach($this->kuberProducts as $product) {
             foreach($product['kubes'] as $kube) {
-                $key = $nameAsKey ? 'kube_name' : 'kuber_kube_id';
-                $data[$kube[$key]] = array(
+                $data[] = array(
                     'id' => $kube['kuber_kube_id'],
                     'product_id' => $product['id'],
                     'name' => sprintf('%s (%s)', $kube['kube_name'], $product['name']),

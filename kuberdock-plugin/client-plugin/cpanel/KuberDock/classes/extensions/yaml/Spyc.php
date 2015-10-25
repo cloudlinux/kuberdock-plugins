@@ -1053,7 +1053,7 @@ class Spyc {
   private function checkKeysInValue($value) {
     if (strchr('[{"\'', $value[0]) === false) {
       if (strchr($value, ': ') !== false) {
-          throw new Exception('Too many keys: '.$value);
+          throw new CException('Too many keys: '.$value);
       }
     }
   }

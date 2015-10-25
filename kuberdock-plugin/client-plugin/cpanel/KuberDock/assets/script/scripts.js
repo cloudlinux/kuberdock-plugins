@@ -14,3 +14,8 @@ function getFormattedValue(value, unit, decimals) {
         postfix: ' ' + unit
     }).to(value);
 }
+
+$(document).ready(function() {
+    // Remove cPanel header. TODO: Temp or not
+    $('h1.page-header').remove();
+});

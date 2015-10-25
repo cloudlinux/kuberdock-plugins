@@ -81,13 +81,13 @@ class KuberDock_AutoLoader {
             $actionMethod = lcfirst($action) . 'Action';
 
             if(!method_exists($model, $actionMethod)) {
-                throw new Exception('Undefined controller action "'.$action.'"');
+                throw new CException('Undefined controller action "'.$action.'"');
             }
 
             $method = new ReflectionMethod($model, $actionMethod);
             $method->invoke($model);
         } catch(Exception $e) {
-            throw new Exception($e->getMessage());
+            throw new CException($e->getMessage());
         }
     }
 
