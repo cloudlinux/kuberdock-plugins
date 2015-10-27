@@ -1,32 +1,43 @@
 [% INCLUDE 'header.tmpl' %]
+<div id="admin-plugin">
+    <div class="row">
+        <div class="col-md-12">
+            <ul class="nav nav-tabs" role="tablist">
+                <li role="presentation" class="active">
+                    <a href="#pre_apps" aria-controls="pre_apps" role="tab" data-toggle="tab">Existing apps</a>
+                </li>
 
-<div>
-    <ul class="nav nav-tabs" role="tablist">
-        <li role="presentation" class="active">
-            <a href="#resellers" aria-controls="resellers" role="tab" data-toggle="tab">Resellers</a>
-        </li>
+                <li role="presentation">
+                    <a href="#create" aria-controls="defaults" role="tab" data-toggle="tab">Add new application</a>
+                </li>
 
-        <li role="presentation">
-            <a href="#pre_apps" aria-controls="pre_apps" role="tab" data-toggle="tab">Pre-defined applications</a>
-        </li>
+                <li role="presentation">
+                    <a href="#resellers" aria-controls="resellers" role="tab" data-toggle="tab">Resellers</a>
+                </li>
 
-        <li role="presentation">
-            <a href="#defaults" aria-controls="defaults" role="tab" data-toggle="tab">Application defaults</a>
-        </li>
-    </ul>
-
-    <div class="tab-content">
-        <div role="tabpanel" class="tab-pane active" id="resellers">
-            [% INCLUDE 'resellers/index.tmpl' data=data resellers=resellers %]
-        </div>
-
-        <div role="tabpanel" class="tab-pane" id="pre_apps">
-            [% INCLUDE 'pre-apps/index.tmpl' %]
-        </div>
-
-        <div role="tabpanel" class="tab-pane" id="defaults">
-            [% INCLUDE 'defaults/index.tmpl' %]
+                <li role="presentation">
+                    <a href="#defaults" aria-controls="defaults" role="tab" data-toggle="tab">Application defaults</a>
+                </li>
+            </ul>
         </div>
     </div>
+    <div class="row">
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="pre_apps">
+                [% INCLUDE 'pre-apps/index.tmpl' %]
+            </div>
 
+            <div role="tabpanel" class="tab-pane" id="create">
+                [% INCLUDE 'pre-apps/form.tmpl' %]
+            </div>
+
+            <div role="tabpanel" class="tab-pane" id="resellers">
+                [% INCLUDE 'resellers/index.tmpl' data=data resellers=resellers %]
+            </div>
+
+            <div role="tabpanel" class="tab-pane" id="defaults">
+                [% INCLUDE 'defaults/index.tmpl' %]
+            </div>
+        </div>
+    </div>
 </div>

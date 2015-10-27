@@ -1,52 +1,39 @@
-<div class="container-fluid top-offset">
+<div class="container-fluid">
     <div class="row">
-        <div class="col-md-2">
-            <h3>Existing apps</h3>
-        </div>
-
-        <div class="col-md-3 top-offset text-right">
-            <a href="?a=createApp">
-                <button class="btn btn-primary">Create application</button>
-            </a>
-
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-5">
+        <div class="col-md-6">
             [% IF apps.size %]
             <table class="table table-bordered">
-                <tr>
-                    <th></th>
-                    <th>cPanel app name</th>
-                    <th></th>
-                </tr>
+                <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th>cPanel app name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
                 [% i = 0 %]
                 [% FOREACH app IN apps %]
                 [% i = i+1 %]
                 <tr>
                     <td class="text-center">[% i %]</td>
                     <td>[% app.name %]</td>
-                    <td>
-                    [% IF app.installed %]
-                        <a href="?a=uninstallApp&app=[% app.id %]#pre_apps">
-                            <button class="btn btn-warning btn-xs">Uninstall</button>
-                        </a>
-                    [% ELSE %]
-                        <a href="?a=installApp&app=[% app.id %]#pre_apps">
-                            <button class="btn btn-success btn-xs">Install</button>
-                        </a>
-                    [% END %]
-                    </td>
-                    <td class="text-center" style="padding-top: 4px;">
+                    <td class="actions">
+                        [% IF app.installed %]
+                            <a href="?a=uninstallApp&app=[% app.id %]#pre_apps">
+                                <button class="btn btn-warning btn-xs">Uninstall</button>
+                            </a>
+                        [% ELSE %]
+                            <a href="?a=installApp&app=[% app.id %]#pre_apps">
+                                <button class="btn btn-success btn-xs">Install</button>
+                            </a>
+                        [% END %]
                         <a href="?a=updateApp&app=[% app.id %]#pre_apps">
                             <button type="button" class="btn btn-primary btn-xs" title="Update">
-                                <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Update
+                            <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>Update
                             </button>
                         </a>
                         <a href="?a=deleteApp&app=[% app.id %]#pre_apps">
-                            <button type="button" class="btn btn-primary btn-xs" title="Delete">
-                                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Delete
+                            <button type="button" class="btn btn-danger btn-xs" title="Delete">
+                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>Delete
                             </button>
                         </a>
                     </td>

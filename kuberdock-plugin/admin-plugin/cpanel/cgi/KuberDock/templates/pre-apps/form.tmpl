@@ -5,32 +5,27 @@
 <script src="KuberDock/assets/script/codemirror/mode/yaml/yaml.js"></script>
 <script src="KuberDock/assets/script/jquery.form-validator.min.js"></script>
 
-<div class="container-fluid top-offset">
+<div id="create-new-app" class="container-fluid top-offset">
+
+    [% IF update %]
+        <div class="row">
+            <div class="col-md-4">
+                <h3>Update application</h3>
+            </div>
+        </div>
+    [% END %]
 
     <div class="row">
         <div class="col-md-4">
-            <h3>
-            [% IF update %]
-                Update application
-            [% ELSE %]
-                Add new application
-            [% END %]
-
-            </h3>
+            <form method="post" enctype="multipart/form-data" class="form-horizontal">
+                <button type="submit" class="btn btn-primary" name="upload">Upload YAML</button>
+                <input type="file" id="yaml_file" name="yaml_file" style="display: inline-block">
+            </form>
         </div>
     </div>
 
-    <form method="post" enctype="multipart/form-data" class="form-horizontal">
-        <div class="row">
-            <div class="col-md-4 top-offset">
-                <button type="submit" class="btn btn-primary" name="upload">Upload YAML</button>
-                <input type="file" id="yaml_file" name="yaml_file" style="display: inline-block">
-            </div>
-        </div>
-    </form>
-
     <form method="post" enctype="multipart/form-data" class="form-inline">
-        <div class="row top-offset">
+        <div class="row">
             <div class="col-md-4">
                 <label for="app_name">cPanel app name</label>
                 <input type="text" id="app_name" name="app_name" class="form-control" value="[% appName %]"
@@ -38,13 +33,13 @@
             </div>
         </div>
 
-        <div class="row top-offset">
+        <div class="row">
             <div class="col-md-4">
                 <textarea id="code" class="code-editor" name="code">[% yaml %]</textarea>
             </div>
         </div>
 
-        <div class="row">
+        <div class="row top-offset">
             <div class="col-md-4 text-right">
                 <div>
                     <button type="submit" class="btn btn-primary" name="save">
