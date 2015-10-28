@@ -174,11 +174,27 @@ sub readYamlFile() {
     }
 }
 
+# TODO: fix YAML::Syck save boolean values as string in quotes ('true')
 sub saveYaml() {
     my ($self, $file, $data) = @_;
     my $path = $self->getFilePath($file);
 
-    return Cpanel::YAML::DumpFile($path, $data);
+    Cpanel::YAML::DumpFile($path, $data);
+
+    open(FILE, "<", $path);
+    my @lines = <FILE>;
+    close(FILE);
+
+    my @newlines;
+    foreach(@lines) {
+        $_ =~ s/'true'/true/g;
+        $_ =~ s/'false'/false/g;
+        push(@newlines, $_);
+    }
+
+    open(FILE, ">", $path);
+    print FILE @newlines;
+    close(FILE);
 }
 
 sub createInstall() {

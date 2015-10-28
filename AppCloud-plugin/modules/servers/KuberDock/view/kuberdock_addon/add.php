@@ -11,6 +11,7 @@
                 'products' => $products,
                 'kube' => $kube,
                 'kubes' => $kubes,
+                'servers' => $servers,
             )); ?>
         </div>
     </div>

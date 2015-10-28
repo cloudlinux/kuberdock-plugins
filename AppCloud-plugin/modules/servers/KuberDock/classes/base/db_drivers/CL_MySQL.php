@@ -15,22 +15,21 @@ class CL_MySQL implements CL_iDBDriver {
      * @param string $query
      * @param array $values
      * @return $this | int
-     * @throws Exception
+     * @throws CException
      */
     public function query($query, $values = array())
     {
-        $key = $format = array();
-
         foreach($values as &$value) {
-            $value = mysql_real_escape_string($value);
-            $key[] = self::MYSQL_REPLACE_KEY;
-            $format[] = '"%s"';
+            if(stripos($value, 'null') !== false || is_null($value)) {
+                $value = 'null';
+            } else {
+                $value = sprintf("'%s'", mysql_real_escape_string($value));
+            }
+            $query = preg_replace('/\?/', $value, $query, 1);
         }
 
-        $sql = vsprintf(str_replace($key, $format ,$query), $values);
-
-        if(!$this->result = mysql_query($sql)) {
-            throw new Exception('Query error: ' . mysql_error());
+        if(!$this->result = mysql_query($query)) {
+            throw new CException('Query error: ' . mysql_error());
         }
 
         return $this;

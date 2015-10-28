@@ -8,7 +8,9 @@ defined(DS) or define(DS, DIRECTORY_SEPARATOR);
 defined(KUBERDOCK_MODULE_NAME) or define(KUBERDOCK_MODULE_NAME, 'KuberDock');
 defined(KUBERDOCK_ROOT_DIR) or define(KUBERDOCK_ROOT_DIR, dirname(__FILE__));
 defined(KUBERDOCK_CLASS_DIR) or define(KUBERDOCK_CLASS_DIR, KUBERDOCK_ROOT_DIR . DS . 'classes');
+
 defined(KUBERDOCK_DEBUG) or define(KUBERDOCK_DEBUG, true);
+defined(KUBERDOCK_DEBUG_API) or define(KUBERDOCK_DEBUG_API, false);
 
 if(KUBERDOCK_DEBUG) {
     ini_set('display_errors', true);
@@ -22,6 +24,10 @@ require_once KUBERDOCK_CLASS_DIR . DS . 'KuberDock_AutoLoader.php';
 
 try {
     $loader = new KuberDock_AutoLoader();
-} catch (Exception $e) {
+
+    // TODO: use https://phinx.org
+    $simpleMigration = new KuberDock_Migration();
+    $simpleMigration->migrate();
+} catch(Exception $e) {
     echo $e->getMessage();
 }

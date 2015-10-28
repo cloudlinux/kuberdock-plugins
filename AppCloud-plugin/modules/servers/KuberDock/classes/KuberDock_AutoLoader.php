@@ -16,7 +16,7 @@ class KuberDock_AutoLoader {
      */
     public function __construct()
     {
-        spl_autoload_register(array($this, 'loader'));
+        spl_autoload_register(array($this, 'loader'), true, true);
     }
 
     /**
@@ -32,7 +32,7 @@ class KuberDock_AutoLoader {
             $nameSpace = str_replace('\\', DS, substr($className, 0, $pos));
             $className = substr($className, $pos+1);
 
-            $filePath = KUBERDOCK_ROOT_DIR . DS . '..' . DS . $nameSpace . DS . $className . '.php';
+            $filePath = KUBERDOCK_CLASS_DIR . DS . $nameSpace . DS . $className . '.php';
         } elseif($dirs = self::loadDirList()) {
             foreach($dirs as $dir) {
                 $filePath = $dir. DS . $className . '.php';

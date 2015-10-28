@@ -81,6 +81,25 @@ class KuberDock_Server extends CL_Server {
     }
 
     /**
+     * @return array
+     */
+    public function getServers()
+    {
+        $data = array();
+        $rows = $this->loadByAttributes(array(
+            'type' => KUBERDOCK_MODULE_NAME,
+            'disabled' => 0,
+        ));
+
+        foreach($rows as $row) {
+            $server = new $this;
+            $data[$row['id']] = $server->loadByParams($row);
+        }
+
+        return $data;
+    }
+
+    /**
      * @param string $username
      * @param string $password
      * @param null|int $serverId
@@ -123,9 +142,10 @@ class KuberDock_Server extends CL_Server {
      */
     public function getGroupId()
     {
-        $sql = 'SELECT r.groupid FROM `tblservers` s
-          LEFT JOIN `tblservergroupsrel` r ON s.id=r.serverid
-            WHERE s.disabled = 0 AND s.id = ?';
+        $sql = 'SELECT g.id FROM `tblservergroups` g
+          LEFT JOIN `tblservergroupsrel` r ON g.id=r.groupid
+          LEFT JOIN `tblservers` s ON r.serverid=s.id
+            WHERE s.disabled = 0 AND s.id = ? ORDER BY g.id DESC';
 
         $server = CL_Query::model()->query($sql, array(
             $this->id,
@@ -135,7 +155,7 @@ class KuberDock_Server extends CL_Server {
             throw new Exception('Group not founded');
         }
 
-        return $server['groupid'];
+        return $server['id'];
     }
 
     /**

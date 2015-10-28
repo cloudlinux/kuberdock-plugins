@@ -13,6 +13,7 @@
                 <th>Package name</th>
                 <th>Kube type name</th>
                 <th>KuberDock kube type ID</th>
+                <th>Server</th>
                 <th>CPU limit (<?php echo KuberDock_Units::getCPUUnits()?>)</th>
                 <th>Memory limit (<?php echo KuberDock_Units::getMemoryUnits()?>)</th>
                 <th>HDD limit (<?php echo KuberDock_Units::getHDDUnits()?>)</th>
@@ -26,7 +27,7 @@
             ?>
             <tr class="danger">
                 <td><a href="configproducts.php?action=edit&id=<?php echo $row['id']?>" target="_blank"><?php echo $row['name']?></a></td>
-                <td colspan="6">
+                <td colspan="8">
                     <span class="glyphicon  glyphicon-exclamation-sign" aria-hidden="true"></span>
                     Package not added to KuberDock. Please edit <a href="configproducts.php?action=edit&id=<?php echo $row['id']?>">product</a>
                 </td>
@@ -41,6 +42,7 @@
                 <td><?php echo $product->name?></td>
                 <td><?php echo $kube['kube_name']?></td>
                 <td><?php echo $kube['kuber_kube_id']?></td>
+                <td><?php echo isset($servers[$kube['server_id']]) ? $servers[$kube['server_id']]->name : ''?></td>
                 <td><?php echo $kube['cpu_limit']?></td>
                 <td><?php echo $kube['memory_limit']?></td>
                 <td><?php echo $kube['hdd_limit']?></td>

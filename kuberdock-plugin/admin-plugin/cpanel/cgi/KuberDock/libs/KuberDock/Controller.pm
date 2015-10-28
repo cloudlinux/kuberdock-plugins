@@ -71,6 +71,7 @@ sub render() {
 sub indexAction() {
     my ($self) = @_;
     my $resellers = KuberDock::Resellers->new();
+    my $resellersData = $resellers->loadData();
     my $apps = KuberDock::PreApps->new($self->{_cgi});
     my $api = KuberDock::API->new;
     my $packages = $api->getPackages();
@@ -79,7 +80,7 @@ sub indexAction() {
     my $vars = {
         resellers => [$resellers->get()],
         apps => [$apps->getList()],
-        data => $resellers->loadData(),
+        data => defined $resellersData->{ALL} ? $resellersData : {},
         packages => $packages,
         kubes => $api->getPackageKubes(@$packages[0]->{id}),
         defaults => $defaults,
