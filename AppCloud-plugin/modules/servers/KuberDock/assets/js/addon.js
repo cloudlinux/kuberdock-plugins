@@ -48,7 +48,7 @@ $(function() {
             msg;
 
         type = typeof type === 'undefined' ? 'success' : 'error';
-        cl += type;
+        cl += type == 'error' ? 'danger' : type;
 
         msg = $('<div>', { class: cl, role: 'alert', text: text });
         if($('div.alert').length)

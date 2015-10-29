@@ -21,36 +21,23 @@ class KuberDock_AddonController extends CL_Controller {
 
     public function indexAction()
     {
-        $products = KuberDock_Addon_Product::model()->getActiveServerProducts();
+        $products = KuberDock_Product::model()->getActive();
         $search = CL_Base::model()->getPost('Search', array());
         $search = array_filter($search);
-        $kubes = KuberDock_Addon_Kube::model()->loadByAttributes($search, 'product_id IS NULL AND kuber_kube_id != 0',
+        $kubes = KuberDock_Addon_Kube::model()->loadByAttributes($search, 'product_id IS NULL',
             array('order' => 'kube_name'));
-        $serverKubes = KuberDock_Addon_Kube::model()->getServerKubes();
         $productKubes = KuberDock_Addon_Kube::model()->loadByAttributes($search, 'product_id IS NOT NULL',
             array('order' => 'product_id'));
         $brokenPackages = KuberDock_Addon_Product::model()->getBrokenPackages();
-        $serverPackages = KuberDock_Addon_Product::model()->getServerPackages();
-
-        $kubes = array_filter($kubes, function($e) use ($serverKubes) {
-            if(in_array($e['kuber_kube_id'], array_keys($serverKubes))) return $e;
-        });
-
-        $productKubes = array_filter($productKubes, function($e) use ($serverKubes, $serverPackages) {
-            if(in_array($e['kuber_kube_id'], array_keys($serverKubes))
-                && in_array($e['kuber_product_id'], array_keys($serverPackages))) {
-                    return $e;
-                }
-        });
+        $servers = KuberDock_Server::model()->getServers();
 
         $this->render('index', array(
             'productKubes' => $productKubes,
             'kubes' => $kubes,
-            'serverKubes' => $serverKubes,
+            'servers' => $servers,
             'products' => $products,
             'search' => $search,
             'brokenPackages' => $brokenPackages,
-            'serverPackages' => $serverPackages,
         ));
     }
 
@@ -61,6 +48,7 @@ class KuberDock_AddonController extends CL_Controller {
         $base = CL_Base::model();
         $kube = KuberDock_Addon_Kube::model();
         $products = KuberDock_Product::model()->getActive();
+        $servers = KuberDock_Server::model()->getServers();
 
         if(!$products) {
             throw new Exception('Products has no relations');
@@ -69,7 +57,7 @@ class KuberDock_AddonController extends CL_Controller {
         if($_POST) {
             unset($_POST['token']);
             $kube->setAttributes($_POST);
-            $kube->setAttribute('kube_type', $kube::NON_STANDART_TYPE);
+            $kube->setAttribute('kube_type', $kube::NON_STANDARD_TYPE);
 
             try {
                 $kube->save();
@@ -82,6 +70,7 @@ class KuberDock_AddonController extends CL_Controller {
         $this->render('add', array(
             'products' => $products,
             'kube' => $kube,
+            'servers' => $servers,
         ));
     }
 
@@ -89,10 +78,14 @@ class KuberDock_AddonController extends CL_Controller {
     {
         $id = CL_Base::model()->getParam('id');
         $kube = KuberDock_Addon_Kube::model()->loadById($id);
-        $productKubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NOT NULL', array('order' => 'kube_name'));
-        $productKubes = CL_Tools::getKeyAsField($productKubes, 'kuber_kube_id');
+        $productKubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NOT NULL');
+        $usedKubes = array_filter($productKubes, function($e) use ($kube) {
+            if($e['kuber_kube_id'] == $kube->kuber_kube_id && $e['server_id'] == $kube->server_id) {
+                return $e;
+            }
+        });
 
-        if($kube && !isset($productKubes[$kube->id])) {
+        if(!$usedKubes && !$kube->isStandart()) {
             $kube->delete();
             CL_Base::model()->redirect(CL_Base::model()->baseUrl);
         }
@@ -105,18 +98,16 @@ class KuberDock_AddonController extends CL_Controller {
                 $base = CL_Base::model();
                 $productId = $base->getParam('product_id', CL_Base::model()->getPost('product_id'));
                 $addonProduct = KuberDock_Addon_Product::model()->loadById($productId);
-                $products = KuberDock_Addon_Product::model()->getActiveServerProducts();
+                $products = KuberDock_Product::model()->getActive();
                 $product  = KuberDock_Product::model()->loadById($productId);
-                $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NULL', array('order' => 'kube_name'));
+                $server = $product ? $product->getServer() : null;
+                $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(
+                    'server_id' => $server ? $server->id : null,
+                ), 'product_id IS NULL', array('order' => 'kube_name'));
                 $productKubes = KuberDock_Addon_Kube::model()->loadByAttributes(array('product_id' => $productId));
 
                 $kubes = CL_Tools::getKeyAsField($kubes, 'kuber_kube_id');
                 $productKubes = CL_Tools::getKeyAsField($productKubes, 'kuber_kube_id');
-
-                $serverPackageKubes = KuberDock_Addon_Kube::model()->getServerPackageKubes($addonProduct->kuber_product_id);
-                $productKubes = array_filter($productKubes, function($e) use ($serverPackageKubes) {
-                    if(in_array($e['kuber_kube_id'], array_keys($serverPackageKubes))) return $e;
-                });
 
                 $kubes = $productKubes + $kubes;
 
@@ -126,8 +117,11 @@ class KuberDock_AddonController extends CL_Controller {
                         $kube = KuberDock_Addon_Kube::model()->loadById($id);
 
                         if($kube->kube_price != $kubePrice) {
-                            $kube->setAttribute('kube_price', $kubePrice);
-                            $kube->setAttributes($addonProduct->getAttributes());
+                            $kube->setAttributes(array(
+                                'kube_price' => $kubePrice,
+                                'product_id' => $addonProduct->product_id,
+                                'kuber_product_id' => $addonProduct->kuber_product_id,
+                            ));
                             $kube->save();
                         }
                     }
@@ -152,7 +146,6 @@ class KuberDock_AddonController extends CL_Controller {
                 ));
             }
         }
-
         exit();
     }
 

@@ -148,7 +148,20 @@ class CL_Model {
             $where[] = "`$attribute` = ?";
         }
 
-        $sql = "SELECT * FROM `".$this->tableName."`";
+        $sql = sprintf('SELECT `%s`.* FROM `%s`', $this->tableName, $this->tableName);
+
+        foreach($this->relations() as $attribute => $row) {
+            $model = $this->model($row[0]);
+            $attributes = array($row[1] => $id);
+            if(isset($row[2]) && is_array($row[2])) {
+                $attributes = array_merge($attributes, $row[2]);
+            }
+            $rows = $model->loadByAttributes($attributes);
+            if($rows) {
+                $this->setAttribute($attribute, current($rows));
+            }
+        }
+
         $sql .= ($where || $condition) ? ' WHERE' : '';
         $sql .= $where ? implode(' AND ', $where) : '';
 
@@ -205,6 +218,7 @@ class CL_Model {
      */
     public function loadByParams($params = array())
     {
+        $this->action = self::ACTION_UPDATE;
         $this->_values = $params;
 
         return $this;
@@ -234,33 +248,6 @@ class CL_Model {
     }
 
     /**
-     * @param array $values
-     * @param array $where
-     * @param string $condition
-     * @return CL_Query
-     */
-    public function update($values, $where = array(), $condition = 'AND')
-    {
-        $this->action = self::ACTION_UPDATE;
-        $whereExpr = '';
-
-        foreach($values as $field=>$value) {
-            $fields[] = "`$field`=?";
-        }
-
-        foreach($where as $field=>$value) {
-            $whereExpr[] = "`$field`=?";
-        }
-
-        $sql = "UPDATE `".$this->tableName."` SET ".implode(',', $fields);
-        $sql .= $whereExpr ? " WHERE ".implode(' '.$condition, $whereExpr) : '';
-
-        $values = array_merge(array_values($values), array_values($where));
-
-        return $this->_db->query($sql, $values);
-    }
-
-    /**
      * @param $id
      * @param array $values
      * @return CL_Query
@@ -279,7 +266,7 @@ class CL_Model {
             $fields[] = "`$field`=?";
         }
 
-        $sql = "UPDATE `".$this->tableName."` SET ".implode(',', $fields)." WHERE id = ?";
+        $sql = "UPDATE `".$this->tableName."` SET ".implode(',', $fields)." WHERE `".$this->_pk."` = ?";
         $values = array_merge(array_values($values), array($id));
 
         return $this->_db->query($sql, $values);

@@ -5,8 +5,8 @@
  */
 
 class KuberDock_Addon_Kube extends CL_Model {
-    const STANDART_TYPE = 0;
-    const NON_STANDART_TYPE = 1;
+    const STANDARD_TYPE = 0;
+    const NON_STANDARD_TYPE = 1;
 
     /**
      *
@@ -38,9 +38,15 @@ class KuberDock_Addon_Kube extends CL_Model {
             'included_traffic' => (int) $this->traffic_limit,
         );
 
-        $response = $api->createKube($attributes);
-        $data = $response->getData();
-        $this->kuber_kube_id = $data['id'];
+        try {
+            $response = $api->createKube($attributes);
+            $data = $response->getData();
+            $this->kuber_kube_id = $data['id'];
+        } catch(ExistException $e) {
+            if($kube = $api->getKubesByName($kubeName)) {
+                $this->kuber_kube_id = $kube['id'];
+            }
+        }
 
         return true;
     }
@@ -53,13 +59,13 @@ class KuberDock_Addon_Kube extends CL_Model {
         $kube = new KuberDock_Addon_Kube();
         $kube = $kube->loadById($this->id);
 
-        if(empty($kube->product_id) && !empty($this->kube_price)) {
+        if(empty($kube->product_id) || is_null($kube->product_id) && !empty($this->kube_price)) {
             // Add kube to package
             unset($this->id);
             $this->action = self::ACTION_INSERT;
             $api->addKubeToPackage($this->kuber_product_id, $this->kuber_kube_id, $this->kube_price);
         } elseif(empty($kube->product_id) && trim($this->kube_price) === '') {
-            return false;
+            return true;
         } elseif($kube->product_id && empty($this->kube_price) && trim($this->kube_price) === '') {
             // Delete kube from package
             $this->delete();
@@ -87,7 +93,11 @@ class KuberDock_Addon_Kube extends CL_Model {
     public function deleteKubeFromPackage()
     {
         $api = $this->getApi();
-        $api->deletePackageKube($this->kuber_product_id, $this->kuber_kube_id);
+        $kubeIds = $api->getPackageKubesById($this->kuber_product_id)->getData();
+
+        if(in_array($this->kuber_kube_id, array_values($kubeIds))) {
+            $api->deletePackageKube($this->kuber_product_id, $this->kuber_kube_id);
+        }
     }
 
     /**
@@ -99,7 +109,7 @@ class KuberDock_Addon_Kube extends CL_Model {
     {
         $row = $this->loadByAttributes(array(
             'product_id' => $productId,
-            'kube_type' => self::STANDART_TYPE,
+            'kube_type' => self::STANDARD_TYPE,
         ));
 
         if(!$row) {
@@ -124,7 +134,7 @@ class KuberDock_Addon_Kube extends CL_Model {
      */
     public function isStandart()
     {
-        return $this->kube_type == self::STANDART_TYPE;
+        return $this->kube_type == self::STANDARD_TYPE;
     }
 
     /**
@@ -201,7 +211,9 @@ class KuberDock_Addon_Kube extends CL_Model {
      */
     private function getApi()
     {
-        if($this->product_id) {
+        if($this->server_id) {
+            return KuberDock_Server::model()->loadById($this->server_id)->getApi();
+        } elseif($this->product_id) {
             return KuberDock_Product::model()->loadById($this->product_id)->getApi();
         } else {
             return KuberDock_Server::model()->getActive()->getApi();

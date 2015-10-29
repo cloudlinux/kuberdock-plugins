@@ -365,7 +365,7 @@ class KuberDock_Hosting extends CL_Hosting {
                 'product_id' => $this->packageid,
                 'checkin_date' => CL_Tools::getMySQLFormattedDate($date),
                 'kube_count' => $totalKubeCount,
-                'pd_size' => $totalPdSize,
+                'ps_size' => $totalPdSize,
                 'ip_count' => count($totalIPs),
                 'total_sum' => $factPrice,
                 'details' => json_encode($podStat),
@@ -490,6 +490,16 @@ class KuberDock_Hosting extends CL_Hosting {
                 AND hosting.userid = ? ORDER BY hosting.regdate ASC LIMIT 1";
 
         return $this->_db->query($sql, $values)->getRow();
+    }
+
+    /**
+     *
+     */
+    public function getLoginByTokenLink()
+    {
+        $serverLink = $this->getServer()->getLoginPageLink();
+
+        return sprintf('%s/login?token=%s', $serverLink, $this->getToken());
     }
 
     /**

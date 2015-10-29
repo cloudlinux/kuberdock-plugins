@@ -31,22 +31,31 @@ class KuberDock_Addon_Product extends CL_Model {
         if($pricing = $this->loadById($productId)) {
             $this->setKubePricing($product);
         } else {
-            $response = $api->createPackage(array(
-                'first_deposit' => $product->getConfigOption('firstDeposit'),
-                'currency' => $currency->code,
-                'prefix' => $currency->prefix,
-                'suffix' => $currency->suffix,
-                'name' => $product->name,
-                'period' => $product->getReadablePaymentType(),
-                'price_ip' => $product->getConfigOption('priceIP'),
-                'price_pstorage' => $product->getConfigOption('pricePersistentStorage'),
-                'price_over_traffic' => $product->getConfigOption('priceOverTraffic'),
-            ));
-            $data = $response->getData();
-            $this->insert(array(
-                'product_id' => $productId,
-                'kuber_product_id' => $data['id'],
-            ));
+            try {
+                $response = $api->createPackage(array(
+                    'first_deposit' => $product->getConfigOption('firstDeposit'),
+                    'currency' => $currency->code,
+                    'prefix' => $currency->prefix,
+                    'suffix' => $currency->suffix,
+                    'name' => $product->name,
+                    'period' => $product->getReadablePaymentType(),
+                    'price_ip' => $product->getConfigOption('priceIP'),
+                    'price_pstorage' => $product->getConfigOption('pricePersistentStorage'),
+                    'price_over_traffic' => $product->getConfigOption('priceOverTraffic'),
+                ));
+                $data = $response->getData();
+                $this->insert(array(
+                    'product_id' => $productId,
+                    'kuber_product_id' => $data['id'],
+                ));
+            } catch(ExistException $e) {
+                if($package = $api->getPackageByName($product->name)) {
+                    $this->insert(array(
+                        'product_id' => $productId,
+                        'kuber_product_id' => $package['id'],
+                    ));
+                }
+            }
         }
     }
 

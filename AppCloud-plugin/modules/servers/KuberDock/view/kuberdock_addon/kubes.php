@@ -15,11 +15,16 @@
                 <th>Memory limit (<?php echo KuberDock_Units::getMemoryUnits()?>)</th>
                 <th>HDD limit (<?php echo KuberDock_Units::getHDDUnits()?>)</th>
                 <th>Traffic limit (<?php echo KuberDock_Units::getTrafficUnits()?>)</th>
+                <th>Server</th>
                 <th></th>
             </tr>
 
             <?php foreach($kubes as $kube):
-                $productKubes = CL_Tools::getKeyAsField($productKubes, 'kuber_kube_id');
+                $usedKubes = array_filter($productKubes, function($e) use ($kube) {
+                    if($e['kuber_kube_id'] == $kube['kuber_kube_id'] && $e['server_id'] == $kube['server_id']) {
+                        return $e;
+                    }
+                });
             ?>
             <tr>
                 <td><?php echo $kube['kube_name']?></td>
@@ -27,8 +32,9 @@
                 <td><?php echo $kube['memory_limit']?></td>
                 <td><?php echo $kube['hdd_limit']?></td>
                 <td><?php echo $kube['traffic_limit']?></td>
+                <td><?php echo isset($servers[$kube['server_id']]) ? $servers[$kube['server_id']]->name : ''?></td>
                 <td class="text-center">
-                    <?php if(!isset($productKubes[$kube['kuber_kube_id']])):?>
+                    <?php if(!$usedKubes && $kube['kube_type'] != KuberDock_Addon_Kube::STANDARD_TYPE):?>
                         <a href="<?php echo CL_Base::model()->baseUrl?>&a=delete&id=<?php echo $kube['id']?>">
                             <button type="button" class="btn btn-default btn-xs">
                                 <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Remove

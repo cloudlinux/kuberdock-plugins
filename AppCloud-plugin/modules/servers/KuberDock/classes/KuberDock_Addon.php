@@ -12,7 +12,7 @@ class KuberDock_Addon extends CL_Component {
     /**
      *
      */
-    const STANDARD_PRODUCT = 'KuberDock Standard';
+    const STANDARD_PRODUCT = 'Standard package';
 
     /**
      *
@@ -20,15 +20,17 @@ class KuberDock_Addon extends CL_Component {
     public function activate()
     {
         if(version_compare(phpversion(), self::REQUIRED_PHP_VERSION) < 0) {
-            throw new Exception('KuberDock plugin require PHP version' . self::REQUIRED_PHP_VERSION . ' or greater.');
+            throw new CException('KuberDock plugin require PHP version' . self::REQUIRED_PHP_VERSION . ' or greater.');
         }
 
         $db = CL_Query::model();
         $server = KuberDock_Server::model()->getActive();
 
         if(!$server) {
-            throw new Exception('Add KuberDock server before activating addon.');
-        } try {
+            throw new CException('Add KuberDock server before activating addon.');
+        }
+
+        try {
             $db->query('CREATE TABLE `KuberDock_products` (
                 product_id INT,
                 kuber_product_id INT,
@@ -48,6 +50,7 @@ class KuberDock_Addon extends CL_Component {
                 memory_limit INT,
                 hdd_limit DECIMAL(10,2),
                 traffic_limit DECIMAL(10,2),
+                server_id INT,
                 PRIMARY KEY (id),
                 INDEX (kuber_kube_id),
                 FOREIGN KEY (product_id)
@@ -137,9 +140,32 @@ class KuberDock_Addon extends CL_Component {
 
             $db->query('INSERT INTO KuberDock_products VALUES (?, ?)', array($product->id, 0));
 
-            $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`, `kube_price`, `kube_type`,
-                `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    array(0, 0, $product->id, 'Standard kube', 0, 1, 0.01, 64, 1, 0));
+            $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
+                `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                array(0, NULL, NULL, 'Standard kube', NULL, 0, 0.01, 64, 1, 0, $server->id));
+            $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
+                `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                  array(0, 0, $product->id, 'Standard kube', 0, 0, 0.01, 64, 1, 0, $server->id));
+
+            $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
+                `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                array(1, NULL, NULL, 'High CPU', NULL, 0, 0.02, 64, 1, 0, $server->id));
+            $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
+                `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                array(1, 0, $product->id, 'High CPU', 0, 0, 0.02, 64, 1, 0, $server->id));
+
+            $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
+                `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                array(2, NULL, NULL, 'High memory', NULL, 0, 0.01, 256, 1, 0, $server->id));
+            $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
+                `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                array(2, 0, $product->id, 'High memory', 0, 0, 0.01, 256, 1, 0, $server->id));
         }
     }
 
@@ -149,10 +175,6 @@ class KuberDock_Addon extends CL_Component {
     public function deactivate()
     {
         $db = CL_Query::model();
-
-        // Remove KuberDock packages\kubes
-        $products = KuberDock_Addon_Product::model()->loadByAttributes();
-
 
         try {
             $productKubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NOT NULL');
@@ -184,6 +206,7 @@ class KuberDock_Addon extends CL_Component {
             // pass
         }
 
+        $products = KuberDock_Addon_Product::model()->loadByAttributes();
         foreach($products as $row) {
             if($row['kuber_product_id'] == 0) continue;
 

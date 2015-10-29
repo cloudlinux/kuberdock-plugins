@@ -281,7 +281,7 @@ function KuberDock_ClientAreaPage($params)
             'servertype' => KUBERDOCK_MODULE_NAME,
         )), 'id');
 
-        // Buy product by link
+        // Buy predefined app by link
         $predefinedApp = KuberDock_Addon_PredefinedApp::model();
         if(isset($_GET[$predefinedApp::KUBERDOCK_PRODUCT_ID_FIELD])
             && isset($_GET[$predefinedApp::KUBERDOCK_YAML_FIELD])) {

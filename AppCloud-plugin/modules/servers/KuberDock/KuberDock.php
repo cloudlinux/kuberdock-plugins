@@ -6,6 +6,10 @@
 
 include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
 
+/**
+ * @return array
+ * @throws Exception
+ */
 function KuberDock_ConfigOptions() {
     $view = new CL_View();
     $id = CL_Base::model()->getParam('id');
@@ -18,6 +22,10 @@ function KuberDock_ConfigOptions() {
     return array();
 }
 
+/**
+ * @param $params
+ * @return string
+ */
 function KuberDock_CreateAccount($params) {
     /*if(!KuberDock_User::model()->isClient()) {
         return 'ERROR: This action is not enabled for KuberDock';
@@ -45,6 +53,10 @@ function KuberDock_CreateAccount($params) {
     }
 }
 
+/**
+ * @param $params
+ * @return string
+ */
 function KuberDock_TerminateAccount($params) {
     try {
         $product = KuberDock_Product::model()->loadById($params['pid']);
@@ -56,6 +68,10 @@ function KuberDock_TerminateAccount($params) {
     }
 }
 
+/**
+ * @param $params
+ * @return string
+ */
 function KuberDock_SuspendAccount($params) {
     try {
         $product = KuberDock_Product::model()->loadById($params['pid']);
@@ -67,6 +83,10 @@ function KuberDock_SuspendAccount($params) {
     }
 }
 
+/**
+ * @param $params
+ * @return string
+ */
 function KuberDock_UnsuspendAccount($params) {
     try {
         $product = KuberDock_Product::model()->loadById($params['pid']);
@@ -78,6 +98,11 @@ function KuberDock_UnsuspendAccount($params) {
     }
 }
 
+/**
+ * @param $params
+ * @return array
+ * @throws Exception
+ */
 function KuberDock_AdminServicesTabFields($params) {
     $view = new CL_View();
     $product = KuberDock_Product::model()->loadByParams($params);
@@ -121,6 +146,11 @@ function KuberDock_AdminServicesTabFields($params) {
     );
 }
 
+/**
+ * @param $params
+ * @return string
+ * @throws Exception
+ */
 function KuberDock_ClientArea($params) {
     $view = new CL_View();
     $product = KuberDock_Product::model()->loadByParams($params);
@@ -151,6 +181,7 @@ function KuberDock_ClientArea($params) {
     $productInfo = $view->renderPartial('client/product_info', array(
         'currency' => $currency,
         'product' => $product,
+        'service' => $service,
         'kubes' => $kubes,
         'server' => $server,
         'trialExpired' => $trialExpired,
@@ -163,10 +194,14 @@ function KuberDock_ClientArea($params) {
     return $productInfo . $productStatistic;
 }
 
+/**
+ * @param $params
+ * @return string
+ */
 function KuberDock_LoginLink($params) {
-    $server = KuberDock_Server::model()->loadById($params['serverid']);
+    $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
 
-    return sprintf('<a href="%s" target="_blank">Login into KuberDock</a>', $server->getLoginPageLink());
+    return sprintf('<a href="%s" target="_blank">Login into KuberDock</a>', $service->getLoginByTokenLink());
 }
 
 /**
@@ -206,6 +241,10 @@ function KuberDock_ChangePackage($params) {
     }
 }
 
+/**
+ * @param $params
+ * @return array
+ */
 function KuberDock_TestConnection($params) {
     try {
         $protocol = $params['serversecure'] ? KuberDock_Api::PROTOCOL_HTTPS : KuberDock_Api::PROTOCOL_HTTP;

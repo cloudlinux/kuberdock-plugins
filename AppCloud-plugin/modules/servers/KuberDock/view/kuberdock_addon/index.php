@@ -8,9 +8,8 @@
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane active" id="kube">
             <?php $this->renderPartial('kubes', array(
-                'products' => $products,
                 'kubes' => $kubes,
-                'serverKubes' => $serverKubes,
+                'servers' => $servers,
                 'productKubes' => $productKubes,
             ))?>
         </div>
@@ -18,11 +17,10 @@
         <div role="tabpanel" class="tab-pane" id="relation">
             <?php $this->renderPartial('relations', array(
                 'products' => $products,
+                'servers' => $servers,
                 'search' => $search,
                 'productKubes' => $productKubes,
-                'serverKubes' => $serverKubes,
                 'brokenPackages' => $brokenPackages,
-                'serverPackages' => $serverPackages,
             ))?>
         </div>
 
@@ -30,7 +28,6 @@
             <?php $this->renderPartial('price', array(
                 'products' => $products,
                 'kubes' => $kubes,
-                'serverPackages' => $serverPackages,
             ))?>
         </div>
     </div>

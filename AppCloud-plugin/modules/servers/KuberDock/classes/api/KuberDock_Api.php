@@ -47,6 +47,10 @@ class KuberDock_Api {
      */
     protected $requestUrl;
     /**
+     * @var string
+     */
+    protected $requestType = 'GET';
+    /**
      * Request arguments
      * @var array
      */
@@ -180,6 +184,7 @@ class KuberDock_Api {
 
         $ch = curl_init();
         $this->arguments = $params;
+        $this->requestType = $type;
 
         switch($type) {
             case 'POST':
@@ -223,6 +228,10 @@ class KuberDock_Api {
         curl_close($ch);
 
         $this->parseResponse($response);
+
+        if(KUBERDOCK_DEBUG_API) {
+            $this->log(print_r($this->response->raw, true));
+        }
 
         return $this->response;
     }
@@ -423,13 +432,30 @@ class KuberDock_Api {
     }
 
     /**
+     * @param string $name
+     * @return array|bool
+     * @throws Exception
+     */
+    public function getKubesByName($name)
+    {
+        $kubes = $this->getKubes()->getData();
+        foreach($kubes as $row) {
+            if($row['name'] == $name) {
+                return $row;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param int $packageId
      * @return KuberDock_ApiResponse
      * @throws Exception
      */
     public function getPackageKubesById($packageId)
     {
-        $this->url = sprintf($this->serverUrl . '/api/pricing/kubes/%d/kubes-by-id', $packageId);
+        $this->url = sprintf($this->serverUrl . '/api/pricing/packages/%d/kubes-by-id', $packageId);
         $response = $this->call(array(), 'GET');
 
         if(!$response->getStatus()) {
@@ -447,7 +473,7 @@ class KuberDock_Api {
      */
     public function getPackageKubesByName($packageId)
     {
-        $this->url = sprintf($this->serverUrl . '/api/pricing/kubes/%d/kubes-by-name', $packageId);
+        $this->url = sprintf($this->serverUrl . '/api/pricing/packages/%d/kubes-by-name', $packageId);
         $response = $this->call(array(), 'GET');
 
         if(!$response->getStatus()) {
@@ -628,6 +654,24 @@ class KuberDock_Api {
     }
 
     /**
+     * @param name $name
+     * @return array|bool
+     * @throws Exception
+     */
+    public function getPackageByName($name)
+    {
+        $packages = $this->getPackages()->getData();
+
+        foreach($packages as $row) {
+            if($row['name'] == $name) {
+                return $row;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param array $values
      * @return KuberDock_ApiResponse
      * @throws CException
@@ -779,9 +823,19 @@ class KuberDock_Api {
      */
     private function logError($error)
     {
-        if($this->debug && function_exists('logModuleCall')) {
-            logModuleCall(KUBERDOCK_MODULE_NAME, $this->url, print_r($this->arguments, true), '',
-                $error, array($this->username, $this->password));
+        if($this->debug) {
+            $this->log($error);
+        }
+    }
+
+    /**
+     * @param string $message
+     */
+    private function log($message = '')
+    {
+        if(function_exists('logModuleCall')) {
+            logModuleCall(KUBERDOCK_MODULE_NAME, strtoupper($this->requestType).': '.$this->url,
+                print_r($this->arguments, true), '', $message, array($this->username, $this->password));
         }
     }
 }
