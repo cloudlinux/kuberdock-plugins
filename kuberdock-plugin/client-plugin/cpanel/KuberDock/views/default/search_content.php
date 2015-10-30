@@ -36,7 +36,7 @@
                             </p>
                         </td>
                         <td>
-                            <a href="?a=install&image=<?php echo $image['name']?>" class="btn btn-primary install-app" app="<?php echo $image['name']?>">Install</a>
+                            <a href="?a=install&image=<?php echo $image['name']?>" class="btn btn-default install-app" app="<?php echo $image['name']?>">Install</a>
                         </td>
                     </tr>
                 <?php endforeach;?>

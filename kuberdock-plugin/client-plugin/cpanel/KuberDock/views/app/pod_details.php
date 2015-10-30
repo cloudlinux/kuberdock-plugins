@@ -83,7 +83,7 @@
 
     <div class="col-md-4">
         <strong>Ports</strong>
-        <table class="table table-bordered">
+        <table class="table table-bordered app-table">
             <tr>
                 <th><small>container</small></th>
                 <th><small>protocol</small></th>
@@ -124,7 +124,7 @@
 <div class="row top-offset">
     <div class="col-sm-10">
         <strong>Volumes</strong>
-        <table class="table table-bordered">
+        <table class="table table-bordered app-table">
             <tr>
                 <th><small>container path</small></th>
                 <th><small>persistent</small></th>
@@ -151,7 +151,7 @@
 <div class="row">
     <div class="col-sm-10">
         <strong>Environment variables</strong>
-        <table class="table table-bordered">
+        <table class="table table-bordered app-table">
             <tr>
                 <th><small>name</small></th>
                 <th><small>value</small></th>

@@ -4,6 +4,11 @@
 <script src="KuberDock/assets/script/codemirror/codemirror.min.js"></script>
 <script src="KuberDock/assets/script/codemirror/mode/yaml/yaml.js"></script>
 <script src="KuberDock/assets/script/jquery.form-validator.min.js"></script>
+<script src="KuberDock/assets/script/jquery.form-validator.min.js"></script>
+
+<script src="KuberDock/assets/script/fileupload/js/vendor/jquery.ui.widget.js"></script>
+<script src="KuberDock/assets/script/fileupload/js/jquery.iframe-transport.js"></script>
+<script src="KuberDock/assets/script/fileupload/js/jquery.fileupload.js"></script>
 
 <div id="create-new-app" class="container-fluid top-offset">
 
@@ -16,15 +21,21 @@
     [% END %]
 
     <div class="row">
-        <div class="col-md-4">
-            <form method="post" enctype="multipart/form-data" class="form-horizontal">
-                <button type="submit" class="btn btn-primary" name="upload">Upload YAML</button>
-                <input type="file" id="yaml_file" name="yaml_file" style="display: inline-block">
-            </form>
+        <div class="col-md-2">
+            <label for="app_name">Upload yaml</label>
+            <input type="file" id="yaml_file" name="yaml_file" style="display: inline-block">
+        </div>
+
+        <div class="col-md-2">
+            <div id="progress" class="progress">
+                <div class="progress-bar progress-bar-success"></div>
+            </div>
+            <div class="clearfix"></div>
+            <div class="alert alert-danger upload" style="display: none"></div>
         </div>
     </div>
 
-    <form method="post" enctype="multipart/form-data" class="form-inline">
+    <form action="[% action %]" method="post" class="form-inline">
         <div class="row">
             <div class="col-md-4">
                 <label for="app_name">cPanel app name</label>
@@ -57,9 +68,39 @@
 
 <script>
     jQuery.validate();
-
     var editor = CodeMirror.fromTextArea(document.getElementById('code'), {
         lineNumbers: false,
         lineWrapping: true
+    });
+
+    jQuery(function () {
+        'use strict';
+
+        jQuery('#yaml_file').change(function() {
+            jQuery('div.alert.upload').html('').hide();
+            jQuery('#progress .progress-bar').width('0px');
+        });
+
+        jQuery('#yaml_file').fileupload({
+            url: '?a=createApp&reqType=json',
+            dataType: 'json',
+            done: function (e, data) {
+                if(!data.result.error) {
+                    jQuery('#app_name').val(data.result.appName);
+                    //jQuery('#code').val(data.result.yaml).trigger('change');
+                    editor.getDoc().setValue(data.result.yaml);
+                } else {
+                    jQuery('div.alert.upload').html(data.result.message).show();
+                }
+            },
+            progressall: function (e, data) {
+                var progress = parseInt(data.loaded / data.total * 100, 10);
+                jQuery('#progress .progress-bar').css(
+                        'width',
+                        progress + '%'
+                );
+            }
+        }).prop('disabled', !jQuery.support.fileInput)
+                .parent().addClass(jQuery.support.fileInput ? undefined : 'disabled');
     });
 </script>

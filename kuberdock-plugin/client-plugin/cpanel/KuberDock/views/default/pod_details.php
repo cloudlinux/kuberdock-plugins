@@ -26,7 +26,7 @@
                 }
             ?>
             <div class="splitter">
-                <table class="table apps-list">
+                <table class="table apps-list app-table">
                     <thead>
                         <tr>
                             <th class="col-md-3 podname"><?php echo $pod->name?> </th>
@@ -63,7 +63,7 @@
             </div>
             <div class="splitter">
                 <label class="title">Ports</label>
-                <table class="table apps-list">
+                <table class="table apps-list app-table">
                     <thead>
                         <tr>
                             <th class="col-md-3">Container</th>
@@ -96,12 +96,9 @@
                     <?php endforeach;?>
                     </tbody>
                 </table>
-                <div class="total-price-wrapper">
-                    <p class="total-price"><?php echo $pod->totalPrice?></p>
-                </div>
             </div>
             <label class="title">Volumes</label>
-            <table class="table apps-list">
+            <table class="table apps-list app-table">
                 <thead>
                     <tr>
                         <th class="col-md-3">Container path</th>
@@ -125,25 +122,33 @@
                     <?php endforeach;?>
                 </tbody>
             </table>
-            <label class="title">Environment variables</label>
-            <table class="table apps-list">
-                <thead>
-                    <tr>
-                        <th class="col-md-6">Name</th>
-                        <th class="col-md-6">Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach($pod->containers as $row):?>
-                        <?php foreach($row['env'] as $env):?>
-                            <tr>
-                                <td><small><?php echo $env['name']?></small></td>
-                                <td><small><?php echo $env['value']?></small></td>
-                            </tr>
+
+            <div class="splitter">
+                <label class="title">Environment variables</label>
+                <table class="table apps-list app-table">
+                    <thead>
+                        <tr>
+                            <th class="col-md-6">Name</th>
+                            <th class="col-md-6">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach($pod->containers as $row):?>
+                            <?php foreach($row['env'] as $env):?>
+                                <tr>
+                                    <td><small><?php echo $env['name']?></small></td>
+                                    <td><small><?php echo $env['value']?></small></td>
+                                </tr>
+                            <?php endforeach;?>
                         <?php endforeach;?>
-                    <?php endforeach;?>
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+
+                <div class="total-price-wrapper">
+                    <p class="total-price"><?php echo $pod->totalPrice?></p>
+                </div>
+            </div>
+
             <?php if($templateId):?>
                 <a class="pull-left materials-button gray" href="kuberdock.live.php?c=app&a=installPredefined&template=<?php echo $templateId?>">Back</a>
             <?php else:?>

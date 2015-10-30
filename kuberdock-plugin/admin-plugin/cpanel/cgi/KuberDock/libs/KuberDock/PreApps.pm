@@ -89,8 +89,12 @@ sub uploadFile() {
             $type = (split /\./, $fName)[1];
         }
         if(!grep {$_ eq $type} @allowed) {
-            print "Type '${type}' not allowed";
-            return '';
+            my $json = KuberDock::JSON->new;
+            print $json->encode({
+                error => 1,
+                message => "Type '${type}' not allowed",
+            });
+            return;
         }
     }
 

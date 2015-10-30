@@ -29,7 +29,7 @@
 <script>
     function getKubes() {
         jQuery.ajax({
-            url: 'addon_kuberdock.cgi?a=getPackageKubes',
+            url: 'addon_kuberdock.cgi?a=getPackageKubes&reqType=json',
             data: {
                 packageId: jQuery('#packageId').val()
             },

@@ -33,7 +33,7 @@ sub new {
 
     Whostmgr::ACLS::init_acls();
 
-    if($self->{_action} eq 'getPackageKubesAction') {
+    if(defined $form->{reqType} && $form->{reqType} eq 'json') {
         print "Content-type: application/json\n\n";
     } else {
         print "Content-type: text/html\n\n";
@@ -101,7 +101,7 @@ sub addResellerAction() {
     );
 
     $reseller->save(%data);
-    $self->indexAction();
+    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#resellers');
 }
 
 sub saveResellerAction() {
@@ -117,7 +117,7 @@ sub saveResellerAction() {
     );
 
     $resellers->save(%data);
-    $self->indexAction();
+    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#resellers');
 }
 
 sub deleteResellerAction() {
@@ -127,7 +127,7 @@ sub deleteResellerAction() {
     my $reseller = KuberDock::Resellers->new();
 
     $reseller->delete($owner);
-    $self->indexAction();
+    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#resellers');
 }
 
 sub createAppAction() {
@@ -138,9 +138,11 @@ sub createAppAction() {
     my $code = $self->{_cgi}->param('code');
     my $resellers = KuberDock::Resellers->new;
     my $defaults = $resellers->loadData()->{defaults} || {};
+    my $json = KuberDock::JSON->new;
     my $vars = {
         yaml => $code || '#Some yaml',
         appName => $appName,
+        action => 'addon_kuberdock.cgi?a=createApp',
     };
 
     if($uploadYaml) {
@@ -149,7 +151,11 @@ sub createAppAction() {
             $vars->{appName} = $yaml->{kuberdock}->{name} || $appName;
             $vars->{appId} = $yaml->{kuberdock}->{id} || $app->{'_appId'};
             $vars->{yaml} = $app->readYamlFile('app.yaml', 1),
+            $vars->{error} = 0;
+            print $json->encode($vars);
         }
+
+        return;
     }
 
     if(defined $self->{_cgi}->param('save') && $code) {
@@ -226,6 +232,7 @@ sub updateAppAction() {
     my $template = KuberDock::KCLI::getTemplate($app->{'_templateId'});
     my $resellers = KuberDock::Resellers->new;
     my $defaults = $resellers->loadData()->{defaults} || {};
+    my $json = KuberDock::JSON->new;
 
     #if(!%{$template}) {
     #    KuberDock::Exception::throw('Template not founded');
@@ -239,6 +246,7 @@ sub updateAppAction() {
         yaml => $code || $template->{'template'},
         appName => $yaml->{kuberdock}->{name} || $appName,
         update => 1,
+        action => 'addon_kuberdock.cgi?a=updateApp&app=' . $app->{_templateId},
     };
 
     if($uploadYaml) {
@@ -247,7 +255,11 @@ sub updateAppAction() {
             $vars->{appName} = $yaml->{kuberdock}->{name} || $appName;
             $vars->{appId} = $yaml->{kuberdock}->{id} || $app->{'_appId'};
             $vars->{yaml} = $app->readYamlFile('app.yaml', 1),
+            $vars->{error} = 0;
+            print $json->encode($vars);
         }
+
+        return;
     }
 
     if(defined $self->{_cgi}->param('save') && $code) {

@@ -29,7 +29,7 @@ label.title{
 }
 .total-price-wrapper .total-price{
     margin: 0;
-    right: 20px;
+    right: 0px;
     bottom: -16px;
     font-weight: 800;
     padding: 6px 20px;
@@ -37,6 +37,7 @@ label.title{
     display: inline-block;
     background-color: #fff;
     border: 1px solid #d2d2d2;
+    min-width: 172px;
 }
 #all-apps p{
     margin-bottom: 25px;
@@ -63,7 +64,7 @@ label.title{
     cursor: pointer;
     text-decoration: none;
 }
-.table>tbody>tr>td button{
+.app-table>tbody>tr>td button{
     width: 0;
     border: 0;
     height: 0;
