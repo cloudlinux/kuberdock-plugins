@@ -11,6 +11,7 @@ use KuberDock::Resellers;
 use KuberDock::PreApps;
 use KuberDock::KCLI;
 use KuberDock::API;
+use KuberDock::Exception;
 use Data::Dumper;
 
 use constant KUBERDOCK_TEMPLATE_PATH => '/usr/local/cpanel/whostmgr/docroot/cgi/KuberDock/templates';
@@ -74,7 +75,16 @@ sub indexAction() {
     my $resellersData = $resellers->loadData();
     my $apps = KuberDock::PreApps->new($self->{_cgi});
     my $api = KuberDock::API->new;
-    my $packages = $api->getPackages();
+    my $packages;
+    eval {
+        $packages = $api->getPackages();
+    };
+
+    if($@) {
+        KuberDock::Exception::throw('Cannot connect to KuberDock server. Please check credentials and server url in /etc/kubecli.conf');
+        $self->render('header.tmpl');
+        return 0;
+    }
     my $defaults = $resellers->loadData()->{defaults} || {};
 
     my $vars = {

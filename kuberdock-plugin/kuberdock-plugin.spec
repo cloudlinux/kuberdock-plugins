@@ -1,7 +1,7 @@
 Version: 0.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 9%{?dist}.cloudlinux
+Release: 10%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License

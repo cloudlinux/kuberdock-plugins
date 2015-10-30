@@ -52,7 +52,7 @@ sub request {
     my $endpoint = $self->{_server} . $url;
 
     if(!grep {$_ eq $requestType} ('GET', 'POST')) {
-        warn 'Unknown request type';
+        die 'Unknown request type';
     }
 
     my $req = HTTP::Request->new($requestType => $endpoint);
@@ -68,7 +68,7 @@ sub request {
     if($resp->is_success) {
         return $self->getData($resp->decoded_content);
     } else {
-        warn $resp->code . ': ' . $resp->message;
+        die 'Cannot connect to KuberDock server';
     }
 }
 
@@ -80,7 +80,7 @@ sub getData {
     if($decoded->{'status'} eq 'OK' && defined $decoded->{data}) {
         return $decoded->{data};
     } else {
-        warn $decoded->{message};
+        die $decoded->{message};
     }
 }
 
