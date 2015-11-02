@@ -226,18 +226,10 @@ function KuberDock_AdminServicesTabFieldsSave($params) {
  */
 function KuberDock_ChangePackage($params) {
     try {
-        $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
-        $service->getAdminApi()->updateUser(array(
-            'rolename' => KuberDock_User::ROLE_USER,
-        ), $service->username);
-
-        $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
-        $service->amount = 0;
-        $service->save();
-
-        return true;
+        $upgrade = KuberDock_ProductUpgrade::model()->loadByServiceId($params['serviceid']);
+        $upgrade->changePackage();
     } catch(Exception $e) {
-        return false;
+        //
     }
 }
 

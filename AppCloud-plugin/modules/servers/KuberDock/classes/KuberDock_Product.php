@@ -463,6 +463,24 @@ class KuberDock_Product extends CL_Product {
     }
 
     /**
+     * @return int
+     * @throws Exception
+     */
+    public function getPeriodInDays()
+    {
+        switch($this->getConfigOption('paymentType')) {
+            case 'hourly':
+                return 1;
+            case 'monthly':
+                return 30;
+            case 'quarterly':
+                return 90;
+            case 'annually':
+                return 365;
+        }
+    }
+
+    /**
      * @return array
      */
     private function getPaymentType()
