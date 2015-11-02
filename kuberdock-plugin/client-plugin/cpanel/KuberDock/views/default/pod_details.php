@@ -29,8 +29,8 @@
                 <table class="table apps-list app-table">
                     <thead>
                         <tr>
-                            <th class="col-md-3 podname"><?php echo $pod->name?> </th>
-                            <th class="col-md-3">IP Version</th>
+                            <th class="col-md-3">Limits</th>
+                            <th class="col-md-3">Public IP</th>
                             <th class="col-md-3">Status</th>
                             <th class="col-md-3">Actions</th>
                         </tr>
@@ -46,22 +46,30 @@
                                 Kube quantity: <?php echo $pod->kubeCount ?>
                             </td>
                             <td>
-                                <?php echo 'Public IP: ' . (isset($pod->public_ip) && $pod->public_ip ? $pod->public_ip :
+                                <?php echo (isset($pod->public_ip) && $pod->public_ip ? $pod->public_ip :
                                 (isset($pod->labels['kuberdock-public-ip']) ? $pod->labels['kuberdock-public-ip'] : 'none'))?>
                             </td>
+                            <td class="col-md-3"><?php echo $statusText == 'Start' ? 'Stopped' : 'Running' ?></td>
                             <td>
-                                <button type="button" class="<?php echo $statusClass?>" data-target=".confirm-modal" data-app="<?php echo $pod->name?>" title="<?php echo $statusText?>"></button>
-                            </td>
-                            <td>
-                                <button type="button" class="container-edit" data-app="<?php echo $pod->name?>" title="Edit"></button>
-                                <button type="button" class="container-delete" data-target=".confirm-modal" data-app="<?php echo $pod->name?>" title="Delete"></button>
+                                <button type="button" class="btn btn-<?php echo $statusText == 'Start' ? 'success' : 'danger' ?> btn-xs <?php echo $statusClass?>" data-target=".confirm-modal" data-app="<?php echo $pod->name?>" title="<?php echo $statusText?>">
+                                    <span class="glyphicon glyphicon-<?php echo $statusText == 'Start' ? 'play' : 'stop' ?>" aria-hidden="true"></span>
+                                    <span><?php echo $statusText?></span>
+                                </button>
+                                <button type="button" class="btn btn-primary btn-xs container-edit" data-app="<?php echo $pod->name?>" title="Edit">
+                                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                                    <span>Edit</span>
+                                </button>
+                                <button type="button" class="btn btn-danger btn-xs container-delete" data-target=".confirm-modal" data-app="<?php echo $pod->name?>" title="Delete">
+                                    <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                                    <span>Delete</span>
+                                </button>
                                 <div class="ajax-loader pod buttons hidden"></div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="splitter">
+            <div>
                 <label class="title">Ports</label>
                 <table class="table apps-list app-table">
                     <thead>
@@ -122,8 +130,7 @@
                     <?php endforeach;?>
                 </tbody>
             </table>
-
-            <div class="splitter">
+            <div class="splitter last">
                 <label class="title">Environment variables</label>
                 <table class="table apps-list app-table">
                     <thead>
@@ -143,39 +150,19 @@
                         <?php endforeach;?>
                     </tbody>
                 </table>
-
                 <div class="total-price-wrapper">
                     <p class="total-price"><?php echo $pod->totalPrice?></p>
                 </div>
             </div>
-
             <?php if($templateId):?>
-                <a class="pull-left materials-button gray" href="kuberdock.live.php?c=app&a=installPredefined&template=<?php echo $templateId?>">Back</a>
+                <a class="pull-left btn btn-default" href="kuberdock.live.php?c=app&a=installPredefined&template=<?php echo $templateId?>">Back</a>
             <?php else:?>
-                <a class="pull-left materials-button gray" href="kuberdock.live.php">Back</a>
+                <a class="pull-left btn btn-default" href="kuberdock.live.php">Back</a>
             <?php endif;?>
-            <a class="pull-right materials-button blue" href="?kuberdock.live.php?a=search">Add more apps</a>
+            <a class="pull-right btn btn-primary" href="?kuberdock.live.php?a=search">Add more apps</a>
             <div class="clearfix"></div>
         </div>
     </div>
-
-            <!-- <p class="kube-name">
-
-            </p> -->
-        <!-- <div class="kube-count">
-                <?php $i = 0;
-                while($i < $pod->kubeCount) {
-                    if($i % 2 == 0) {
-                        echo '<div>';
-                    }
-                    echo '<span aria-hidden="true" class="glyphicon glyphicon-stop"></span>';
-                    if($i % 2 != 0 || ($i+1) == $pod->kubeCount) {
-                        echo '</div>';
-                    }
-                    $i++;
-                } ?>
-            </div> -->
-
     <div class="modal fade bs-example-modal-sm confirm-modal" tabindex="-1" role="dialog" aria-labelledby="Confirm">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">

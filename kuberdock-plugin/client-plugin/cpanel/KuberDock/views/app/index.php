@@ -20,7 +20,7 @@
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>IP version</th>
+                        <th>Public IP</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
@@ -33,7 +33,7 @@
     </div>
     <div class="row">
         <div class="col-md-12">
-            <a href="kuberdock.live.php?c=app&a=installPredefined&new=1&template=<?php echo $app->getTemplateId()?>" class="add-new-app blue pull-right">
+            <a href="kuberdock.live.php?c=app&a=installPredefined&new=1&template=<?php echo $app->getTemplateId()?>" class="btn btn-primary add-new-app pull-right">
                 Add new app "<?php echo $app->getName()?>"</a>
             <div class="clearfix"></div>
         </div>

@@ -20,7 +20,7 @@
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>IP version</th>
+                        <th>Public IP</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
@@ -33,7 +33,7 @@
     </div>
     <div class="row">
         <div class="col-md-12">
-            <a href="?a=search" class="add-new-app blue pull-right">Add new App</a>
+            <a href="?a=search" class="add-new-app btn btn-primary pull-right">Add new App</a>
             <div class="clearfix"></div>
         </div>
     </div>
