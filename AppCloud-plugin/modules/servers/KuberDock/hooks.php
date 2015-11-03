@@ -289,7 +289,7 @@ function KuberDock_ClientAreaPage($params)
             $yaml = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_YAML_FIELD);
 
             try {
-                $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId);
+                $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $_SERVER['HTTP_REFERER']);
                 $product = KuberDock_Product::model()->loadById($kdProduct->product_id);
 
                 $predefinedApp = $predefinedApp->loadBySessionId();
@@ -328,6 +328,11 @@ function KuberDock_ClientAreaPage($params)
                     if(isset($product['pricingtext'])) {
                         $product['pricingtext'] .= ' + First Deposit '.$currency->getFullPrice($depositPrice);
                     }
+                }
+
+                if(($predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId()) && isset($product['pricingtext'])) {
+                    $product['pricingtext'] = $currency->getFullPrice($predefinedApp->getTotalPrice())
+                        . ' / ' . $p->getReadablePaymentType();
                 }
             }
         }
@@ -465,6 +470,10 @@ function KuberDock_InvoiceCancelled($params)
     $model = CL_Invoice::model();
     $invoice = $model->loadById($invoiceId);
 
+    if(!$invoice) {
+        return;
+    }
+
     try {
         if($invoice->isCustomInvoice()) {
             $model->addCredit($invoice->userid, -$invoice->subtotal, 'Remove funds via custom invoice '.$invoice->id);
@@ -523,6 +532,16 @@ function KuberDock_AdminProductConfigFieldsSave($pid)
 }
 //add_hook('AdminProductConfigFieldsSave', 1, 'KuberDock_AdminProductConfigFieldsSave');
 
+/**
+ * Runs when the ChangePackage function is being run, before any command is sent, but after the variables are loaded.
+ * @param $params
+ */
+function KuberDock_PreModuleChangePackage($params)
+{
+    print 11;
+    //
+}
+add_hook('PreModuleChangePackage', 1, 'KuberDock_PreModuleChangePackage');
 
 /**
  * Runs after the ChangePackage function has been successfully run
@@ -530,9 +549,7 @@ function KuberDock_AdminProductConfigFieldsSave($pid)
  */
 function KuberDock_AfterModuleChangePackage($params)
 {
-    $service = KuberDock_Hosting::model()->loadById($params['params']['serviceid']);
-    $service->amount = 0;
-    $service->save();
+    //
 }
 add_hook('AfterModuleChangePackage', 1, 'KuberDock_AfterModuleChangePackage');
 

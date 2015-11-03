@@ -13,6 +13,10 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
      *
      */
     const KUBERDOCK_YAML_FIELD = 'yaml';
+    /**
+     *
+     */
+    const KUBERDOCK_YAML_POST_DESCRIPTION_FIELD = 'postDescription';
 
     /**
      *
@@ -64,7 +68,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
 
     /**
      * @param int $serviceId
-     * @return bool
+     * @return bool|array
      * @throws Exception
      */
     public function isPodExists($serviceId)
@@ -77,11 +81,64 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
 
         foreach($pods->getData() as $row) {
             if($row['name'] == $podName) {
-                return true;
+                return $row;
             }
         }
 
         return false;
+    }
+
+    /**
+     * @return float
+     */
+    public function getTotalPrice()
+    {
+        $data = Spyc::YAMLLoadString($this->data);
+        $total = 0;
+        $product = KuberDock_Product::model()->loadById($this->product_id) ;
+        $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
+        $kubeType = isset($data['kuberdock']['kube_type']) ? $data['kuberdock']['kube_type'] : 0;
+        $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
+
+        if(isset($data['spec']['template']['spec'])) {
+            $spec = $data['spec']['template']['spec'];
+        } elseif(isset($data['spec'])) {
+            $spec = $data['spec'];
+        }
+
+        foreach($spec as $row) {
+            if(is_array($row) && $row) {
+                $kube = isset($row['kubes']) ? $row['kubes'] : 1;
+                $total += $kube * $kubePrice;
+            }
+        }
+
+        return $total;
+    }
+
+    /**
+     * @param $serviceId
+     * @param $podId
+     * @return string
+     */
+    public function getPodLink($serviceId, $podId)
+    {
+        $service = KuberDock_Hosting::model()->loadById($serviceId);
+
+        return $service->getLoginByTokenLink() . '&postDescription=' . $this->getPostDescription()
+            . '&next=#pods/' . $podId;
+
+    }
+
+    /**
+     * @return string
+     */
+    public function getPostDescription()
+    {
+        $data = Spyc::YAMLLoadString($this->data);
+
+        return isset($data['kuberdock'][self::KUBERDOCK_YAML_POST_DESCRIPTION_FIELD]) ?
+            $data['kuberdock'][self::KUBERDOCK_YAML_POST_DESCRIPTION_FIELD] : '';
     }
 
     /**

@@ -22,6 +22,6 @@
     </table>
 <?php else: ?>
     <div class="error">
-        <?php echo is_array($stat) && !isset($stat['pods_usage']) ? 'Please update KuberDock server' : $stat; ?>
+        <?php echo is_array($stat) && !isset($stat['pods_usage']) ? 'Empty' : $stat; ?>
     </div>
 <?php endif; ?>
