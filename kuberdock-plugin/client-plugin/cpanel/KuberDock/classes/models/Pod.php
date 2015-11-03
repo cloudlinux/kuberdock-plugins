@@ -7,28 +7,6 @@
 
 class Pod {
     /**
-     * @var array
-     */
-    public $kuberProducts = array();
-    /**
-     * @var array
-     */
-    public $kuberKubes = array();
-    /**
-     * @var array
-     */
-    public $userKuberProduct = array();
-    /**
-     * @var int
-     */
-    public $billingClientId;
-    /**
-     * KuberDock token
-     * @var string
-     */
-    private $token;
-
-    /**
      * @var WHMCSApi
      */
     private $api;
@@ -103,14 +81,9 @@ class Pod {
     public function init()
     {
         $this->api = WHMCSApi::model();
-        $this->userKuberProduct = $this->api->getUserKuberDockProduct();
-        $this->kuberProducts = $this->api->getKuberDockProducts();
-        $this->kuberKubes = $this->api->getKuberKubes();
-        $this->billingClientId = $this->api->getWHMCSClientId();
-        $this->setToken();
 
-        list($username, $password) = $this->api->getAuthData();
-        $this->command = new KcliCommand($username, $password, $this->token);
+        list($username, $password, $token) = $this->api->getAuthData();
+        $this->command = new KcliCommand($username, $password, $token);
     }
 
     /**
@@ -192,21 +165,18 @@ class Pod {
     }
 
     /**
-     *
+     * @return array
      */
-    public function setToken()
-    {
-        //$data = $this->api->searchClientKuberProducts($this->billingClientId);
-        //$service = current($data);
-        //return $service['token'];
+    public function getVolumes() {
+        $volumes = array();
 
-        $data = $this->api->request(array(
-            'clientid' => $this->billingClientId,
-        ), 'getclientskuberproducts');
-
-        if(isset($data['results']) && $data['results']) {
-            $this->token = current($data['results'])['token'];
+        foreach($this->containers as $k => $row) {
+            foreach($row['volumeMounts'] as $volume) {
+                $volumes[$k] = $volume;
+            }
         }
+
+        return $volumes;
     }
 
     /**
@@ -234,9 +204,9 @@ class Pod {
     {
         if(is_numeric($value)) {
             $this->kubeTypeId = $value;
-            foreach($this->kuberProducts as $row) {
+            foreach($this->api->getKubes() as $row) {
                 foreach($row['kubes'] as $kube) {
-                    if($kube['kuber_kube_id'] == $value && $this->packageId == $row['id']) {
+                    if($kube['kuber_kube_id'] == $value && $this->packageId == $kube['product_id']) {
                         $this->kube_type = $kube['kube_name'];
                         break;
                     }
@@ -322,10 +292,6 @@ class Pod {
     {
         $data = array();
 
-        if(!$this->userKuberProduct) {
-            return array();
-        }
-
         try {
             $pods = $this->command->getPods();
         } catch(CException $e) {
@@ -348,18 +314,10 @@ class Pod {
     /**
      * @return array
      */
-    public function getProduct()
-    {
-        return current($this->userKuberProduct);
-    }
-
-    /**
-     * @return array
-     */
     public function getKubeType()
     {
-        $product = $this->getProduct();
-        return $this->kuberKubes[$product['id']]['kubes'][$this->kube_type];
+        $product = $this->api->getProduct();
+        return $this->api->getKubes()[$product['id']]['kubes'][$this->kube_type];
     }
 
     /**
@@ -367,12 +325,12 @@ class Pod {
      */
     public function getTotalPrice()
     {
-        $product = $this->getProduct();
+        $currency = $this->api->getCurrency();
+        $product = $this->api->getProduct();
         $kube = $this->getKubeType();
 
-        return $product['currency']['prefix'] . ($kube['kube_price'] * $this->getKubeCount())
-            . $product['currency']['suffix']
-            . ' / ' . str_replace('ly', '', $product['paymentType']);
+        return $currency['prefix'] . ($kube['kube_price'] * $this->getKubeCount())
+            . $currency['suffix'] . ' / ' . str_replace('ly', '', $product['paymentType']);
     }
 
     /**
@@ -394,7 +352,7 @@ class Pod {
      */
     public function getKuberDockUrl()
     {
-        $product = $this->getProduct();
+        $product = $this->api->getProduct();
 
         return isset($product['server']['serverip']) ?
             'https://'. $product['server']['serverip'] : $product['serverFullUrl'];
@@ -407,18 +365,10 @@ class Pod {
     public function getPodUrl($withToken = false)
     {
         if($withToken) {
-            return sprintf('%s/login?token=%s&next=/#pods/%s', $this->getKuberDockUrl(), $this->token, $this->id);
+            return sprintf('%s/login?token=%s&next=/#pods/%s', $this->getKuberDockUrl(), $this->command->getToken(), $this->id);
         } else {
             return sprintf('%s/#pods/%s', $this->getKuberDockUrl(), $this->id);
         }
-    }
-
-    /**
-     * @return string
-     */
-    public function getToken()
-    {
-        return $this->token;
     }
 
     /**
@@ -446,6 +396,7 @@ class Pod {
     {
         $details = $this->command->describePod($name);
         $this->_data = $details;
+
         return $this;
     }
 
@@ -459,25 +410,20 @@ class Pod {
         $billingLink = sprintf('<a href="%s" target="_blank">%s</a>', $ownerData['server'], $ownerData['server']);
 
         // Create order with kuberdock product
-        if(!isset($this->userKuberProduct[$this->packageId])) {
-            $data = $this->api->addOrder($this->billingClientId, $this->packageId);
+        if(!$this->api->getService()) {
+            $data = $this->api->addOrder($this->api->getUserId(), $this->packageId);
             if($data['invoiceid'] > 0) {
                 $invoice = $this->api->getInvoice($data['invoiceid']);
                 if($invoice['status'] == 'Unpaid') {
                     throw new CException('You have no enough funds.
-                                Please make payment in billing system at '.$billingLink);
+                                Please make payment in billing system at ' . $billingLink);
                 }
             }
             $this->api->acceptOrder($data['orderid']);
 
-            $this->userKuberProduct = $this->api->getUserKuberDockProduct();
-            list($username, $password) = $this->api->getAuthData($this->packageId);
-            $this->command = new KcliCommand($username, $password);
-        }
-
-        if(stripos($this->userKuberProduct[$this->packageId]['server']['status'], 'Active') === false) {
-            throw new CException('You already have pending product.
-                        Please activate your product in billing system at '.$billingLink);
+            $this->api->setKuberDockInfo();
+            list($username, $password, $token) = $this->api->getAuthData();
+            $this->command = new KcliCommand($username, $password, $token);
         }
 
         return $this;

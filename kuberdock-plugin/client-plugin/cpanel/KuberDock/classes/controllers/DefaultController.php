@@ -225,6 +225,8 @@ class DefaultController extends KuberDock_Controller {
 
     public function getPersistentDrivesAction()
     {
+        return;
+
         if(!Tools::getIsAjaxRequest()) {
             return;
         }

@@ -67,6 +67,6 @@
 </div>
 
 <script>
-    var kubes = <?php echo json_encode($app->kuberKubes)?>,
+    var kubes = <?php echo json_encode($app->getApi()->getKubes())?>,
         units = <?php echo json_encode($app->units)?>;
 </script>

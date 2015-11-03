@@ -58,6 +58,7 @@ class AppController extends KuberDock_Controller {
     {
         $templateId = Tools::getParam('template', '');
         $new = Tools::getParam('new', '');
+        $postDescription = Tools::getParam('postDescription', '');
 
         try {
             $app = new PredefinedApp($templateId);
@@ -92,7 +93,6 @@ class AppController extends KuberDock_Controller {
                     ));
                     break;
                 case 1:
-                    $postDescription = Tools::getParam('postDescription', '');
 
                     $pod = new Pod();
                     $pod = $pod->loadByName(current($pods)['name']);
@@ -102,6 +102,7 @@ class AppController extends KuberDock_Controller {
                         'pod' => $pod,
                         'postDescription' => $postDescription,
                         'podsCount' => $podsCount,
+                        'templateId' => $templateId,
                     ));
                     break;
                 default:

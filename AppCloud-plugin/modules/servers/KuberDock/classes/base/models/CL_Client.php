@@ -42,6 +42,42 @@ class CL_Client extends CL_Model {
 
         return ($results['result'] == 'success') ? $results : array();
     }
+
+    /**
+     * @param string $username
+     * @param array $userDomains
+     * @return array
+     * @throws CException
+     */
+    public function getClientByCpanelUser($username, $userDomains)
+    {
+        $admin = CL_User::model()->getCurrentAdmin();
+        $values['username2'] = $username;
+        $results = localAPI('getclientsproducts', $values, $admin['username']);
+
+        if($results['result'] == 'error') {
+            throw new CException($results['message']);
+        }
+
+        foreach($results['products']['product'] as $row) {
+            if(in_array($row['domain'], $userDomains)) {
+                $clientId = $row['clientid'];
+                break;
+            }
+        }
+
+        if(!isset($clientId)) {
+            throw new CException('User has no cPanel service in WHMCS. Cannot find user by login');
+        }
+
+        $details = $this->getClientDetails($clientId);
+
+        if($details['result'] != 'success') {
+            throw new CException('User ' . $username . ' not founded');
+        }
+
+        return $details['client'];
+    }
     
     /**
      * Class loader

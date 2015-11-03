@@ -6,6 +6,15 @@
 
 class WHMCSApi extends Base {
     /**
+     *
+     */
+    const HOSTING_PANEL_LOGIN = 'hostingPanel';
+    /**
+     *
+     */
+    const HOSTING_PANEL_PASSWORD = 'hostingPanel';
+
+    /**
      * Path to reseller list
      */
     const OWNER_PATH = '/etc/trueuserowners';
@@ -17,125 +26,122 @@ class WHMCSApi extends Base {
     /**
      * @var array
      */
-    private $_kuberProduct = array();
-    /**
-     * @var array
-     */
-    private $_kuberKubes = array();
+    private $_data = array();
 
     /**
-     * @return mixed
+     * @throws CException
      */
-    public function getUserKuberDockProduct() {
-        $clientId = $this->getWHMCSClientId();
-        $kuberProducts = $this->getKuberDockProducts();
-        $userProducts = $this->searchClientProducts(array('clientid' => $clientId));
+    public function __construct()
+    {
+        $this->setKuberDockInfo();
+    }
 
-        foreach($userProducts as $row) {
-            if(isset($kuberProducts[$row['pid']])) {
-                $this->_kuberProduct[$row['pid']] = $kuberProducts[$row['pid']];
-                $this->_kuberProduct[$row['pid']]['server'] = $row;
+    /**
+     * @return array
+     */
+    public function getUserInfo()
+    {
+        return $this->_data['userDetails'];
+    }
+
+    /**
+     * @return int
+     */
+    public function getUserId()
+    {
+        return $this->getUserInfo()['id'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getCurrency()
+    {
+        return $this->_data['currency'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getProducts()
+    {
+        return $this->_data['products'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getProduct()
+    {
+        return $this->getProducts() ? current($this->getProducts()) : array();
+    }
+
+    /**
+     * @return array
+     */
+    public function getServices()
+    {
+        return $this->_data['userServices'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getService()
+    {
+        return $this->getServices() ? current($this->_data['userServices']) : array();
+    }
+
+    /**
+     * array
+     */
+    public function getKubes()
+    {
+        $kubes = array();
+        $currency = $this->getCurrency();
+        $packageAttributes = array('paymentType');
+
+        foreach($this->getProducts() as $row) {
+            $kubes[$row['id']]['currency'] = $currency;
+            $kubes[$row['id']]['kubes'] = Tools::getKeyAsField($row['kubes'], 'kuber_kube_id');
+            $kubes[$row['id']]['product_id'] = $row['id'];
+            foreach($packageAttributes as $attr) {
+                $kubes[$row['id']][$attr] = $row[$attr];
             }
         }
 
-        return $this->_kuberProduct;
+        return $kubes;
     }
 
     /**
      * @return array
      * @throws CException
      */
-    public function getKuberDockProducts() {
-        $data = $this->request(array(), 'getkuberproducts');
-        $packageAttributes = array('paymentType');
+    public function getKuberDockInfo()
+    {
+        $conf = KcliCommand::getConfFile();
+
+        $data = $this->request(array(
+            'user' => $_ENV['USER'],
+            'userDomains' => implode(',', $this->getUserDomain()),
+            'kdServer' => $conf['url'],
+        ), 'getkuberdockinfo');
 
         if($data['result'] != 'success') {
             throw new CException($data['message']);
         }
-
-        $products = array();
-        foreach($data['results'] as $row) {
-            $products[$row['id']] = $row;
-            $this->_kuberKubes[$row['id']]['currency'] = $row['currency'];
-            $this->_kuberKubes[$row['id']]['kubes'] = Tools::getKeyAsField($row['kubes'], 'kuber_kube_id');
-            foreach($packageAttributes as $attr) {
-                $this->_kuberKubes[$row['id']][$attr] = $row[$attr];
-            }
-        }
-        return $products;
+        //echo '<pre>'; print_r($data);
+        return $data['results'];
     }
 
     /**
-     * @param $clientId
-     * @return mixed
+     * @return $this
      * @throws CException
      */
-    public function getClientDetails($clientId) {
-        $data = $this->request(array('clientid' => $clientId), 'getclientsdetails');
-
-        if($data['result'] == 'error') {
-            throw new CException($data['message']);
-        }
-
-        return $data;
-    }
-
-    /**
-     * @return mixed
-     * @throws CException
-     */
-    public function getWHMCSClientId()
+    public function setKuberDockInfo()
     {
-        $userDomains = $this->getUserDomain();
-        $cPanelProduct = $this->searchClientProducts(array('username2' => $_ENV['USER']));
-
-        foreach($cPanelProduct as $row) {
-            if(in_array($row['domain'], $userDomains)) {
-                $whmcsClientId = $row['clientid'];
-                break;
-            }
-        }
-
-        if(!isset($whmcsClientId)) {
-            throw new CException('User has no cPanel service in WHMCS');
-        }
-
-        return $whmcsClientId;
-    }
-
-    /**
-     * @param array $params
-     * @return mixed
-     * @throws CException
-     */
-    public function searchClientProducts($params = array()) {
-        $data = $this->request($params, 'getclientsproducts');
-
-        if(isset($data['products']['product'])) {
-            return $data['products']['product'];
-        }
-
-        throw new CException('Can not find assigned WHMCS product (user has no cPanel product)'
-            . (isset($data['message']) ? 'Reason: ' .  $data['message'] : ''));
-    }
-
-    /**
-     * @param int $clientId
-     * @return mixed
-     * @throws CException
-     */
-    public function searchClientKuberProducts($clientId) {
-        $data = $this->request(array(
-            'clientid' => $clientId,
-        ), 'getclientskuberproducts');
-
-
-        if(isset($data['results']) && $data['results']) {
-            return $data['results'];
-        }
-
-        throw new CException('Can not find assigned WHMCS product (user has no cPanel product)'
-            . (isset($data['message']) ? 'Reason: ' .  $data['message'] : ''));
+        $this->_data = $this->getKuberDockInfo();
+        return $this;
     }
 
     /**
@@ -265,18 +271,6 @@ class WHMCSApi extends Base {
 
         $ownerData = file_get_contents(self::OWNER_DATA_PATH);
         $ownerData = $ownerData ? json_decode($ownerData, true) : array();
-        /*
-        $lines = file(self::OWNER_PATH);
-        foreach($lines as $line) {
-            $tmp = explode(':', $line);
-            if(count($tmp) != 2) continue;
-
-            list($user, $owner) = $tmp;
-            if(trim($user) == $currentUser) {
-                $owner = trim($owner);
-                break;
-            }
-        }*/
 
         if(isset($ownerData[$owner])) {
             $ownerData[$owner]['owner'] = $owner;
@@ -323,30 +317,18 @@ class WHMCSApi extends Base {
     }
 
     /**
-     * @param null|int $productId
      * @return array
      */
-    public function getAuthData($productId = null)
+    public function getAuthData()
     {
-        if($productId && isset($this->_kuberProduct[$productId])) {
+        if($service = $this->getService()) {
             return array(
-                $this->_kuberProduct[$productId]['server']['username'],
-                $this->_kuberProduct[$productId]['server']['password'],
+                $service['username'],
+                $service['password'],
+                $service['token'],
             );
-        } elseif($this->_kuberProduct) {
-            $product = current($this->_kuberProduct);
-            if(empty($product['server']['username'])) {
-                $conf = KcliCommand::getConfFile(true);
-                return array($conf['user'], $conf['password']);
-            } else {
-                return array(
-                    $product['server']['username'],
-                    $product['server']['password'],
-                );
-            }
         } else {
-            $conf = KcliCommand::getConfFile(true);
-            return array($conf['user'], $conf['password']);
+            return $this->getHostingAuthData();
         }
     }
 
@@ -355,21 +337,21 @@ class WHMCSApi extends Base {
      */
     public function getAdminAuthData()
     {
-        $conf = KcliCommand::getConfFile(true);
+        $product = $this->getProduct();
 
-        return array($conf['user'], $conf['password']);
+        return array(
+            $product['server']['username'],
+            $product['server']['password'],
+            $product['server']['accesshash'],
+        );
     }
 
     /**
      * @return array
      */
-    public function getKuberKubes()
+    public function getHostingAuthData()
     {
-        if(!$this->_kuberKubes) {
-            $this->getKuberDockProducts();
-        }
-
-        return $this->_kuberKubes;
+        return array(self::HOSTING_PANEL_LOGIN, self::HOSTING_PANEL_PASSWORD, '');
     }
 
     /**

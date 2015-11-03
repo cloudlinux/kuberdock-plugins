@@ -38,7 +38,7 @@
                     <tbody>
                         <tr>
                             <td>
-                                CPU: <?php echo $pod->kubeType['cpu_limit'] * $pod->kubeCount.' '.$pod->units['cpu']?><br>
+                                CPU: <?php echo $pod->kubeType['cpu_limit'] * $pod->kubeCount.' '.$pod->units['cpu'];;?><br>
                                 Local storage: <?php echo $pod->kubeType['hdd_limit'] * $pod->kubeCount.' '.$pod->units['hdd']?><br>
                                 Memory: <?php echo $pod->kubeType['memory_limit'] * $pod->kubeCount.' '.$pod->units['memory']?><br>
                                 Traffic: <?php echo $pod->kubeType['traffic_limit'] * $pod->kubeCount.' '.$pod->units['traffic']?><br>
@@ -105,6 +105,8 @@
                     </tbody>
                 </table>
             </div>
+
+        <?php if($pod->volumes):?>
             <label class="title">Volumes</label>
             <table class="table apps-list app-table">
                 <thead>
@@ -130,6 +132,8 @@
                     <?php endforeach;?>
                 </tbody>
             </table>
+        <?php endif;?>
+            
             <div class="splitter last">
                 <label class="title">Environment variables</label>
                 <table class="table apps-list app-table">

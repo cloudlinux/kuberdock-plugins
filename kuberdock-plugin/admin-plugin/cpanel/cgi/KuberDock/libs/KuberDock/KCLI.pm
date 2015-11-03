@@ -1,4 +1,7 @@
 package KuberDock::KCLI;
+
+use File::HomeDir;
+
 use strict;
 use warnings FATAL => 'all';
 
@@ -6,7 +9,7 @@ use Data::Dumper;
 use KuberDock::JSON;
 
 use constant KUBERDOCK_KCLI_PATH => '/usr/bin/kcli';
-use constant KUBERDOCK_CONF_PATH => '/etc/kubecli.conf';
+use constant KUBERDOCK_CONF_NAME => '.kubecli.conf';
 
 sub getTemplate {
     my ($templateId) = @_;
@@ -34,9 +37,14 @@ sub deleteTemplate {
     return KuberDock::KCLI::execute('kubectl', 'delete', 'template', '--id', $templateId);
 }
 
+sub getConfPath {
+    return File::HomeDir->my_home . "/" . KUBERDOCK_CONF_NAME;
+}
+
 sub execute {
     my $json = KuberDock::JSON->new();
-    my @defaults = (KUBERDOCK_KCLI_PATH, '--json', '-c', KUBERDOCK_CONF_PATH);
+    my $confPath = KuberDock::KCLI::getConfPath();
+    my @defaults = (KUBERDOCK_KCLI_PATH, '--json', '-c', $confPath);
     my $command = join(' ', (@defaults, @_));
 
     my $response = `$command`;

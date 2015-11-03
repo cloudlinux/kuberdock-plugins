@@ -188,6 +188,33 @@ class KuberDock_Addon_Product extends CL_Model {
     }
 
     /**
+     * @param string $serverUrl
+     * @return $this
+     * @throws CException
+     */
+    public function getByServerUrl($serverUrl)
+    {
+        $url = parse_url($serverUrl);
+        $host = $url['host'];
+        $host .= $url['port'] ? ':'.$url['port'] : '';
+
+        $rows = $this->_db->query('SELECT p.* FROM KuberDock_products kp
+            LEFT JOIN tblproducts p ON kp.product_id=p.id
+            LEFT JOIN tblservergroups sg ON p.servergroup=sg.id
+            LEFT JOIN tblservergroupsrel sgr ON sg.id=sgr.groupid
+            LEFT JOIN tblservers s ON sgr.serverid=s.id
+                WHERE s.ipaddress = ? AND s.type = ?', array(
+            $host, KUBERDOCK_MODULE_NAME,
+        ))->getRows();
+
+        if(!$rows) {
+            throw new CException('Products not founded');
+        }
+
+        return $rows;
+    }
+
+    /**
      * @return KuberDock_Api
      */
     private function getApi()

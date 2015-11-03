@@ -81,7 +81,7 @@ sub indexAction() {
     };
 
     if($@) {
-        KuberDock::Exception::throw('Cannot connect to KuberDock server. Please check credentials and server url in /etc/kubecli.conf');
+        KuberDock::Exception::throw('Cannot connect to KuberDock server, invalid credentials or server url in ~/.kubecli.conf');
         $self->render('header.tmpl');
         return 0;
     }

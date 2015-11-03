@@ -66,6 +66,14 @@ class KcliCommand extends Command {
     }
 
     /**
+     * @return string
+     */
+    public function getToken()
+    {
+        return $this->token;
+    }
+
+    /**
      * @return array
      */
     public function getPods()
@@ -475,14 +483,14 @@ class KcliCommand extends Command {
 
     /**
      * Get config file data. user if exists or global
-     * @param bool $isAdmin
+     * @param bool $global
      * @return array
      */
-    static public function getConfFile($isAdmin = false)
+    static public function getConfFile($global = false)
     {
         $userConf = getenv('HOME') .DS . '.kubecli.conf';
 
-        if($isAdmin) {
+        if($global) {
             $userConf = self::CONF_FILE;
         }
 

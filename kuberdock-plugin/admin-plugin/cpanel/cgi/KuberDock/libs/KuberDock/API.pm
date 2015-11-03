@@ -19,7 +19,7 @@ sub new {
         _password => shift || undef,
     };
 
-    my $config = Config::Tiny->read(KuberDock::KCLI::KUBERDOCK_CONF_PATH);
+    my $config = Config::Tiny->read(KuberDock::KCLI::getConfPath());
     $self->{_server} = $config->{global}->{url};
     $self->{_username} = $config->{defaults}->{user};
     $self->{_password} = $config->{defaults}->{password};

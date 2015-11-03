@@ -29,7 +29,7 @@
 
                     <div class="col-sm-4">
                         <select class="form-control" name="kuber_kube_id" id="kuber_kube_id">
-                        <?php foreach($pod->kuberProducts as $product):?>
+                        <?php foreach($pod->getApi()->getProducts() as $product):?>
                             <?php foreach($product['kubes'] as $kube):?>
                             <option value="<?php echo $kube['kuber_kube_id']?>" data-pid="<?php echo $product['id']?>">
                                 <?php echo $kube['kube_name'] . ' ('.$product['name'].')'?>
@@ -206,6 +206,6 @@
 </div>
 
 <script>
-    var kubes = <?php echo json_encode($pod->kuberKubes)?>,
+    var kubes = <?php echo json_encode($pod->getApi()->getKubes())?>,
         units = <?php echo json_encode($pod->units)?>;
 </script>

@@ -16,23 +16,6 @@ class PredefinedApp {
     const VARIABLE_REGEXP = '/\%(?<variable>\w+)\%/';
 
     /**
-     * @var array
-     */
-    public $kuberProducts = array();
-    /**
-     * @var array
-     */
-    public $kuberKubes = array();
-    /**
-     * @var array
-     */
-    public $userKuberProduct = array();
-    /**
-     * @var int
-     */
-    public $billingClientId;
-
-    /**
      * @var int
      */
     private $packageId;
@@ -71,6 +54,10 @@ class PredefinedApp {
      * @var KcliCommand
      */
     private $adminCommand;
+    /**
+     * @var KcliCommand
+     */
+    private $hostingCommand;
     /**
      * @var array
      */
@@ -139,18 +126,15 @@ class PredefinedApp {
     public function init()
     {
         $this->api = WHMCSApi::model();
-        $this->userKuberProduct = $this->api->getUserKuberDockProduct();
-        $this->kuberProducts = $this->api->getKuberDockProducts();
-        $this->kuberKubes = $this->api->getKuberKubes();
-        $this->billingClientId = $this->api->getWHMCSClientId();
-        $this->setToken();
 
-        list($username, $password) = $this->api->getAuthData();
-        $this->userCommand = new KcliCommand($username, $password, $this->token);
+        list($username, $password, $token) = $this->api->getAuthData();
+        $this->userCommand = new KcliCommand($username, $password, $token);
 
-        list($username, $password) = $this->api->getAdminAuthData();
-        $this->adminCommand = new KcliCommand($username, $password);
-        $this->adminCommand->setConfPath(KcliCommand::CONF_FILE);
+        list($username, $password) = $this->api->getHostingAuthData();
+        $this->hostingCommand = new KcliCommand($username, $password);
+
+        list($username, $password, $token) = $this->api->getAdminAuthData();
+        $this->adminCommand = new KcliCommand($username, $password, $token);
 
         if($this->templateId) {
             $this->getTemplate($this->templateId);
@@ -158,17 +142,11 @@ class PredefinedApp {
     }
 
     /**
-     *
+     * @return WHMCSApi
      */
-    public function setToken()
+    public function getApi()
     {
-        $data = $this->api->request(array(
-            'clientid' => $this->billingClientId,
-        ), 'getclientskuberproducts');
-
-        if(isset($data['results']) && $data['results']) {
-            $this->token = current($data['results'])['token'];
-        }
+        return $this->api;
     }
 
     /**
@@ -177,7 +155,7 @@ class PredefinedApp {
      */
     public function setPackageId($packageId)
     {
-        if(!isset($this->kuberProducts[$packageId])) {
+        if(!isset($this->api->getKubes()[$packageId])) {
             throw new CException('Unknown package');
         }
 
@@ -285,25 +263,20 @@ class PredefinedApp {
         }
 
         // Create order with kuberdock product
-        if(!isset($this->userKuberProduct[$this->packageId])) {
-            $data = $this->api->addOrder($this->billingClientId, $this->packageId);
+        if(!$this->api->getService()) {
+            $data = $this->api->addOrder($this->api->getUserId(), $this->packageId);
             if($data['invoiceid'] > 0) {
                 $invoice = $this->api->getInvoice($data['invoiceid']);
                 if($invoice['status'] == 'Unpaid') {
                     throw new CException('You have no enough funds.
-                                Please make payment in billing system at '.$billingLink);
+                                Please make payment in billing system at ' . $billingLink);
                 }
             }
             $this->api->acceptOrder($data['orderid']);
 
-            $this->userKuberProduct = $this->api->getUserKuberDockProduct();
-            list($username, $password) = $this->api->getAuthData($this->packageId);
-            $this->userCommand = new KcliCommand($username, $password, '');
-        }
-
-        if(stripos($this->userKuberProduct[$this->packageId]['server']['status'], 'Active') === false) {
-            throw new CException('You already have pending product.
-                        Please activate your product in billing system at '.$billingLink);
+            $this->api->setKuberDockInfo();
+            list($username, $password, $token) = $this->api->getAuthData();
+            $this->command = new KcliCommand($username, $password, $token);
         }
 
         file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template));
@@ -379,10 +352,10 @@ class PredefinedApp {
             return $packageId;
         }
 
-        foreach($this->kuberProducts as $productId => $row) {
+        foreach($this->api->getProducts() as  $row) {
             if(!$row['kubes']) continue;
 
-            if($row['kubes'][0]['kuber_product_id'] == $packageId) return $productId;
+            if($row['kubes'][0]['kuber_product_id'] == $packageId) return $row['id'];
         }
 
         throw new CException('Cannot get KuberDock package');
@@ -441,12 +414,12 @@ class PredefinedApp {
             return array();
         }
 
-        $existingPods = array_map(function($e) {
+        $existingPods = array_filter($pods, function($e) {
             $pod = $this->userCommand->describePod($e['name']);
-            if(isset($pod['template_id']) && $pod['template_id']) {
+            if(isset($pod['template_id']) && $pod['template_id'] == $this->templateId) {
                 return $pod;
             }
-        }, $pods);
+        });
 
         return $existingPods;
     }
@@ -507,7 +480,7 @@ class PredefinedApp {
     {
         $data = array();
 
-        foreach($this->kuberProducts as $product) {
+        foreach($this->api->getProducts() as $product) {
             foreach($product['kubes'] as $kube) {
                 $data[] = array(
                     'id' => $kube['kuber_kube_id'],
