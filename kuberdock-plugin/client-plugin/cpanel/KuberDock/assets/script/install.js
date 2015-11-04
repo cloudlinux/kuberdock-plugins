@@ -101,7 +101,7 @@
 
 $(function() {
     var calculateTotal = function() {
-        var el = $('#kuber_kube_id option:selected, #KUBE_TYPE option:selected'),
+        var el = $('#kuber_kube_id option:selected, #KUBETYPE option:selected'),
             el = el.length ? el : $('#kube_type'),
             kubeCount = 0,
             kubeEl = $('#kube_count, input[id*="KUBE_COUNT"]').length

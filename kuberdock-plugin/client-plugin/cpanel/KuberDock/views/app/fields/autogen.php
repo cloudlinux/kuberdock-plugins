@@ -1,0 +1,1 @@
+<input type="hidden" name="<?php echo $variable?>" id="<?php echo $variable?>" value="<?php echo $data['default']?>">

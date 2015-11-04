@@ -228,10 +228,10 @@ class PredefinedApp {
 
         if(preg_match_all(self::TEMPLATE_REGEXP, $value, $match)) {
             foreach($match['variable'] as $k => $row) {
-                $default = $this->getDefault($match['default'][$k]);
                 $data[$row] = array(
                     'replace' => $match[0][$k],
-                    'default' => $default,
+                    'default' => $this->getDefault($match['default'][$k]),
+                    'type' => $this->getType($row, $match['default'][$k]),
                     'description' => $this->getDescription($match['description'][$k]),
                     'path' => $path,
                 );
@@ -254,13 +254,7 @@ class PredefinedApp {
     {
         $ownerData = $this->api->getOwnerData();
         $billingLink = sprintf('<a href="%s" target="_blank">%s</a>', $ownerData['server'], $ownerData['server']);
-
-        foreach($data as $k => $v) {
-            if(isset($this->variables[$k])) {
-                $this->variables[$k]['value'] = $v;
-                $this->setByPath($this->template, $this->variables[$k]['path'], $this->variables[$k]['replace'], $v);
-            }
-        }
+        $this->setVariables($data);
 
         // Create order with kuberdock product
         if(!$this->api->getService()) {
@@ -289,6 +283,25 @@ class PredefinedApp {
     public function start()
     {
         $this->userCommand->startContainer($this->getPodName());
+    }
+
+    /**
+     * @param $variable string
+     * @param $controller KuberDock_Controller
+     * @throws CException
+     */
+    public function renderVariable($variable, $controller)
+    {
+        $data = $this->variables[$variable];
+
+        if(!in_array($data['type'], array('autogen', 'select', 'kube_count', 'input'))) {
+            throw new CException('Undefined variable type: ' . $data['type']);
+        }
+
+        $controller->renderPartial('fields/' . $data['type'], array(
+            'variable' => $variable,
+            'data' => $data
+        ));
     }
 
     /**
@@ -323,19 +336,8 @@ class PredefinedApp {
      */
     public function getPostDescription()
     {
-        if(!isset($this->template['kuberdock']['postDescription'])) {
-            return 'Application started.';
-        }
-
-        $variables = $this->variables;
-
-        return preg_replace_callback(self::VARIABLE_REGEXP, function($matches) use ($variables) {
-            if(isset($variables[$matches['variable']])) {
-                return $variables[$matches['variable']]['value'];
-            } else {
-                return 'Undefined';
-            }
-        }, $this->template['kuberdock']['postDescription']);
+        return isset($this->template['kuberdock']['postDescription']) ?
+            $this->template['kuberdock']['postDescription'] : 'Application started.';
     }
 
     /**
@@ -449,6 +451,24 @@ class PredefinedApp {
     }
 
     /**
+     * @param string $var
+     * @param string|int $default
+     * @return string
+     */
+    private function getType($var, $default)
+    {
+        if($default == 'autogen') {
+            return $default;
+        } elseif(stripos($var, 'KUBE_COUNT') !== false) {
+            return 'kube_count';
+        } elseif(stripos($var, 'KUBETYPE') !== false) {
+            return 'select';
+        } else {
+            return 'input';
+        }
+    }
+
+    /**
      * @param $value
      * @return mixed
      */
@@ -533,5 +553,40 @@ class PredefinedApp {
         }
 
         return $appDir. DS . 'app.yaml';
+    }
+
+    /**
+     * @param string $string
+     * @param array $data
+     * @return mixed
+     */
+    private function replaceTemplateVariable($string, $data)
+    {
+        $variables = $this->variables;
+        return preg_replace_callback(self::VARIABLE_REGEXP, function($matches) use ($variables, $data) {
+            if(isset($variables[$matches['variable']]) && isset($data[$matches['variable']])) {
+                return $data[$matches['variable']];
+            }
+        }, $string);
+    }
+
+    /**
+     * @param array $data
+     */
+    private function setVariables($data)
+    {
+        array_walk_recursive($this->template, function(&$e) use ($data) {
+            // bug with returned type of value (preg_replace_callback)
+            if(preg_match(self::VARIABLE_REGEXP, $e)) {
+                $e = $this->replaceTemplateVariable($e, $data);
+            }
+        });
+
+        foreach($data as $k => $v) {
+            if(isset($this->variables[$k])) {
+                $this->variables[$k]['value'] = $v;
+                $this->setByPath($this->template, $this->variables[$k]['path'], $this->variables[$k]['replace'], $v);
+            }
+        }
     }
 } 

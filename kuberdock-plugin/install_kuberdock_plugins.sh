@@ -42,6 +42,10 @@ function install
     /bin/chmod ugo+x $CPANEL_CGI_PATH/addon_kuberdock.cgi
     /bin/chmod -R 600 $CPANEL_CGI_PATH/$PLUGIN_NAME
 
+    if [ -e /etc/kubecli.conf ]; then
+        /bin/cp -f /etc/kubecli.conf /root/.kubecli.conf
+    fi
+
     echo "Plugin installed"
 }
 

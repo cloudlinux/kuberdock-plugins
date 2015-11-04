@@ -165,8 +165,18 @@ abstract class Command {
         }
 
         if(isset($parsedResponse['status']) && $parsedResponse['status'] == self::STATUS_ERROR) {
-            throw new CException('Command execution error.'. (SELECTOR_DEBUG ? ' '.$this->commandString : '') .
-                (isset($parsedResponse['message']) ? ' '. $parsedResponse['message'] : ''));
+            if(is_array($parsedResponse['message'])) {
+                $message = '';
+                array_walk_recursive($parsedResponse['message'], function($e, $k) use (&$message) {
+                    if(!is_array($e)) {
+                        $message .= "$k: $e<br>";
+                    }
+                });
+                throw new CException($message);
+            } else {
+                throw new CException('Command execution error.' . (SELECTOR_DEBUG ? ' ' . $this->commandString : '') .
+                    (isset($parsedResponse['message']) ? ' ' . $parsedResponse['message'] : ''));
+            }
         }
 
         if(isset($parsedResponse['status']) && $parsedResponse['status'] == self::STATUS_PARTIAL) {

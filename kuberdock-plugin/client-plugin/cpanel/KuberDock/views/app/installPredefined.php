@@ -21,25 +21,8 @@
         <input type="hidden" name="total_kube_count" id="total_kube_count" value="<?php echo $app->getTotalKubes()?>">
 
     <div class="row">
-        <?php foreach($variables as $variable => $row):?>
-            <div class="form-group">
-                <label for="<?php echo $variable?>" class="col-sm-3 control-label"><?php echo $row['description']?></label>
-
-                <div class="col-sm-4">
-                <?php if(isset($row['data'])):?>
-                    <select name="<?php echo $variable?>" id="<?php echo $variable?>">
-                    <?php foreach($row['data'] as $k => $r):?>
-                        <option value="<?php echo $r['id']?>" data-pid="<?php echo $r['product_id']?>"<?php echo ($r['id'] == $row['default']) ? ' selected' : ''?>>
-                            <?php echo $r['name']?>
-                        </option>
-                    <?php endforeach;?>
-                    </select>
-
-                <?php else:?>
-                    <input type="text" name="<?php echo $variable?>" id="<?php echo $variable?>" value="<?php echo $row['default']?>">
-                <?php endif;?>
-                </div>
-            </div>
+        <?php foreach(array_keys($variables) as $variable):?>
+            <?php $app->renderVariable($variable, $this->controller);?>
         <?php endforeach;?>
     </div>
 
