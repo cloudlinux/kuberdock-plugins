@@ -149,7 +149,12 @@ $(function() {
         })
     });
 
-    $('.kube-slider').Link('lower').to($('.kube-slider-value'));
+    $('.kube-slider').each(function(k, e) {
+        var kubeField = $(this).parent().find('input[id*="KUBE_COUNT"]');
+        $(this).val(kubeField.val());
+        $(this).Link('lower').to(kubeField);
+        $(this).Link('lower').to($(this).parent().find('.kube-slider-value'));
+    });
     $('.kube-slider').Link('lower').to($('#kube_count'));
 
     $(document).ready(function() {
@@ -157,7 +162,7 @@ $(function() {
         initISelect();
     });
 
-    $(document).on('change', '#kuber_kube_id, #KUBE_TYPE', calculateTotal);
+    $(document).on('change', '#kuber_kube_id, #KUBETYPE', calculateTotal);
     $(document).on('change', '.kube-slider, input[id*="KUBE_COUNT"]', calculateTotal);
 
     // Ports

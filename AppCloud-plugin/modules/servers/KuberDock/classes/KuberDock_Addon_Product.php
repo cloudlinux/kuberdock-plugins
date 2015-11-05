@@ -198,7 +198,7 @@ class KuberDock_Addon_Product extends CL_Model {
         $host = $url['host'];
         $host .= $url['port'] ? ':'.$url['port'] : '';
 
-        $rows = $this->_db->query('SELECT p.* FROM KuberDock_products kp
+        $rows = $this->_db->query('SELECT p.*, kp.kuber_product_id FROM KuberDock_products kp
             LEFT JOIN tblproducts p ON kp.product_id=p.id
             LEFT JOIN tblservergroups sg ON p.servergroup=sg.id
             LEFT JOIN tblservergroupsrel sgr ON sg.id=sgr.groupid

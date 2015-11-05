@@ -163,7 +163,7 @@
             <?php else:?>
                 <a class="pull-left btn btn-default" href="kuberdock.live.php">Back</a>
             <?php endif;?>
-            <a class="pull-right btn btn-primary" href="?kuberdock.live.php?a=search">Add more apps</a>
+            <a class="pull-right btn btn-primary" href="kuberdock.live.php?a=search">Add more apps</a>
             <div class="clearfix"></div>
         </div>
     </div>

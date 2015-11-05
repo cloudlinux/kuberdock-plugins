@@ -14,12 +14,7 @@ class DefaultController extends KuberDock_Controller {
             $pod = new Pod();
             $pods = $pod->getPods();
         } catch(CException $e) {
-            $pods = array();
-
-            if(strpos($e->getMessage(), '[]') !== false) //dump fix
-                $this->error = '';
-            else
-                $this->error = $e;
+            throw $e;
         }
 
         $this->render('index', array(

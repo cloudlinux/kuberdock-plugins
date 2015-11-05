@@ -187,13 +187,18 @@ class PredefinedApp {
      */
     public function getTemplates()
     {
+        $data = array();
         $templates = $this->adminCommand->getYAMLTemplates();
 
         foreach($templates as &$row) {
             $row['template'] = Spyc::YAMLLoadString($row['template']);
+
+            if($this->isPackageExists($row['template'])) {
+                $data[] = $row;
+            }
         }
 
-        return $templates;
+        return $data;
     }
 
     /**
@@ -270,11 +275,16 @@ class PredefinedApp {
 
             $this->api->setKuberDockInfo();
             list($username, $password, $token) = $this->api->getAuthData();
-            $this->command = new KcliCommand($username, $password, $token);
+            $this->userCommand = new KcliCommand($username, $password, $token);
         }
 
         file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template));
-        return $this->userCommand->createPodFromYaml($this->getAppPath());
+        $response = $this->userCommand->createPodFromYaml($this->getAppPath());
+
+        $this->setPostInstallVariables($response);
+        file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template));
+
+        return $response;
     }
 
     /**
@@ -361,6 +371,23 @@ class PredefinedApp {
         }
 
         throw new CException('Cannot get KuberDock package');
+    }
+
+    /**
+     * @param string $template
+     * @return bool
+     */
+    public function isPackageExists($template)
+    {
+        $product = $this->api->getProduct();
+        $templateProductId = isset($template['kuberdock']['package_id']) ?
+            $template['kuberdock']['package_id'] : '';
+
+        if($product && $templateProductId != $product['kuber_product_id'] ) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /**
@@ -482,7 +509,7 @@ class PredefinedApp {
      */
     private function generatePassword()
     {
-        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@$#*%<>';
+        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@$#*%';
         $pass = array();
 
         for($i=0; $i<8; $i++) {
@@ -499,14 +526,17 @@ class PredefinedApp {
     private function getKubeTypes()
     {
         $data = array();
+        $userProduct = $this->api->getProduct();
 
         foreach($this->api->getProducts() as $product) {
             foreach($product['kubes'] as $kube) {
-                $data[] = array(
-                    'id' => $kube['kuber_kube_id'],
-                    'product_id' => $product['id'],
-                    'name' => sprintf('%s (%s)', $kube['kube_name'], $product['name']),
-                );
+                if(($userProduct && $userProduct['id'] == $product['id']) || !$userProduct) {
+                    $data[] = array(
+                        'id' => $kube['kuber_kube_id'],
+                        'product_id' => $product['id'],
+                        'name' => sprintf('%s (%s)', $kube['kube_name'], $product['name']),
+                    );
+                }
             }
         }
 
@@ -566,6 +596,8 @@ class PredefinedApp {
         return preg_replace_callback(self::VARIABLE_REGEXP, function($matches) use ($variables, $data) {
             if(isset($variables[$matches['variable']]) && isset($data[$matches['variable']])) {
                 return $data[$matches['variable']];
+            } else {
+                return $matches[0];
             }
         }, $string);
     }
@@ -589,4 +621,23 @@ class PredefinedApp {
             }
         }
     }
-} 
+
+    /**
+     * @param array $data
+     */
+    private function setPostInstallVariables($data)
+    {
+        $variables = array();
+
+        $publicIp = isset($data['public_ip']) ? $data['public_ip'] : '"IP address not setted"';
+        $variables['PUBLIC_ADDRESS'] = $publicIp;
+        $this->variables['PUBLIC_ADDRESS'] = $publicIp;
+
+        array_walk_recursive($this->template, function(&$e) use ($variables) {
+            // bug with returned type of value (preg_replace_callback)
+            if(preg_match(self::VARIABLE_REGEXP, $e)) {
+                $e = $this->replaceTemplateVariable($e, $variables);
+            }
+        });
+    }
+}

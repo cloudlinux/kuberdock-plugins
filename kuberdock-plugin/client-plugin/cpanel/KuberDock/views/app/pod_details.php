@@ -20,6 +20,7 @@
                     $statusClass = 'container-stop';
                     $statusText = 'Stop';
                 }
+
                 $i = 0;
                 while($i < $pod->kubeCount) {
                     $i++;
@@ -46,7 +47,7 @@
                                 Kube quantity: <?php echo $pod->kubeCount ?>
                             </td>
                             <td>
-                                <?php echo 'Public IP: ' . (isset($pod->public_ip) && $pod->public_ip ? $pod->public_ip :
+                                <?php echo (isset($pod->public_ip) && $pod->public_ip ? $pod->public_ip :
                                 (isset($pod->labels['kuberdock-public-ip']) ? $pod->labels['kuberdock-public-ip'] : 'none'))?>
                             </td>
                             <td class="col-md-3"><?php echo $statusText == 'Start' ? 'Stopped' : 'Running' ?></td>

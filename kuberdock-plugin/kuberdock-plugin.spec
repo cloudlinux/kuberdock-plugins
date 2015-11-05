@@ -1,7 +1,7 @@
 Version: 0.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 10%{?dist}.cloudlinux
+Release: 11%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -50,6 +50,28 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Thu Nov 5 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-11
+- AC-1414 cPanel. Add PUBLIC_ADDRESS variable cPanel
+- Add slider for kube count variables cPanel
+- Display only available templates for user
+- AC-1415 cPanel. autogen fields cPanel. %var% can be used everywhere in yaml
+- cPanel. Now worked with getkuberdockinfo api request cPanel. Use hostingPanel user
+- Fix plugin style user side
+
+* Fri Oct 30 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-10
+- cPanel. Exception if not setted /etc/kubecli.conf
+
+* Fri Oct 30 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-9
+- cPanel. Fixed redesign bugs, added ajax file uploader
+- Merge "WHMCS. Added server_id for kubes, separate products\kubes by servers  Fixed standart kube, added High CPU and High memory stadart kubes  Added exc
+- WHMCS. Added server_id for kubes, separate products\kubes by servers  Fixed standart kube, added High CPU and High memory stadart kubes  Added exception
+- AC-1318: Add style to predefined app cpanel plagin to admin
+- Merge "AC-1318: Add style to predefined list app table"
+- AC-1318: Add style to predefined list app table
+- AC-1318: Add style to appdetail page
+- Fixed missed product id for custom field
+- AC-1318: Add style to applist table in kuberdock plugin AC-1308 cPanel. Click on back button logic AC-1306 cPanel. Different pages for list of apps cre
 
 * Tue Oct 21 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-8
 - cPanel. Fixed api connect to ssl host. Cgi empty values in methods.

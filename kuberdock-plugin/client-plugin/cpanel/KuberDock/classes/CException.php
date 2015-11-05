@@ -12,16 +12,20 @@ class CException extends Exception {
     public function __toString() {
         $view = new KuberDock_View();
 
-        return $view->renderPartial('errors/default', array(
+        return $view->render('errors/default', array(
             'message' => $this->message,
         ), false);
     }
 
     public function getJSON()
     {
+        $view = new KuberDock_View();
+
         return json_encode(array(
             'error' => true,
-            'message' => $this->__toString(),
+            'message' => $view->renderPartial('errors/default', array(
+                'message' => $this->message,
+            ), false),
         ));
     }
 }

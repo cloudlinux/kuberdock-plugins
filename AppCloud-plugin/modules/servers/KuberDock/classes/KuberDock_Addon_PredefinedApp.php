@@ -8,6 +8,10 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     /**
      *
      */
+    const VARIABLE_REGEXP = '/\%(?<variable>\w+)\%/';
+    /**
+     *
+     */
     const KUBERDOCK_PRODUCT_ID_FIELD = 'pkgid';
     /**
      *
@@ -117,28 +121,45 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     }
 
     /**
-     * @param $serviceId
-     * @param $podId
+     * @param int $serviceId
+     * @param array $pod
      * @return string
      */
-    public function getPodLink($serviceId, $podId)
+    public function getPodLink($serviceId, $pod)
     {
         $service = KuberDock_Hosting::model()->loadById($serviceId);
+        $variables = $this->getVariables($pod);
 
-        return $service->getLoginByTokenLink() . '&postDescription=' . $this->getPostDescription()
-            . '&next=#pods/' . $podId;
+        return $service->getLoginByTokenLink() . '&postDescription=' . $this->getPostDescription($variables)
+            . '&next=#pods/' . $pod['id'];
 
     }
 
     /**
+     * @param array $variables
      * @return string
      */
-    public function getPostDescription()
+    public function getPostDescription($variables = array())
     {
         $data = Spyc::YAMLLoadString($this->data);
-
-        return isset($data['kuberdock'][self::KUBERDOCK_YAML_POST_DESCRIPTION_FIELD]) ?
+        $postDescription = isset($data['kuberdock'][self::KUBERDOCK_YAML_POST_DESCRIPTION_FIELD]) ?
             $data['kuberdock'][self::KUBERDOCK_YAML_POST_DESCRIPTION_FIELD] : '';
+
+        $postDescription = str_replace(array_keys($variables), array_values($variables), $postDescription);
+
+        return $postDescription;
+    }
+
+    /**
+     * @param array $pod
+     * @return array
+     */
+    private function getVariables($pod)
+    {
+        $publicIp = isset($pod['public_ip']) ? $pod['public_ip'] : '"IP address not setted"';
+        $variables['%PUBLIC_ADDRESS%'] = $publicIp;
+
+        return $variables;
     }
 
     /**

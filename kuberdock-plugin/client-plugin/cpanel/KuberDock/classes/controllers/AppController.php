@@ -66,6 +66,7 @@ class AppController extends KuberDock_Controller {
             $pods = $app->getExistingPods();
             $podsCount = count($pods);
             $podsCount = $new ? 0 : $podsCount;
+            $podsCount = $postDescription ? 1 : $podsCount;
 
             if($_POST) {
                 try {
@@ -81,6 +82,7 @@ class AppController extends KuberDock_Controller {
                 } catch (CException $e) {
                     echo $e->getJSON();
                 }
+
                 exit();
             }
 
@@ -93,7 +95,6 @@ class AppController extends KuberDock_Controller {
                     ));
                     break;
                 case 1:
-
                     $pod = new Pod();
                     $pod = $pod->loadByName(current($pods)['name']);
 

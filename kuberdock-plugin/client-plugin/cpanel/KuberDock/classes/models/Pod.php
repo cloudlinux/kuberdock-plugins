@@ -421,7 +421,7 @@ class Pod {
             }
             $this->api->acceptOrder($data['orderid']);
 
-            $this->api->setKuberDockInfo();
+            $this->api = $this->api->setKuberDockInfo();
             list($username, $password, $token) = $this->api->getAuthData();
             $this->command = new KcliCommand($username, $password, $token);
         }

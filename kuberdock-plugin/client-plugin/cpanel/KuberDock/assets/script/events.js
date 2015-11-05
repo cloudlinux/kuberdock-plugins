@@ -190,8 +190,10 @@ $(function() {
         });
     });
 
-    $(document).on('submit', '.container-install', function(e) {
+    $(document).on('submit', 'form.container-install', function(e) {
         e.preventDefault();
+        e.stopPropagation();
+
         var form = $(this),
             loader = $('.ajax-loader');
 
