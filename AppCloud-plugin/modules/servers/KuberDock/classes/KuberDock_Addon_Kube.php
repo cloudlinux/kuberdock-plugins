@@ -18,6 +18,7 @@ class KuberDock_Addon_Kube extends CL_Model {
 
     /**
      * @return bool
+     * @throws CException
      */
     public function createKube() {
         $api = $this->getApi();
@@ -43,7 +44,17 @@ class KuberDock_Addon_Kube extends CL_Model {
             $data = $response->getData();
             $this->kuber_kube_id = $data['id'];
         } catch(ExistException $e) {
-            if($kube = $api->getKubesByName($kubeName)) {
+            $kube = $api->getKubesByName($kubeName);
+            $existingKube = $this->loadByAttributes(array(
+                'server_id' => $this->server_id,
+                'kuber_kube_id' => $kube['id'],
+            ), 'product_id IS NULL AND kuber_product_id IS NULL');
+
+            if($existingKube) {
+                throw new CException(sprintf('Kube "%s" already exists', $this->kube_name));
+            }
+
+            if($kube) {
                 $this->kuber_kube_id = $kube['id'];
             }
         }
