@@ -7,6 +7,7 @@
 use base\CL_Model;
 use base\CL_Tools;
 use base\models\CL_Currency;
+use exceptions\CException;
 use exceptions\ExistException;
 
 class KuberDock_Addon_Product extends CL_Model {

@@ -195,7 +195,6 @@ add_hook('AfterConfigOptionsUpgrade', 1, 'KuberDock_AfterConfigOptionsUpgrade');
  */
 function KuberDock_ShoppingCartCheckoutCompletePage($params)
 {
-
 }
 //add_hook('ShoppingCartCheckoutCompletePage', 1, 'KuberDock_ShoppingCartCheckoutCompletePage');
 
@@ -304,8 +303,9 @@ function KuberDock_ClientAreaPage($params)
             $yaml = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_YAML_FIELD);
 
             try {
-                $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId,
-                    isset($_SERVER['HTTP_REFERER']) & $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : 'https://136.243.221.249');     // TODO: FIX IT
+                $referer = isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] ?
+                    $_SERVER['HTTP_REFERER'] : 'https://136.243.221.249';       // TODO: FIX IT
+                $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $referer);
                 $product = KuberDock_Product::model()->loadById($kdProduct->product_id);
 
                 $predefinedApp = $predefinedApp->loadBySessionId();
@@ -394,6 +394,30 @@ function KuberDock_ClientAreaPage($params)
                         KuberDock_Units::getTrafficUnits(),
                     )),
                 );
+            }
+        }
+
+        // Complete page
+        if(CL_Base::model()->getParam('a') == 'complete') {
+            $serviceId = CL_Base::model()->getParam('sid');
+            $podId = CL_Base::model()->getParam('podId');
+            $service = KuberDock_Hosting::model()->loadById($serviceId);
+
+            if($service && $podId) {
+                $view = new \base\CL_View();
+                $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+                try {
+                    $pod = $service->getApi()->getPod($podId);
+                    $view->renderPartial('client/preapp_complete', array(
+                        'serverLink' => $service->getServer()->getLoginPageLink(),
+                        'token' => $service->getToken(),
+                        'podId' => $podId,
+                        'postDescription' => $predefinedApp->getPostDescription($pod),
+                    ));
+                    exit;
+                } catch(Exception $e) {
+
+                }
             }
         }
     }

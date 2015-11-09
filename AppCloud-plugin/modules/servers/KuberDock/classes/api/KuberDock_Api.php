@@ -7,6 +7,7 @@
 namespace api;
 
 use api\KuberDock_ApiResponse;
+use exceptions\CException;
 use Exception;
 
 class KuberDock_Api {
@@ -819,6 +820,23 @@ class KuberDock_Api {
         }
 
         return $response;
+    }
+
+    /**
+     * @return array
+     * @throws Exception
+     */
+    public function getPod($id)
+    {
+        $response = $this->getPods();
+
+        foreach($response->getData() as $row) {
+            if($row['id'] == $id) {
+                return $row;
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -156,9 +156,9 @@ class KuberDock_Product extends CL_Product {
             if(!($pod = $predefinedApp->isPodExists($service->id))) {
                 $pod = $predefinedApp->create($service->id);
                 $predefinedApp->start($pod['id'], $service->id);
-                header('Location: ' . $predefinedApp->getPodLink($service->id, $pod));
+                header('Location: ' . sprintf('/cart.php?a=complete&sid=%s&podId=%s', $service->id, $pod['id']));
             } else {
-                header('Location: ' . $predefinedApp->getPodLink($service->id, $pod));
+                header('Location: ' . sprintf('/cart.php?a=complete&sid=%s&podId=%s', $service->id, $pod['id']));
             }
         }
     }

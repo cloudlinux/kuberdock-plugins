@@ -5,6 +5,7 @@
  */
 
 use base\CL_Model;
+
 use base\CL_Tools;
 
 class KuberDock_Addon_PredefinedApp extends CL_Model {
