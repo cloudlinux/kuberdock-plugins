@@ -4,6 +4,8 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base;
+
 class CL_Model {
     const ACTION_INSERT = 'insert';
     const ACTION_UPDATE = 'update';

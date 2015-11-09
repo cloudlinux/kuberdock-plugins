@@ -4,6 +4,11 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace api;
+
+use api\KuberDock_ApiResponse;
+use Exception;
+
 class KuberDock_Api {
     /**
      *

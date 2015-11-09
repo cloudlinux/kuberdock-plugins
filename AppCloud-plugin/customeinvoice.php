@@ -21,7 +21,7 @@ if($_POST) {
     $gateway = $_POST['gateway'];
 
     try {
-        $invoiceId = CL_Invoice::model()->createInvoice($ca->getUserID(), $payment, $gateway, false, CL_Invoice::CUSTOM_INVOICE_DESCRIPTION);
+        $invoiceId = \base\models\CL_Invoice::model()->createInvoice($ca->getUserID(), $payment, $gateway, false, \base\models\CL_Invoice::CUSTOM_INVOICE_DESCRIPTION);
         header('Location: /clientarea.php');
     } catch(Exception $e) {
         $ca->assign('error', $e->getMessage());
@@ -30,7 +30,7 @@ if($_POST) {
 
 $paymentList = array(5, 10, 25, 50, 100);
 
-$currency = CL_Currency::model()->getDefaultCurrency();
+$currency = \base\models\CL_Currency::model()->getDefaultCurrency();
 $gateways = $currency->getPaymentGateways();
 
 $ca->assign('gateways', $gateways);

@@ -4,6 +4,12 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use base\CL_Query;
+use base\CL_Tools;
+use base\models\CL_MailTemplate;
+use base\models\CL_Client;
+use base\models\CL_Hosting;
+
 class KuberDock_Hosting extends CL_Hosting {
     /**
      * Delete pod sign
@@ -63,7 +69,7 @@ class KuberDock_Hosting extends CL_Hosting {
     {
         $date = new DateTime();
         $date->setTime(0, 0, 0);
-        $product = KuberDock_Product::model()->loadById($this->product_id);
+        $product = \KuberDock_Product::model()->loadById($this->product_id);
         $clientDetails = CL_Client::model()->getClientDetails($this->userid);
 
         // trial time
@@ -378,7 +384,7 @@ class KuberDock_Hosting extends CL_Hosting {
 
     /**
      * @param bool $plainAuth
-     * @return KuberDock_Api
+     * @return api\KuberDock_Api
      */
     public function getApi($plainAuth = false)
     {
@@ -393,7 +399,7 @@ class KuberDock_Hosting extends CL_Hosting {
     }
 
     /**
-     * @return KuberDock_Api
+     * @return api\KuberDock_Api
      */
     public function getAdminApi()
     {
@@ -493,13 +499,18 @@ class KuberDock_Hosting extends CL_Hosting {
     }
 
     /**
-     *
+     * @param bool|true $login
+     * @return string
      */
-    public function getLoginByTokenLink()
+    public function getLoginByTokenLink($login = true)
     {
         $serverLink = $this->getServer()->getLoginPageLink();
 
-        return sprintf('%s/login?token=%s', $serverLink, $this->getToken());
+        if($login) {
+            return sprintf('%s/login?token=%s', $serverLink, $this->getToken());
+        } else {
+            return sprintf('%s/?token=%s', $serverLink, $this->getToken());
+        }
     }
 
     /**

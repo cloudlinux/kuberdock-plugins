@@ -4,6 +4,13 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use base\CL_Base;
+use base\CL_Tools;
+use base\models\CL_Currency;
+use base\models\CL_Invoice;
+use base\models\CL_User;
+use components\KuberDock_Units;
+
 include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
 
 /**

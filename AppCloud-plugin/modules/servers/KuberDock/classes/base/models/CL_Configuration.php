@@ -4,6 +4,10 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base\models;
+
+use base\CL_Model;
+
 class CL_Configuration extends CL_Model {
     /**
      *
@@ -33,7 +37,7 @@ class CL_Configuration extends CL_Model {
      * Class loader
      *
      * @param string $className
-     * @return CL_Currency
+     * @return $this
      */
     public static function model($className = __CLASS__)
     {

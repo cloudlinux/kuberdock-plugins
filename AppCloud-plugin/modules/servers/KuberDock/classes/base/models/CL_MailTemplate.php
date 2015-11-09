@@ -4,6 +4,12 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base\models;
+
+use Exception;
+use base\CL_Model;
+use base\CL_View;
+
 class CL_MailTemplate extends CL_Model {
     const TYPE_PRODUCT = 'product';
     const TYPE_DOMAIN = 'domain';

@@ -4,6 +4,7 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base;
 
 class CL_Component {
     protected static $_models;

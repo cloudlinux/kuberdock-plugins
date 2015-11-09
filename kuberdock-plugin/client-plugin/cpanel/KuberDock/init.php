@@ -9,12 +9,11 @@ if(file_exists($dev)) {
     include_once $dev;
 } else {
     defined(SELECTOR_DEBUG) or define(SELECTOR_DEBUG, false);
+    error_reporting(E_ERROR);
+    ini_set('display_errors', 1);
 }
 
 require_once KUBERDOCK_CLASS_DIR . DS . 'KuberDock_AutoLoader.php';
-
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
 try {
     $loader = new KuberDock_AutoLoader();

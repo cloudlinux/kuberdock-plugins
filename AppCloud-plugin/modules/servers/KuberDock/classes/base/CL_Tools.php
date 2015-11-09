@@ -4,6 +4,12 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base;
+
+use DateTime;
+use ReflectionClass;
+use base\models\CL_Configuration;
+
 class CL_Tools extends CL_Component {
 
     /**

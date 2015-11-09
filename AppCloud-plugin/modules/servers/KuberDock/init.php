@@ -26,7 +26,7 @@ try {
     $loader = new KuberDock_AutoLoader();
 
     // TODO: use https://phinx.org
-    $simpleMigration = new KuberDock_Migration();
+    $simpleMigration = new \components\KuberDock_Migration();
     $simpleMigration->migrate();
 } catch(Exception $e) {
     echo $e->getMessage();

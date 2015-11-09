@@ -4,6 +4,11 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base\models;
+
+use Exception;
+use base\CL_Model;
+
 class CL_Server extends CL_Model {
     /**
      *

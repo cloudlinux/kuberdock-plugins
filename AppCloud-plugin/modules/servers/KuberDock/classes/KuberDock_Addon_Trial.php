@@ -4,6 +4,8 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use base\CL_Model;
+
 class KuberDock_Addon_Trial extends CL_Model {
     /**
      *

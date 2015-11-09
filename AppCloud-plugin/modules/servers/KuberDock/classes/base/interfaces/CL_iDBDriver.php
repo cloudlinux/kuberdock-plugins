@@ -4,6 +4,8 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base\interfaces;
+
 interface CL_iDBDriver {
     const MYSQL_REPLACE_KEY = '?';
 

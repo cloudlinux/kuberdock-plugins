@@ -4,6 +4,11 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base;
+
+use Exception;
+use KuberDock_Controller;
+
 class CL_View {
     const VIEW_DIRECTORY = 'view';
     const LAYOUT_DIRECTORY = 'layout';

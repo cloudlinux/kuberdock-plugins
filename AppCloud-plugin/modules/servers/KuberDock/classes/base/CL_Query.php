@@ -4,6 +4,12 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base;
+
+use \base\db_drivers\CL_MySQL;
+use \base\db_drivers\CL_MySQLi;
+use \base\interfaces\CL_iDBDriver;
+
 class CL_Query extends CL_Base implements CL_iDBDriver {
     /**
      * @object CL_MySQL | CL_MySQLi
@@ -53,7 +59,7 @@ class CL_Query extends CL_Base implements CL_iDBDriver {
      * Class loader
      *
      * @param string $className
-     * @return CL_MySQL | CL_MySQLi
+     * @return $this
      */
     public static function model($className = __CLASS__)
     {

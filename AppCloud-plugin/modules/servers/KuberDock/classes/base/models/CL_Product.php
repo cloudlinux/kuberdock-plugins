@@ -4,6 +4,11 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base\models;
+
+use Exception;
+use base\CL_Query;
+use base\CL_Model;
 
 abstract class CL_Product extends CL_Model {
     /**
@@ -359,7 +364,7 @@ abstract class CL_Product extends CL_Model {
      * Class loader
      *
      * @param string $className
-     * @return CL_Product
+     * @return $this
      */
     public static function model($className = __CLASS__)
     {

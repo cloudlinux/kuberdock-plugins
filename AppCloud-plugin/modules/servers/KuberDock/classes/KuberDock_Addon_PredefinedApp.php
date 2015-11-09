@@ -4,6 +4,9 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use base\CL_Model;
+use base\CL_Tools;
+
 class KuberDock_Addon_PredefinedApp extends CL_Model {
     /**
      *
@@ -130,7 +133,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
         $service = KuberDock_Hosting::model()->loadById($serviceId);
         $variables = $this->getVariables($pod);
 
-        return $service->getLoginByTokenLink() . '&postDescription=' . $this->getPostDescription($variables)
+        return $service->getLoginByTokenLink(false) . '&postDescription=' . $this->getPostDescription($variables)
             . '&next=#pods/' . $pod['id'];
 
     }

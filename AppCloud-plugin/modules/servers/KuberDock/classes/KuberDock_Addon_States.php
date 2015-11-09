@@ -4,6 +4,9 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use base\CL_Model;
+use base\CL_Tools;
+
 class KuberDock_Addon_States extends CL_Model {
     /**
      *

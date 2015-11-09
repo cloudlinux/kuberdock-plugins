@@ -4,6 +4,8 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use base\CL_Assets;
+
 class KuberDock_Assets extends CL_Assets {
     /**
      * Relative assets path

@@ -4,6 +4,11 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use base\CL_Model;
+use base\CL_Tools;
+use base\models\CL_Currency;
+use exceptions\ExistException;
+
 class KuberDock_Addon_Product extends CL_Model {
     /**
      *
@@ -215,7 +220,7 @@ class KuberDock_Addon_Product extends CL_Model {
     }
 
     /**
-     * @return KuberDock_Api
+     * @return api\KuberDock_Api
      */
     private function getApi()
     {

@@ -4,6 +4,13 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base\models;
+
+use DateTime;
+use Exception;
+use KuberDock_User;
+use base\CL_Model;
+
 class CL_Hosting extends CL_Model {
 
     /**

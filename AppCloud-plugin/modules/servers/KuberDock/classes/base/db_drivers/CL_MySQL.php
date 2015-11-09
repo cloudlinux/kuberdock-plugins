@@ -4,6 +4,9 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base\db_drivers;
+
+use \base\interfaces\CL_iDBDriver;
 
 class CL_MySQL implements CL_iDBDriver {
     /**

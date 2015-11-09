@@ -2,10 +2,10 @@
     <tr>
         <th>Kube name</th>
         <th>Price</th>
-        <th>CPU limit (<?php echo KuberDock_Units::getCPUUnits()?>)</th>
-        <th>Memory limit (<?php echo KuberDock_Units::getMemoryUnits()?>)</th>
-        <th>Disk Usage limit (<?php echo KuberDock_Units::getHDDUnits()?>)</th>
-        <th>Traffic limit (<?php echo KuberDock_Units::getMemoryUnits()?>)</th>
+        <th>CPU limit (<?php echo \components\KuberDock_Units::getCPUUnits()?>)</th>
+        <th>Memory limit (<?php echo \components\KuberDock_Units::getMemoryUnits()?>)</th>
+        <th>Disk Usage limit (<?php echo \components\KuberDock_Units::getHDDUnits()?>)</th>
+        <th>Traffic limit (<?php echo \components\KuberDock_Units::getMemoryUnits()?>)</th>
     </tr>
 
     <?php foreach($kubes as $kube):?>

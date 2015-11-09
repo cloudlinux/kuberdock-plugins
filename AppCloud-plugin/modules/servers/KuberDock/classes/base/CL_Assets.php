@@ -4,6 +4,8 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base;
+
 abstract class CL_Assets {
     /**
      * Default JavaScript file extension

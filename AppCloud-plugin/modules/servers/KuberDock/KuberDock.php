@@ -6,6 +6,12 @@
 
 include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
 
+use base\CL_View;
+use base\CL_Base;
+use base\models\CL_Currency;
+use base\models\CL_Client;
+use api\KuberDock_Api;
+
 /**
  * @return array
  * @throws Exception
@@ -27,10 +33,6 @@ function KuberDock_ConfigOptions() {
  * @return string
  */
 function KuberDock_CreateAccount($params) {
-    /*if(!KuberDock_User::model()->isClient()) {
-        return 'ERROR: This action is not enabled for KuberDock';
-    }*/
-
     try {
         $product = KuberDock_Product::model()->loadById($params['pid']);
         $client = CL_Client::model()->loadByParams($params['clientsdetails']);

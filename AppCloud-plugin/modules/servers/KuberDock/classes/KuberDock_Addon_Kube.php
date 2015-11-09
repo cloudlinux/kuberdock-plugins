@@ -4,6 +4,10 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use base\CL_Model;
+use base\CL_Tools;
+use exceptions\ExistException;
+
 class KuberDock_Addon_Kube extends CL_Model {
     const STANDARD_TYPE = 0;
     const NON_STANDARD_TYPE = 1;
@@ -218,7 +222,7 @@ class KuberDock_Addon_Kube extends CL_Model {
     }
 
     /**
-     * @return KuberDock_Api
+     * @return api\KuberDock_Api
      */
     private function getApi()
     {

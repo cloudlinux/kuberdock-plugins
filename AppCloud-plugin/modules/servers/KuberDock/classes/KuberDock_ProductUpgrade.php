@@ -1,7 +1,8 @@
 <?php
 
-/**
- */
+use base\models\CL_ProductUpgrade;
+use base\models\CL_Invoice;
+use base\CL_Tools;
 
 class KuberDock_ProductUpgrade extends CL_ProductUpgrade {
     /**
@@ -56,7 +57,7 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade {
     }
 
     /**
-     * @return $this
+     * @return KuberDock_Product
      */
     public function getNewProduct()
     {

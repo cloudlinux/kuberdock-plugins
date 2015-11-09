@@ -4,6 +4,13 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use base\CL_View;
+use base\CL_Query;
+use base\models\CL_Currency;
+use base\models\CL_Product;
+use base\models\CL_MailTemplate;
+use components\KuberDock_Units;
+
 class KuberDock_Product extends CL_Product {
 
     /**
@@ -94,12 +101,12 @@ class KuberDock_Product extends CL_Product {
      */
     public function create($serviceId)
     {
-        $service = KuberDock_Hosting::model()->loadById($serviceId);
+        $service = \KuberDock_Hosting::model()->loadById($serviceId);
         $api = $service->getAdminApi();
         $productName = $this->getName();
         $service->username = $this->client->email;
         $password = $service->decryptPassword();
-        $role = $this->getConfigOption('trialTime') ? KuberDock_User::ROLE_TRIAL : KuberDock_User::ROLE_USER;
+        $role = $this->getConfigOption('trialTime') ? \KuberDock_User::ROLE_TRIAL : \KuberDock_User::ROLE_USER;
 
         try {
             $response = $api->getUser($service->username);
@@ -140,8 +147,8 @@ class KuberDock_Product extends CL_Product {
             ));
         }
 
-        $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-        $service = KuberDock_Hosting::model()->loadById($serviceId);
+        $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+        $service = \KuberDock_Hosting::model()->loadById($serviceId);
         if($service->isActive() && $predefinedApp) {
             if(!($pod = $predefinedApp->isPodExists($service->id))) {
                 $pod = $predefinedApp->create($service->id);
@@ -160,7 +167,7 @@ class KuberDock_Product extends CL_Product {
      */
     public function update($serviceId)
     {
-        $service = KuberDock_Hosting::model()->loadById($serviceId);
+        $service = \KuberDock_Hosting::model()->loadById($serviceId);
         $api = $service->getAdminApi();
         $productName = $this->getName();
         $service->username = $this->client->email;
@@ -358,7 +365,7 @@ class KuberDock_Product extends CL_Product {
 
 
     /**
-     * @return KuberDock_Api
+     * @return api\KuberDock_Api
      * @throws Exception
      */
     public function getApi()
@@ -499,7 +506,7 @@ class KuberDock_Product extends CL_Product {
      * Class loader
      *
      * @param string $className
-     * @return KuberDock_Product
+     * @return $this
      */
     public static function model($className = __CLASS__)
     {

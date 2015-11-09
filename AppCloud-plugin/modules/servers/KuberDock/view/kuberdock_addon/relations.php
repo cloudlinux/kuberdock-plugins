@@ -3,7 +3,7 @@
         <h3>KuberDock kube relations</h3>
 
         <p class="text-right">
-            <a href="<?php echo CL_Base::model()->baseUrl?>&a=add">
+            <a href="<?php echo \base\CL_Base::model()->baseUrl?>&a=add">
                 <button type="button" class="btn btn-default btn-lg"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Add kube type</button>
             </a>
         </p>
@@ -14,10 +14,10 @@
                 <th>Kube type name</th>
                 <th>KuberDock kube type ID</th>
                 <th>Server</th>
-                <th>CPU limit (<?php echo KuberDock_Units::getCPUUnits()?>)</th>
-                <th>Memory limit (<?php echo KuberDock_Units::getMemoryUnits()?>)</th>
-                <th>HDD limit (<?php echo KuberDock_Units::getHDDUnits()?>)</th>
-                <th>Traffic limit (<?php echo KuberDock_Units::getTrafficUnits()?>)</th>
+                <th>CPU limit (<?php echo \components\KuberDock_Units::getCPUUnits()?>)</th>
+                <th>Memory limit (<?php echo \components\KuberDock_Units::getMemoryUnits()?>)</th>
+                <th>HDD limit (<?php echo \components\KuberDock_Units::getHDDUnits()?>)</th>
+                <th>Traffic limit (<?php echo \components\KuberDock_Units::getTrafficUnits()?>)</th>
                 <th>Price</th>
                 <th>Price type</th>
             </tr>

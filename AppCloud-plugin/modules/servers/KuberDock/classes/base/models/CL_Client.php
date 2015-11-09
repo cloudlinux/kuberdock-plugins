@@ -4,6 +4,11 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base\models;
+
+use exceptions\CException;
+use base\CL_Model;
+
 class CL_Client extends CL_Model {
 
     /**
@@ -83,7 +88,7 @@ class CL_Client extends CL_Model {
      * Class loader
      *
      * @param string $className
-     * @return CL_Client
+     * @return $this
      */
     public static function model($className = __CLASS__)
     {

@@ -4,6 +4,11 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use api\KuberDock_Api;
+use base\CL_Query;
+use base\models\CL_Server;
+use base\models\CL_Hosting;
+
 class KuberDock_Server extends CL_Server {
     /**
      * @var array
@@ -29,7 +34,7 @@ class KuberDock_Server extends CL_Server {
 
     /**
      * @param null|int $serverId
-     * @return KuberDock_Api
+     * @return api\KuberDock_Api
      * @throws Exception
      */
     public function getApi($serverId = null)
@@ -103,7 +108,7 @@ class KuberDock_Server extends CL_Server {
      * @param string $username
      * @param string $password
      * @param null|int $serverId
-     * @return KuberDock_Api
+     * @return api\KuberDock_Api
      */
     public function getApiByUser($username, $password, $serverId = null)
     {
@@ -116,7 +121,7 @@ class KuberDock_Server extends CL_Server {
     /**
      * @param string $token
      * @param null|int $serverId
-     * @return KuberDock_Api
+     * @return api\KuberDock_Api
      */
     public function getApiByToken($token, $serverId = null)
     {

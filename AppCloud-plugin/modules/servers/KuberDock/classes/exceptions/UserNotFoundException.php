@@ -4,6 +4,10 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace exceptions;
+
+use Exception;
+
 class UserNotFoundException extends Exception {
 
 } 

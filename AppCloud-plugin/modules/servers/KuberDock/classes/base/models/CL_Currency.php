@@ -4,6 +4,12 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base\models;
+
+use Exception;
+use KuberDock_User;
+use base\CL_Model;
+
 class CL_Currency extends CL_Model {
     const FORMAT_1 = 1;      // 1234.56
     const FORMAT_2 = 2;      // 1,234.56

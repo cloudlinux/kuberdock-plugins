@@ -4,6 +4,7 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace components;
 
 class KuberDock_Units {
     /**

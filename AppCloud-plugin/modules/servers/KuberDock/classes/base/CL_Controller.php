@@ -4,6 +4,8 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base;
+
 class CL_Controller {
     /**
      * Default controller directory
@@ -77,7 +79,7 @@ class CL_Controller {
     /**
      * Get View object
      *
-     * @return View
+     * @return CL_View
      */
     public function getView()
     {
@@ -127,6 +129,6 @@ class CL_Controller {
      */
     public function isAjaxRequest()
     {
-        return Tools::getIsAjaxRequest();
+        return CL_Tools::getIsAjaxRequest();
     }
 }

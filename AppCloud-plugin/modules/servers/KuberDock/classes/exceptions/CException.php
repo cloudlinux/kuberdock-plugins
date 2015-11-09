@@ -4,6 +4,10 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace exceptions;
+
+use Exception;
+
 class CException extends Exception {
 
     public function __construct($message, $code = 0, Exception $previous = null) {

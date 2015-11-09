@@ -24,7 +24,7 @@ try {
     $cpanelUser = $postFields->params->user;
     $cpanelUserDomains = explode(',', $postFields->params->userDomains);
 
-    $userData['currency'] = CL_Currency::model()->getDefaultCurrency()->getAttributes();
+    $userData['currency'] = \base\models\CL_Currency::model()->getDefaultCurrency()->getAttributes();
 
     if(!isset($kdServer)) {
         throw new CException("Field 'kdServer' must be setted");
@@ -38,7 +38,7 @@ try {
         throw new CException("Field 'userDomains' must be setted");
     }
 
-    $userData['userDetails'] = CL_Client::model()->getClientByCpanelUser($cpanelUser, $cpanelUserDomains);
+    $userData['userDetails'] = \base\models\CL_Client::model()->getClientByCpanelUser($cpanelUser, $cpanelUserDomains);
 
     $serverIds = array();
     $products = KuberDock_Addon_Product::model()->getByServerUrl($kdServer);

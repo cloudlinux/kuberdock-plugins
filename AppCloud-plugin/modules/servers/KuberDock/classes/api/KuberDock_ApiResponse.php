@@ -4,6 +4,8 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace api;
+
 class KuberDock_ApiResponse {
     /**
      * @var string

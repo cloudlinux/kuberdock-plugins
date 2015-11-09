@@ -4,6 +4,11 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base\models;
+
+use Exception;
+use base\CL_Model;
+
 class CL_User extends CL_Model {
     const STATUS_ACTIVE = 'Active';
     const STATUS_PENDING = 'Pending';

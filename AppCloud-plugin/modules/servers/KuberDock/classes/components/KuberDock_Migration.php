@@ -4,6 +4,15 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace components;
+
+use Exception;
+use \base\CL_Query;
+use \base\CL_Component;
+use KuberDock_Addon_Kube;
+use KuberDock_Server;
+use KuberDock_Product;
+
 class KuberDock_Migration extends CL_Component {
     /**
      * @var CL_Query

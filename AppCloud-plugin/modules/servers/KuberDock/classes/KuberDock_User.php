@@ -4,6 +4,8 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use base\models\CL_User;
+
 class KuberDock_User extends CL_User {
     /**
      *

@@ -4,6 +4,11 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace base;
+
+use Exception;
+use ReflectionMethod;
+
 class CL_Base extends CL_Component {
     /**
      * @var string
@@ -40,7 +45,8 @@ class CL_Base extends CL_Component {
 
         try {
             $className = ucfirst($controller) . 'Controller';
-            $model = new $className;
+            $namespace = sprintf('controllers\%s', $className);
+            $model = new $namespace;
             $action = isset($_GET[CL_Controller::CONTROLLER_ACTION_PARAM]) ?
                 $_GET[CL_Controller::CONTROLLER_ACTION_PARAM] : $model->action;
             $model->controller = strtolower($controller);

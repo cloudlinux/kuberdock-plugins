@@ -4,6 +4,10 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use Exception;
+use base\CL_Model;
+use base\CL_Query;
+
 class KuberDock_ServerGroup extends CL_Model {
     const FILL_TYPE_ACTIVE = 2;
     const FILL_TYPE_LEAST_FULL = 1;

@@ -4,6 +4,11 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use base\CL_Component;
+use base\CL_Query;
+use base\models\CL_MailTemplate;
+use exceptions\CException;
+
 class KuberDock_Addon extends CL_Component {
     /**
      *
