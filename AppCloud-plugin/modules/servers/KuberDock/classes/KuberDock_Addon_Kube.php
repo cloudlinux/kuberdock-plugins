@@ -7,10 +7,29 @@
 use base\CL_Model;
 use base\CL_Tools;
 use exceptions\ExistException;
+use exceptions\CException;
 
+/**
+ * Class KuberDock_Addon_Kube
+ */
 class KuberDock_Addon_Kube extends CL_Model {
+    /**
+     *
+     */
     const STANDARD_TYPE = 0;
+    /**
+     *
+     */
     const NON_STANDARD_TYPE = 1;
+
+    /**
+     *
+     */
+    const STANDARD_KUBE_NAME = 'Standard kube';
+    /**
+     *
+     */
+    const STANDARD_KUBE_ID = 0;
 
     /**
      *
@@ -116,24 +135,55 @@ class KuberDock_Addon_Kube extends CL_Model {
     }
 
     /**
-     * @param $productId
+     * @param int $productId
+     * @param int $serverId
      * @return $this
-     * @throws CException
      */
-    public function getStandartKube($productId)
+    public function getStandardKube($productId, $serverId)
     {
         $row = $this->loadByAttributes(array(
             'product_id' => $productId,
+            'kuber_kube_id' => self::STANDARD_KUBE_ID,
             'kube_type' => self::STANDARD_TYPE,
+            'kube_name' => self::STANDARD_KUBE_NAME,
+            'server_id' => $serverId,
         ));
 
         if(!$row) {
-            throw new CException('Standart kube not exist for product: ' . $productId);
+            return false;
         }
 
         $attributes = current($row);
 
         return $this->setAttributes($attributes);
+    }
+
+    /**
+     * @param int $productId
+     * @param int $serverId
+     * @return bool
+     */
+    public function createStandardKube($productId, $serverId)
+    {
+        $data = KuberDock_Addon_Kube::model()->loadByAttributes(array(
+            'kuber_kube_id' => self::STANDARD_KUBE_ID,
+            'kube_name' => self::STANDARD_KUBE_NAME,
+            'server_id' => $serverId,
+        ), 'product_id IS NULL AND kuber_product_id IS NULL');
+
+        if(!$data) {
+            return false;
+        }
+
+        $standardKube = KuberDock_Addon_Kube::model()->loadByParams(current($data));
+        $addonProduct = KuberDock_Addon_Product::model()->loadById($productId);
+
+        $standardKube->setAttributes(array(
+            'kube_price' => 0,
+            'product_id' => $productId,
+            'kuber_product_id' => $addonProduct->kuber_product_id,
+        ));
+        $standardKube->save();
     }
 
     /**

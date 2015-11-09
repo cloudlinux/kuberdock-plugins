@@ -63,6 +63,14 @@ function KuberDock_ProductEdit($params)
         try {
             $addonProduct = KuberDock_Addon_Product::model();
             $addonProduct->updateKubePricing($params['pid']);
+
+            if($product->isTrial()) {
+                $server = $product->getServer();
+                $standardKube = KuberDock_Addon_Kube::model()->getStandardKube($product->id, $server->id);
+                if(!$standardKube) {
+                    KuberDock_Addon_Kube::model()->createStandardKube($product->id, $server->id);
+                }
+            }
         } catch(Exception $e) {
             echo $e->getMessage();
         }

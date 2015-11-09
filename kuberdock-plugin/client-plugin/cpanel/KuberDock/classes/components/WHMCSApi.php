@@ -151,7 +151,7 @@ class WHMCSApi extends Base {
         if($data['result'] != 'success') {
             throw new CException($data['message']);
         }
-        //echo '<pre>'; print_r($data);
+
         return $data['results'];
     }
 

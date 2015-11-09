@@ -11,6 +11,9 @@ use base\models\CL_Product;
 use base\models\CL_MailTemplate;
 use components\KuberDock_Units;
 
+/**
+ * Class KuberDock_Product
+ */
 class KuberDock_Product extends CL_Product {
 
     /**
@@ -487,6 +490,15 @@ class KuberDock_Product extends CL_Product {
             case 'annually':
                 return 365;
         }
+    }
+
+    /**
+     * @return bool
+     * @throws Exception
+     */
+    public function isTrial()
+    {
+        return $this->getConfigOption('enableTrial');
     }
 
     /**
