@@ -14,6 +14,10 @@ div#doctitle h1 span img {
     width: 100%;
 }
 
+#create-new-app .btn-default {
+    color: #000 !important;
+}
+
 /* new style */
 #admin-plugin .nav-tabs>li>a{ color: #1c96d2; }
 #admin-plugin .nav-tabs>li.active>a,
