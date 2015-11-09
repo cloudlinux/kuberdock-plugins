@@ -85,7 +85,9 @@ label.title{
     float: right;
 }
 
-
+* {
+    box-shadow: none !important;
+}
 
 
 

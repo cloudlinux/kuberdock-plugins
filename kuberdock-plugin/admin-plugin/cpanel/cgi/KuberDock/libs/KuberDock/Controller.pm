@@ -94,6 +94,7 @@ sub indexAction() {
         packages => $packages,
         kubes => $api->getPackageKubes(@$packages[0]->{id}),
         defaults => $defaults,
+        action => 'addon_kuberdock.cgi?a=createApp',
     };
 
     $self->render('index.tmpl', $vars);
@@ -152,7 +153,6 @@ sub createAppAction() {
     my $vars = {
         yaml => $code || '#Some yaml',
         appName => $appName,
-        action => 'addon_kuberdock.cgi?a=createApp',
     };
 
     if($uploadYaml) {
@@ -218,6 +218,8 @@ sub createAppAction() {
                 $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_48.png'), 48, 48);
             }
         }
+
+        $yaml->{kuberdock}->{'template_id'} = $template->{id};
 
         $app->saveYaml('app.yaml', $yaml);
         KuberDock::KCLI::updateTemplate($template->{'id'}, $app->getFilePath('app.yaml'), $appName);
@@ -313,6 +315,8 @@ sub updateAppAction() {
                 $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_48.png'), 48, 48);
             }
         }
+
+        $yaml->{kuberdock}->{'template_id'} = $template->{id};
 
         $app->saveYaml('app.yaml', $yaml);
         my $template = KuberDock::KCLI::updateTemplate($app->{'_templateId'}, $app->getFilePath('app.yaml'), $appName);

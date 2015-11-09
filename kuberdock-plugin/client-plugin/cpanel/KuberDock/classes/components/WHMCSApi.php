@@ -77,6 +77,22 @@ class WHMCSApi extends Base {
     }
 
     /**
+     * @param int $id
+     * @return array
+     * @throws CException
+     */
+    public function getProductById($id)
+    {
+        foreach($this->getProducts() as $row) {
+            if($row['id'] == $id) {
+                return $row;
+            }
+        }
+
+        throw new CException(sprintf('Package with id: %s not founded', $id));
+    }
+
+    /**
      * @return array
      */
     public function getServices()
@@ -90,6 +106,11 @@ class WHMCSApi extends Base {
     public function getService()
     {
         return $this->getServices() ? current($this->_data['userServices']) : array();
+    }
+
+    public function getUserCredit()
+    {
+        return $this->getUserInfo()['credit'];
     }
 
     /**

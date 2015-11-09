@@ -324,6 +324,24 @@ class KuberDock_Api {
     }
 
     /**
+     * @param string $user
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function unDeleteUser($user)
+    {
+        $this->url = $this->serverUrl . '/api/users/undelete/' . $user;
+        $response = $this->call(array(), 'POST');
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    /**
      * @param $user
      * @return KuberDock_ApiResponse
      * @throws Exception

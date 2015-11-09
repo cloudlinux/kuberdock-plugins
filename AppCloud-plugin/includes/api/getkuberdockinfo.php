@@ -73,6 +73,9 @@ try {
             $model = KuberDock_Hosting::model()->loadByParams($e);
             $e['password'] = $model->decryptPassword();
             $e['token'] = $model->getToken();
+            if($addonProduct = KuberDock_Addon_Product::model()->loadById($e['packageid'])) {
+                $e['kuber_product_id'] = $addonProduct->kuber_product_id;
+            }
             return $e;
         }
     });

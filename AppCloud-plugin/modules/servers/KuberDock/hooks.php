@@ -289,7 +289,8 @@ function KuberDock_ClientAreaPage($params)
             $yaml = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_YAML_FIELD);
 
             try {
-                $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $_SERVER['HTTP_REFERER']);
+                $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId,
+                    isset($_SERVER['HTTP_REFERER']) & $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : 'https://136.243.221.249');     // TODO: FIX IT
                 $product = KuberDock_Product::model()->loadById($kdProduct->product_id);
 
                 $predefinedApp = $predefinedApp->loadBySessionId();

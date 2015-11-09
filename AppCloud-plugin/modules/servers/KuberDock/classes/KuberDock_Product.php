@@ -103,13 +103,9 @@ class KuberDock_Product extends CL_Product {
 
         try {
             $response = $api->getUser($service->username);
-
-            if(!($data = $response->getData()) && !$data) {
-                throw new UserNotFoundException('User not found');
-            }
-
+            $api->unDeleteUser($service->username);
             $this->update($serviceId);
-        } catch(UserNotFoundException $e) {
+        } catch(Exception $e) {
             $response = $api->createUser(array(
                 'first_name' => $this->client->firstname,
                 'last_name' => $this->client->lastname,
@@ -120,6 +116,7 @@ class KuberDock_Product extends CL_Product {
                 'email' => $this->client->email,
                 'rolename' => $role,
                 'package' => $productName,
+                'timezone' => 'UTC (+0000)',
             ));
 
             $token = $service->setAttributes(array(
@@ -187,6 +184,8 @@ class KuberDock_Product extends CL_Product {
             //'email' => $this->client->email,
             'rolename' => $role,
             'package' => $productName,
+            'timezone' => $data['timezone'],
+            'deleted' => 0,
         ), $data['id']);
 
         $service->updateById($serviceId, array(

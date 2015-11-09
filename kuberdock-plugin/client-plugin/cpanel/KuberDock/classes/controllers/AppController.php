@@ -59,6 +59,7 @@ class AppController extends KuberDock_Controller {
         $templateId = Tools::getParam('template', '');
         $new = Tools::getParam('new', '');
         $postDescription = Tools::getParam('postDescription', '');
+        $podName = Tools::getParam('podName', '');
 
         try {
             $app = new PredefinedApp($templateId);
@@ -76,8 +77,8 @@ class AppController extends KuberDock_Controller {
 
                     echo json_encode(array(
                         'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
-                        'redirect' => sprintf('%s?c=app&a=installPredefined&template=%s&postDescription=%s',
-                            $_SERVER['SCRIPT_URI'], $templateId, $app->getPostDescription()),
+                        'redirect' => sprintf('%s?c=app&a=installPredefined&template=%s&podName=%s&postDescription=%s',
+                            $_SERVER['SCRIPT_URI'], $templateId, $app->getPodName(), $app->getPostDescription()),
                     ));
                 } catch (CException $e) {
                     echo $e->getJSON();
@@ -96,7 +97,11 @@ class AppController extends KuberDock_Controller {
                     break;
                 case 1:
                     $pod = new Pod();
-                    $pod = $pod->loadByName(current($pods)['name']);
+                    if($podName) {
+                        $pod = $pod->loadByName($podName);
+                    } else {
+                        $pod = $pod->loadByName(current($pods)['name']);
+                    }
 
                     $this->render('pod_details', array(
                         'app' => $app,

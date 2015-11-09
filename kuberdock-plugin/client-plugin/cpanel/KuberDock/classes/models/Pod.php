@@ -410,7 +410,15 @@ class Pod {
         $billingLink = sprintf('<a href="%s" target="_blank">%s</a>', $ownerData['server'], $ownerData['server']);
 
         // Create order with kuberdock product
+        $product = $this->api->getProductById($this->packageId);
         if(!$this->api->getService()) {
+            if($this->api->getUserCredit() < $product['firstDeposit']) {
+                $currency = $this->api->getCurrency();
+                $rest = abs($this->api->getUserCredit() - $product['firstDeposit']);
+                throw new CException(sprintf('You have not enough funds for first deposit.
+                    You need to make payment %.2f %s at %s', $rest, $currency['suffix'], $billingLink));
+            }
+
             $data = $this->api->addOrder($this->api->getUserId(), $this->packageId);
             if($data['invoiceid'] > 0) {
                 $invoice = $this->api->getInvoice($data['invoiceid']);

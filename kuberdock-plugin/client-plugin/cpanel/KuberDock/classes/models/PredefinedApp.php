@@ -262,7 +262,15 @@ class PredefinedApp {
         $this->setVariables($data);
 
         // Create order with kuberdock product
+        $product = $this->api->getProductById($this->packageId);
         if(!$this->api->getService()) {
+            if($this->api->getUserCredit() < $product['firstDeposit']) {
+                $currency = $this->api->getCurrency();
+                $rest = abs($this->api->getUserCredit() - $product['firstDeposit']);
+                throw new CException(sprintf('You have not enough funds for first deposit.
+                    You need to make payment %.2f %s at %s', $rest, $currency['suffix'], $billingLink));
+            }
+
             $data = $this->api->addOrder($this->api->getUserId(), $this->packageId);
             if($data['invoiceid'] > 0) {
                 $invoice = $this->api->getInvoice($data['invoiceid']);
@@ -357,8 +365,11 @@ class PredefinedApp {
      */
     public function getPackageId($fromBilling = false)
     {
+        $defaults = $this->api->getDefaults();
+        $defaultPackageId = isset($defaults['packageId']) ? $defaults['packageId'] : 0;
+
         $packageId = isset($this->template['kuberdock']['package_id']) ?
-            $this->template['kuberdock']['package_id'] : 0;
+            $this->template['kuberdock']['package_id'] : $defaultPackageId;
 
         if(!$fromBilling) {
             return $packageId;
@@ -379,11 +390,14 @@ class PredefinedApp {
      */
     public function isPackageExists($template)
     {
-        $product = $this->api->getProduct();
-        $templateProductId = isset($template['kuberdock']['package_id']) ?
-            $template['kuberdock']['package_id'] : '';
+        if(!isset($template['kuberdock']['package_id'])) {
+            return true;
+        }
 
-        if($product && $templateProductId != $product['kuber_product_id'] ) {
+        $service = $this->api->getService();
+        $templateProductId = $template['kuberdock']['package_id'];
+
+        if($service && $templateProductId != $service['kuber_product_id'] ) {
             return false;
         } else {
             return true;
@@ -445,6 +459,7 @@ class PredefinedApp {
 
         $existingPods = array_filter($pods, function($e) {
             $pod = $this->userCommand->describePod($e['name']);
+            //echo '<pre>';print_r($pod);
             if(isset($pod['template_id']) && $pod['template_id'] == $this->templateId) {
                 return $pod;
             }
@@ -565,6 +580,7 @@ class PredefinedApp {
 
         return $data;
     }
+
 
     /**
      * @return string

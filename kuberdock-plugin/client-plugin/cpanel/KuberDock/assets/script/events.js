@@ -1,9 +1,4 @@
 $(function() {
-    /*$.fn.modal.getOption = function(name) {
-        debugger;
-        return this.options[name] || this[name];
-    };*/
-
     $(document).ready(function() {
         window.setInterval(function() {
             getPodList();
@@ -13,8 +8,6 @@ $(function() {
 
 
     });
-
-    var modalTarget = '';
 
     var displayMessage = function(message) {
         $('.message').html(message);
@@ -76,7 +69,7 @@ $(function() {
             data: { container: el.data('app') },
             dataType: 'json',
             beforeSend: function() {
-                $('.confirm-modal').modal('hide');
+                //$('.confirm-modal').modal('hide');
                 loader.removeClass('hidden');
             },
             complete: function() {
@@ -103,7 +96,7 @@ $(function() {
             data: { container: el.data('app') },
             dataType: 'json',
             beforeSend: function() {
-                $('.confirm-modal').modal('hide');
+                //$('.confirm-modal').modal('hide');
                 loader.removeClass('hidden');
             },
             complete: function() {
@@ -111,8 +104,11 @@ $(function() {
             }
         }).done(function(data) {
             displayMessage(data.message);
-            el.toggleClass('container-stop').addClass('container-start').attr('title', 'Start');
-            el.html('<span class="glyphicon glyphicon-play" aria-hidden="true"></span> Start');
+            el.toggleClass('container-stop').addClass('container-start').attr('title', 'Start')
+                .removeClass('btn-danger').addClass('btn-success');
+            el.find('span:eq(0)').removeClass('glyphicon-stop').addClass('glyphicon-play');
+            el.find('span:eq(1)').text('Start');
+            el.parents('tr').find('td:eq(2)').html('Stopped');
         }).error(function(data) {
             displayMessage(data.responseJSON.message);
         });
@@ -135,7 +131,8 @@ $(function() {
         $($(this).data('target')).find('button.btn-action').text('Delete')
             .data('action', 'delete')
             .data('app', $(this).data('app'));
-        $($(this).data('target')).modal('show');
+        deletePod($(this).data('app'));
+        //$($(this).data('target')).modal('show');
     });
 
     $(document).on('click', '.container-stop', function(e) {
@@ -143,7 +140,8 @@ $(function() {
         $($(this).data('target')).find('button.btn-action').text('Stop')
             .data('action', 'stop')
             .data('app', $(this).data('app'));
-        $($(this).data('target')).modal('show');
+        stopPod($(this).data('app'));
+        //$($(this).data('target')).modal('show');
     });
 
     $(document).on('click', '.container-start', function(e) {
@@ -164,8 +162,11 @@ $(function() {
             }
         }).done(function(data) {
             displayMessage(data.message);
-            el.toggleClass('container-start').addClass('container-stop').attr('title', 'Stop');
-            el.html('<span class="glyphicon glyphicon-stop" aria-hidden="true"></span> Stop');
+            el.toggleClass('container-start').addClass('container-stop').attr('title', 'Stop')
+                .removeClass('btn-success').addClass('btn-danger');
+            el.find('span:eq(0)').removeClass('glyphicon-play').addClass('glyphicon-stop');
+            el.find('span:eq(1)').text('Stop');
+            el.parents('tr').find('td:eq(2)').html('Running');
         }).error(function(data) {
             displayMessage(data.responseJSON.message);
         });
