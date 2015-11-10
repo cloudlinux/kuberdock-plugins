@@ -31,8 +31,8 @@
                         <tr>
                             <th class="col-md-3">Limits</th>
                             <th class="col-md-3">Public IP</th>
-                            <th class="col-md-3">Status</th>
-                            <th class="col-md-3">Actions</th>
+                            <th class="col-md-2">Status</th>
+                            <th class="col-md-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>

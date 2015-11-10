@@ -42,7 +42,7 @@ function install
     /bin/chmod ugo+x $CPANEL_CGI_PATH/addon_kuberdock.cgi
     /bin/chmod -R 600 $CPANEL_CGI_PATH/$PLUGIN_NAME
 
-    if [ -e /etc/kubecli.conf ]; then
+    if [ -e /etc/kubecli.conf && ! -e /root/.kubecli.conf ]; then
         /bin/cp -f /etc/kubecli.conf /root/.kubecli.conf
     fi
 
@@ -68,12 +68,16 @@ function uninstall
             /bin/rm -R $template/$PLUGIN_NAME
         fi
 
-        for plugin in $( /bin/find /usr/share/kuberdock-plugins/client-plugin/cpanel/conf/*.plugin -type f -exec basename {} .plugin \; ); do
-            if [ -e $template/dynamicui/dynamicui_$plugin.conf ]; then
-                /bin/rm $template/dynamicui/dynamicui_$plugin.conf
-            fi
-        done
+        if [ -e $template/dynamicui ]; then
+            for plugin in $( /bin/find $template/dynamicui/*kuberdock*.conf -type f ); do
+                /bin/rm -f $plugin
+            done
+        fi
     done
+
+    if [ -e /root/.kuberdock_pre_apps ]; then
+        /bin/rm -R /root/.kuberdock_pre_apps
+    fi
 
     # admin
     ADMIN_SOURCE_PATH=$SOURCE_PATH/admin-plugin/cpanel

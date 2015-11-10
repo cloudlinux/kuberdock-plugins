@@ -12,8 +12,8 @@
             <?php echo isset($pod->public_ip) && $pod->public_ip ? $pod->public_ip :
                 (isset($pod->labels['kuberdock-public-ip']) ? $pod->labels['kuberdock-public-ip'] : 'none')?>
         </td>
-        <td class="col-md-3"><?php echo $statusText == 'Start' ? 'Stopped' : 'Running' ?></td>
-        <td class="col-md-3">
+        <td class="col-md-2"><?php echo $statusText == 'Start' ? 'Stopped' : 'Running' ?></td>
+        <td class="col-md-4">
             <button type="button" class="btn btn-<?php echo $statusText == 'Start' ? 'success' : 'danger' ?> btn-xs <?php echo $statusClass?>" data-target=".confirm-modal" data-app="<?php echo $pod->name?>" title="<?php echo $statusText?>">
                 <span class="glyphicon glyphicon-<?php echo $statusText == 'Start' ? 'play' : 'stop' ?>" aria-hidden="true"></span>
                 <span><?php echo $statusText?></span>

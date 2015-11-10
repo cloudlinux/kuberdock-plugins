@@ -1,7 +1,7 @@
 Version: 0.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 11%{?dist}.cloudlinux
+Release: 12%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -50,6 +50,13 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Tue Nov 10 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-12
+- cPanel. Exception message fix, install script fixes
+- cPanel. Allow upload image by https url
+- AC-1449 cPanel. Fixed modals in cPanel with anigular
+- AC-1337 cPanel.  Pre-defined applications > No Back button, when creating new applications
+- AC-1413 cPanel. Error message if not enough funds for 1st deposit WHMCS. API kuberdockgetinfo decode server password. KD new user behavior
 
 * Thu Nov 5 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-11
 - AC-1414 cPanel. Add PUBLIC_ADDRESS variable cPanel
