@@ -53,7 +53,7 @@ class KuberDock_Addon extends CL_Component {
                 kube_type TINYINT(1) DEFAULT 0,
                 cpu_limit DECIMAL(10,2),
                 memory_limit INT,
-                hdd_limit DECIMAL(10,2),
+                hdd_limit INT,
                 traffic_limit DECIMAL(10,2),
                 server_id INT,
                 PRIMARY KEY (id),
