@@ -205,10 +205,10 @@ sub createAppAction() {
         if(defined $yaml->{kuberdock}->{'icon'} && $yaml->{kuberdock}->{'icon'}) {
             my $iconPath;
             eval {
-                $iconPath = $app->uploadFileByUrl($yaml->{'kuberdock'}->{'icon'});
+                $iconPath = $app->uploadFileByUrl($yaml->{'kuberdock'}->{'icon'}, ('png'));
             };
             if($@) {
-                KuberDock::Exception::throw('Cannot upload icon by link or link used https connection');
+                KuberDock::Exception::throw($@);
                 $self->render('pre-apps/form.tmpl', $vars);
                 return 0;
             }
@@ -301,10 +301,10 @@ sub updateAppAction() {
         if(defined $yaml->{kuberdock}->{'icon'} && $yaml->{kuberdock}->{'icon'}) {
             my $iconPath;
             eval {
-                $iconPath = $app->uploadFileByUrl($yaml->{'kuberdock'}->{'icon'});
+                $iconPath = $app->uploadFileByUrl($yaml->{'kuberdock'}->{'icon'}, ('png'));
             };
             if($@) {
-                KuberDock::Exception::throw('Cannot upload icon by link or link used https connection');
+                KuberDock::Exception::throw($@);
                 $self->render('pre-apps/form.tmpl', $vars);
                 return 0;
             }

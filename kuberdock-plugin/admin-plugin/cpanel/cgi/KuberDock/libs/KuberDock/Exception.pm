@@ -14,6 +14,7 @@ sub throw {
 
 sub getFormattedMessage {
     my ($message) = @_;
+    $message = substr $message, 0, -abs(index($message, 'at /') - length($message));
     my $template = '<div class="alert alert-danger" role="alert">%s</div>';
 
     return sprintf($template, $message);

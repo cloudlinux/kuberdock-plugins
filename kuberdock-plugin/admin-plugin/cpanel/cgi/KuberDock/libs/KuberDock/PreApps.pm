@@ -8,6 +8,7 @@ use Cpanel::Binaries;
 use File::Basename;
 use File::Fetch;
 use Archive::Tar;
+use LWP::UserAgent;
 
 use KuberDock::JSON;
 use KuberDock::KCLI;
@@ -124,13 +125,24 @@ sub uploadFileByUrl() {
 
     if(@allowed) {
         if(!grep {$_ eq $type} @allowed) {
-            print "Type '${type}' not allowed";
-            return '';
+            die "Type '${type}' not allowed";
         }
     }
 
-    my $ff = File::Fetch->new(uri => $url);
-    my $where = $ff->fetch(to => $self->getAppDir()) or die $ff->error;
+    my $agent = LWP::UserAgent->new(ssl_opts => { verify_hostname => 0 },);
+    my $req = HTTP::Request->new(GET => $url);
+    my $request = $agent->request($req);
+
+    if($request->{_rc} != 200) {
+        die 'Cannot upload image by url ' . $url;
+    }
+
+    my $content = $request->content;
+
+    open FILE, ">", $self->getFilePath($fileName) or die "$!";
+    binmode FILE;
+    print FILE $content;
+    close FILE;
 
     return $self->getFilePath($fileName);
 }
