@@ -2,7 +2,7 @@
 include '/usr/local/cpanel/php/cpanel.php';
 
 // Initialize
-$dirName = dirname($_SERVER['SCRIPT_FILENAME']);
+$dirName = dirname(__FILE__);
 include_once $dirName . '/init.php';
 
 try {
@@ -26,7 +26,7 @@ $res = $cPanel->api1('Branding', 'include', array('stdheader.html'));
 if($res['cpanelresult']['data']['result']) {
     echo $res['cpanelresult']['data']['result'];
 } else {
-    echo $cPanel->header();
+    echo $cPanel->header('KuberDock plugin', 'KD_PLUGIN');
 }
 
 $loader->run();

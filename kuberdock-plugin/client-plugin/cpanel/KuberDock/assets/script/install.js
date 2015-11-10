@@ -97,9 +97,9 @@
         var S = new ISelect(this, options);
         return this;
     };
-}(jQuery));
+}(_$));
 
-$(function() {
+(function($) {
     var calculateTotal = function() {
         var el = $('#kuber_kube_id option:selected, #KUBETYPE option:selected'),
             el = el.length ? el : $('#kube_type'),
@@ -136,27 +136,27 @@ $(function() {
         });
     };
 
-    $('.kube-slider').noUiSlider({
-        start: [ 1 ],
-        range: {
-            min: [ 1 ],
-            max: [ 10 ]
-        },
-        format: wNumb({
-            decimals: 0,
-            thousand: '.'
-        })
-    });
-
-    $('.kube-slider').each(function(k, e) {
-        var kubeField = $(this).parent().find('input[id*="KUBE_COUNT"]');
-        $(this).val(kubeField.val());
-        $(this).Link('lower').to(kubeField);
-        $(this).Link('lower').to($(this).parent().find('.kube-slider-value'));
-    });
-    $('.kube-slider').Link('lower').to($('#kube_count'));
-
     $(document).ready(function() {
+        $('.kube-slider').noUiSlider({
+            start: [ 1 ],
+            range: {
+                min: [ 1 ],
+                max: [ 10 ]
+            },
+            format: wNumb({
+                decimals: 0,
+                thousand: '.'
+            })
+        });
+
+        $('.kube-slider').each(function(k, e) {
+            var kubeField = $(this).parent().find('input[id*="KUBE_COUNT"]');
+            $(this).val(kubeField.val());
+            $(this).Link('lower').to(kubeField);
+            $(this).Link('lower').to($(this).parent().find('.kube-slider-value'));
+        });
+        $('.kube-slider').Link('lower').to($('#kube_count'));
+
         calculateTotal();
         initISelect();
     });
@@ -238,4 +238,4 @@ $(function() {
 
         initISelect();
     });
-});
+}(_$));

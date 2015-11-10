@@ -73,7 +73,9 @@
 </div>
 
 <script>
-    $(document).ready(function() {
-        $("#owl_carousel").owlCarousel({items: 5});
-    });
+    $(function($) {
+        $(document).ready(function() {
+            $("#owl_carousel").owlCarousel({items: 5});
+        });
+    }(_$));
 </script>

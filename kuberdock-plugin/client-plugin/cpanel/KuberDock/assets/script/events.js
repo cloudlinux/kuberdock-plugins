@@ -1,16 +1,17 @@
-$(function() {
+var _$ = $.noConflict();
+
+(function($) {
     $(document).ready(function() {
         window.setInterval(function() {
             getPodList();
         }, 120 * 1000);
 
         $('[data-toggle="tooltip"]').tooltip();
-
-
     });
 
     var displayMessage = function(message) {
         $('.message').html(message);
+
         // Use timeout to close message
         /*setTimeout(function() {
             $('.alert').alert('close');
@@ -69,7 +70,7 @@ $(function() {
             data: { container: el.data('app') },
             dataType: 'json',
             beforeSend: function() {
-                //$('.confirm-modal').modal('hide');
+                $('.confirm-modal').modal('hide');
                 loader.removeClass('hidden');
             },
             complete: function() {
@@ -96,7 +97,7 @@ $(function() {
             data: { container: el.data('app') },
             dataType: 'json',
             beforeSend: function() {
-                //$('.confirm-modal').modal('hide');
+                $('.confirm-modal').modal('hide');
                 loader.removeClass('hidden');
             },
             complete: function() {
@@ -114,6 +115,7 @@ $(function() {
         });
     };
 
+    // Popups
     $(document).on('click', '.confirm-modal .btn-action', function(e) {
         switch($(this).data('action')) {
             case 'delete':
@@ -125,14 +127,12 @@ $(function() {
         }
     });
 
-    // Popups
     $(document).on('click', '.container-delete', function(e) {
         $($(this).data('target')).find('.modal-header').html('Do you want to delete application?');
         $($(this).data('target')).find('button.btn-action').text('Delete')
             .data('action', 'delete')
             .data('app', $(this).data('app'));
-        deletePod($(this).data('app'));
-        //$($(this).data('target')).modal('show');
+        $($(this).data('target')).modal('show');
     });
 
     $(document).on('click', '.container-stop', function(e) {
@@ -140,8 +140,7 @@ $(function() {
         $($(this).data('target')).find('button.btn-action').text('Stop')
             .data('action', 'stop')
             .data('app', $(this).data('app'));
-        stopPod($(this).data('app'));
-        //$($(this).data('target')).modal('show');
+        $($(this).data('target')).modal('show');
     });
 
     $(document).on('click', '.container-start', function(e) {
@@ -240,15 +239,10 @@ $(function() {
         searchImage($(this));
     });
 
-    /*$(document).on('click', 'a.image-more-details', function(e) {
-        $(this).parents('tr:eq(0)').find('.info').removeClass('hidden');
-        $(this).remove();
-    });*/
-
     $(document).on('click', 'a.show-container-details', function(e) {
         e.preventDefault();
         var details = $(this).parents('tr').next('.container-details');
 
         details.is(':hidden') ? details.show(400) : details.hide(400);
     });
-});
+}(_$));

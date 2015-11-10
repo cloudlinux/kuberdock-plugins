@@ -108,6 +108,9 @@ class WHMCSApi extends Base {
         return $this->getServices() ? current($this->_data['userServices']) : array();
     }
 
+    /**
+     * @return float
+     */
     public function getUserCredit()
     {
         return $this->getUserInfo()['credit'];
