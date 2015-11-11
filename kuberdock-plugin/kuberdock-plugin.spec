@@ -1,7 +1,7 @@
 Version: 0.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 12%{?dist}.cloudlinux
+Release: 13%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -50,6 +50,9 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Wed Nov 11 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-13
+- cPanel. Exception & install script fix
 
 * Tue Nov 10 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-12
 - cPanel. Exception message fix, install script fixes

@@ -17,7 +17,7 @@ sub getFormattedMessage {
     my $debug = index($message, 'at /');
 
     if($debug > 0) {
-        $message = substr $message, 0, - abs( - length($message));
+        $message = substr $message, 0, - abs($debug - length($message));
     }
     my $template = '<div class="alert alert-danger" role="alert">%s</div>';
 
