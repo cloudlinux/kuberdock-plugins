@@ -1,13 +1,13 @@
 <div class="container-fluid">
-    <div class="row">
-        <h3>KuberDock kube types</h3>
-
+    <div class="row offset-top">
         <p class="text-right">
             <a href="<?php echo \base\CL_Base::model()->baseUrl?>&a=add">
                 <button type="button" class="btn btn-default btn-lg"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Add kube type</button>
             </a>
         </p>
+    </div>
 
+    <div class="row">
         <table class="table table-bordered">
             <tr class="active">
                 <th>Kube type name</th>

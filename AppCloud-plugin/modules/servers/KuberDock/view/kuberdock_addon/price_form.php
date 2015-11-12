@@ -1,16 +1,16 @@
 <form class="form-horizontal" method="post" id="kube_price_form">
     <table class="table table-bordered">
         <tr class="active">
-            <th>KuberDock package</th>
-            <th>Kube type name</th>
-            <th>Price</th>
-            <th>Price type</th>
+            <th class="col-md-3">KuberDock package</th>
+            <th class="col-md-3">Kube type name</th>
+            <th class="col-md-2">Price</th>
+            <th class="col-md-2">Price type</th>
         </tr>
 
         <?php if($priceKubes):?>
         <tr>
             <td rowspan="<?php echo (count($priceKubes) + 1)?>">
-                <select type="text" name="product_id" class="form-control" id="product_id">
+                <select type="text" name="product_id" class="form-control" id="product_id" style="width: auto;">
                     <option value="">Select package</option>
                     <?php foreach($products as $product):?>
                         <option value="<?php echo $product['id']?>"<?php echo $product['id'] == $productId ? ' selected' : ''?>>
@@ -26,7 +26,7 @@
                 <label class="control-label"><?php echo $kube['kube_name']?></label>
                 <input type="hidden" name="id[]" value="<?php echo $kube['id']?>">
             </td>
-            <td width="200px">
+            <td>
                 <input type="text" name="kube_price[]" class="form-control" value="<?php echo $kube['kube_price']?>">
             </td>
             <td>per <?php echo $paymentType?></td>
@@ -45,7 +45,7 @@
                 </select>
             </td>
             <td></td>
-            <td width="200px"></td>
+            <td></td>
         </tr>
         <?php endif;?>
     </table>
