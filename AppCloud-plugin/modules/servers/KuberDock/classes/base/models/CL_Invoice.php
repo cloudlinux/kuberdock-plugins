@@ -30,7 +30,7 @@ class CL_Invoice extends CL_Model {
     public function relations()
     {
         return array(
-            'invoiceitems' => array('CL_InvoiceItems', 'invoiceid', array()),
+            'invoiceitems' => array('\base\models\CL_InvoiceItems', 'invoiceid', array()),
         );
     }
 
