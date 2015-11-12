@@ -2,7 +2,7 @@
     <div class="row">
         <h3 class="section">Adding kube type</h3>
 
-        <div class="col-md-4">
+        <div class="col-md-4 col-sm-5">
             <?php if($this->controller->error):?>
                 <div class="alert alert-danger" role="alert"><?php echo $this->controller->error?></div>
             <?php endif; ?>
