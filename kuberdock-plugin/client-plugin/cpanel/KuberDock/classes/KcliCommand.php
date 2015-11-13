@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Class KcliCommand
+ */
 class KcliCommand extends Command {
     /**
      * Global config file path
@@ -135,7 +138,7 @@ class KcliCommand extends Command {
         $kubes = $this->execute(array(
             $this->returnType,
             'kuberdock',
-            'kubes',
+            'kube-types',
         ));
 
         foreach($kubes as $k => $row) {
@@ -514,6 +517,14 @@ class KcliCommand extends Command {
         fclose($fp);
 
         return $data;
+    }
+
+    /**
+     * @return bool
+     */
+    static public function isLocalConfigExist()
+    {
+        return file_exists(getenv('HOME') .DS . '.kubecli.conf');
     }
 
     /**

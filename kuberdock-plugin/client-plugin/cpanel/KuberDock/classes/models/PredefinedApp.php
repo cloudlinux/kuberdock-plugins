@@ -136,6 +136,11 @@ class PredefinedApp {
         list($username, $password, $token) = $this->api->getAdminAuthData();
         $this->adminCommand = new KcliCommand($username, $password, $token);
 
+        // Create local conf without admin token
+        if(!KcliCommand::isLocalConfigExist()) {
+            $this->hostingCommand->getImage('nginx');
+        }
+
         if($this->templateId) {
             $this->getTemplate($this->templateId);
         }
