@@ -85,7 +85,7 @@ sub indexAction() {
         $self->render('header.tmpl');
         return 0;
     }
-    my $defaults = $resellers->loadData()->{defaults} || {};
+    my $defaults = $resellers->loadDefaults();
 
     my $vars = {
         resellers => [$resellers->get()],
@@ -370,7 +370,6 @@ sub getPackageKubesAction {
 sub setDefaultsAction {
     my ($self) = @_;
     my $reseller = KuberDock::Resellers->new();
-    my $data = $reseller->loadData();
     my $api = KuberDock::API->new;
     my $packageId = $self->{_cgi}->param('packageId');
     my $kubeType = $self->{_cgi}->param('kubeType');
@@ -383,7 +382,7 @@ sub setDefaultsAction {
         exit;
     }
 
-    $data->{defaults} = {
+    my $data->{defaults} = {
         packageId => $packageId,
         kubeType => $kubeType,
     };

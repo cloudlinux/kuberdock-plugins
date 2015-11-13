@@ -21,7 +21,7 @@ class WHMCSApi extends Base {
     /**
      *
      */
-    const OWNER_DATA_PATH = '/var/cpanel/apps/kuberdock_whmcs.json';
+    const CONFIG_PATH = '/var/cpanel/apps/kuberdock_whmcs.json';
 
     /**
      * @var array
@@ -286,15 +286,8 @@ class WHMCSApi extends Base {
      * @throws CException
      */
     public function getOwnerData() {
-        $currentUser = $_ENV['USER'];
         $owner = 'ALL';
-
-        if(!file_exists(self::OWNER_DATA_PATH)) {
-            throw new CException('WHMCS settings file not exists. Please fill in WHMCS settings.');
-        }
-
-        $ownerData = file_get_contents(self::OWNER_DATA_PATH);
-        $ownerData = $ownerData ? json_decode($ownerData, true) : array();
+        $ownerData = $this->getConfigData();
 
         if(isset($ownerData[$owner])) {
             $ownerData[$owner]['owner'] = $owner;
@@ -309,18 +302,34 @@ class WHMCSApi extends Base {
      * @throws CException
      */
     public function getDefaults() {
-        if(!file_exists(self::OWNER_DATA_PATH)) {
-            throw new CException('Defaults file not exists. Please fill in defaults via admin area.');
-        }
-
-        $ownerData = file_get_contents(self::OWNER_DATA_PATH);
-        $ownerData = $ownerData ? json_decode($ownerData, true) : array();
+        $ownerData = $this->getConfigData();
 
         if(isset($ownerData['defaults'])) {
             return $ownerData['defaults'];
         } else {
-            throw new CException('Defaults file broken. Please fill in defaults via admin area.');
+            throw new CException('Config file is broken or empty. Please fill in defaults via administrator area.');
         }
+    }
+
+    /**
+     * @return array
+     * @throws CException
+     */
+    public function getConfigData()
+    {
+        $data = Base::model()->panel->uapi('KuberDock', 'getConfigData', array());
+
+        if(!isset($data['cpanelresult']['result'])) {
+            throw new CException('Undefined response from Cpanel/API/KuberDock');
+        }
+
+        $result = $data['cpanelresult']['result'];
+
+        if($result['errors']) {
+            throw new CException(implode("\n", $result['errors']));
+        }
+
+        return json_decode($result['data'], true);
     }
 
     /**
