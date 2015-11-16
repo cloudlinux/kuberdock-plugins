@@ -58,6 +58,11 @@ function KuberDock_ProductEdit($params)
             $product->setConfigOptionByIndex($i, $value);
             $i++;
         }
+
+        if(!$product->getKubes()) {
+            $product->hidden = 1;
+        }
+
         $product->save();
 
         try {

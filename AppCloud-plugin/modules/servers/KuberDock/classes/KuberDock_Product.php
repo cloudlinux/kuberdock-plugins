@@ -502,6 +502,19 @@ class KuberDock_Product extends CL_Product {
     }
 
     /**
+     *
+     */
+    public function hide()
+    {
+        if($this->getKubes()) {
+            $this->hidden = 0;
+        } else {
+            $this->hidden = 1;
+        }
+        $this->save();
+    }
+
+    /**
      * @return array
      */
     private function getPaymentType()

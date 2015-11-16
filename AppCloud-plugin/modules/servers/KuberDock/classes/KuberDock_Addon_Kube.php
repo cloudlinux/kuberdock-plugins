@@ -246,6 +246,10 @@ class KuberDock_Addon_Kube extends CL_Model {
      */
     public function afterSave()
     {
+        if($this->product_id) {
+            $product = KuberDock_Product::model()->loadById($this->product_id);
+            $product->hide();
+        }
     }
 
     /**
@@ -269,6 +273,10 @@ class KuberDock_Addon_Kube extends CL_Model {
      */
     public function afterDelete()
     {
+        if($this->product_id) {
+            $product = KuberDock_Product::model()->loadById($this->product_id);
+            $product->hide();
+        }
     }
 
     /**
