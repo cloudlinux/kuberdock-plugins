@@ -13,7 +13,11 @@ class PredefinedApp {
     /**
      *
      */
-    const VARIABLE_REGEXP = '/\%(?<variable>\w+)\%/';
+    const VARIABLE_REGEXP = '/\$(?<variable>\w+)\$/';
+    /**
+     *
+     */
+    const SPECIAL_VARIABLE_REGEXP = '/\%(?<variable>\w+)\%/';
 
     /**
      * @var int
@@ -609,12 +613,13 @@ class PredefinedApp {
     /**
      * @param string $string
      * @param array $data
+     * @param string $pattern
      * @return mixed
      */
-    private function replaceTemplateVariable($string, $data)
+    private function replaceTemplateVariable($string, $data, $pattern = self::VARIABLE_REGEXP)
     {
         $variables = $this->variables;
-        return preg_replace_callback(self::VARIABLE_REGEXP, function($matches) use ($variables, $data) {
+        return preg_replace_callback($pattern, function($matches) use ($variables, $data) {
             if(isset($variables[$matches['variable']]) && isset($data[$matches['variable']])) {
                 return $data[$matches['variable']];
             } else {
@@ -656,8 +661,8 @@ class PredefinedApp {
 
         array_walk_recursive($this->template, function(&$e) use ($variables) {
             // bug with returned type of value (preg_replace_callback)
-            if(preg_match(self::VARIABLE_REGEXP, $e)) {
-                $e = $this->replaceTemplateVariable($e, $variables);
+            if(preg_match(self::SPECIAL_VARIABLE_REGEXP, $e)) {
+                $e = $this->replaceTemplateVariable($e, $variables, self::SPECIAL_VARIABLE_REGEXP);
             }
         });
     }
