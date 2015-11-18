@@ -131,12 +131,19 @@ function KuberDock_ShoppingCartValidateCheckout($params)
 {
     $errors = array();
     if(isset($_SESSION['cart']) && $params['userid']) {
-        $user = KuberDock_User::model()->getClientDetails($params['userid']);
         foreach($_SESSION['cart']['products'] as $product) {
             $product = KuberDock_Product::model()->loadById($product['pid']);
+            $server = $product->getServer();
+            $userProducts = KuberDock_Product::model()->getByUser($params['userid'], $server->id);
+
+            if(!$product->isKuberProduct()) continue;
+
+            if($userProducts) {
+                $errors[] = 'You can not buy more than 1 KuberDock product.';
+            }
 
             if($product->getConfigOption('enableTrial') && KuberDock_Addon_Trial::model()->loadById($params['userid'])) {
-                $errors[] = 'Your already have trial KuberDock product';
+                $errors[] = 'You are already have trial KuberDock product.';
             }
         }
     }
@@ -302,34 +309,34 @@ function KuberDock_ClientAreaPage($params)
 
         // Buy predefined app by link
         $predefinedApp = KuberDock_Addon_PredefinedApp::model();
-        if(isset($_GET[$predefinedApp::KUBERDOCK_PRODUCT_ID_FIELD])
-            && isset($_GET[$predefinedApp::KUBERDOCK_YAML_FIELD])) {
+        if(isset($_GET[$predefinedApp::KUBERDOCK_YAML_FIELD])) {
             $kdProductId = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_PRODUCT_ID_FIELD);
             $yaml = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_YAML_FIELD);
+            $parsedYaml = Spyc::YAMLLoadString($yaml);
 
-            try {
-                $referer = isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] ?
-                    $_SERVER['HTTP_REFERER'] : 'https://136.243.221.249';       // TODO: FIX IT
-                $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $referer);
-                $product = KuberDock_Product::model()->loadById($kdProduct->product_id);
-
-                $predefinedApp = $predefinedApp->loadBySessionId();
-                if(!$predefinedApp) {
-                    $predefinedApp = new KuberDock_Addon_PredefinedApp();
-                }
-
-                $predefinedApp->setAttributes(array(
-                    'session_id' => session_id(),
-                    'kuber_product_id' => $kdProductId,
-                    'product_id' => $product->id,
-                    'data' => $yaml,
-                ));
-                $predefinedApp->save();
-
-                $product->addToCart();
-            } catch(Exception $e) {
-                // product not founded
+            if(isset($parsedYaml['kuberdock']['package_id'])) {
+                $kdProductId = $parsedYaml['kuberdock']['package_id'];
             }
+
+            $referer = isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] ?
+                $_SERVER['HTTP_REFERER'] : 'https://136.243.221.249';       // TODO: FIX IT
+            $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $referer);
+            $product = KuberDock_Product::model()->loadById($kdProduct->product_id);
+
+            $predefinedApp = $predefinedApp->loadBySessionId();
+            if(!$predefinedApp) {
+                $predefinedApp = new KuberDock_Addon_PredefinedApp();
+            }
+
+            $predefinedApp->setAttributes(array(
+                'session_id' => session_id(),
+                'kuber_product_id' => $kdProductId,
+                'product_id' => $product->id,
+                'data' => $yaml,
+            ));
+
+            $predefinedApp->save();
+            $product->addToCart();
 
             header('Location: /cart.php?a=view');
         }

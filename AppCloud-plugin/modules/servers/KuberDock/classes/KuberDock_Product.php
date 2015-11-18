@@ -8,6 +8,8 @@ use base\CL_View;
 use base\CL_Query;
 use base\models\CL_Currency;
 use base\models\CL_Product;
+use base\models\CL_Hosting;
+use base\models\CL_Client;
 use base\models\CL_MailTemplate;
 use components\KuberDock_Units;
 
@@ -247,25 +249,26 @@ class KuberDock_Product extends CL_Product {
     }
 
     /**
-     * Get active user products
+     * Get user products
      *
-     * @param int|null $userId
+     * @param int $userId
+     * @param mixed $serverId
      * @return array
      */
-    public function getUserActive($userId = null)
+    public function getByUser($userId, $serverId = null)
     {
         $db = CL_Query::model();
-        $params = array('Active');
+        $params = array(KUBERDOCK_MODULE_NAME, $userId);
 
         $sql = "SELECT product.*, client.id AS client_id, hosting.id AS hosting_id
             FROM `".$this->tableName."` product
                 LEFT JOIN `".CL_Hosting::model()->tableName."` hosting ON hosting.packageid=product.id
                 LEFT JOIN `".CL_Client::model()->tableName."` client ON hosting.userid=client.id
-            WHERE client.status = ?";
+            WHERE product.`servertype` = ? AND client.id = ?";
 
-        if($userId) {
-            $sql .= ' AND client.id = ?';
-            array_push($params, array($userId));
+        if($serverId) {
+            $params[] = $serverId;
+            $sql .= ' AND hosting.server = ?';
         }
 
         $products = $db->query($sql, $params)->getRows();

@@ -245,6 +245,7 @@ class WHMCSApi extends Base {
      * @param $data
      * @param $action
      * @return mixed
+     * @throws CException
      */
     public function request($data, $action) {
         $ownerData = $this->getOwnerData();
@@ -272,10 +273,13 @@ class WHMCSApi extends Base {
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         $response = curl_exec($ch);
+        $status = curl_getinfo($ch);
 
-        if (curl_error($ch)) die('Connection Error: '.curl_errno($ch).' - '.curl_error($ch));
+        if($status['http_code'] != HTTPStatusCode::HTTP_OK) {
+            throw new CException(sprintf('%s: %s', HTTPStatusCode::getMessageByCode($status['http_code']), $url));
+        }
+
         curl_close($ch);
-
         $arr = json_decode($response, true);
 
         return $arr ? $arr : $response;

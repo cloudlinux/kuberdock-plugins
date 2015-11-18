@@ -7,6 +7,7 @@
 namespace api;
 
 use api\KuberDock_ApiResponse;
+use api\KuberDock_ApiStatusCode;
 use exceptions\CException;
 use Exception;
 
@@ -222,10 +223,12 @@ class KuberDock_Api {
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
         $response = curl_exec($ch);
+        $status = curl_getinfo($ch);
 
-        if($response === false) {
+        if($status['http_code'] != KuberDock_ApiStatusCode::HTTP_OK) {
             $err = ucwords(curl_error($ch));
-            $err = $err ? $err : "Unable connect to: {$this->url}";
+            $statusMessage = KuberDock_ApiStatusCode::getMessageByCode($status['http_code']);
+            $err = $err ? $err : sprintf('%s: %s', $statusMessage, $this->url);
             curl_close($ch);
 
             $this->logError($err);
@@ -464,7 +467,7 @@ class KuberDock_Api {
     {
         $kubes = $this->getKubes()->getData();
         foreach($kubes as $row) {
-            if($row['name'] == $name) {
+            if(strtolower($row['name']) == strtolower($name)) {
                 return $row;
             }
         }

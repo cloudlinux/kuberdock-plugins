@@ -77,9 +77,12 @@ class KuberDock_Addon_Kube extends CL_Model {
                 throw new CException(sprintf('Kube "%s" already exists', $this->kube_name));
             }
 
-            if($kube) {
-                $this->kuber_kube_id = $kube['id'];
+            if(!$kube) {
+                throw new CException(sprintf('Kube "%s" not founded in KuberDock', $this->kube_name));
             }
+
+            $this->kube_name = $kube['name'];
+            $this->kuber_kube_id = $kube['id'];
         }
 
         return true;
