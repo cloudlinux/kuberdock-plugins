@@ -46,10 +46,17 @@ class WHMCSApi extends Base {
 
     /**
      * @return int
+     * @throws CException
      */
     public function getUserId()
     {
-        return $this->getUserInfo()['id'];
+        $userInfo = $this->getUserInfo();
+
+        if(!isset($userInfo['id'])) {
+            throw new CException('Cannot get billing user id');
+        }
+
+        return $userInfo['id'];
     }
 
     /**
@@ -110,10 +117,17 @@ class WHMCSApi extends Base {
 
     /**
      * @return float
+     * @throws CException
      */
     public function getUserCredit()
     {
-        return $this->getUserInfo()['credit'];
+        $userInfo = $this->getUserInfo();
+
+        if(!isset($userInfo['credit'])) {
+            throw new CException('Cannot get billing user balance');
+        }
+
+        return $userInfo['credit'];
     }
 
     /**
@@ -143,7 +157,7 @@ class WHMCSApi extends Base {
      */
     public function getKuberDockInfo()
     {
-        $conf = KcliCommand::getConfFile();
+        $conf = KcliCommand::getConfig();
 
         $data = $this->request(array(
             'user' => $_ENV['USER'],
@@ -165,6 +179,7 @@ class WHMCSApi extends Base {
     public function setKuberDockInfo()
     {
         $this->_data = $this->getKuberDockInfo();
+
         return $this;
     }
 
@@ -276,7 +291,14 @@ class WHMCSApi extends Base {
         $status = curl_getinfo($ch);
 
         if($status['http_code'] != HTTPStatusCode::HTTP_OK) {
-            throw new CException(sprintf('%s: %s', HTTPStatusCode::getMessageByCode($status['http_code']), $url));
+            switch($status['http_code']) {
+                case HTTPStatusCode::HTTP_FORBIDDEN:
+                    throw new CException('Invalid credential for billing server');
+                case HTTPStatusCode::HTTP_NOT_FOUND:
+                    throw new CException('Invalid billing server URL\IP');
+                default:
+                    throw new CException(sprintf('%s: %s', HTTPStatusCode::getMessageByCode($status['http_code']), $url));
+            }
         }
 
         curl_close($ch);
@@ -322,18 +344,28 @@ class WHMCSApi extends Base {
     public function getConfigData()
     {
         $data = Base::model()->panel->uapi('KuberDock', 'getConfigData', array());
+        return $this->parseModuleResponse($data);
+    }
 
-        if(!isset($data['cpanelresult']['result'])) {
-            throw new CException('Undefined response from Cpanel/API/KuberDock');
-        }
+    /**
+     * @return array
+     * @throws CException
+     */
+    public function getGlobalTemplates()
+    {
+        $data = Base::model()->panel->uapi('KuberDock', 'getGlobalTemplates', array());
+        return $this->parseModuleResponse($data);
+    }
 
-        $result = $data['cpanelresult']['result'];
-
-        if($result['errors']) {
-            throw new CException(implode("\n", $result['errors']));
-        }
-
-        return json_decode($result['data'], true);
+    /**
+     * @param int id
+     * @return mixed
+     * @throws CException
+     */
+    public function getGlobalTemplate($id)
+    {
+        $data = Base::model()->panel->uapi('KuberDock', 'getGlobalTemplate', array('id' => $id));
+        return $this->parseModuleResponse($data);
     }
 
     /**
@@ -372,23 +404,50 @@ class WHMCSApi extends Base {
     /**
      * @return array
      */
-    public function getAdminAuthData()
-    {
-        $product = $this->getProduct();
-
-        return array(
-            $product['server']['username'],
-            $product['server']['password'],
-            $product['server']['accesshash'],
-        );
-    }
-
-    /**
-     * @return array
-     */
     public function getHostingAuthData()
     {
         return array(self::HOSTING_PANEL_LOGIN, self::HOSTING_PANEL_PASSWORD, '');
+    }
+
+    /**
+     * @param $response
+     * @return mixed
+     * @throws CException
+     */
+    private function parseModuleResponse($response)
+    {
+
+        if(!isset($response['cpanelresult']['result'])) {
+            throw new CException('Undefined response from Cpanel/API/KuberDock');
+        }
+
+        $result = $response['cpanelresult']['result'];
+
+        if($result['errors']) {
+            throw new CException(implode("\n", $result['errors']));
+        }
+
+        $json = json_decode($result['data'], true);
+        if(isset($json['status']) && $json['status'] == 'ERROR') {
+            throw new CException(sprintf('Cpanel/API/KuberDock:%s error: %s', $response['cpanelresult']['func'], $json['message']));
+        }
+
+        return $json;
+    }
+
+    /**
+     * @return KcliCommand
+     */
+    public function getCommand()
+    {
+        list($username, $password, $token) = $this->getAuthData();
+        $command = new KcliCommand($username, $password, $token);
+
+        if($token) {
+            $command->setConfig();
+        }
+
+        return $command;
     }
 
     /**

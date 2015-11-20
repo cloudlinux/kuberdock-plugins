@@ -7,11 +7,15 @@ class KcliCommand extends Command {
     /**
      * Global config file path
      */
-    const CONF_FILE = '/etc/kubecli.conf';
+    const GLOBAL_CONF_FILE = '/etc/kubecli.conf';
     /**
      * Command path
      */
     const COMMAND_PATH = '/usr/bin/kcli';
+    /**
+     *
+     */
+    const DEFAULT_USER = 'hostingPanel';
 
     /**
      * @var string
@@ -42,7 +46,8 @@ class KcliCommand extends Command {
         $this->password = $password;
         $this->token = $token;
         $this->returnType = '--'.self::DATA_TYPE_JSON;
-        $this->confPath = '';
+
+        $this->confPath = $this->getUserConfigPath();
     }
 
     /**
@@ -380,7 +385,7 @@ class KcliCommand extends Command {
      */
     public function getRegistryUrl()
     {
-        $conf = self::getConfFile();
+        $conf = self::getConfig();
 
         return strpos($conf['registry'], 'http') !== false ?
             $conf['registry'] : sprintf('http://%s', $conf['registry']);
@@ -474,34 +479,26 @@ class KcliCommand extends Command {
     /**
      * @param string $path
      * @return $this
+     * @throws CException
      */
     public function setConfPath($path)
     {
-        if(file_exists($path)) {
-            $this->confPath = $path;
+        if(!file_exists($path)) {
+            throw new CException(sprintf('Config file %s not exist', $path));
         }
+
+        $this->confPath = $path;
 
         return $this;
     }
 
     /**
-     * Get config file data. user if exists or global
-     * @param bool $global
+     * Get user config file data
      * @return array
      */
-    static public function getConfFile($global = false)
+    static public function getConfig()
     {
-        $userConf = getenv('HOME') .DS . '.kubecli.conf';
-
-        if($global) {
-            $userConf = self::CONF_FILE;
-        }
-
-        if(file_exists($userConf)) {
-            $path = $userConf;
-        } else {
-            $path = self::CONF_FILE;
-        }
+        $path = self::getUserConfigPath();
 
         $data = array();
         $fp = fopen($path, 'r');
@@ -519,12 +516,67 @@ class KcliCommand extends Command {
         return $data;
     }
 
+    public function setConfig()
+    {
+        $config = self::getConfig();
+
+        if(isset($config['token']) && $this->token == $config['token']) {
+            return;
+        }
+
+        $newConfig = array(
+            'global' => array(
+                'url' => $config['url'],
+            ),
+            'defaults' => array(
+                'registry' => $config['registry'],
+            ),
+        );
+
+        if($this->token) {
+            $newConfig['defaults']['token'] = $this->token;
+        } elseif(isset($config['user']) && isset($config['password'])) {
+            $newConfig['defaults']['user'] = $config['user'];
+            $newConfig['defaults']['password'] = $config['password'];
+        }
+
+        $data = array();
+        array_walk($newConfig, function($row, $section) use (&$data) {
+            if(is_array($row)) {
+                $data[] = sprintf('[%s]', $section);
+                array_walk($row, function($value, $attr) use (&$data) {
+                    $data[] = sprintf('%s = %s', $attr, $value);
+                });
+            }
+        });
+
+        file_put_contents(self::getUserConfigPath(), implode("\n", $data));
+    }
+
     /**
      * @return bool
      */
-    static public function isLocalConfigExist()
+    static public function isUserConfigExist()
     {
-        return file_exists(getenv('HOME') .DS . '.kubecli.conf');
+        return file_exists(self::getUserConfigPath());
+    }
+
+    /**
+     * @return string
+     * @throws CException
+     */
+    static private function  getUserConfigPath()
+    {
+        $path = getenv('HOME') .DS . '.kubecli.conf';
+
+        if(!file_exists($path)) {
+            if(!file_exists(self::GLOBAL_CONF_FILE)) {
+                throw new CException('Global config file not founded');
+            }
+            copy(self::GLOBAL_CONF_FILE, $path);
+        }
+
+        return $path;
     }
 
     /**

@@ -10,6 +10,7 @@ use base\models\CL_Currency;
 use base\models\CL_Invoice;
 use base\models\CL_User;
 use components\KuberDock_Units;
+use exceptions\CException;
 
 include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
 
@@ -31,6 +32,7 @@ function KuberDock_DailyCronJob() {
             $service->calculate();
         } catch(Exception $e) {
             echo 'ERROR: serviceId-'. $service->id . ' '. $e->getMessage() . "\n";
+            CException::log($e);
         }
     }
 
@@ -77,7 +79,7 @@ function KuberDock_ProductEdit($params)
                 }
             }
         } catch(Exception $e) {
-            echo $e->getMessage();
+            CException::log($e);
         }
     }
 }
@@ -119,7 +121,7 @@ function KuberDock_ServiceDelete($params)
             ));
         }
     } catch(Exception $e) {
-        echo $e->getMessage();
+        CException::log($e);
     }
 }
 add_hook('ServiceDelete', 1, 'KuberDock_ServiceDelete');
@@ -314,29 +316,33 @@ function KuberDock_ClientAreaPage($params)
             $yaml = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_YAML_FIELD);
             $parsedYaml = Spyc::YAMLLoadString($yaml);
 
-            if(isset($parsedYaml['kuberdock']['package_id'])) {
-                $kdProductId = $parsedYaml['kuberdock']['package_id'];
+            try {
+                if(isset($parsedYaml['kuberdock']['package_id'])) {
+                    $kdProductId = $parsedYaml['kuberdock']['package_id'];
+                }
+                $referer = isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] ?
+                    $_SERVER['HTTP_REFERER'] : 'https://136.243.221.249';       // TODO: FIX IT
+                $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $referer);
+                $product = KuberDock_Product::model()->loadById($kdProduct->product_id);
+
+                $predefinedApp = $predefinedApp->loadBySessionId();
+                if(!$predefinedApp) {
+                    $predefinedApp = new KuberDock_Addon_PredefinedApp();
+                }
+
+                $predefinedApp->setAttributes(array(
+                    'session_id' => session_id(),
+                    'kuber_product_id' => $kdProductId,
+                    'product_id' => $product->id,
+                    'data' => $yaml,
+                ));
+
+                $predefinedApp->save();
+                $product->addToCart();
+            } catch(Exception $e) {
+                // product not founded
+                CException::log($e);
             }
-
-            $referer = isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] ?
-                $_SERVER['HTTP_REFERER'] : 'https://136.243.221.249';       // TODO: FIX IT
-            $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $referer);
-            $product = KuberDock_Product::model()->loadById($kdProduct->product_id);
-
-            $predefinedApp = $predefinedApp->loadBySessionId();
-            if(!$predefinedApp) {
-                $predefinedApp = new KuberDock_Addon_PredefinedApp();
-            }
-
-            $predefinedApp->setAttributes(array(
-                'session_id' => session_id(),
-                'kuber_product_id' => $kdProductId,
-                'product_id' => $product->id,
-                'data' => $yaml,
-            ));
-
-            $predefinedApp->save();
-            $product->addToCart();
 
             header('Location: /cart.php?a=view');
         }
@@ -428,7 +434,7 @@ function KuberDock_ClientAreaPage($params)
                     ));
                     exit;
                 } catch(Exception $e) {
-
+                    CException::log($e);
                 }
             }
         }
@@ -506,7 +512,7 @@ function KuberDock_InvoicePaid($params)
             $model->addCredit($invoice->userid, $invoice->subtotal, 'Adding funds for setup fee '.$invoice->id);
         }
     } catch(Exception $e) {
-        echo $e->getMessage();
+        CException::log($e);
     }
 }
 add_hook('InvoicePaid', 1, 'KuberDock_InvoicePaid');
@@ -535,7 +541,7 @@ function KuberDock_InvoiceCancelled($params)
             $model->addCredit($invoice->userid, -$invoice->subtotal, 'Remove funds for setup fee '.$invoice->id);
         }
     } catch(Exception $e) {
-        echo $e->getMessage();
+        CException::log($e);
     }
 }
 add_hook('InvoiceCancelled', 1, 'KuberDock_InvoiceCancelled');
@@ -559,7 +565,7 @@ function KuberDock_InvoiceUnpaid($params)
             $model->addCredit($invoice->userid, -$invoice->subtotal, 'Remove funds for setup fee '.$invoice->id);
         }
     } catch(Exception $e) {
-        echo $e->getMessage();
+        CException::log($e);
     }
 }
 add_hook('InvoiceUnpaid', 1, 'KuberDock_InvoiceUnpaid');
@@ -590,7 +596,6 @@ function KuberDock_AdminProductConfigFieldsSave($pid)
  */
 function KuberDock_PreModuleChangePackage($params)
 {
-    print 11;
     //
 }
 add_hook('PreModuleChangePackage', 1, 'KuberDock_PreModuleChangePackage');
@@ -619,6 +624,7 @@ function KuberDock_ServerAdd($params)
             $server->accesshash = $server->getApi()->getToken();
             $server->save();
         } catch(Exception $e) {
+            CException::log($e);
         }
     }
 }
@@ -637,6 +643,7 @@ function KuberDock_ServerEdit($params)
             $server->accesshash = $server->getApi()->getToken();
             $server->save();
         } catch(Exception $e) {
+            CException::log($e);
         }
     }
 }
@@ -656,7 +663,7 @@ function KuberDock_ClientDelete($params)
         try {
             $service->getAdminApi()->deleteUser($service->username);
         } catch(Exception $e) {
-            return false;
+            CException::log($e);
         }
     }
 }

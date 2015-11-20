@@ -7,6 +7,7 @@
 namespace base\db_drivers;
 
 use \base\interfaces\CL_iDBDriver;
+use \exceptions\CException;
 
 class CL_MySQL implements CL_iDBDriver {
     /**

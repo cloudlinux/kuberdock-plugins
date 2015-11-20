@@ -81,9 +81,7 @@ class Pod {
     public function init()
     {
         $this->api = WHMCSApi::model();
-
-        list($username, $password, $token) = $this->api->getAuthData();
-        $this->command = new KcliCommand($username, $password, $token);
+        $this->command = $this->api->getCommand();
     }
 
     /**
@@ -292,13 +290,11 @@ class Pod {
     {
         $data = array();
 
-        try {
-            $pods = $this->command->getPods();
-        } catch(CException $e) {
-            // TODO: KCLI !!!!
-            return array();
+        if(!$this->api->getService()) {
+            return $data;
         }
 
+        $pods = $this->command->getPods();
         foreach($pods as $pod) {
             $pod = $this->loadByName($pod['name']);
             $pod = clone($pod);
@@ -430,8 +426,7 @@ class Pod {
             $this->api->acceptOrder($data['orderid']);
 
             $this->api = $this->api->setKuberDockInfo();
-            list($username, $password, $token) = $this->api->getAuthData();
-            $this->command = new KcliCommand($username, $password, $token);
+            $this->command = $this->api->getCommand();
         }
 
         return $this;

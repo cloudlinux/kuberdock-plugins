@@ -156,7 +156,7 @@ sub createAppAction() {
     };
 
     if($uploadYaml) {
-        if($app->uploadFile('yaml_file', 'app.yaml', ('yaml'))) {
+        if($app->uploadFile('yaml_file', 'app.yaml')) {
             my $yaml = $app->readYamlFile('app.yaml');
             $vars->{appName} = $yaml->{kuberdock}->{name} || $appName;
             $vars->{appId} = $yaml->{kuberdock}->{id} || $app->{'_appId'};
@@ -262,7 +262,7 @@ sub updateAppAction() {
     };
 
     if($uploadYaml) {
-        if($app->uploadFile('yaml_file', 'app.yaml', ('yaml'))) {
+        if($app->uploadFile('yaml_file', 'app.yaml')) {
             my $yaml = $app->readYamlFile('app.yaml');
             $vars->{appName} = $yaml->{kuberdock}->{name} || $appName;
             $vars->{appId} = $yaml->{kuberdock}->{id} || $app->{'_appId'};

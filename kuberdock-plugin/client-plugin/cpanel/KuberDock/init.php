@@ -9,6 +9,7 @@ if(file_exists($dev)) {
     include_once $dev;
 } else {
     defined(SELECTOR_DEBUG) or define(SELECTOR_DEBUG, false);
+    defined(LOG_ERRORS) or define(LOG_ERRORS, true);
     error_reporting(E_ERROR);
     ini_set('display_errors', 1);
 }
@@ -17,6 +18,6 @@ require_once KUBERDOCK_CLASS_DIR . DS . 'KuberDock_AutoLoader.php';
 
 try {
     $loader = new KuberDock_AutoLoader();
-} catch (Exception $e) {
+} catch(CException $e) {
     echo $e->getMessage();
 }

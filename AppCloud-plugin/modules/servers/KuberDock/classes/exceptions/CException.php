@@ -11,7 +11,8 @@ use Exception;
 class CException extends Exception {
 
     public function __construct($message, $code = 0, Exception $previous = null) {
-        $this->logError($message);
+        parent::__construct($message, $code, $previous);
+        $this->logError();
 
         if(stripos($message, 'exist') !== false) {
             throw new ExistException($message, $code);
@@ -20,13 +21,24 @@ class CException extends Exception {
         }
     }
 
-    private function logError($message)
+    /**
+     * @param Exception $exception
+     */
+    public static function log(Exception $exception)
     {
-        $filePath = substr($this->getFile(), stripos($this->getFile(), 'KuberDock'));
+        $filePath = substr($exception->getFile(), stripos($exception->getFile(), 'KuberDock'));
 
         if(KUBERDOCK_DEBUG && function_exists('logModuleCall')) {
-            logModuleCall(KUBERDOCK_MODULE_NAME, $filePath, sprintf('Line: %d %s', $this->getLine(), $message),
-                $this->getTraceAsString());
+            logModuleCall(KUBERDOCK_MODULE_NAME, $filePath, sprintf('Line: %d %s', $exception->getLine(),
+                $exception->getMessage()), $exception->getTraceAsString());
         }
+    }
+
+    /**
+     *
+     */
+    private function logError()
+    {
+        self::log($this);
     }
 } 

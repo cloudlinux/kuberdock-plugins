@@ -152,16 +152,10 @@ abstract class Command {
      */
     private function parseJsonResponse($response)
     {
-        // TODO: temp. Need fixes in kcli
-        if(in_array(trim(preg_replace('/\s+/', '', $response)), array(
-            '{"status":"pending"}{"status":"ERROR","message":"401ClientError:UNAUTHORIZED"}', ''))) {
-            return '';
-        }
-
         $parsedResponse = json_decode($response, true);
 
         if(!is_array($parsedResponse) && empty($parsedResponse) && $response) {
-            throw new CException((SELECTOR_DEBUG ? $this->commandString . '<br>' : '') . $response);
+            throw new CException((SELECTOR_DEBUG && !LOG_ERRORS ? $this->commandString . '<br>' : '') . $response);
         }
 
         if(isset($parsedResponse['status']) && $parsedResponse['status'] == self::STATUS_ERROR) {
@@ -174,13 +168,13 @@ abstract class Command {
                 });
                 throw new CException($message);
             } else {
-                throw new CException('Command execution error.' . (SELECTOR_DEBUG ? ' ' . $this->commandString : '') .
+                throw new CException('Command execution error.' . (SELECTOR_DEBUG && !LOG_ERRORS ? ' ' . $this->commandString : '') .
                     (isset($parsedResponse['message']) ? ' ' . $parsedResponse['message'] : ''));
             }
         }
 
         if(isset($parsedResponse['status']) && $parsedResponse['status'] == self::STATUS_PARTIAL) {
-            throw new CException('Command execution partial error.'. (SELECTOR_DEBUG ? ' '.$this->commandString : '') .
+            throw new CException('Command execution partial error.'. (SELECTOR_DEBUG && !LOG_ERRORS ? ' '.$this->commandString : '') .
                 (isset($parsedResponse['message']) ? ' '. $parsedResponse['message'] : ''));
         }
 

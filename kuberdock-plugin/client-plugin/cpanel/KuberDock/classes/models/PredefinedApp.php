@@ -53,15 +53,7 @@ class PredefinedApp {
     /**
      * @var KcliCommand
      */
-    private $userCommand;
-    /**
-     * @var KcliCommand
-     */
-    private $adminCommand;
-    /**
-     * @var KcliCommand
-     */
-    private $hostingCommand;
+    private $command;
     /**
      * @var array
      */
@@ -130,20 +122,7 @@ class PredefinedApp {
     public function init()
     {
         $this->api = WHMCSApi::model();
-
-        list($username, $password, $token) = $this->api->getAuthData();
-        $this->userCommand = new KcliCommand($username, $password, $token);
-
-        list($username, $password) = $this->api->getHostingAuthData();
-        $this->hostingCommand = new KcliCommand($username, $password);
-
-        list($username, $password, $token) = $this->api->getAdminAuthData();
-        $this->adminCommand = new KcliCommand($username, $password, $token);
-
-        // Create local conf without admin token
-        if(!KcliCommand::isLocalConfigExist()) {
-            $this->hostingCommand->getImage('nginx');
-        }
+        $this->command = $this->api->getCommand();
 
         if($this->templateId) {
             $this->getTemplate($this->templateId);
@@ -179,7 +158,7 @@ class PredefinedApp {
     public function getTemplate($id)
     {
         $this->templateId = $id;
-        $template = $this->adminCommand->getYAMLTemplate($id);
+        $template = $this->api->getGlobalTemplate($id);
 
         if(!$template) {
             throw new CException('Template not exists');
@@ -197,7 +176,7 @@ class PredefinedApp {
     public function getTemplates()
     {
         $data = array();
-        $templates = $this->adminCommand->getYAMLTemplates();
+        $templates = $this->api->getGlobalTemplates();
 
         foreach($templates as &$row) {
             $row['template'] = Spyc::YAMLLoadString($row['template']);
@@ -292,11 +271,12 @@ class PredefinedApp {
 
             $this->api->setKuberDockInfo();
             list($username, $password, $token) = $this->api->getAuthData();
-            $this->userCommand = new KcliCommand($username, $password, $token);
+            $this->command = new KcliCommand($username, $password, $token);
+            $this->command->setConfig();
         }
 
         file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template));
-        $response = $this->userCommand->createPodFromYaml($this->getAppPath());
+        $response = $this->command->createPodFromYaml($this->getAppPath());
 
         $this->setPostInstallVariables($response);
         file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template));
@@ -309,7 +289,7 @@ class PredefinedApp {
      */
     public function start()
     {
-        $this->userCommand->startContainer($this->getPodName());
+        $this->command->startContainer($this->getPodName());
     }
 
     /**
@@ -456,19 +436,18 @@ class PredefinedApp {
     }
 
     /**
-     *
+     * @return array
      */
     public function getExistingPods()
     {
-        try {
-            $pods = $this->userCommand->getPods();
-        } catch(CException $e) {
+        if(!$this->api->getService()) {
             return array();
         }
 
+        $pods = $this->command->getPods();
+
         $existingPods = array_filter($pods, function($e) {
-            $pod = $this->userCommand->describePod($e['name']);
-            //echo '<pre>';print_r($pod);
+            $pod = $this->command->describePod($e['name']);
             if(isset($pod['template_id']) && $pod['template_id'] == $this->templateId) {
                 return $pod;
             }

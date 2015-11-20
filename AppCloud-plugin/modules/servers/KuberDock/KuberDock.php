@@ -107,7 +107,7 @@ function KuberDock_UnsuspendAccount($params) {
  */
 function KuberDock_AdminServicesTabFields($params) {
     $view = new CL_View();
-    $product = KuberDock_Product::model()->loadByParams($params);
+    $product = KuberDock_Product::model()->loadById($params['pid']);
     $currency = CL_Currency::model()->getDefaultCurrency();
     $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
     $trialTime = $product->getConfigOption('trialTime');
@@ -120,15 +120,17 @@ function KuberDock_AdminServicesTabFields($params) {
     }
 
     try {
-        $adminApi = $service->getAdminApi();
-        $stat = $adminApi->getUsage($service->username);
-        $stat = $stat->getData();
+        $pods = $service->getApi()->getPods()->getData();
+        $productStatistic = $view->renderPartial('admin/product_statistic', array(
+            'pods' => $pods,
+            'kubes' => \base\CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id'),
+        ), false);
     } catch(Exception $e) {
-        $stat = $e->getMessage();
+        $productStatistic = sprintf('<div class="error">%s</div>', $e->getMessage());
     }
 
     $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(
-        'product_id' => $product->pid,
+        'product_id' => $product->id,
     ));
 
     $productInfo = $view->renderPartial('admin/product_info', array(
@@ -138,13 +140,9 @@ function KuberDock_AdminServicesTabFields($params) {
         'trialExpired' => $trialExpired,
     ), false);
 
-    $productStatistic = $view->renderPartial('admin/product_statistic', array(
-        'stat' => $stat,
-    ), false);
-
     return array(
         'Package Kubes' => $productInfo,
-        'Statistic' => $productStatistic,
+        'Pods' => $productStatistic,
     );
 }
 

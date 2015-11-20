@@ -8,6 +8,7 @@ namespace api;
 
 use api\KuberDock_ApiResponse;
 use api\KuberDock_ApiStatusCode;
+use base\CL_Tools;
 use exceptions\CException;
 use Exception;
 
@@ -181,12 +182,12 @@ class KuberDock_Api {
      * @param array $params
      * @param string $type
      * @return KuberDock_ApiResponse
-     * @throws Exception
+     * @throws CException
      */
     public function call($params = array(), $type = 'GET')
     {
         if(!in_array($type, array('GET', 'POST', 'PUT', 'DELETE'))) {
-            throw new Exception('Undefined request type: '.$type);
+            throw new CException('Undefined request type: '.$type);
         }
 
         $ch = curl_init();
@@ -226,13 +227,15 @@ class KuberDock_Api {
         $status = curl_getinfo($ch);
 
         if($status['http_code'] != KuberDock_ApiStatusCode::HTTP_OK) {
-            $err = ucwords(curl_error($ch));
-            $statusMessage = KuberDock_ApiStatusCode::getMessageByCode($status['http_code']);
-            $err = $err ? $err : sprintf('%s: %s', $statusMessage, $this->url);
             curl_close($ch);
-
-            $this->logError($err);
-            throw new Exception($err, 0);
+            switch($status['http_code']) {
+                case KuberDock_ApiStatusCode::HTTP_FORBIDDEN:
+                    throw new CException(sprintf('Invalid credential for KuberDock server %s', $this->url));
+                case KuberDock_ApiStatusCode::HTTP_NOT_FOUND:
+                    throw new CException('Invalid KuberDock server IP');
+                default:
+                    throw new CException(sprintf('%s: %s', KuberDock_ApiStatusCode::getMessageByCode($status['http_code']), $this->url));
+            }
         }
         curl_close($ch);
 
@@ -387,15 +390,18 @@ class KuberDock_Api {
 
     /**
      * @param $user
-     * @param $date
-     * @return KuberDock_ApiResponse
+     * @param \DateTime $dateFrom
+     * @param \DateTime $dateTo
+     * @return \api\KuberDock_ApiResponse
      * @throws Exception
      */
-    public function getUsage($user, $date = null)
+    public function getUsage($user, \DateTime $dateFrom, \DateTime $dateTo)
     {
         $this->url = $this->serverUrl . "/api/usage/$user";
-        $this->url .= $date ? '/'.$date : '';
-        $response = $this->call();
+        $response = $this->call(array(
+            'date_from' => CL_Tools::getMySQLFormattedDate($dateFrom),
+            'date_to' => CL_Tools::getMySQLFormattedDate($dateTo),
+        ));
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());

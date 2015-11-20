@@ -25,26 +25,3 @@
         </form>
     </div>
 </div>
-
-<script>
-    function getKubes() {
-        jQuery.ajax({
-            url: 'addon_kuberdock.cgi?a=getPackageKubes&reqType=json',
-            data: {
-                packageId: jQuery('#packageId').val()
-            },
-            dataType: 'json'
-        }).done(function(data) {
-            jQuery('#kubeType').empty();
-            jQuery.each(data, function(k, v) {
-                jQuery('#kubeType').append(jQuery('<option>', {
-                    value: v.id,
-                    text: v.name
-                }));
-            });
-        });
-    };
-    jQuery(document).on('change', '#packageId', function() {
-        getKubes();
-    });
-</script>

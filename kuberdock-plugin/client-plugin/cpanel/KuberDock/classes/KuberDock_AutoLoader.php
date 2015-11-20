@@ -86,7 +86,7 @@ class KuberDock_AutoLoader {
 
             $method = new ReflectionMethod($model, $actionMethod);
             $method->invoke($model);
-        } catch(Exception $e) {
+        } catch(CException $e) {
             echo $e;
         }
     }

@@ -1,7 +1,7 @@
 Version: 0.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 13%{?dist}.cloudlinux
+Release: 14%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -50,6 +50,15 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Fri Nov 20 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-14
+- AC-1523 cPanel. Use token from user config
+- AC-1553 cPanel. Save errors to log file
+- AC-1552 cPanel. User can't upload yml file
+- AC-1547 cPanel. Display error if WHMCS API url are incorrect
+- cPanel. Fixed pre-app vars accordingly to AC-1460
+- AC-1468 cPanel. Don't allow users read whmcs config
+- AC-1465 cPanel. Predefined-app page do not allow save admin token to local config
 
 * Wed Nov 11 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-13
 - cPanel. Exception & install script fix

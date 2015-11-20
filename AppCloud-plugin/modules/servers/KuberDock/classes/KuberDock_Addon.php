@@ -94,6 +94,76 @@ class KuberDock_Addon extends CL_Component {
                     REFERENCES KuberDock_products(product_id)
                     ON UPDATE CASCADE ON DELETE CASCADE
             ) ENGINE=INNODB');
+
+            // Create email templates
+            $mailTemplate = CL_MailTemplate::model();
+            $mailTemplate->createTemplate($mailTemplate::TRIAL_NOTICE_NAME, 'KuberDock Trial Notice',
+                $mailTemplate::TYPE_PRODUCT, 'trial_notice');
+
+            $mailTemplate->createTemplate($mailTemplate::TRIAL_EXPIRED_NAME, 'KuberDock Trial Expired',
+                $mailTemplate::TYPE_PRODUCT, 'trial_expired');
+
+            $mailTemplate->createTemplate($mailTemplate::MODULE_CREATE_NAME, 'KuberDock Module Created',
+                $mailTemplate::TYPE_PRODUCT, 'module_create');
+
+            $product = new KuberDock_Product();
+
+            if(!KuberDock_Product::model()->loadByAttributes(array('name' => self::STANDARD_PRODUCT, 'servertype' => KUBERDOCK_MODULE_NAME))) {
+                // Create standard product
+                $group = CL_Query::model()->query('SELECT * FROM `tblproductgroups` WHERE hidden != 1 ORDER BY `order` ASC LIMIT 1')
+                    ->getRow();
+
+                $product->setAttributes(array(
+                    'gid' => $group['id'],
+                    'type' => 'other',
+                    'name' => self::STANDARD_PRODUCT,
+                    'paytype' => 'free',
+                    'autosetup' => 'order',
+                    'servertype' => KUBERDOCK_MODULE_NAME,
+                    'servergroup' => $server->getGroupId(),
+                    //'order' => 1,
+                    //'hidden' => '',
+                ));
+                $product->setConfigOption('enableTrial', 0);
+                $product->setConfigOption('firstDeposit', 0);
+                $product->setConfigOption('priceOverTraffic', 0);
+                $product->setConfigOption('pricePersistentStorage', 0);
+                $product->setConfigOption('priceIP', 0);
+                $product->setConfigOption('paymentType', 'hourly');
+                $product->setConfigOption('debug', 0);
+
+                $product->save();
+                $product->createCustomField($product->id, 'Token', $product::FIELD_TYPE_TEXT);
+
+                $db->query('INSERT INTO KuberDock_products VALUES (?, ?)', array($product->id, 0));
+
+                $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
+                    `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    array(0, NULL, NULL, 'Standard kube', NULL, 0, 0.01, 64, 1, 0, $server->id));
+                $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
+                    `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                      array(0, 0, $product->id, 'Standard kube', 0, 0, 0.01, 64, 1, 0, $server->id));
+
+                $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
+                    `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    array(1, NULL, NULL, 'High CPU', NULL, 0, 0.02, 64, 1, 0, $server->id));
+                $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
+                    `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    array(1, 0, $product->id, 'High CPU', 0, 0, 0.02, 64, 1, 0, $server->id));
+
+                $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
+                    `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    array(2, NULL, NULL, 'High memory', NULL, 0, 0.01, 256, 1, 0, $server->id));
+                $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
+                    `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    array(2, 0, $product->id, 'High memory', 0, 0, 0.01, 256, 1, 0, $server->id));
+            }
         } catch(Exception $e) {
             $db->query('DROP TABLE IF EXISTS `KuberDock_preapps`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_states`');
@@ -101,76 +171,6 @@ class KuberDock_Addon extends CL_Component {
             $db->query('DROP TABLE IF EXISTS `KuberDock_trial`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_products`');
             throw $e;
-        }
-
-        // Create email templates
-        $mailTemplate = CL_MailTemplate::model();
-        $mailTemplate->createTemplate($mailTemplate::TRIAL_NOTICE_NAME, 'KuberDock Trial Notice',
-            $mailTemplate::TYPE_PRODUCT, 'trial_notice');
-
-        $mailTemplate->createTemplate($mailTemplate::TRIAL_EXPIRED_NAME, 'KuberDock Trial Expired',
-            $mailTemplate::TYPE_PRODUCT, 'trial_expired');
-
-        $mailTemplate->createTemplate($mailTemplate::MODULE_CREATE_NAME, 'KuberDock Module Created',
-            $mailTemplate::TYPE_PRODUCT, 'module_create');
-
-        $product = new KuberDock_Product();
-
-        if(!KuberDock_Product::model()->loadByAttributes(array('name' => self::STANDARD_PRODUCT, 'servertype' => KUBERDOCK_MODULE_NAME))) {
-            // Create standard product
-            $group = CL_Query::model()->query('SELECT * FROM `tblproductgroups` WHERE hidden != 1 ORDER BY `order` ASC LIMIT 1')
-                ->getRow();
-
-            $product->setAttributes(array(
-                'gid' => $group['id'],
-                'type' => 'other',
-                'name' => self::STANDARD_PRODUCT,
-                'paytype' => 'free',
-                'autosetup' => 'order',
-                'servertype' => KUBERDOCK_MODULE_NAME,
-                'servergroup' => $server->getGroupId(),
-                //'order' => 1,
-                //'hidden' => '',
-            ));
-            $product->setConfigOption('enableTrial', 0);
-            $product->setConfigOption('firstDeposit', 0);
-            $product->setConfigOption('priceOverTraffic', 0);
-            $product->setConfigOption('pricePersistentStorage', 0);
-            $product->setConfigOption('priceIP', 0);
-            $product->setConfigOption('paymentType', 'hourly');
-            $product->setConfigOption('debug', 0);
-
-            $product->save();
-            $product->createCustomField($product->id, 'Token', $product::FIELD_TYPE_TEXT);
-
-            $db->query('INSERT INTO KuberDock_products VALUES (?, ?)', array($product->id, 0));
-
-            $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
-                `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                array(0, NULL, NULL, 'Standard kube', NULL, 0, 0.01, 64, 1, 0, $server->id));
-            $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
-                `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                  array(0, 0, $product->id, 'Standard kube', 0, 0, 0.01, 64, 1, 0, $server->id));
-
-            $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
-                `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                array(1, NULL, NULL, 'High CPU', NULL, 0, 0.02, 64, 1, 0, $server->id));
-            $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
-                `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                array(1, 0, $product->id, 'High CPU', 0, 0, 0.02, 64, 1, 0, $server->id));
-
-            $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
-                `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                array(2, NULL, NULL, 'High memory', NULL, 0, 0.01, 256, 1, 0, $server->id));
-            $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
-                `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                array(2, 0, $product->id, 'High memory', 0, 0, 0.01, 256, 1, 0, $server->id));
         }
     }
 

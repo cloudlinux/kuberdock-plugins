@@ -26,6 +26,41 @@ sub getConfigData {
     }
 }
 
+sub getGlobalTemplates {
+    my ($args, $result) = @_;
+
+    my $data = Cpanel::Wrap::send_cpwrapd_request(
+        'namespace' => 'KuberDock',
+        'module' => 'Module',
+        'function' => 'getGlobalTemplates',
+        'data' => '',
+    );
+
+    if($data->{error}) {
+        $result->error($data->{data});
+    } elsif(defined $data->{data}) {
+        $result->data($data->{data});
+    }
+}
+
+sub getGlobalTemplate {
+    my ($args, $result) = @_;
+    my $templateId = $args->get('id');
+
+    my $data = Cpanel::Wrap::send_cpwrapd_request(
+        'namespace' => 'KuberDock',
+        'module' => 'Module',
+        'function' => 'getGlobalTemplate',
+        'data' => $templateId,
+    );
+
+    if($data->{error}) {
+        $result->error($data->{data});
+    } elsif(defined $data->{data}) {
+        $result->data($data->{data});
+    }
+}
+
 1;
 
 __END__

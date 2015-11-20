@@ -111,7 +111,7 @@ class KuberDock_Product extends CL_Product {
         $productName = $this->getName();
         $service->username = $this->client->email;
         $password = $service->decryptPassword();
-        $role = $this->getConfigOption('trialTime') ? \KuberDock_User::ROLE_TRIAL : \KuberDock_User::ROLE_USER;
+        $role = $this->isTrial() ? \KuberDock_User::ROLE_TRIAL : \KuberDock_User::ROLE_USER;
 
         try {
             $response = $api->getUser($service->username);
@@ -177,7 +177,7 @@ class KuberDock_Product extends CL_Product {
         $productName = $this->getName();
         $service->username = $this->client->email;
         $password = $service->decryptPassword();
-        $role = $this->getConfigOption('trialTime') ? KuberDock_User::ROLE_TRIAL : KuberDock_User::ROLE_USER;
+        $role = $this->isTrial() ? KuberDock_User::ROLE_TRIAL : KuberDock_User::ROLE_USER;
 
         $response = $api->getUser($service->username);
 

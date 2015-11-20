@@ -52,6 +52,9 @@ function install
     /bin/cp -Rf $ADMIN_SOURCE_PATH/module/API /usr/local/cpanel/Cpanel
     /bin/chmod -R 700 /usr/local/cpanel/bin/admin/KuberDock/Module
 
+    /bin/touch /var/log/kuberdock-plugin.log
+    /bin/chmod 666 /var/log/kuberdock-plugin.log
+
     echo "Plugin installed"
 }
 
@@ -118,6 +121,10 @@ function uninstall
         /bin/rm -f /usr/local/cpanel/Cpanel/API/KuberDock.pm
     fi
 
+    if [ -e /var/log/kuberdock-plugin.log ]; then
+        /bin/rm -f /var/log/kuberdock-plugin.log
+    fi
+
     echo "Plugin uninstalled"
 }
 
@@ -167,6 +174,9 @@ function upgrade
     /bin/cp -Rf $ADMIN_SOURCE_PATH/module/admin /usr/local/cpanel/bin
     /bin/cp -Rf $ADMIN_SOURCE_PATH/module/API /usr/local/cpanel/Cpanel
     /bin/chmod -R 700 /usr/local/cpanel/bin/admin/KuberDock/Module
+
+    /bin/touch /var/log/kuberdock-plugin.log
+    /bin/chmod 666 /var/log/kuberdock-plugin.log
 
     echo "Plugin upgraded"
 }

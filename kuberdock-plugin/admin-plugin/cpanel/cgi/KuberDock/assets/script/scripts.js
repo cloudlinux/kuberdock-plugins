@@ -1,9 +1,3 @@
-$(function() {
-    if(location.hash) {
-        $('a[href="' + location.hash + '"]').tab('show');
-    }
-});
-
 var resDelete = function(obj) {
     var owner = obj.getAttribute('owner');
 
@@ -12,3 +6,37 @@ var resDelete = function(obj) {
 
     return false;
 };
+
+var getKubes = function() {
+    if(!$('#packageId').length) {
+        return;
+    }
+
+    $.ajax({
+        url: 'addon_kuberdock.cgi?a=getPackageKubes&reqType=json',
+        data: {
+            packageId: $('#packageId').val()
+        },
+        dataType: 'json'
+    }).done(function(data) {
+        $('#kubeType').empty();
+        $.each(data, function(k, v) {
+            $('#kubeType').append($('<option>', {
+                value: v.id,
+                text: v.name
+            }));
+        });
+    });
+};
+
+$(document).on('change', '#packageId', function() {
+    getKubes();
+});
+
+$(document).ready(function() {
+    getKubes();
+
+    if(location.hash) {
+        $('a[href="' + location.hash + '"]').tab('show');
+    }
+});

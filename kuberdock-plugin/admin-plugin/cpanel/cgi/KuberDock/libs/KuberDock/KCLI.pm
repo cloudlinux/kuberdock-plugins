@@ -11,6 +11,8 @@ use KuberDock::JSON;
 use constant KUBERDOCK_KCLI_PATH => '/usr/bin/kcli';
 use constant KUBERDOCK_CONF_NAME => '.kubecli.conf';
 
+our $responseJSON = 0;
+
 sub getTemplate {
     my ($templateId) = @_;
     return KuberDock::KCLI::execute('kubectl', 'get', 'template', '--id', $templateId);
@@ -47,7 +49,11 @@ sub execute {
     my @defaults = (KUBERDOCK_KCLI_PATH, '--json', '-c', $confPath);
     my $command = join(' ', (@defaults, @_));
 
-    my $response = `$command`;
+    my $response = `$command 2>&1`;
+
+    if($responseJSON) {
+        return $response;
+    }
 
     if($response eq '') {
         return ();
@@ -55,6 +61,11 @@ sub execute {
 
     my $answer = $json->decode($response);
     return $answer;
+}
+
+sub setResponseType {
+    my ($data) = @_;
+    $responseJSON = $data;
 }
 
 1;
