@@ -227,18 +227,27 @@ class KuberDock_Api {
         $status = curl_getinfo($ch);
 
         if($status['http_code'] != KuberDock_ApiStatusCode::HTTP_OK) {
+            $err = ucwords(curl_error($ch));
             curl_close($ch);
+
             switch($status['http_code']) {
+                case KuberDock_ApiStatusCode::HTTP_BAD_REQUEST:
+                case KuberDock_ApiStatusCode::HTTP_NOT_FOUND:
+                    break;
                 case KuberDock_ApiStatusCode::HTTP_FORBIDDEN:
                     throw new CException(sprintf('Invalid credential for KuberDock server %s', $this->url));
-                case KuberDock_ApiStatusCode::HTTP_NOT_FOUND:
-                    throw new CException('Invalid KuberDock server IP');
                 default:
-                    throw new CException(sprintf('%s: %s', KuberDock_ApiStatusCode::getMessageByCode($status['http_code']), $this->url));
+                    if($err) {
+                        $msg = sprintf('%s (%s): %s', KuberDock_ApiStatusCode::getMessageByCode($status['http_code']),
+                            $err, $this->url);
+                    } else {
+                        $msg = sprintf('%s: %s', KuberDock_ApiStatusCode::getMessageByCode($status['http_code']), $this->url);
+                    }
+                    throw new CException($msg);
             }
         }
-        curl_close($ch);
 
+        curl_close($ch);
         $this->parseResponse($response);
 
         if(KUBERDOCK_DEBUG_API) {
@@ -389,7 +398,7 @@ class KuberDock_Api {
     }
 
     /**
-     * @param $user
+     * @param string $user
      * @param \DateTime $dateFrom
      * @param \DateTime $dateTo
      * @return \api\KuberDock_ApiResponse
@@ -398,9 +407,10 @@ class KuberDock_Api {
     public function getUsage($user, \DateTime $dateFrom, \DateTime $dateTo)
     {
         $this->url = $this->serverUrl . "/api/usage/$user";
+
         $response = $this->call(array(
-            'date_from' => CL_Tools::getMySQLFormattedDate($dateFrom),
-            'date_to' => CL_Tools::getMySQLFormattedDate($dateTo),
+            'date_from' => $dateFrom->format(\DateTime::ISO8601),
+            'date_to' => $dateTo->format(\DateTime::ISO8601),
         ));
 
         if(!$response->getStatus()) {
