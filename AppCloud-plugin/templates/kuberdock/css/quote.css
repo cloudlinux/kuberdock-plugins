@@ -1,0 +1,183 @@
+/* --------------------------------------------------------------
+
+   PRINTABLE QUOTE STYLESHEET
+
+-------------------------------------------------------------- */
+
+
+
+body,td,input,select {
+
+    font-family: Tahoma;
+
+    font-size: 11px;
+
+    color: #000000;
+
+}
+
+
+
+form {
+
+    margin: 0px;
+
+}
+
+
+
+a {
+
+    color: #000000;
+
+}
+
+
+
+#wrapper {
+
+    width: 600px;
+
+}
+
+
+
+#invoicetoptables {
+
+    width: 100%;
+
+    background-color: #cccccc;
+
+    border-collapse: seperate;
+
+}
+
+
+
+td#invoicecontent {
+
+    background-color: #ffffff;
+
+    color: #000000;
+
+}
+
+
+
+.unpaid {
+
+    font-size: 16px;
+
+    color: #cc0000;
+
+    font-weight: bold;
+
+}
+
+
+
+.paid {
+
+    font-size: 16px;
+
+    color: #779500;
+
+    font-weight: bold;
+
+}
+
+
+
+.refunded {
+
+    font-size: 16px;
+
+    color: #224488;
+
+    font-weight: bold;
+
+}
+
+
+
+.cancelled {
+
+    font-size: 16px;
+
+    color: #cccccc;
+
+    font-weight: bold;
+
+}
+
+
+
+.collections {
+
+    font-size: 16px;
+
+    color: #ffcc00;
+
+    font-weight: bold;
+
+}
+
+
+
+#invoiceitemstable {
+
+    width: 100%;
+
+    background-color: #cccccc;
+
+    border-collapse: seperate;
+
+}
+
+
+
+td#invoiceitemsheading {
+
+    background-color: #efefef;
+
+    color: #000000;
+
+    font-weight: bold;
+
+    text-align: center;
+
+}
+
+
+
+td#invoiceitemsrow {
+
+    background-color: #ffffff;
+
+    color: #000000;
+
+}
+
+
+
+.creditbox {
+
+    border: 1px dashed #cc0000;
+
+    font-weight: bold;
+
+    background-color: #FBEEEB;
+
+    text-align: center;
+
+    width: 100%;
+
+    padding: 10px;
+
+    color: #cc0000;
+
+    margin-left: auto;
+
+    margin-right: auto;
+
+}
