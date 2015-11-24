@@ -3,11 +3,8 @@
 {include file="$template/pageheader.tpl" title=$LANG.affiliatesactivate}
 
 <div class="alert alert-block alert-info">
-
     <h2>{$LANG.affiliatesignuptitle}</h2>
-
     <p>{$LANG.affiliatesignupintro}</p>
-
 </div>
 
 <ul>
@@ -15,8 +12,6 @@
 <li>{$LANG.affiliatesignupinfo2}</li>
 <li>{$LANG.affiliatesignupinfo3}</li>
 </ul>
-
-<br />
 
 <form method="post" action="affiliates.php">
 <input type="hidden" name="activate" value="true" />
@@ -26,13 +21,10 @@
 {else}
 
 {include file="$template/pageheader.tpl" title=$LANG.affiliatestitle}
-
-<div class="alert alert-warning">
-    <p>{$LANG.affiliatesdisabled}</p>
+<div class="center80">
+    <div class="alert alert-warning">
+        <p>{$LANG.affiliatesdisabled}</p>
+    </div>
 </div>
 
 {/if}
-
-<br />
-<br />
-<br />

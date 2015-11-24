@@ -27,7 +27,7 @@
 {/if}
 <br /><br />
 {foreachelse}
-<p align="center"><strong>{$LANG.announcementsnone}</strong></p>
+<div align="center">{$LANG.announcementsnone}</div>
 {/foreach}
 
 <br />
@@ -43,9 +43,5 @@
 </div>
 
 {/if}
-
-<br />
-
-<p align="right"><img src="{$BASE_PATH_IMG}/rssfeed.gif" alt="RSS" align="absmiddle" /> <a href="announcementsrss.php">{$LANG.announcementsrss}</a></p>
-
-<br />
+<!--
+<p align="left" style="padding-left: 20px;"><img src="{$BASE_PATH_IMG}/rssfeed.gif" alt="RSS" align="absmiddle" /> <a href="announcementsrss.php">{$LANG.announcementsrss}</a></p> -->

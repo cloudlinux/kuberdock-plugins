@@ -33,7 +33,7 @@
         </div>
         <p>{$LANG.clientareahomeorder}<br /><br /></p>
         <form method="post" action="cart.php">
-        <p align="center"><input type="submit" value="{$LANG.clientareahomeorderbtn} &raquo;" class="btn" /></p>
+        <p align="center"><input type="submit" value="{$LANG.clientareahomeorderbtn}" class="btn" /></p>
         </form>
     </div>
 </div>
@@ -42,7 +42,7 @@
         <div class="styled_title"><h2>{$LANG.manageyouraccount}</h2></div>
         <p>{$LANG.clientareahomelogin}<br /><br /></p>
         <form method="post" action="clientarea.php">
-        <p align="center"><input type="submit" value="{$LANG.clientareahomeloginbtn} &raquo;" class="btn" /></p>
+        <p align="center"><input type="submit" value="{$LANG.clientareahomeloginbtn}" class="btn" /></p>
         </form>
     </div>
 </div>

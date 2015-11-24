@@ -1,5 +1,5 @@
-<div class="recordslimit">
-    <form method="post" action="{$smarty.server.PHP_SELF}?action={$clientareaaction}" />{$LANG.resultsperpage}: 
+<!-- <div class="recordslimit">
+    <form method="post" action="{$smarty.server.PHP_SELF}?action={$clientareaaction}" />{$LANG.resultsperpage}:
     <select name="itemlimit" onchange="submit()">
         <option value="10"{if $itemlimit==10} selected{/if}>10</option>
         <option value="25"{if $itemlimit==25} selected{/if}>25</option>
@@ -8,4 +8,4 @@
         <option value="all"{if $itemlimit==99999999} selected{/if}>{$LANG.clientareaunlimited}</option>
     </select>
     </form>
-</div>
+</div> -->

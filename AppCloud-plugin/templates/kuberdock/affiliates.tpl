@@ -1,11 +1,12 @@
 {if $inactive}
 {include file="$template/pageheader.tpl" title=$LANG.affiliatestitle}
-<div class="alert alert-warning">
-    <p>{$LANG.affiliatesdisabled}</p>
+
+<div class="center80">
+    <div class="alert alert-warning">
+        <p>{$LANG.affiliatesdisabled}</p>
+    </div>
 </div>
-<br />
-<br />
-<br />
+
 {else}
 {include file="$template/pageheader.tpl" title=$LANG.affiliatestitle desc=$LANG.affiliatesrealtime}
 

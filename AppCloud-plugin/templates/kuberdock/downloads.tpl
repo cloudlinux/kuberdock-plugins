@@ -1,16 +1,16 @@
 {include file="$template/pageheader.tpl" title=$LANG.downloadstitle}
 
-<div class="searchbox">
-    <form method="post" action="downloads.php?action=search">
-        <div class="input-append">
-            <input type="text" name="search" value="{$LANG.downloadssearch}" class="input-medium appendedInputButton" onfocus="if(this.value=='{$LANG.downloadssearch}')this.value=''" /><button type="submit" class="btn btn-warning">{$LANG.search}</button>
-        </div>
-    </form>
+<div class="container-padding-default">
+    <div class="searchbox" style="float: none; text-align: center;">
+        <form method="post" action="downloads.php?action=search">
+            <div class="input-append">
+                <input type="text" name="search" value="{$LANG.downloadssearch}" class="input-medium appendedInputButton" onfocus="if(this.value=='{$LANG.downloadssearch}')this.value=''" /><button type="submit" class="btn btn-warning">{$LANG.search}</button>
+            </div>
+        </form>
+    </div>
+    <div class="clear"></div>
+    <p align="center">{$LANG.downloadsintrotext}</p>
 </div>
-
-<p>{$LANG.downloadsintrotext}</p>
-
-<br />
 
 {include file="$template/subheader.tpl" title=$LANG.downloadscategories}
 

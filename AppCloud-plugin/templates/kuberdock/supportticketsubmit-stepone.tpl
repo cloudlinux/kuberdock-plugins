@@ -1,8 +1,8 @@
 {include file="$template/pageheader.tpl" title=$LANG.navopenticket}
 
-<p>{$LANG.supportticketsheader}</p>
-
-<br />
+<div class="container-padding-default">
+    <p align="center">{$LANG.supportticketsheader}</p>
+</div>
 
 <div class="row">
     <div class="center80">
@@ -20,7 +20,3 @@
     {/foreach}
     </div>
 </div>
-
-<br />
-<br />
-<br />

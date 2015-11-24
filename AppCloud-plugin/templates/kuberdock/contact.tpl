@@ -9,73 +9,46 @@
 </div>
 
 {else}
-
-{if $errormessage}
-<div class="alert alert-error">
-    <p class="bold">{$LANG.clientareaerrors}</p>
-    <ul>
-        {$errormessage}
-    </ul>
+<div class="center95">
+    {if $errormessage}
+    <div class="alert alert-error">
+        <p class="bold">{$LANG.clientareaerrors}</p>
+        <ul>
+            {$errormessage}
+        </ul>
+    </div>
+    {/if}
 </div>
-{/if}
 
 <form method="post" action="contact.php?action=send" class="form-stacked center95">
 
     <fieldset class="control-group">
-
         <div class="row">
-            <div class="multicol">
-                <div class="control-group">
-                    <label class="control-label bold" for="name">{$LANG.supportticketsclientname}</label>
-                    <div class="controls">
-                        <input class="input-xlarge" type="text" name="name" id="name" value="{$name}" />
-                    </div>
-                </div>
-            </div>
-            <div class="multicol">
-                <div class="control-group">
-                    <label class="control-label bold" for="email">{$LANG.supportticketsclientemail}</label>
-                    <div class="controls">
-                        <input class="input-xlarge" type="text" name="email" id="email" value="{$email}" />
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="control-group">
-                <label class="control-label bold" for="subject">{$LANG.supportticketsticketsubject}</label>
-                <div class="controls">
-                    <input class="input-xlarge" type="text" name="subject" id="subject" value="{$subject}" style="width:80%;" />
-                </div>
-            </div>
-        </div>
-
-        <div class="control-group">
-            <label class="control-label bold" for="message">{$LANG.contactmessage}</label>
             <div class="controls">
-                <textarea name="message" id="message" rows="12" class="fullwidth">{$message}</textarea>
+                <input type="text" name="name" id="name" value="{$name}" placeholder="{$LANG.supportticketsclientname}"/>
+                <input type="text" name="email" id="email" value="{$email}" placeholder="{$LANG.supportticketsclientemail}"/>
+                <input class="fullwidth" type="text" name="subject" id="subject" value="{$subject}" placeholder="{$LANG.supportticketsticketsubject}" />
+                <textarea name="message" id="message" rows="12" class="fullwidth" placeholder="{$LANG.contactmessage}">{$message}</textarea>
             </div>
         </div>
-
     </fieldset>
 
 {if $capatacha}
-<p><strong>&nbsp;&raquo;&nbsp;{$LANG.captchatitle}</strong></p>
-<p>{$LANG.captchaverify}</p>
+<div class="capatacha-wrap control-group">
+<span class="capatacha-description">{$LANG.captchatitle}</span>
 {if $capatacha eq "recaptcha"}
-<div align="center">{$recapatchahtml}</div>
+    {$recapatchahtml}
 {else}
-<p align="center"><img src="includes/verifyimage.php" align="middle" /> <input type="text" class="input-small" name="code" size="10" maxlength="5" /></p>
-{/if}
+    <div class="capatacha-code-wrap controls">
+        <input type="text"name="code" size="10" maxlength="5" />
+        <img src="includes/verifyimage.php" align="middle" />
+    </div>
 {/if}
 
-    <p align="center"><input type="submit" value="{$LANG.contactsend}" class="btn btn-primary" /></p>
-
+<!-- <p>{$LANG.captchaverify}</p> -->
+{/if}
+    <input type="submit" value="{$LANG.contactsend}" class="send-message" />
+</div>
 </form>
 
 {/if}
-
-<br />
-<br />
-<br />
