@@ -40,6 +40,40 @@ $(document).ready(function() {
             });
         });
     }
+
+    var trialManage = function() {
+        var trial = $('input[type=checkbox][name="packageconfigoption[1]"]'),
+            trialPeriod = trial.closest('tr').find('input[name="packageconfigoption[2]"]'),
+            trialTr = trial.closest('tr');
+
+        if(trial.prop('checked')) {
+            trialTr.nextAll('tr').hide();
+            trialTr.find('td:gt(1)').show();
+        } else {
+            trialTr.nextAll('tr').show();
+            trialTr.find('td:gt(1)').hide();
+        }
+    };
+
+    $(document).on('change', 'input[type=checkbox][name="packageconfigoption[1]"]', function() {
+        trialManage();
+    });
+
+    if(window.location.href.indexOf('configproducts') >= 0) {
+        $.ajax({
+            url: 'addonmodules.php?module=KuberDock',
+            data: {
+                a: 'isKuberProduct',
+                productId: $.url('?id'),
+            },
+            dataType: 'json'
+        }).done(function(data) {
+            if(!data.kuberdock) {
+                return false;
+            }
+            trialManage();
+        });
+    }
 });
 
 $(function() {

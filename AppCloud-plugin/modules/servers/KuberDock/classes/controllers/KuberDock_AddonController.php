@@ -161,13 +161,22 @@ class KuberDock_AddonController extends CL_Controller {
             $productId = CL_Base::model()->getParam('productId');
             $serviceId = CL_Base::model()->getParam('serviceId');
 
-            $service = \KuberDock_Hosting::model()->loadById($serviceId);
+            if($productId && $serviceId) {
+                $service = \KuberDock_Hosting::model()->loadById($serviceId);
 
-            echo json_encode(array(
-                'kuberdock' => \KuberDock_Product::model()->loadById($productId)->isKuberProduct(),
-                'nextinvoicedate' => CL_Tools::getFormattedDate($service->nextinvoicedate),
-                'nextduedate' => CL_Tools::getFormattedDate($service->nextduedate),
-            ));
+                echo json_encode(array(
+                    'kuberdock' => \KuberDock_Product::model()->loadById($productId)->isKuberProduct(),
+                    'nextinvoicedate' => CL_Tools::getFormattedDate($service->nextinvoicedate),
+                    'nextduedate' => CL_Tools::getFormattedDate($service->nextduedate),
+                ));
+            } elseif($productId) {
+                $product = \KuberDock_Product::model()->loadById($productId);
+
+                echo json_encode(array(
+                    'kuberdock' => $product->isKuberProduct(),
+                    'trial' => $product->isTrial(),
+                ));
+            }
         }
 
         exit();

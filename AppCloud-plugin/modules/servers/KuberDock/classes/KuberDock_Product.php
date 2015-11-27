@@ -43,6 +43,19 @@ class KuberDock_Product extends CL_Product {
     public function getConfig()
     {
         $config = array(
+            'enableTrial' => array(
+                'FriendlyName' => 'Trial package',
+                'Type' => 'yesno',
+                'Default' => 'no',
+                'Description' => '&nbsp;',
+            ),
+            'trialTime' => array(
+                'FriendlyName' => 'User Free Trial period',
+                'Type' => 'text',
+                'Size' => '10',
+                'Default' => '0',
+                'Description' => 'Days',
+            ),
             'paymentType' => array(
                 'FriendlyName' => 'Service payment type',
                 'Type' => 'dropdown',
@@ -54,13 +67,6 @@ class KuberDock_Product extends CL_Product {
                 'FriendlyName' => 'Debug Mode',
                 'Type' => 'yesno',
                 'Description' => 'Logs on "Module Log"',
-            ),
-            'trialTime' => array(
-                'FriendlyName' => 'User Free Trial period',
-                'Type' => 'text',
-                'Size' => '10',
-                'Default' => '0',
-                'Description' => 'Days',
             ),
             'priceIP' => array(
                 'FriendlyName' => 'Price for IP',
@@ -88,12 +94,6 @@ class KuberDock_Product extends CL_Product {
                 'Type' => 'text',
                 'Size' => '10',
                 'Default' => '0',
-                'Description' => '',
-            ),
-            'enableTrial' => array(
-                'FriendlyName' => 'Trial package',
-                'Type' => 'yesno',
-                'Default' => '',
                 'Description' => '',
             ),
         );
@@ -502,7 +502,7 @@ class KuberDock_Product extends CL_Product {
      */
     public function isTrial()
     {
-        return $this->getConfigOption('enableTrial');
+        return (bool) $this->getConfigOption('enableTrial');
     }
 
     /**
