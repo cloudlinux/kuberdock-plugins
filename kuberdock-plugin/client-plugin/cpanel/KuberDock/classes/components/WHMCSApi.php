@@ -385,6 +385,12 @@ class WHMCSApi extends Base {
         return $domains;
     }
 
+    public function getUserDomains()
+    {
+        $response = Base::model()->panel->uapi('DomainInfo', 'domains_data', array('format' => 'hash'));
+        return $this->getResponseData($response);
+    }
+
     /**
      * @return array
      */
@@ -416,9 +422,21 @@ class WHMCSApi extends Base {
      */
     private function parseModuleResponse($response)
     {
+        $data = $this->getResponseData($response);
+        $json = json_decode($data, true);
 
+        if(isset($json['status']) && $json['status'] == 'ERROR') {
+            throw new CException(sprintf('Cpanel/API/KuberDock:%s error: %s', $response['cpanelresult']['func'], $json['message']));
+        }
+
+        return $json;
+    }
+
+    private function  getResponseData($response)
+    {
         if(!isset($response['cpanelresult']['result'])) {
-            throw new CException('Undefined response from Cpanel/API/KuberDock');
+            throw new CException(sprintf('Undefined response from %s:%s',
+                $response['cpanelresult']['module'], $response['cpanelresult']['func']));
         }
 
         $result = $response['cpanelresult']['result'];
@@ -427,12 +445,7 @@ class WHMCSApi extends Base {
             throw new CException(implode("\n", $result['errors']));
         }
 
-        $json = json_decode($result['data'], true);
-        if(isset($json['status']) && $json['status'] == 'ERROR') {
-            throw new CException(sprintf('Cpanel/API/KuberDock:%s error: %s', $response['cpanelresult']['func'], $json['message']));
-        }
-
-        return $json;
+        return $result['data'];
     }
 
     /**

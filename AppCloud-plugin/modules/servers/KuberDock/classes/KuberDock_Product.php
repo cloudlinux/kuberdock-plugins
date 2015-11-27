@@ -12,6 +12,7 @@ use base\models\CL_Hosting;
 use base\models\CL_Client;
 use base\models\CL_MailTemplate;
 use components\KuberDock_Units;
+use exceptions\CException;
 
 /**
  * Class KuberDock_Product

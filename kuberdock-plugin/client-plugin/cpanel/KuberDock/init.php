@@ -3,6 +3,7 @@
 defined(DS) or define(DS, DIRECTORY_SEPARATOR);
 defined(KUBERDOCK_ROOT_DIR) or define(KUBERDOCK_ROOT_DIR, dirname(__FILE__));
 defined(KUBERDOCK_CLASS_DIR) or define(KUBERDOCK_CLASS_DIR, KUBERDOCK_ROOT_DIR . DS . 'classes');
+defined(KUBERDOCK_BIN_DIR) or define(KUBERDOCK_BIN_DIR, KUBERDOCK_ROOT_DIR . DS . 'bin');
 
 $dev = KUBERDOCK_ROOT_DIR . DS . 'dev-config.php';
 if(file_exists($dev)) {

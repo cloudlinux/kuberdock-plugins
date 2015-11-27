@@ -11,6 +11,7 @@ use base\CL_Base;
 use base\models\CL_Currency;
 use base\models\CL_Client;
 use api\KuberDock_Api;
+use exceptions\CException;
 
 /**
  * @return array
@@ -51,6 +52,7 @@ function KuberDock_CreateAccount($params) {
 
         return 'success';
     } catch(Exception $e) {
+        CException::log($e);
         return 'ERROR: ' . $e->getMessage();
     }
 }
@@ -66,6 +68,7 @@ function KuberDock_TerminateAccount($params) {
 
         return 'success';
     } catch(Exception $e) {
+        CException::log($e);
         return 'ERROR: ' . $e->getMessage();
     }
 }
@@ -81,6 +84,7 @@ function KuberDock_SuspendAccount($params) {
 
         return 'success';
     } catch(Exception $e) {
+        CException::log($e);
         return 'ERROR: ' . $e->getMessage();
     }
 }
@@ -96,6 +100,7 @@ function KuberDock_UnsuspendAccount($params) {
 
         return 'success';
     } catch(Exception $e) {
+        CException::log($e);
         return 'ERROR: ' . $e->getMessage();
     }
 }
@@ -215,6 +220,7 @@ function KuberDock_AdminServicesTabFieldsSave($params) {
         $product->setClient($client);
         $product->create($params['serviceid']);
     } catch(Exception $e) {
+        CException::log($e);
         // do nothing
     }
 }
@@ -229,6 +235,7 @@ function KuberDock_ChangePackage($params) {
         $upgrade = KuberDock_ProductUpgrade::model()->loadByServiceId($params['serviceid']);
         $upgrade->changePackage();
     } catch(Exception $e) {
+        CException::log($e);
         //
     }
 }

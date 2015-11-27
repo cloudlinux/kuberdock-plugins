@@ -469,6 +469,11 @@ class Pod {
     public function stop()
     {
         $this->command->stopContainer($this->name);
+
+        if($this->template_id) {
+            $proxy = new Proxy($this->api);
+            $proxy->removeRuleFromPod($this);
+        }
     }
 
     /**
@@ -514,6 +519,22 @@ class Pod {
         }
 
         return array();
+    }
+
+    /**
+     * @param string $name
+     * @return array
+     * @throws CException
+     */
+    public function getContainerByName($name)
+    {
+        foreach($this->containers as $container) {
+            if($container['name'] == $name) {
+                return $container;
+            }
+        }
+
+        throw new CException('Can not find container by name in the template');
     }
 
     /**

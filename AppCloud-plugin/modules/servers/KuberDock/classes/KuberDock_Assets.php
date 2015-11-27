@@ -10,7 +10,7 @@ class KuberDock_Assets extends CL_Assets {
     /**
      * Relative assets path
      */
-    const RELATIVE_PATH = '/modules/servers/';
+    const RELATIVE_PATH = '../modules/servers/';
 
     /**
      * @param string $fileName
