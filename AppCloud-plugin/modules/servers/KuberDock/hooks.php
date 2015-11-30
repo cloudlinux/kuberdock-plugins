@@ -135,8 +135,12 @@ function KuberDock_ShoppingCartValidateCheckout($params)
     if(isset($_SESSION['cart']) && $params['userid']) {
         foreach($_SESSION['cart']['products'] as $product) {
             $product = KuberDock_Product::model()->loadById($product['pid']);
-            $server = $product->getServer();
-            $userProducts = KuberDock_Product::model()->getByUser($params['userid'], $server->id);
+            try {
+                $server = $product->getServer();
+                $userProducts = KuberDock_Product::model()->getByUser($params['userid'], $server->id);
+            } catch(Exception $e) {
+                CException::log($e);
+            }
 
             if(!$product->isKuberProduct()) continue;
 

@@ -308,6 +308,20 @@ class Pod {
     }
 
     /**
+     * @return ArrayObject|mixed|string
+     */
+    public function getPublicIp()
+    {
+        if(isset($this->public_ip) && $this->public_ip) {
+            return $this->public_ip;
+        } elseif(isset($this->labels['kuberdock-public-ip'])) {
+            return $this->labels['kuberdock-public-ip'];
+        } else {
+            return '';
+        }
+    }
+
+    /**
      * @return array
      */
     public function getKubeType()
@@ -423,7 +437,8 @@ class Pod {
                                 Please make payment in billing system at ' . $billingLink);
                 }
             }
-            $this->api->acceptOrder($data['orderid']);
+            $this->api->acceptOrder($data['orderid'], false);
+            $this->api->moduleCreate($data['productids']);
 
             $this->api = $this->api->setKuberDockInfo();
             $this->command = $this->api->getCommand();
@@ -469,11 +484,6 @@ class Pod {
     public function stop()
     {
         $this->command->stopContainer($this->name);
-
-        if($this->template_id) {
-            $proxy = new Proxy($this->api);
-            $proxy->removeRuleFromPod($this);
-        }
     }
 
     /**
@@ -482,6 +492,11 @@ class Pod {
     public function delete()
     {
         $this->command->deleteContainer($this->name);
+
+        if($this->template_id) {
+            $proxy = new Proxy($this->api);
+            $proxy->removeRuleFromPod($this);
+        }
     }
 
     /**

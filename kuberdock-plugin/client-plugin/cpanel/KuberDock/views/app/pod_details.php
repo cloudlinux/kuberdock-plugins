@@ -25,6 +25,17 @@
                 while($i < $pod->kubeCount) {
                     $i++;
                 }
+
+                $ports = array();
+                foreach($pod->containers as $r) {
+                    if(!isset($r['ports'])) continue;
+
+                    foreach($r['ports'] as $p) {
+                        if(isset($p['hostPort'])) {
+                            $ports[] = $p['hostPort'];
+                        }
+                    }
+                }
             ?>
             <div class="splitter">
                 <table class="table apps-list app-table">
@@ -47,8 +58,12 @@
                                 Kube quantity: <?php echo $pod->kubeCount ?>
                             </td>
                             <td>
-                                <?php echo (isset($pod->public_ip) && $pod->public_ip ? $pod->public_ip :
-                                (isset($pod->labels['kuberdock-public-ip']) ? $pod->labels['kuberdock-public-ip'] : 'none'))?>
+                            <?php if($ip = $pod->getPublicIp()):?>
+                                <?php echo $ip ?>
+                                <?php echo $ports ? '<br>Available ports: ' . implode(', ', $ports) : ''?>
+                            <?php else: ?>
+                                none
+                            <?php endif;?>
                             </td>
                             <td class="col-md-3"><?php echo $statusText == 'Start' ? 'Stopped' : 'Running' ?></td>
                             <td>
@@ -70,73 +85,9 @@
                     </tbody>
                 </table>
             </div>
-            <div class="splitter">
-                <label class="title">Ports</label>
-                <table class="table apps-list app-table">
-                    <thead>
-                        <tr>
-                            <th class="col-md-3">Container</th>
-                            <th class="col-md-3">Protocol</th>
-                            <th class="col-md-3">Host
-                                <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="right"
-                                      title="Host port is external port of a container used to access container port from using public_ip:host_port">
-                                </span>
-                            </th>
-                            <th class="col-md-3">Public</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach($pod->containers as $row):?>
-                        <?php foreach($row['ports'] as $port):
-                            if(!isset($port['hostPort']) && isset($port['containerPort']))
-                                $port['hostPort'] = $port['containerPort'];
-                            if(!isset($ports['isPublic']))
-                                $port['isPublic'] = false;
-                            if(!isset($ports['protocol']))
-                                $port['protocol'] = 'tcp';
-                            ?>
-                            <tr>
-                                <td><small><?php echo $port['containerPort']?></small></td>
-                                <td><small><?php echo $port['protocol']?></small></td>
-                                <td><small><?php echo $port['hostPort']?></small></td>
-                                <td><input type="checkbox" disabled<?php echo $port['isPublic'] ? ' checked' : ''?>></td>
-                            </tr>
-                        <?php endforeach;?>
-                    <?php endforeach;?>
-                    </tbody>
-                </table>
-            </div>
-
-        <?php if($pod->volumes):?>
-            <label class="title">Volumes</label>
-            <table class="table apps-list app-table">
-                <thead>
-                    <tr>
-                        <th class="col-md-3">Container path</th>
-                        <th class="col-md-3">Persistent</th>
-                        <th class="col-md-3">Name</th>
-                        <th class="col-md-3">Size (<?php echo $pod->units['hdd']?>)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach($pod->containers as $row):?>
-                        <?php foreach($row['volumeMounts'] as $volume):
-                            $pd = $pod->getPersistentStorageByName($volume['name']);
-                            ?>
-                            <tr>
-                                <td><?php echo $volume['mountPath']?></td>
-                                <td><input type="checkbox" disabled<?php echo isset($volume['readOnly']) && !$volume['readOnly'] ? ' checked' : ''?>></td>
-                                <td><?php echo isset($pd['persistentDisk']) ? $pd['persistentDisk']['pdName'] : '-'?></td>
-                                <td><?php echo isset($pd['persistentDisk']) ? $pd['persistentDisk']['pdSize'] : '-'?></td>
-                            </tr>
-                        <?php endforeach;?>
-                    <?php endforeach;?>
-                </tbody>
-            </table>
-        <?php endif;?>
 
             <div class="splitter last">
-                <label class="title">Environment variables</label>
+                <label class="title">Additional application information:</label>
                 <table class="table apps-list app-table">
                     <thead>
                         <tr>

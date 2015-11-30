@@ -40,6 +40,11 @@ class Proxy {
     {
         $htaccessPath = $this->getHtaccessPathByDomain($domain);
         $rule = $this->getRewriteRule($dir, '%s', $port);
+        $dirPath = $this->getDocRootByDomain($domain) . DS . $dir;
+
+        if(!file_exists($dirPath)) {
+            mkdir($dirPath);
+        }
 
         $command = sprintf('%s --pod_name="%s" --path=%s --rule="%s" -c 1',
             $this->getProxyCommand(), $podName, $htaccessPath, $rule);

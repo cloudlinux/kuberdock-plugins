@@ -258,7 +258,6 @@ class PredefinedApp {
                 throw new CException(sprintf('You have not enough funds for first deposit.
                     You need to make payment %.2f %s at %s', $rest, $currency['suffix'], $billingLink));
             }
-
             $data = $this->api->addOrder($this->api->getUserId(), $this->packageId);
             if($data['invoiceid'] > 0) {
                 $invoice = $this->api->getInvoice($data['invoiceid']);
@@ -267,7 +266,8 @@ class PredefinedApp {
                                 Please make payment in billing system at ' . $billingLink);
                 }
             }
-            $this->api->acceptOrder($data['orderid']);
+            $this->api->acceptOrder($data['orderid'], false);
+            $this->api->moduleCreate($data['productids']);
 
             $this->api->setKuberDockInfo();
             list($username, $password, $token) = $this->api->getAuthData();
@@ -518,7 +518,7 @@ class PredefinedApp {
     {
         if($default == 'autogen') {
             return $default;
-        } elseif(stripos($var, 'KUBE_COUNT') !== false) {
+        } elseif(stripos($var, 'KUBE_COUNT') !== false || stripos($var, 'KUBES') !== false) {
             return 'kube_count';
         } elseif(in_array($var, array('KUBE_TYPE', 'KUBETYPE'))) {
             return 'select';
@@ -558,11 +558,11 @@ class PredefinedApp {
     private function getKubeTypes()
     {
         $data = array();
-        $userProduct = $this->api->getProduct();
+        $userService = $this->api->getService();
 
         foreach($this->api->getProducts() as $product) {
             foreach($product['kubes'] as $kube) {
-                if(($userProduct && $userProduct['id'] == $product['id']) || !$userProduct) {
+                if(($userService && $userService['packageid'] == $product['id']) || !$userService) {
                     $data[] = array(
                         'id' => $kube['kuber_kube_id'],
                         'product_id' => $product['id'],
