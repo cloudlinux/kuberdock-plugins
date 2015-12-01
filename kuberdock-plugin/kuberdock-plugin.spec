@@ -1,7 +1,7 @@
 Version: 0.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 14%{?dist}.cloudlinux
+Release: 15%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -50,6 +50,13 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Tue Dec 1 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-15
+- AC-1550 cPanel. Usability issues
+- AC-1656 cPanel. Use bbcode in pre\post description cPanel. Use YAML library instead Cpanel::YAML
+- AC-1563 cPanel. Change predefined app details page
+- AC-1559 Make cPanel Apache proxy traffic to a container (predefined app YAML settings)
+- AC-1561 cPanel. Add user domain variable %USER_DOMAIN%
 
 * Fri Nov 20 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-14
 - AC-1523 cPanel. Use token from user config
