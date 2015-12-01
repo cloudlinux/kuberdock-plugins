@@ -12,23 +12,22 @@
 <script src="KuberDock/assets/script/fileupload/js/jquery.iframe-transport.js"></script>
 <script src="KuberDock/assets/script/fileupload/js/jquery.fileupload.js"></script>
 
-<div id="create-new-app" class="container-fluid top-offset">
-
+<div id="create-new-app" class="container pull-left top-offset">
     [% IF update %]
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-xs-6 col-md-10">
                 <h3>Update application</h3>
             </div>
         </div>
     [% END %]
 
     <div class="row">
-        <div class="col-md-3">
+        <div class="col-xs-3 col-md-5">
             <label for="app_name">Upload yaml</label>
             <input type="file" id="yaml_file" name="yaml_file" style="display: inline-block">
         </div>
 
-        <div class="col-md-3">
+        <div class="col-xs-3 col-md-5">
             <div id="progress" class="progress">
                 <div class="progress-bar progress-bar-success"></div>
             </div>
@@ -39,7 +38,7 @@
 
     <form action="[% action %]" method="post" class="form-inline">
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-xs-6 col-md-10">
                 <label for="app_name">cPanel app name</label>
                 <input type="text" id="app_name" name="app_name" class="form-control" value="[% appName %]"
                        data-validation="custom" data-validation-regexp="^([a-zA-Z_-\s]+)$">
@@ -47,19 +46,19 @@
         </div>
 
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-xs-6 col-md-10">
                 <textarea id="code" class="code-editor" name="code">[% yaml %]</textarea>
             </div>
         </div>
 
         <div class="row top-offset">
-            <div class="col-md-3 text-left">
+            <div class="col-xs-3 col-md-5 text-left">
             [% IF update %]
                 <a href="addon_kuberdock.cgi#pre-apps" class="btn btn-default">Back</a>
             [% END %]
             </div>
 
-            <div class="col-md-3 text-right">
+            <div class="col-xs-3 col-md-5 text-right">
                 <div>
                     <button type="submit" class="btn btn-primary" name="save">
                     [% IF update %]
@@ -87,6 +86,7 @@
         jQuery('#yaml_file').change(function() {
             jQuery('div.alert.upload').html('').hide();
             jQuery('#progress .progress-bar').width('0px');
+            jQuery('.progress-bar').text('');
         });
 
         jQuery('#yaml_file').fileupload({
@@ -96,6 +96,7 @@
                 if(!data.result.error) {
                     jQuery('#app_name').val(data.result.appName);
                     editor.getDoc().setValue(data.result.yaml);
+                    jQuery('.progress-bar').text(data.files[0].name + ' uploaded').css('text-align', 'center');
                 } else {
                     jQuery('div.alert.upload').html(data.result.error).show();
                 }
