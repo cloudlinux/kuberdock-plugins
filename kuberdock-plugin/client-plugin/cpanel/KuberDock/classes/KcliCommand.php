@@ -86,12 +86,18 @@ class KcliCommand extends Command {
      */
     public function getPods()
     {
-        return $this->execute(array(
-            $this->returnType,
-            'kubectl',
-            'get',
-            'pods',
-        ));
+        try {
+            return $this->execute(array(
+                $this->returnType,
+                'kubectl',
+                'get',
+                'pods',
+            ));
+        } catch(CException $e) {
+            if(stripos($e->getMessage(), 'hostingPanel') !== false) {
+                return array();
+            }
+        }
     }
 
     /**
@@ -323,7 +329,7 @@ class KcliCommand extends Command {
         return $this->execute(array(
             $this->returnType,
             'kuberdock',
-            'delete' => sprintf('"%s"', $name),
+            'delete' => sprintf("'%s'", $name),
         ));
     }
 
@@ -426,12 +432,18 @@ class KcliCommand extends Command {
      */
     public function getPersistentDrives()
     {
-        return $this->execute(array(
-            $this->returnType,
-            'kuberdock',
-            'drives',
-            'list',
-        ));
+        try {
+            return $this->execute(array(
+                $this->returnType,
+                'kuberdock',
+                'drives',
+                'list',
+            ));
+        } catch(CException $e) {
+            if(stripos($e->getMessage(), 'hostingPanel') !== false) {
+                return array();
+            }
+        }
     }
 
     /**
@@ -538,6 +550,9 @@ class KcliCommand extends Command {
         } elseif(isset($config['user']) && isset($config['password'])) {
             $newConfig['defaults']['user'] = $config['user'];
             $newConfig['defaults']['password'] = $config['password'];
+        } else {
+            $newConfig['defaults']['user'] = self::DEFAULT_USER;
+            $newConfig['defaults']['password'] = self::DEFAULT_USER;
         }
 
         $data = array();

@@ -30,7 +30,7 @@ $path = $opts['path'];
 $startCount = $opts['c'];
 $userHome = getenv('HOME');
 
-if(strpos($path, $userHome) !== true) {
+if(strpos($path, $userHome) === false) {
     throw new CException('Wrong path');
 }
 

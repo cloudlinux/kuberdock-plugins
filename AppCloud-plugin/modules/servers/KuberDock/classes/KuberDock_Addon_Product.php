@@ -39,7 +39,7 @@ class KuberDock_Addon_Product extends CL_Model {
         } else {
             try {
                 $response = $api->createPackage(array(
-                    'first_deposit' => $product->getConfigOption('firstDeposit'),
+                    'first_deposit' => (float) $product->getConfigOption('firstDeposit'),
                     'currency' => $currency->code,
                     'prefix' => $currency->prefix,
                     'suffix' => $currency->suffix,
@@ -74,7 +74,7 @@ class KuberDock_Addon_Product extends CL_Model {
         $pricing = $this->loadById($product->id);
         $api = $product->getApi();
         $api->updatePackage($pricing->kuber_product_id, array(
-            'first_deposit' => $product->getConfigOption('firstDeposit'),
+            'first_deposit' => (float) $product->getConfigOption('firstDeposit'),
             'currency' => $currency->code,
             'prefix' => $currency->prefix,
             'suffix' => $currency->suffix,

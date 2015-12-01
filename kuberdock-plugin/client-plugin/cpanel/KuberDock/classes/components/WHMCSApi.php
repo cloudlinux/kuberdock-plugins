@@ -207,16 +207,34 @@ class WHMCSApi extends Base {
     }
 
     /**
-     * @param $orderId
+     * @param int $orderId
+     * @param bool $autoSetup
      * @return mixed
      * @throws CException
      */
-    public function acceptOrder($orderId) {
+    public function acceptOrder($orderId, $autoSetup = true) {
         $data = $this->request(array(
             'orderid' => $orderId,
-            'autosetup' => true,
+            'autosetup' => $autoSetup,
             'sendemail' => true,
         ), 'acceptorder');
+
+        if($data['result'] == 'error') {
+            throw new CException($data['message']);
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param int $serviceId
+     * @return mixed
+     * @throws CException
+     */
+    public function moduleCreate($serviceId) {
+        $data = $this->request(array(
+            'accountid' => $serviceId,
+        ), 'modulecreate');
 
         if($data['result'] == 'error') {
             throw new CException($data['message']);
@@ -385,6 +403,10 @@ class WHMCSApi extends Base {
         return $domains;
     }
 
+    /**
+     * @return mixed
+     * @throws CException
+     */
     public function getUserDomains()
     {
         $response = Base::model()->panel->uapi('DomainInfo', 'domains_data', array('format' => 'hash'));
@@ -426,12 +448,17 @@ class WHMCSApi extends Base {
         $json = json_decode($data, true);
 
         if(isset($json['status']) && $json['status'] == 'ERROR') {
-            throw new CException(sprintf('Cpanel/API/KuberDock:%s error: %s', $response['cpanelresult']['func'], $json['message']));
+            throw new CException(sprintf('%s', $json['message']));
         }
 
         return $json;
     }
 
+    /**
+     * @param $response
+     * @return mixed
+     * @throws CException
+     */
     private function  getResponseData($response)
     {
         if(!isset($response['cpanelresult']['result'])) {
