@@ -46,7 +46,7 @@ try {
 } catch(CException $e) {
     if($startCount >= 30) {
         echo $e->getMessage();
-        exit;
+        exit(1);
     }
 
     $startCount++;

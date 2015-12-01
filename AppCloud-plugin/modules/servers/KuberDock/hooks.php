@@ -185,6 +185,7 @@ function KuberDock_AdminAreaHeadOutput()
     ));
     $assets->registerScriptFiles(array(
         'admin',
+        'url.min',
     ));
 
     return $assets->renderScriptFiles(false) . $assets->renderStyleFiles(false);
@@ -493,7 +494,6 @@ add_hook('ClientAreaPage', 1, 'KuberDock_ClientAreaPage');
  */
 function KuberDock_ClientAreaHomepage()
 {
-    //return '<div class="row"><a href="/customeinvoice.php" class="btn btn-large btn-primary">Make custom payment</a></div>';
 }
 //add_hook('ClientAreaHomepage', 1, 'KuberDock_ClientAreaHomepage');
 
@@ -577,9 +577,8 @@ add_hook('InvoiceUnpaid', 1, 'KuberDock_InvoiceUnpaid');
 /**
  * Run: When a product is being edited in Setup -> Products/Services -> Products/Services
  */
-function KuberDock_AdminProductConfigFields()
+function KuberDock_AdminProductConfigFields($params)
 {
-    // future for custom fields
 }
 //add_hook('AdminProductConfigFields', 1, 'KuberDock_AdminProductConfigFields');
 

@@ -22,11 +22,11 @@ function KuberDock_ConfigOptions() {
     $id = CL_Base::model()->getParam('id');
     $product = KuberDock_Product::model()->loadById($id);
 
-    $view->renderPartial('admin/module_settings', array(
+    /*$view->renderPartial('admin/module_settings', array(
         'product' => $product,
-    ));
+    ), false);*/
 
-    return array();
+    return $product->getConfig();
 }
 
 /**
