@@ -97,7 +97,7 @@
                     jQuery('#app_name').val(data.result.appName);
                     editor.getDoc().setValue(data.result.yaml);
                 } else {
-                    jQuery('div.alert.upload').html(data.result.message).show();
+                    jQuery('div.alert.upload').html(data.result.error).show();
                 }
             },
             progressall: function (e, data) {

@@ -482,10 +482,7 @@ class WHMCSApi extends Base {
     {
         list($username, $password, $token) = $this->getAuthData();
         $command = new KcliCommand($username, $password, $token);
-
-        if($token) {
-            $command->setConfig();
-        }
+        $command->setConfig();
 
         return $command;
     }

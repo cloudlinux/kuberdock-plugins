@@ -28,7 +28,7 @@
             this.createPopup = function() {
                 if(!this.$popup.length) {
                     $.ajax({
-                        async: this.options.async || false,
+                        //async: this.options.async || false,
                         method: 'GET',
                         url: this.options.url,
                         dataType: 'json'

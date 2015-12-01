@@ -181,12 +181,27 @@ class PredefinedApp {
         foreach($templates as &$row) {
             $row['template'] = Spyc::YAMLLoadString($row['template']);
 
-            if($this->isPackageExists($row['template'])) {
+            if($this->isPackageExists($row['template']) && (!isset($row['kuberdock']) || !$row['kuberdock'])) {
                 $data[] = $row;
             }
         }
 
         return $data;
+    }
+
+    /**
+     * @param string $podName
+     * @return array|bool
+     */
+    public function loadTemplate($podName)
+    {
+        $path = $this->getAppPath($podName);
+
+        if(!file_exists($path)) {
+            return false;
+        }
+
+        return Spyc::YAMLLoadString(file_get_contents($path));
     }
 
     /**
@@ -280,6 +295,7 @@ class PredefinedApp {
 
         $this->setPostInstallVariables($response);
         file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template));
+        file_put_contents($this->getAppPath($this->getPodName()), Spyc::YAMLDump($this->template));
 
         return $response;
     }
@@ -348,8 +364,10 @@ class PredefinedApp {
      */
     public function getPreDescription()
     {
+        $bbCode = new BBCode();
+
         return isset($this->template['kuberdock']['preDescription']) ?
-            $this->template['kuberdock']['preDescription'] : '';
+            $bbCode->toHTML($this->template['kuberdock']['preDescription']) : '';
     }
 
     /**
@@ -494,6 +512,25 @@ class PredefinedApp {
     }
 
     /**
+     * @param string $podName
+     * @param string $containerName
+     * @return mixed
+     * @throws CException
+     */
+    public function getContainerData($podName, $containerName)
+    {
+        $pod = $this->command->describePod($podName);
+
+        foreach($pod['containers'] as $container) {
+            if($container['name'] == $containerName) {
+                return $container;
+            }
+        }
+
+        throw new CException('Can not find container by name in the template');
+    }
+
+    /**
      * @param $value
      * @return string
      */
@@ -541,15 +578,15 @@ class PredefinedApp {
      */
     private function generatePassword()
     {
-        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@$#*%';
+        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
         $pass = array();
 
         for($i=0; $i<8; $i++) {
-            $n = rand(0, strlen($alphabet)-1);
+            $n = $i == 0 ? rand(0, 25) : rand(0, strlen($alphabet)-1);
             $pass[] = $alphabet[$n];
         }
 
-        return implode($pass);
+        return strtolower(implode($pass));
     }
 
     /**
@@ -576,10 +613,10 @@ class PredefinedApp {
     }
 
     /**
-     * @param $data
-     * @param $path
-     * @param $replace
-     * @param $value
+     * @param array $data
+     * @param string $path
+     * @param string $replace
+     * @param string $value
      * @return mixed
      */
     private function setByPath(&$data, $path, $replace, $value)
@@ -600,9 +637,10 @@ class PredefinedApp {
 
 
     /**
+     * @param string $name
      * @return string
      */
-    private function getAppPath()
+    private function getAppPath($name = null)
     {
         $path = array('.kuberdock_pre_apps', 'kuberdock_'. $this->templateId);
         $appDir = getenv('HOME');
@@ -615,7 +653,7 @@ class PredefinedApp {
             }
         }
 
-        return $appDir. DS . 'app.yaml';
+        return $appDir. DS . ($name ? $name : 'app.yaml');
     }
 
     /**
@@ -682,27 +720,17 @@ class PredefinedApp {
         });
     }
 
+    /**
+     * @return $this
+     */
     private function setDefaultVariables()
     {
         $this->variables['USER_DOMAIN'] = array(
             'replace' => '%USER_DOMAIN%',
             'type' => 'autogen',
-            'value' => current($this->api->getUserDomain()),
+            'value' => 'http://' . current($this->api->getUserDomain()),
         );
 
         return $this;
-    }
-
-    private function getContainerData($podName, $containerName)
-    {
-        $pod = $this->command->describePod($podName);
-
-        foreach($pod['containers'] as $container) {
-            if($container['name'] == $containerName) {
-                return $container;
-            }
-        }
-
-        throw new CException('Can not find container by name in the template');
     }
 }

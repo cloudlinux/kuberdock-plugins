@@ -46,7 +46,7 @@ class Proxy {
             mkdir($dirPath);
         }
 
-        $command = sprintf('%s --pod_name="%s" --path=%s --rule="%s" -c 1',
+        $command = sprintf('%s --pod_name="%s" --path=%s --rule=\'%s\' -c 1',
             $this->getProxyCommand(), $podName, $htaccessPath, $rule);
         exec($command);
     }
@@ -107,24 +107,69 @@ class Proxy {
     }
 
     /**
+     * @param $dir
+     * @param $domain
+     * @return bool
+     */
+    public function removeRuleByDirName($dir, $domain)
+    {
+        $path = $this->getHtaccessPathByDomain($domain);
+        if(!file_exists($path)) {
+            return false;
+        }
+
+        $htaccess = file_get_contents($path);
+
+        if(preg_match($this->getHtaccessRegexp(), $htaccess)) {
+            $htaccess = preg_replace_callback($this->getHtaccessRegexp(), function($e) use ($dir) {
+                $rules = array_filter(explode("\n", $e[1]), function($r) use ($dir) {
+                    if(strpos($r, $dir . '/(.*)') === false) {
+                        return $r;
+                    }
+                });
+                return implode("\n", array_merge(array(self::HTACCESS_START_SECTION), $rules, array(self::HTACCESS_END_SECTION)));
+            }, $htaccess);
+        }
+
+        file_put_contents($path, $htaccess);
+    }
+
+    /**
+     * @param Pod $pod
+     * @throws CException
+     */
+    public function addRuleToPod(Pod $pod)
+    {
+        $app = new PredefinedApp($pod->template_id);
+        $template = $app->loadTemplate($pod->name);
+
+        if(isset($template['kuberdock']['proxy'])) {
+            foreach($template['kuberdock']['proxy'] as $dir => $proxy) {
+                if(isset($proxy['domain']) && isset($proxy['container'])) {
+                    $container = $app->getContainerData($pod->name, $proxy['container']);
+                    if ($ports = $container['ports']) {
+                        foreach ($ports as $port) {
+                            $this->addProxy($pod->name, $dir, $proxy['domain'], $port['hostPort']);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * @param Pod $pod
      * @throws CException
      */
     public function removeRuleFromPod(Pod $pod)
     {
         $app = new PredefinedApp($pod->template_id);
+        $template = $app->loadTemplate($pod->name);
 
-        if($app->proxy && $pod->podIP) {
-            foreach($app->proxy as $dir => $proxy) {
+        if(isset($template['kuberdock']['proxy'])) {
+            foreach($template['kuberdock']['proxy'] as $dir => $proxy) {
                 if(isset($proxy['domain']) && isset($proxy['container'])) {
-                    $container = $pod->getContainerByName($proxy['container']);
-                    if($ports = $container['ports']) {
-                        foreach($ports as $port) {
-                            $htaccessPath = $this->getHtaccessPathByDomain($proxy['domain']);
-                            $rule = $this->getRewriteRule($dir, $pod->podIP, $proxy['domain'], $port['hostPort']);
-                            $this->removeRule($htaccessPath, $rule);
-                        }
-                    }
+                    $this->removeRuleByDirName($dir, $proxy['domain']);
                 }
             }
         }

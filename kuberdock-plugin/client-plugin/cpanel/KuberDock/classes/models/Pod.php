@@ -476,6 +476,11 @@ class Pod {
     public function start()
     {
         $this->command->startContainer($this->name);
+
+        if($this->template_id) {
+            $proxy = new Proxy($this->api);
+            $proxy->addRuleToPod($this);
+        }
     }
 
     /**
@@ -491,12 +496,12 @@ class Pod {
      */
     public function delete()
     {
-        $this->command->deleteContainer($this->name);
-
         if($this->template_id) {
             $proxy = new Proxy($this->api);
             $proxy->removeRuleFromPod($this);
         }
+
+        $this->command->deleteContainer($this->name);
     }
 
     /**

@@ -157,11 +157,20 @@ sub createAppAction() {
 
     if($uploadYaml) {
         if($app->uploadFile('yaml_file', 'app.yaml')) {
-            my $yaml = $app->readYamlFile('app.yaml');
+            my $yaml;
+            eval {
+                $yaml = $app->readYamlFile('app.yaml');
+            };
+
             $vars->{appName} = $yaml->{kuberdock}->{name} || $appName;
             $vars->{appId} = $yaml->{kuberdock}->{id} || $app->{'_appId'};
-            $vars->{yaml} = $app->readYamlFile('app.yaml', 1),
-            $vars->{error} = 0;
+            if($@) {
+                $vars->{error} = $@;
+            } else {
+                $vars->{yaml} = $app->readYamlFile('app.yaml', 1);
+                $vars->{error} = 0;
+            }
+
             print $json->encode($vars);
         }
 
@@ -263,11 +272,20 @@ sub updateAppAction() {
 
     if($uploadYaml) {
         if($app->uploadFile('yaml_file', 'app.yaml')) {
-            my $yaml = $app->readYamlFile('app.yaml');
+            my $yaml;
+            eval {
+                $yaml = $app->readYamlFile('app.yaml');
+            };
+
             $vars->{appName} = $yaml->{kuberdock}->{name} || $appName;
             $vars->{appId} = $yaml->{kuberdock}->{id} || $app->{'_appId'};
-            $vars->{yaml} = $app->readYamlFile('app.yaml', 1),
-            $vars->{error} = 0;
+            if($@) {
+                $vars->{error} = $@;
+            } else {
+                $vars->{yaml} = $app->readYamlFile('app.yaml', 1);
+                $vars->{error} = 0;
+            }
+
             print $json->encode($vars);
         }
 
