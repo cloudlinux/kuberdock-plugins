@@ -37,7 +37,7 @@
                     }
                 }
             ?>
-            <div class="splitter">
+            <div class="splitter last">
                 <table class="table apps-list app-table">
                     <thead>
                         <tr>
@@ -84,28 +84,6 @@
                         </tr>
                     </tbody>
                 </table>
-            </div>
-
-            <div class="splitter last">
-                <label class="title">Additional application information:</label>
-                <table class="table apps-list app-table">
-                    <thead>
-                        <tr>
-                            <th class="col-md-6">Name</th>
-                            <th class="col-md-6">Value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach($pod->containers as $row):?>
-                            <?php foreach($row['env'] as $env):?>
-                                <tr>
-                                    <td><small><?php echo $env['name']?></small></td>
-                                    <td><small><?php echo $env['value']?></small></td>
-                                </tr>
-                            <?php endforeach;?>
-                        <?php endforeach;?>
-                    </tbody>
-                </table>
 
                 <div class="total-price-wrapper">
                     <p class="total-price"><?php echo $pod->totalPrice?></p>
@@ -125,23 +103,6 @@
             <div class="clearfix"></div>
         </div>
     </div>
-
-            <!-- <p class="kube-name">
-
-            </p> -->
-        <!-- <div class="kube-count">
-                <?php $i = 0;
-                while($i < $pod->kubeCount) {
-                    if($i % 2 == 0) {
-                        echo '<div>';
-                    }
-                    echo '<span aria-hidden="true" class="glyphicon glyphicon-stop"></span>';
-                    if($i % 2 != 0 || ($i+1) == $pod->kubeCount) {
-                        echo '</div>';
-                    }
-                    $i++;
-                } ?>
-            </div> -->
 
     <div class="modal fade bs-example-modal-sm confirm-modal" tabindex="-1" role="dialog" aria-labelledby="Confirm">
         <div class="modal-dialog modal-sm">

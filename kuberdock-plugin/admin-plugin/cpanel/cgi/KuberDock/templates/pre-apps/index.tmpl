@@ -1,13 +1,13 @@
-<div class="container-fluid">
+<div class="container pull-left">
     <div class="row">
-        <div class="col-md-8 col-sm-12">
+        <div class="col-xs-8 col-md-12">
             [% IF apps.size %]
             <table class="table table-bordered">
                 <thead>
                     <tr>
-                        <th class="text-center col-md-1 col-sm-1">#</th>
-                        <th class="col-md-3 col-sm-6">cPanel app name</th>
-                        <th class="col-md-4 col-sm-5">Actions</th>
+                        <th class="text-center col-xs-1 col-md-1">#</th>
+                        <th class="text-center col-xs-3 col-md-6">cPanel app name</th>
+                        <th class="text-center col-xs-4 col-md-5">Actions</th>
                     </tr>
                 </thead>
                 [% i = 0 %]
@@ -16,7 +16,7 @@
                 <tr>
                     <td class="text-center">[% i %]</td>
                     <td>[% app.name %]</td>
-                    <td class="actions">
+                    <td class="text-center actions">
                     [% IF !app.kuberdock %]
                         [% IF app.installed %]
                             <a href="?a=uninstallApp&app=[% app.id %]#pre_apps">
@@ -42,6 +42,8 @@
                 </tr>
                 [% END%]
             </table>
+            [% ELSE %]
+                <p class="top-offset alert alert-info">You haven't any apps now. Add apps in "Add new application" tab</p>
             [% END%]
         </div>
     </div>

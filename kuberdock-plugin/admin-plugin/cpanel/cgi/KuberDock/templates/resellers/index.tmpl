@@ -1,15 +1,15 @@
-<div class="container-fluid">
+<div class="container pull-left">
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-xs-8 col-md-12">
             [% IF data.size %]
             <form action="?a=saveReseller" method="post">
                 <table class="table table-bordered" id="resellers">
                     <thead>
                         <tr>
-                            <th class="col-md-4">WHMCS server URL\IP</th>
-                            <th class="col-md-2">Username</th>
-                            <th class="col-md-2">Password</th>
-                            <th class="col-md-4">Actions</th>
+                            <th class="text-center col-md-4">WHMCS server URL\IP</th>
+                            <th class="text-center col-md-2">Username</th>
+                            <th class="text-center col-md-2">Password</th>
+                            <th class="text-center col-md-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -22,7 +22,7 @@
                                     </td>
                                     <td><input type="text" name="[% reseller.key %]:username" value="[% reseller.value.username %]"></td>
                                     <td><input type="password" name="[% reseller.key %]:password" value="[% reseller.value.password %]"></td>
-                                    <td class="actions">
+                                    <td class="text-center actions">
                                         <input type="submit" id="save" value="Save" class="btn btn-xs btn-success">
                                         <input class="btn btn-xs btn-danger" type="submit" id="res-delete" value="Delete" owner="[% reseller.key %]" onclick="return resDelete(this);">
                                     </td>

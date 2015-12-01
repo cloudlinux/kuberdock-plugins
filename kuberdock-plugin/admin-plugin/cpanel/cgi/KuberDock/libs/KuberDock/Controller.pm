@@ -95,6 +95,7 @@ sub indexAction() {
         kubes => $api->getPackageKubes(@$packages[0]->{id}),
         defaults => $defaults,
         action => 'addon_kuberdock.cgi?a=createApp',
+        yaml => '# Please input your yaml here',
     };
 
     $self->render('index.tmpl', $vars);
@@ -151,7 +152,7 @@ sub createAppAction() {
     my $defaults = $resellers->loadData()->{defaults} || {};
     my $json = KuberDock::JSON->new;
     my $vars = {
-        yaml => $code || '#Some yaml',
+        yaml => $code || '# Please input your yaml here',
         appName => $appName,
     };
 

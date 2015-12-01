@@ -21,6 +21,7 @@
             this.init = function(el) {
                 this.el = el;
                 this.$el = $(el);
+                if(!$(el).length) return;
                 this.createPopup();
                 this.bindEvents();
             };
@@ -28,7 +29,7 @@
             this.createPopup = function() {
                 if(!this.$popup.length) {
                     $.ajax({
-                        //async: this.options.async || false,
+                        async: this.options.async || false,
                         method: 'GET',
                         url: this.options.url,
                         dataType: 'json'

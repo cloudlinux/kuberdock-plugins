@@ -152,3 +152,6 @@ p {
     border: none;
     color: #3c763d;
 }
+.modal-footer {
+    border-top: none;
+}
