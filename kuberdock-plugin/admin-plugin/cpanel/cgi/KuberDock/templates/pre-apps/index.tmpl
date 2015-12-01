@@ -1,13 +1,13 @@
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-8 col-sm-12">
             [% IF apps.size %]
             <table class="table table-bordered">
                 <thead>
                     <tr>
-                        <th class="text-center">#</th>
-                        <th>cPanel app name</th>
-                        <th>Actions</th>
+                        <th class="text-center col-md-1 col-sm-1">#</th>
+                        <th class="col-md-3 col-sm-6">cPanel app name</th>
+                        <th class="col-md-4 col-sm-5">Actions</th>
                     </tr>
                 </thead>
                 [% i = 0 %]
@@ -17,6 +17,7 @@
                     <td class="text-center">[% i %]</td>
                     <td>[% app.name %]</td>
                     <td class="actions">
+                    [% IF !app.kuberdock %]
                         [% IF app.installed %]
                             <a href="?a=uninstallApp&app=[% app.id %]#pre_apps">
                                 <button class="btn btn-warning btn-xs">Uninstall</button>
@@ -26,6 +27,7 @@
                                 <button class="btn btn-success btn-xs">Install</button>
                             </a>
                         [% END %]
+                    [% END %]
                         <a href="?a=updateApp&app=[% app.id %]#pre_apps">
                             <button type="button" class="btn btn-primary btn-xs" title="Update">
                             <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>Update

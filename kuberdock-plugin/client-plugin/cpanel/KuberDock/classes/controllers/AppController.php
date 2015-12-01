@@ -56,13 +56,16 @@ class AppController extends KuberDock_Controller {
 
     public function installPredefinedAction()
     {
+        $bbCode = new BBCode();
         $templateId = Tools::getParam('template', '');
         $new = Tools::getParam('new', '');
-        $postDescription = Tools::getParam('postDescription', '');
         $podName = Tools::getParam('podName', '');
+        $postDescription = Tools::getParam('postDescription', '');
+        $start = Tools::getParam('start', '');
 
         try {
             $app = new PredefinedApp($templateId);
+            $parsedTemplate = $app->loadTemplate($podName);
             $variables = $app->getVariables();
             $pods = $app->getExistingPods();
             $podsCount = count($pods);
@@ -72,13 +75,13 @@ class AppController extends KuberDock_Controller {
             if($_POST) {
                 try {
                     $app->setPackageId(Tools::getPost('product_id'));
-                    $pod = $app->createApp($_POST);
-                    $app->start();
+                    $app->createApp($_POST);
+                    //$app->start();
 
                     echo json_encode(array(
                         'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
-                        'redirect' => sprintf('%s?c=app&a=installPredefined&template=%s&podName=%s&postDescription=%s',
-                            $_SERVER['SCRIPT_URI'], $templateId, $app->getPodName(), $app->getPostDescription()),
+                        'redirect' => sprintf('%s?c=app&a=installPredefined&template=%s&podName=%s&postDescription=%s&start=1',
+                            $_SERVER['SCRIPT_URI'], $templateId, $app->getPodName(), 1),
                     ));
                 } catch (CException $e) {
                     echo $e->getJSON();
@@ -103,12 +106,19 @@ class AppController extends KuberDock_Controller {
                         $pod = $pod->loadByName(current($pods)['name']);
                     }
 
+                    if($postDescription) {
+                        $postDescription = isset($parsedTemplate['kuberdock']['postDescription']) ?
+                            $parsedTemplate['kuberdock']['postDescription'] : '';
+                        $postDescription = $bbCode->toHTML($postDescription);
+                    }
+
                     $this->render('pod_details', array(
                         'app' => $app,
                         'pod' => $pod,
                         'postDescription' => $postDescription,
                         'podsCount' => $podsCount,
                         'templateId' => $templateId,
+                        'start' => $start,
                     ));
                     break;
                 default:

@@ -77,7 +77,7 @@ var _$ = $.noConflict();
                 loader.addClass('hidden');
             }
         }).done(function(data) {
-            displayMessage(data.message);
+            //displayMessage(data.message);
             if(data.redirect) {
                 window.location.href = data.redirect;
             }

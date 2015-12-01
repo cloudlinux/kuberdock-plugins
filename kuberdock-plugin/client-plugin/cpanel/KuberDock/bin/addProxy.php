@@ -13,7 +13,7 @@ $opts = getopt('c:', array(
 if(!isset($opts['pod_name']) || !isset($opts['rule']) || !isset($opts['path']) || !isset($opts['c'])) {
     echo <<<USAGE
 Usage:
-createProxy --pod_name="POD_NAME" --rule="HTACCESS_RULE" --path="HTACESS_PATH" -c TRY_COUNT
+createProxy --pod_name="POD_NAME" --rule='HTACCESS_RULE' --path="HTACESS_PATH" -c TRY_COUNT
 
 Params:
 --pod_name          Pod name
@@ -42,6 +42,7 @@ try {
     if(!isset($pod['podIP'])) {
         throw new CException(sprintf('Cannot get pod IP for pod %s', $podName));
     }
+
     $proxy->addRule($path, sprintf($rule, $pod['podIP']));
 } catch(CException $e) {
     if($startCount >= 30) {
@@ -50,7 +51,7 @@ try {
     }
 
     $startCount++;
-    $command = sprintf('at now +1min <<< \'%s --pod_name=%s --rule="%s" --path=%s -c %d\'',
+    $command = sprintf('at now +1min <<< \'%s --pod_name=%s --rule=\'%s\' --path=%s -c %d\'',
         __FILE__, $podName, $rule, $path, $startCount);
     system($command);
 }

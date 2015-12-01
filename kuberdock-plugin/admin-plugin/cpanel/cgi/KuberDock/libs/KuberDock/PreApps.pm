@@ -3,7 +3,7 @@ package KuberDock::PreApps;
 use strict;
 use warnings FATAL => 'all';
 
-use Cpanel::YAML;
+use YAML;
 use Cpanel::Binaries;
 use File::Basename;
 use File::Fetch;
@@ -19,6 +19,8 @@ use constant KUBERDOCK_APPS_DIR => '.kuberdock_pre_apps';
 use constant KUBERDOCK_MAIN_APP_FILE => 'install.json';
 use constant KUBERDOCK_DEFAULT_ICON => '/usr/local/cpanel/whostmgr/docroot/cgi/KuberDock/assets/images/default.png';
 use constant CPANEL_INSTALL_PLUGIN=> '/usr/local/cpanel/scripts/install_plugin';
+
+local $YAML::CompressSeries = 1;
 
 sub new {
     my $class = shift;
@@ -68,7 +70,13 @@ sub getList() {
         my $path = $self->{_appsDir} . '/'. $appId . '/install.json';
 
         $i->{'installed'} = -e dirname($path) . '/' . 'installed' ? 1 : 0;
-        $i->{'name'} = $yaml->{'kuberdock'}->{'name'} || 'Not setted in cPanel. Please update template.';
+        if(!-e dirname($path)) {
+            $i->{'kuberdock'} = 1;
+            $i->{'name'} = 'Template created in KuberDock. For use it in cPanel, please update it.';
+        } else {
+            $i->{'name'} = $yaml->{'kuberdock'}->{'name'} || 'Undefined';
+        }
+
         $i->{'appId'} = $appId;
 
         push @data, $i;
@@ -168,26 +176,22 @@ sub readYaml() {
 
     $data = 'Empty data' if !defined $data;
 
-    return Cpanel::YAML::Load($data);
+    return YAML::Load($data);
 }
 
 sub readYamlFile() {
     my ($self, $fileName, $asText) = @_;
+    my $json = KuberDock::JSON->new;
     my $path = $self->getFilePath($fileName);
     my $yaml;
-    eval {
-        $yaml = Cpanel::YAML::LoadFile($path);
-    };
 
-    if($@) {
-        KuberDock::Exception::throw($@);
-    }
+    $yaml = YAML::LoadFile($path);
 
     if(defined $asText && $asText) {
-        return Cpanel::YAML::Dump($yaml);
-    } else {
-        return $yaml;
+        $yaml = $json->readFile($path);
     }
+
+    return $yaml;
 }
 
 # TODO: fix YAML::Syck save boolean values as string in quotes ('true')
@@ -195,22 +199,7 @@ sub saveYaml() {
     my ($self, $file, $data) = @_;
     my $path = $self->getFilePath($file);
 
-    Cpanel::YAML::DumpFile($path, $data);
-
-    open(FILE, "<", $path);
-    my @lines = <FILE>;
-    close(FILE);
-
-    my @newlines;
-    foreach(@lines) {
-        $_ =~ s/'true'/true/g;
-        $_ =~ s/'false'/false/g;
-        push(@newlines, $_);
-    }
-
-    open(FILE, ">", $path);
-    print FILE @newlines;
-    close(FILE);
+    YAML::DumpFile($path, $data);
 }
 
 sub createInstall() {

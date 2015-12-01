@@ -4,9 +4,11 @@
             <h2>Application "<?php echo $app->getName()?>"</h2>
         </div>
         <div class="col-md-12">
-            <p>You are about to launch new dedicated application. Please, select amount of resources you want to make
-            available for that application. After your application will be launched it will be available during
-            one minute.</p>
+            <p>
+                A list of your applications below. Click "Add new App" to set up new application or click on the name
+                of application to go to application page with detailed information of application configuration.
+                Use control buttons to start, edit or delete your application.
+            </p>
         </div>
     </div>
     <div class="row">

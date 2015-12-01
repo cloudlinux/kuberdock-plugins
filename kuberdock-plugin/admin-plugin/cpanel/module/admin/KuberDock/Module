@@ -8,6 +8,8 @@ use Cpanel::PwCache ();
 use KuberDock::Resellers;
 use KuberDock::JSON;
 use KuberDock::KCLI;
+use KuberDock::PreApps;
+use Data::Dumper;
 
 use constant KUBERDOCK_CONFIG_PATH => '/var/cpanel/apps/kuberdock_whmcs.json';
  
@@ -28,13 +30,14 @@ if($function eq 'getConfig') {
         print $json->encode($config);
         exit(0);
     } else {
-        print "KuberDock config file not exists. Please fill in 'Ressellers' tab via administrator interface";
+        print "KuberDock config file not exists. Please fill in 'Billing integration' tab via administrator interface";
         exit(1)
     }
 }
 elsif($function eq 'getGlobalTemplates') {
-    KuberDock::KCLI::setResponseType(1);
-    print KuberDock::KCLI::getTemplates(1);
+    my $apps = KuberDock::PreApps->new;
+    my $json = KuberDock::JSON->new;
+    print $json->encode([$apps->getList()]);
     exit(0);
 }
 elsif($function eq 'getGlobalTemplate') {
