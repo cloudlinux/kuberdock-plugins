@@ -219,7 +219,7 @@ sub createAppAction() {
             }
         }
 
-        $yaml->{kuberdock}->{'template_id'} = $template->{id};
+        $yaml->{kuberdock}->{'kuberdock_template_id'} = $template->{id};
 
         $app->saveYaml('app.yaml', $yaml);
         KuberDock::KCLI::updateTemplate($template->{'id'}, $app->getFilePath('app.yaml'), $appName);
@@ -316,7 +316,7 @@ sub updateAppAction() {
             }
         }
 
-        $yaml->{kuberdock}->{'template_id'} = $template->{id};
+        $yaml->{kuberdock}->{'kuberdock_template_id'} = $template->{id};
 
         $app->saveYaml('app.yaml', $yaml);
         my $template = KuberDock::KCLI::updateTemplate($app->{'_templateId'}, $app->getFilePath('app.yaml'), $appName);

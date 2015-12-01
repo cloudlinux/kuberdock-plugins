@@ -322,6 +322,10 @@ function KuberDock_ClientAreaPage($params)
                 }
                 $referer = isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] ?
                     $_SERVER['HTTP_REFERER'] : 'https://136.243.221.249';       // TODO: FIX IT
+                if(isset($parsedYaml['kuberdock']['server'])) {
+                    $referer = $parsedYaml['kuberdock']['server'];
+                }
+
                 $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $referer);
                 $product = KuberDock_Product::model()->loadById($kdProduct->product_id);
 
@@ -489,9 +493,9 @@ add_hook('ClientAreaPage', 1, 'KuberDock_ClientAreaPage');
  */
 function KuberDock_ClientAreaHomepage()
 {
-    return '<div class="row"><a href="/customeinvoice.php" class="btn btn-large btn-primary">Make custom payment</a></div>';
+    //return '<div class="row"><a href="/customeinvoice.php" class="btn btn-large btn-primary">Make custom payment</a></div>';
 }
-add_hook('ClientAreaHomepage', 1, 'KuberDock_ClientAreaHomepage');
+//add_hook('ClientAreaHomepage', 1, 'KuberDock_ClientAreaHomepage');
 
 /**
  * Run: This hook runs as an invoice status is changing from Unpaid to Paid after all automation associated

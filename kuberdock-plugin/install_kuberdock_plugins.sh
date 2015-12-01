@@ -19,6 +19,7 @@ function install
         fi
         /bin/cp $CONF_PATH/dynamicui_kuberdockgroup.conf $template/dynamicui
         /bin/cp -R $CLIENT_SOURCE_PATH/$PLUGIN_NAME $template
+        /bin/chmod 755 $template/$PLUGIN_NAME/bin/*
     done
 
     if [ -e /usr/local/cpanel/scripts/install_plugin ]; then
@@ -140,6 +141,7 @@ function upgrade
             /bin/rm -R $template/$PLUGIN_NAME
         fi
         /bin/cp -R $CLIENT_SOURCE_PATH/$PLUGIN_NAME $template
+        /bin/chmod 755 $template/$PLUGIN_NAME/bin/*
     done
 
     if [ -e /usr/local/cpanel/scripts/install_plugin ]; then

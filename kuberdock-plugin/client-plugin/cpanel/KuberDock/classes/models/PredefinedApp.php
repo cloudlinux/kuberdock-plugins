@@ -9,7 +9,7 @@ class PredefinedApp {
     /**
      *
      */
-    const TEMPLATE_REGEXP = '/\$(?<variable>\w+)\|default:(?<default>[[:alnum:]\s]+)\|(?<description>[[:alnum:]\s]+)\$/';
+    const TEMPLATE_REGEXP = '/\$(?<variable>\w+)\|default:(?<default>[[:alnum:]\w\W\s]+)\|(?<description>[[:alnum:]\s]+)\$/';
     /**
      *
      */
@@ -229,7 +229,7 @@ class PredefinedApp {
                     'path' => $path,
                 );
 
-                if($row == 'KUBETYPE') {
+                if(in_array($row, array('KUBETYPE', 'KUBE_TYPE'))) {
                     $data[$row]['data'] = $this->getKubeTypes();
                 }
             }
@@ -290,6 +290,20 @@ class PredefinedApp {
     public function start()
     {
         $this->command->startContainer($this->getPodName());
+
+        if($this->proxy) {
+            $model = new Proxy($this->api);
+            foreach($this->proxy as $dir => $proxy) {
+                if(isset($proxy['domain']) && isset($proxy['container'])) {
+                    $container = $this->getContainerData($this->getPodName(), $proxy['container']);
+                    if($ports = $container['ports']) {
+                        foreach($ports as $port) {
+                            $model->addProxy($this->getPodName(), $dir, $proxy['domain'], $port['hostPort']);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -348,12 +362,27 @@ class PredefinedApp {
     }
 
     /**
+     * @return array
+     */
+    public function getProxy()
+    {
+        return isset($this->template['kuberdock']['proxy']) ?
+            $this->template['kuberdock']['proxy'] : array();
+    }
+
+    /**
      * @param bool $fromBilling
      * @return string
      * @throws CException
      */
     public function getPackageId($fromBilling = false)
     {
+        $userProduct = $this->api->getProduct();
+
+        if($userProduct) {
+            return $userProduct['id'];
+        }
+
         $defaults = $this->api->getDefaults();
         $defaultPackageId = isset($defaults['packageId']) ? $defaults['packageId'] : 0;
 
@@ -370,7 +399,7 @@ class PredefinedApp {
             if($row['kubes'][0]['kuber_product_id'] == $packageId) return $row['id'];
         }
 
-        throw new CException('Cannot get KuberDock package');
+        throw new CException('Cannot get KuberDock package or template has package that is different from user package');
     }
 
     /**
@@ -491,7 +520,7 @@ class PredefinedApp {
             return $default;
         } elseif(stripos($var, 'KUBE_COUNT') !== false) {
             return 'kube_count';
-        } elseif(stripos($var, 'KUBETYPE') !== false) {
+        } elseif(in_array($var, array('KUBE_TYPE', 'KUBETYPE'))) {
             return 'select';
         } else {
             return 'input';
@@ -599,8 +628,13 @@ class PredefinedApp {
     {
         $variables = $this->variables;
         return preg_replace_callback($pattern, function($matches) use ($variables, $data) {
-            if(isset($variables[$matches['variable']]) && isset($data[$matches['variable']])) {
-                return $data[$matches['variable']];
+            if(isset($variables[$matches['variable']])) {
+                if(isset($data[$matches['variable']])) {
+                    return $data[$matches['variable']];
+                } elseif(isset($variables[$matches['variable']]['value'])) {
+                    return $variables[$matches['variable']]['value'];
+                }
+
             } else {
                 return $matches[0];
             }
@@ -612,6 +646,8 @@ class PredefinedApp {
      */
     private function setVariables($data)
     {
+        $this->setDefaultVariables();
+
         array_walk_recursive($this->template, function(&$e) use ($data) {
             // bug with returned type of value (preg_replace_callback)
             if(preg_match(self::VARIABLE_REGEXP, $e)) {
@@ -644,5 +680,29 @@ class PredefinedApp {
                 $e = $this->replaceTemplateVariable($e, $variables, self::SPECIAL_VARIABLE_REGEXP);
             }
         });
+    }
+
+    private function setDefaultVariables()
+    {
+        $this->variables['USER_DOMAIN'] = array(
+            'replace' => '%USER_DOMAIN%',
+            'type' => 'autogen',
+            'value' => current($this->api->getUserDomain()),
+        );
+
+        return $this;
+    }
+
+    private function getContainerData($podName, $containerName)
+    {
+        $pod = $this->command->describePod($podName);
+
+        foreach($pod['containers'] as $container) {
+            if($container['name'] == $containerName) {
+                return $container;
+            }
+        }
+
+        throw new CException('Can not find container by name in the template');
     }
 }

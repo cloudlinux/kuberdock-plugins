@@ -55,7 +55,11 @@ class CException extends Exception {
         $filePath = substr($exception->getFile(), stripos($exception->getFile(), 'KuberDock'));
         $date = new DateTime();
         $trace = $exception->getTrace();
-        $parent = sprintf('%s:%s', $trace[0]['file'], $trace[0]['line']);
+        $parent = '';
+
+        if($trace) {
+            $parent = sprintf('%s:%s', $trace[0]['file'], $trace[0]['line']);
+        }
 
         if(LOG_ERRORS) {
             $data = sprintf("%s - %s Line: %d (%s) %s\n",
