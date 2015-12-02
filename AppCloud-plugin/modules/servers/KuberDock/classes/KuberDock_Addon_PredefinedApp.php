@@ -149,7 +149,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
         $postDescription = isset($data['kuberdock'][self::KUBERDOCK_YAML_POST_DESCRIPTION_FIELD]) ?
             $data['kuberdock'][self::KUBERDOCK_YAML_POST_DESCRIPTION_FIELD] : '';
 
-        $postDescription = str_replace(array_keys($variables), array_values($variables), $postDescription);
+        //$postDescription = str_replace(array_keys($variables), array_values($variables), $postDescription);
 
         return $postDescription;
     }
