@@ -4,6 +4,8 @@ use strict;
 use warnings FATAL => 'all';
 
 use YAML;
+use YAML::Tiny;
+use YAML::Syck;
 use Cpanel::Binaries;
 use File::Basename;
 use File::Fetch;
@@ -176,7 +178,7 @@ sub readYaml() {
 
     $data = 'Empty data' if !defined $data;
 
-    return YAML::Load($data);
+    return YAML::Syck::Load($data);
 }
 
 sub readYamlFile() {
@@ -185,16 +187,16 @@ sub readYamlFile() {
     my $path = $self->getFilePath($fileName);
     my $yaml;
 
-    $yaml = YAML::LoadFile($path);
+    #$yaml = YAML::LoadFile($path);
+    $yaml = YAML::Tiny->read($path);
 
     if(defined $asText && $asText) {
-        $yaml = $json->readFile($path);
+        return $json->readFile($path);
     }
 
-    return $yaml;
+    return $yaml->[0];
 }
 
-# TODO: fix YAML::Syck save boolean values as string in quotes ('true')
 sub saveYaml() {
     my ($self, $file, $data) = @_;
     my $path = $self->getFilePath($file);
