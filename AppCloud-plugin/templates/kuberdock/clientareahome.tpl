@@ -34,27 +34,34 @@
         </div>
     </div>
 </div>
+<div class="container-padding-default" style="margin-top: 43px;">
+    {if $announcements}
+    <div class="alert alert-warning">
+        <strong>{$LANG.ourlatestnews}:</strong>
+        {$announcements.0.text|strip_tags|truncate:100:'...'} - <a href="announcements.php?id={$announcements.0.id}">{$LANG.more}...</a>
+    </div>
+    {/if}
 
-{if $announcements}
-<div class="alert alert-warning">
-    <p><strong>{$LANG.ourlatestnews}:</strong> {$announcements.0.text|strip_tags|truncate:100:'...'} - <a href="announcements.php?id={$announcements.0.id}" class="btn btn-mini">{$LANG.more}...</a></p>
+    {if $ccexpiringsoon}
+    <div class="alert alert-error">
+        <strong>{$LANG.ccexpiringsoon}:</strong>
+        {$LANG.ccexpiringsoondesc|sprintf2:'<a href="clientarea.php?action=creditcard">':'</a>'}
+    </div>
+    {/if}
+    {if $clientsstats.incredit}
+    <div class="alert alert-success">
+        <strong>{$LANG.availcreditbal}:</strong>
+        {$LANG.availcreditbaldesc|sprintf2:$clientsstats.creditbalance}
+    </div>
+    {/if}
+    {if $clientsstats.numoverdueinvoices>0}
+    <div class="alert alert-error">
+        <strong>{$LANG.youhaveoverdueinvoices|sprintf2:$clientsstats.numoverdueinvoices}:</strong>
+        {$LANG.overdueinvoicesdesc|sprintf2:'<a href="clientarea.php?action=masspay&all=true">':'</a>'}
+    </div>
+    {/if}
 </div>
-{/if}
-{if $ccexpiringsoon}
-<div class="alert alert-error">
-    <p><strong>{$LANG.ccexpiringsoon}:</strong> {$LANG.ccexpiringsoondesc|sprintf2:'<a href="clientarea.php?action=creditcard" class="btn btn-mini">':'</a>'}</p>
-</div>
-{/if}
-{if $clientsstats.incredit}
-<div class="alert alert-success">
-    <p><strong>{$LANG.availcreditbal}:</strong> {$LANG.availcreditbaldesc|sprintf2:$clientsstats.creditbalance}</p>
-</div>
-{/if}
-{if $clientsstats.numoverdueinvoices>0}
-<div class="alert alert-block alert-error">
-    <p><strong>{$LANG.youhaveoverdueinvoices|sprintf2:$clientsstats.numoverdueinvoices}:</strong> {$LANG.overdueinvoicesdesc|sprintf2:'<a href="clientarea.php?action=masspay&all=true" class="btn btn-mini btn-danger">':'</a>'}</p>
-</div>
-{/if}
+
 <div class="container-padding-left">
     {foreach from=$addons_html item=addon_html}
         {$addon_html}
@@ -104,7 +111,7 @@
             <th><a href="supporttickets.php?orderby=subject">{$LANG.supportticketssubject}</a></th>
             <th><a href="supporttickets.php?orderby=status">{$LANG.supportticketsstatus}</a></th>
             <th class="headerSortdesc"><a href="supporttickets.php?orderby=lastreply">{$LANG.supportticketsticketlastupdated}</a></th>
-           <!--  <th>&nbsp;</th> -->
+            <th>&nbsp;</th>
         </tr>
     </thead>
     <tbody>
@@ -115,11 +122,11 @@
                 <td><div align="left"><img src="{$BASE_PATH_IMG}/article.gif" alt="Ticket" border="0" />&nbsp;<a href="viewticket.php?tid={$ticket.tid}&amp;c={$ticket.c}">{if $ticket.unread}<strong>{/if}#{$ticket.tid} - {$ticket.subject}{if $ticket.unread}</strong>{/if}</a></div></td>
                 <td>{$ticket.status}</td>
                 <td>{$ticket.lastreply}</td>
-                <!-- <td class="textcenter"><a href="viewticket.php?tid={$ticket.tid}&c={$ticket.c}" class="btn btn-inverse">{$LANG.supportticketsviewticket}</a></td> -->
+                <td class="textcenter"><a href="viewticket.php?tid={$ticket.tid}&c={$ticket.c}" class="btn btn-inverse">{$LANG.supportticketsviewticket}</a></td>
             </tr>
         {foreachelse}
         <tr>
-            <td colspan="5" class="textcenter">{$LANG.supportticketsnoneopen}</td>
+            <td colspan="6" class="textcenter">{$LANG.supportticketsnoneopen}</td>
         </tr>
         {/foreach}
     </tbody>
@@ -146,7 +153,7 @@
                 <th{if $orderby eq "total"} class="headerSort{$sort}"{/if}><a href="clientarea.php?action=invoices&orderby=total">{$LANG.invoicestotal}</a></th>
                 <th{if $orderby eq "balance"} class="headerSort{$sort}"{/if}><a href="clientarea.php?action=invoices&orderby=balance">{$LANG.invoicesbalance}</a></th>
                 <th{if $orderby eq "status"} class="headerSort{$sort}"{/if}><a href="clientarea.php?action=invoices&orderby=status">{$LANG.invoicesstatus}</a></th>
-                <!-- <th>&nbsp;</th> -->
+                <th>&nbsp;</th>
             </tr>
         </thead>
         <tbody>
@@ -159,7 +166,7 @@
                 <td>{$invoice.total}</td>
                 <td>{$invoice.balance}</td>
                 <td><span class="label {$invoice.rawstatus}">{$invoice.statustext}</span></td>
-    <!--             <td class="textcenter"><a href="viewinvoice.php?id={$invoice.id}" target="_blank" class="btn">{$LANG.invoicesview}</a></td> -->
+                <td class="textcenter"><a href="viewinvoice.php?id={$invoice.id}" target="_blank" class="btn">{$LANG.invoicesview}</a></td>
             </tr>
         {foreachelse}
             <tr>

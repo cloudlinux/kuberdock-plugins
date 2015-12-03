@@ -4,14 +4,18 @@
     <div class="searchbox">
         <form method="post" action="supporttickets.php">
             <div class="input-append">
-                <input type="text" name="searchterm" value="{if $q}{$q}{else}{$LANG.searchtickets}{/if}" class="input-medium appendedInputButton" onfocus="if(this.value=='{$LANG.searchtickets}')this.value=''" /><button type="submit" class="btn btn-info">{$LANG.searchfilter}</button>
+                <input type="text" name="searchterm" placeholder="{$LANG.searchtickets}" value="{if $q}{$q}{else}{$LANG.searchtickets}{/if}" class="" onfocus="if(this.value=='{$LANG.searchtickets}')this.value=''" />
+                <input type="submit" class="send-message" value="{$LANG.searchfilter}"/>
             </div>
         </form>
     </div>
     <div class="resultsbox">
-        <p>{$numitems} {$LANG.recordsfound}, {$LANG.page} {$pagenumber} {$LANG.pageof} {$totalpages}</p>
+        {$numitems} {$LANG.recordsfound}, {$LANG.page} {$pagenumber} {$LANG.pageof} {$totalpages}
     </div>
+    <div class="clear"></div>
 </div>
+
+<br/>
 
 <table class="table custom">
     <thead>

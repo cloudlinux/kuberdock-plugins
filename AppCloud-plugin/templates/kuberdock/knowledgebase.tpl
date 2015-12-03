@@ -1,12 +1,10 @@
 {include file="$template/pageheader.tpl" title=$LANG.knowledgebasetitle}
 
-<div class="well">
+<div class="well knowledge-search">
     <div class="textcenter">
         <form method="post" action="knowledgebase.php?action=search" class="form-inline">
-            <fieldset class="control-group">
-                <input class="bigfield" name="search" type="text" value="{$LANG.kbquestionsearchere}" onfocus="this.value=(this.value=='{$LANG.kbquestionsearchere}') ? '' : this.value;" onblur="this.value=(this.value=='') ? '{$LANG.kbquestionsearchere}' : this.value;"/>
-                <input type="submit" class="btn btn-large btn-primary" value="{$LANG.knowledgebasesearch}" />
-            </fieldset>
+            <input class="bigfield" name="search" type="text" value="{$LANG.kbquestionsearchere}" onfocus="this.value=(this.value=='{$LANG.kbquestionsearchere}') ? '' : this.value;" onblur="this.value=(this.value=='') ? '{$LANG.kbquestionsearchere}' : this.value;"/>
+            <input type="submit" class="send-message" value="{$LANG.knowledgebasesearch}" />
         </form>
     </div>
 </div>

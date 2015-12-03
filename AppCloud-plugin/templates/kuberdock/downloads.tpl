@@ -1,15 +1,15 @@
 {include file="$template/pageheader.tpl" title=$LANG.downloadstitle}
 
-<div class="container-padding-default">
-    <div class="searchbox" style="float: none; text-align: center;">
+<div class="well knowledge-search">
+    <div class="textcenter">
         <form method="post" action="downloads.php?action=search">
-            <div class="input-append">
-                <input type="text" name="search" value="{$LANG.downloadssearch}" class="input-medium appendedInputButton" onfocus="if(this.value=='{$LANG.downloadssearch}')this.value=''" /><button type="submit" class="btn btn-warning">{$LANG.search}</button>
-            </div>
+            <input type="text" name="search" value="{$LANG.downloadssearch}" class="bigfield" style="margin-bottom: 0;" onfocus="if(this.value=='{$LANG.downloadssearch}')this.value=''" />
+            <input type="submit" class="send-message" value="{$LANG.search}">
         </form>
+        <div class="clear"></div>
+        <br>
+        <p align="center">{$LANG.downloadsintrotext}</p>
     </div>
-    <div class="clear"></div>
-    <p align="center">{$LANG.downloadsintrotext}</p>
 </div>
 
 {include file="$template/subheader.tpl" title=$LANG.downloadscategories}
@@ -36,7 +36,3 @@
     <span class="lighttext">{$LANG.downloadsfilesize}: {$download.filesize}</span>
 </div>
 {/foreach}
-
-<br />
-<br />
-<br />

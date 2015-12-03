@@ -1,11 +1,12 @@
 {include file="$template/pageheader.tpl" title=$LANG.networkstatustitle desc=$LANG.networkstatusintro}
-<div class="container-padding-default">
-    <div class="alert alert-block alert-warning">
-        <p class="textcenter fontsize3">
-            <a href="{$smarty.server.PHP_SELF}?view=open" class="networkissuesopen">{$opencount} {$LANG.networkissuesstatusopen}</a> &nbsp;&nbsp;&nbsp;&nbsp;
-            <a href="{$smarty.server.PHP_SELF}?view=scheduled" class="networkissuesscheduled">{$scheduledcount} {$LANG.networkissuesstatusscheduled}</a> &nbsp;&nbsp;&nbsp;&nbsp;
-            <a href="{$smarty.server.PHP_SELF}?view=resolved" class="networkissuesclosed">{$resolvedcount} {$LANG.networkissuesstatusresolved}</a>
-        </p>
+<div class="well tasks">
+    <div class="textcenter">
+        <span class="task-qty">{$opencount}</span>
+        <a href="{$smarty.server.PHP_SELF}?view=open" class="networkissuesopen">{$LANG.networkissuesstatusopen}</a>
+        <span class="task-qty">{$scheduledcount}</span>
+        <a href="{$smarty.server.PHP_SELF}?view=scheduled" class="networkissuesscheduled">{$LANG.networkissuesstatusscheduled}</a>
+        <span class="task-qty">{$resolvedcount}</span>
+        <a href="{$smarty.server.PHP_SELF}?view=resolved" class="networkissuesclosed">{$LANG.networkissuesstatusresolved}</a>
     </div>
 </div>
 
@@ -20,7 +21,6 @@
         </blockquote>
         <p><strong>{$LANG.networkissuesdate}</strong> - {$issue.startdate}{if $issue.enddate} - {$issue.enddate}{/if}</p>
         <p><strong>{$LANG.networkissueslastupdated}</strong> - {$issue.lastupdate}</p>
-
     {if $issue.clientaffected}</div>{/if}
 {foreachelse}
     <p class="textcenter"><strong>{$noissuesmsg}</strong></p>
@@ -89,6 +89,10 @@
 {/if}
 
 <div class="container-padding-default">
-    {if $loggedin}<p align="center">{$LANG.networkissuesaffectingyourservers}</p>{/if}
-<!--     <p align="right"><img src="{$BASE_PATH_IMG}/rssfeed.gif" alt="RSS" align="absmiddle" /> <a href="networkissuesrss.php">{$LANG.announcementsrss}</a></p> -->
+    {if $loggedin}<p align="center">{$LANG.networkissuesaffectingyourservers}</p>{/if}<br/>
+    <p align="center">
+        <img src="{$BASE_PATH_IMG}/rssfeed.gif" alt="RSS" align="absmiddle" />
+        <a href="networkissuesrss.php">{$LANG.announcementsrss}</a><br/>
+    </p>
+    <br/>
 </div>

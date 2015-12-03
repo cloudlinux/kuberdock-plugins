@@ -1,7 +1,8 @@
 {include file="$template/pageheader.tpl" title=$LANG.clientareanavchangepw}
-<div class="container-padding-default">
-    {include file="$template/clientareadetailslinks.tpl"}
 
+{include file="$template/clientareadetailslinks.tpl"}
+
+<div class="container-padding-default">
     {if $successful}
         <div class="alert alert-success">
             <p>{$LANG.changessavedsuccessfully}</p>
@@ -18,37 +19,37 @@
     {/if}
 </div>
 
-<form class="form-horizontal" method="post" action="{$smarty.server.PHP_SELF}?action=changepw">
+<form class="form-horizontal changepassword-form" method="post" action="{$smarty.server.PHP_SELF}?action=changepw">
     <div class="container-padding-default">
-        <fieldset class="onecol">
+        <div class="center40">
             <div class="control-group">
-                <label class="control-label" for="existingpw">{$LANG.existingpassword}</label>
-                <div class="controls">
-                    <input type="password" name="existingpw" id="existingpw" />
-                </div>
+                <label for="existingpw">{$LANG.existingpassword}</label>
+                <input type="password" name="existingpw" id="existingpw" />
             </div>
             <div class="control-group">
-                <label class="control-label" for="password">{$LANG.newpassword}</label>
-                <div class="controls">
-                    <input type="password" name="newpw" id="password" />
-                </div>
+                <label for="password">{$LANG.newpassword}</label>
+                <input type="password" name="newpw" id="password" />
             </div>
             <div class="control-group">
-                <label class="control-label" for="confirmpw">{$LANG.confirmnewpassword}</label>
-                <div class="controls">
-                    <input type="password" name="confirmpw" id="confirmpw" />
-                </div>
+                <label for="confirmpw">{$LANG.confirmnewpassword}</label>
+                <input type="password" name="confirmpw" id="confirmpw" />
             </div>
             <div class="control-group">
-                <label class="control-label" for="passstrength">{$LANG.pwstrength}</label>
-                <div class="controls">
-                    {include file="$template/pwstrength.tpl"}
-                </div>
+                <label for="passstrength">{$LANG.pwstrength}</label>
+                {include file="$template/pwstrength.tpl"}
             </div>
-        </fieldset>
+            <br/>
+            <br/>
+        </div>
     </div>
-    <div class="form-actions">
-        <input class="btn btn-primary" type="submit" name="submit" value="{$LANG.clientareasavechanges}" />
-        <input class="btn" type="reset" value="{$LANG.cancel}" />
+    <div class="container-padding-default">
+        <div class="center40" style="font-size: 0;">
+            <input class="gray-button" style="width: 49%; margin-right: 1%;" type="reset" value="{$LANG.cancel}" />
+            <input class="send-message" style="width: 50%" type="submit" name="submit" value="{$LANG.clientareasavechanges}" />
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+        </div>
     </div>
 </form>

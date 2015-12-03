@@ -1,18 +1,23 @@
 {include file="$template/pageheader.tpl" title=$LANG.clientareanavdomains desc=$LANG.clientareadomainsintro}
+<div class="container-padding-default">
+    <div class="searchbox">
+        <form method="post" action="clientarea.php?action=domains">
+            <div class="input-append">
+                <input type="text" name="q" value="{if $q}{$q}{else}{$LANG.searchenterdomain}{/if}" class="" onfocus="if(this.value=='{$LANG.searchenterdomain}')this.value=''" />
+                <input type="submit" class="send-message" palceholder="{$LANG.searchfilter}" value="{$LANG.searchfilter}"/>
+            </div>
+        </form>
+    </div>
 
-<div class="searchbox">
-    <form method="post" action="clientarea.php?action=domains">
-        <div class="input-append">
-            <input type="text" name="q" value="{if $q}{$q}{else}{$LANG.searchenterdomain}{/if}" class="input-medium appendedInputButton" onfocus="if(this.value=='{$LANG.searchenterdomain}')this.value=''" /><button type="submit" class="btn btn-info">{$LANG.searchfilter}</button>
-        </div>
-    </form>
+    <div class="resultsbox">
+    <p>{$numitems} {$LANG.recordsfound}, {$LANG.page} {$pagenumber} {$LANG.pageof} {$totalpages}</p>
+    </div>
+
+    <div class="clear"></div>
 </div>
 
-<div class="resultsbox">
-<p>{$numitems} {$LANG.recordsfound}, {$LANG.page} {$pagenumber} {$LANG.pageof} {$totalpages}</p>
-</div>
+<br/>
 
-<div class="clear"></div>
 {literal}
 <script>
 $(document).ready(function() {
@@ -27,7 +32,7 @@ $(document).ready(function() {
 <form method="post" id="bulkactionform" action="clientarea.php?action=bulkdomain">
 <input id="bulkaction" name="update" type="hidden" />
 
-<table class="table table-striped table-framed">
+<table class="table custom">
     <thead>
         <tr>
             <th class="textcenter"><input type="checkbox" onclick="toggleCheckboxes('domids')" /></th>
@@ -71,18 +76,20 @@ $(document).ready(function() {
 {/foreach}
     </tbody>
 </table>
-
-<div class="btn-group">
-<a class="btn btn-inverse" href="#" data-toggle="dropdown"><i class="icon-folder-open icon-white"></i> {$LANG.withselected}</a>
-<a class="btn btn-inverse dropdown-toggle" href="#" data-toggle="dropdown"><span class="caret"></span></a>
-<ul class="dropdown-menu">
-    <li><a href="#" id="nameservers" class="setbulkaction"><i class="icon-globe"></i> {$LANG.domainmanagens}</a></li>
-    <li><a href="#" id="autorenew" class="setbulkaction"><i class="icon-refresh"></i> {$LANG.domainautorenewstatus}</a></li>
-    <li><a href="#" id="reglock" class="setbulkaction"><i class="icon-lock"></i> {$LANG.domainreglockstatus}</a></li>
-    <li><a href="#" id="contactinfo" class="setbulkaction"><i class="icon-user"></i> {$LANG.domaincontactinfoedit}</a></li>
-    {if $allowrenew}<li><a href="#" id="renew" class="setbulkaction"><i class="icon-repeat"></i> {$LANG.domainmassrenew}</a></li>{/if}
-</ul>
-</div></form>
+<div class="container-padding-default">
+    <div class="btn-group">
+        <a class="btn" href="#" data-toggle="dropdown"></i> {$LANG.withselected}</a>
+        <a class="btn dropdown-toggle" href="#" data-toggle="dropdown"><span class="caret"></span></a>
+        <ul class="dropdown-menu">
+            <li><a href="#" id="nameservers" class="setbulkaction">{$LANG.domainmanagens}</a></li>
+            <li><a href="#" id="autorenew" class="setbulkaction">{$LANG.domainautorenewstatus}</a></li>
+            <li><a href="#" id="reglock" class="setbulkaction">{$LANG.domainreglockstatus}</a></li>
+            <li><a href="#" id="contactinfo" class="setbulkaction">{$LANG.domaincontactinfoedit}</a></li>
+            {if $allowrenew}<li><a href="#" id="renew" class="setbulkaction">{$LANG.domainmassrenew}</a></li>{/if}
+        </ul>
+    </div>
+</div>
+</form>
 
 {include file="$template/clientarearecordslimit.tpl" clientareaaction=$clientareaaction}
 
