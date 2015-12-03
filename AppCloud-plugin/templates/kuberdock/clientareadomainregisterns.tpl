@@ -1,5 +1,6 @@
 {include file="$template/pageheader.tpl" title=$LANG.domainregisterns}
 
+
 <div class="alert alert-block alert-info">
     <p>{$LANG.domainname}: <strong>{$domain}</strong</p>
 </div>

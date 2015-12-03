@@ -1,17 +1,16 @@
 {include file="$template/pageheader.tpl" title=$LANG.knowledgebasetitle}
 
-<p>{$breadcrumbnav}</p>
-
-<br />
+<div class="container-padding-63">
+    <p>{$breadcrumbnav}</p>
+    <br/>
+</div>
 
 <div class="well">
     <div class="textcenter">
         <form method="post" action="knowledgebase.php?action=search" class="form-inline">
         {if $catid}<input type="hidden" name="catid" value="{$catid}" />{/if}
-            <fieldset class="control-group">
-                <input class="bigfield" name="search" type="text" value="{if $searchterm}{$searchterm}{else}{$LANG.kbquestionsearchere}{/if}" onfocus="this.value=(this.value=='{$LANG.kbquestionsearchere}') ? '' : this.value;" onblur="this.value=(this.value=='') ? '{$LANG.kbquestionsearchere}' : this.value;"/>
-                <input type="submit" class="btn btn-large btn-primary" value="{$LANG.knowledgebasesearch}" />
-            </fieldset>
+            <input class="bigfield" name="search" type="text" value="{if $searchterm}{$searchterm}{else}{$LANG.kbquestionsearchere}{/if}" onfocus="this.value=(this.value=='{$LANG.kbquestionsearchere}') ? '' : this.value;" onblur="this.value=(this.value=='') ? '{$LANG.kbquestionsearchere}' : this.value;"/>
+            <input type="submit" class="send-message" value="{$LANG.knowledgebasesearch}" />
         </form>
     </div>
 </div>

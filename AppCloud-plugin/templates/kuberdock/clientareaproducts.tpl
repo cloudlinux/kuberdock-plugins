@@ -1,17 +1,22 @@
 {include file="$template/pageheader.tpl" title=$LANG.clientareaproducts desc=$LANG.clientareaproductsintro}
 
 <div class="container-padding-default">
+    <div class="resultsbox">
+        {$numitems} {$LANG.recordsfound}, {$LANG.page} {$pagenumber} {$LANG.pageof} {$totalpages}
+    </div>
     <div class="searchbox">
         <form method="post" action="clientarea.php?action=products">
             <div class="input-append">
-                <input type="text" name="q" value="{if $q}{$q}{else}{$LANG.searchenterdomain}{/if}" class="input-medium appendedInputButton" onfocus="if(this.value=='{$LANG.searchenterdomain}')this.value=''" /><button type="submit" class="btn btn-info">{$LANG.searchfilter}</button>
+                <input type="text" name="q" value="{if $q}{$q}{else}{$LANG.searchenterdomain}{/if}" placeholder="{if $q}{$q}{else}{$LANG.searchenterdomain}{/if}" class="" onfocus="if(this.value=='{$LANG.searchenterdomain}')this.value=''" />
+                <input type="submit" class="send-message" value="{$LANG.searchfilter}">
             </div>
         </form>
     </div>
-    <div class="resultsbox">
-        <p>{$numitems} {$LANG.recordsfound}, {$LANG.page} {$pagenumber} {$LANG.pageof} {$totalpages}</p>
-    </div>
+    <div class="clear"></div>
 </div>
+
+<br/>
+
 <table class="table custom">
     <thead>
         <tr>

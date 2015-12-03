@@ -1,14 +1,20 @@
 {include file="$template/pageheader.tpl" title=$LANG.invoices desc=$LANG.invoicesintro}
 
 <div class="container-padding-default">
-    <div class="searchbox">
-        <span class="invoicetotal">{$LANG.invoicesoutstandingbalance}: <span class="text{if $nobalance}green{else}red{/if}">{$totalbalance}</span></span>{if $masspay}&nbsp; <a href="clientarea.php?action=masspay&all=true" class="btn btn-success"><i class="icon-ok-circle icon-white"></i> {$LANG.masspayall}</a>{/if}
-    </div>
     <div class="resultsbox">
-        <p>{$numitems} {$LANG.recordsfound}, {$LANG.page} {$pagenumber} {$LANG.pageof} {$totalpages}</p>
+        {$numitems} {$LANG.recordsfound}, {$LANG.page} {$pagenumber} {$LANG.pageof} {$totalpages}
+    </div>
+    <div class="resultsbox pull-right">
+        <span class="invoicetotal">
+            <span>{$LANG.invoicesoutstandingbalance}:</span>
+            <span class="text{if $nobalance}green{else}red{/if}">{$totalbalance}</span>
+        </span>
+        {if $masspay}<a href="clientarea.php?action=masspay&all=true" class="send-message">{$LANG.masspayall}</a>{/if}
     </div>
     <div class="clear"></div>
 </div>
+
+<br/>
 
 <form method="post" action="clientarea.php?action=masspay">
 <table class="table custom">

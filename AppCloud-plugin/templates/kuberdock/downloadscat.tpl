@@ -1,16 +1,16 @@
 {include file="$template/pageheader.tpl" title=$LANG.downloadstitle}
 
-<div class="searchbox">
-    <form method="post" action="downloads.php?action=search">
-        <div class="input-append">
-            <input type="text" name="search" value="{if $search}{$search}{else}{$LANG.downloadssearch}{/if}" class="input-medium appendedInputButton" onfocus="if(this.value=='{$LANG.downloadssearch}')this.value=''" /><button type="submit" class="btn btn-warning">{$LANG.search}</button>
-        </div>
-    </form>
+<div class="well knowledge-search">
+    <div class="textcenter">
+        <form method="post" action="downloads.php?action=search">
+            <input type="text" name="search" value="{if $search}{$search}{else}{$LANG.downloadssearch}{/if}" class="bigfield" style="margin-bottom: 0;" onfocus="if(this.value=='{$LANG.downloadssearch}')this.value=''" />
+            <input type="submit" class="send-message" value="{$LANG.search}">
+        </form>
+        <div class="clear"></div>
+        <br>
+        <p align="center">{$LANG.downloadsintrotext}</p>
+    </div>
 </div>
-
-<p>{$LANG.downloadsintrotext}</p>
-
-<br />
 
 {if $dlcats}
 

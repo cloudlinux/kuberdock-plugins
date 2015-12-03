@@ -2,9 +2,12 @@
 
 <div class="container-padding-default">
     <div class="resultsbox">
-        <p>{$numitems} {$LANG.recordsfound}, {$LANG.page} {$pagenumber} {$LANG.pageof} {$totalpages}</p>
+        {$numitems} {$LANG.recordsfound}, {$LANG.page} {$pagenumber} {$LANG.pageof} {$totalpages}
     </div>
+    <div class="clear"></div>
 </div>
+
+<br/>
 
 <table class="table custom">
     <thead>
