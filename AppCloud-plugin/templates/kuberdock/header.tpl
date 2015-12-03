@@ -64,7 +64,7 @@
                 {if $condlinks.domaintrans}<li><a id="Menu-Domains-Transfer_Domains_to_Us" href="cart.php?a=add&domain=transfer">{$LANG.navtransferdomain}</a></li>{/if}
                 {if $enomnewtldsenabled}<li><a id="Menu-Domains-Preregister_New_TLDs" href="{$enomnewtldslink}">Preregister New TLDs</a></li>{/if}
                 <li class="divider"></li>
-                <li><a id="Menu-Domains-Whois_Lookup" href="domainchecker.php">{$LANG.navwhoislookup}</a></li>
+                <li><a id="Menu-Domains-Whois_Lookup" href="domainchecker.php">{$LANG.domainlookupbutton}</a></li>
               </ul>
             </li>
           </ul>{/if}
@@ -126,19 +126,19 @@
           <ul class="nav">
             <li><a id="Menu-Annoucements" href="announcements.php">{$LANG.announcementstitle}</a></li>
           </ul>
-          
+
           <ul class="nav">
             <li><a id="Menu-Knowledgebase" href="knowledgebase.php">{$LANG.knowledgebasetitle}</a></li>
           </ul>
-          
+
           <ul class="nav">
             <li><a id="Menu-Network_Status" href="serverstatus.php">{$LANG.networkstatustitle}</a></li>
           </ul>
-          
+
           <ul class="nav">
             <li><a id="Menu-Affiliates" href="affiliates.php">{$LANG.affiliatestitle}</a></li>
           </ul>
-          
+
           <ul class="nav">
             <li><a id="Menu-Contact_Us" href="contact.php">{$LANG.contactus}</a></li>
           </ul>

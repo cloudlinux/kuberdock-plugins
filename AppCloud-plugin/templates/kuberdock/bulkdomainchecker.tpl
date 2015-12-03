@@ -6,28 +6,39 @@
 </div>
 {/if}
 
-{if $bulkdomainsearchenabled}<p align="right"><a href="domainchecker.php">{$LANG.domainsimplesearch}</a> | <a href="domainchecker.php?search=bulktransfer">{$LANG.domainbulktransfersearch}</a></p>{/if}
+{if $bulkdomainsearchenabled}
+<div class="container-padding-default">
+    <div class="textcenter domainsearch-links">
+        <a class="d-search" href="domainchecker.php">{$LANG.domainsimplesearch}</a>
+        <a class="d-transfer" href="domainchecker.php?search=bulktransfer">{$LANG.domainbulktransfersearch}</a>
+    </div>
+</div>
+{/if}
 
 <form method="post" action="domainchecker.php?search=bulk">
 
-<div class="well">
-    <p>{$LANG.domainbulksearchintro}</p>
-    <br />
+<div class="well textcenter search-domain" style="margin-top: 25px;"  style="margin-top: 25px;">
+    <div class="styled_title">{$LANG.domainbulksearchintro}</div>
     <div class="textcenter">
         <textarea name="bulkdomains" rows="8" style="width:60%;">{$bulkdomains}</textarea>
     </div>
     <div class="textcenter">
-        {if $capatacha}
-        <div class="captchainput">
-            <p>{$LANG.captchaverify}</p>
-            {if $capatacha eq "recaptcha"}
-            <p>{$recapatchahtml}</p>
-            {else}
-            <p><img src="includes/verifyimage.php" align="middle" /> <input type="text" name="code" class="input-small" maxlength="5" /></p>
+        <div class="capatacha-wrap nomargin control-group">
+            {if $capatacha}
+                <div class="capatacha-code-wrap">
+                    {$LANG.captchaverify}
+                    {if $capatacha eq "recaptcha"}
+                        {$recapatchahtml}
+                    {else}
+                        <img src="includes/verifyimage.php" align="middle" />
+                        <input type="text" name="code" class="input-small" maxlength="5" />
+                    {/if}
+                </div>
             {/if}
+            <div class="internalpadding">
+                <input type="submit" value="{$LANG.checkavailability}" class="message-submit" />
+            </div>
         </div>
-        {/if}
-        <div class="internalpadding"><input type="submit" value="{$LANG.checkavailability}" class="btn btn-primary btn-large" /></div>
     </div>
 </div>
 

@@ -6,39 +6,56 @@
 </div>
 {/if}
 
-{if $bulkdomainsearchenabled}<p align="right"><a href="domainchecker.php?search=bulkregister">{$LANG.domainbulksearch}</a> | <a href="domainchecker.php?search=bulktransfer">{$LANG.domainbulktransfersearch}</a></p>{/if}
-
-<form method="post" action="domainchecker.php" class="form-horizontal">
-
-<div class="well">
-    <p>{$LANG.domaincheckerenterdomain}</p>
-    <br />
-    <div class="textcenter">
-        <div align="right" class="multitldbtn"><input type="button" value="{$LANG.searchmultipletlds} &raquo;" class="btn " onclick="jQuery('#tlds').slideToggle()" /></div>
-        <input class="bigfield" name="domain" type="text" value="{if $domain}{$domain}{else}{$LANG.domaincheckerdomainexample}{/if}" onfocus="if(this.value=='{$LANG.domaincheckerdomainexample}')this.value=''" onblur="if(this.value=='')this.value='{$LANG.domaincheckerdomainexample}'" />
-    </div>
-    <div class="domcheckertldselect hide" id="tlds">
-        {foreach from=$tldslist key=num item=listtld}
-            <div class="col4 textcenter"><label class="full"><input type="checkbox" name="tlds[]" value="{$listtld}"{if in_array($listtld,$tlds) || !$tlds && $num==1} checked{/if}> {$listtld}</label></div>
-        {/foreach}
-        <div class="clear"></div>
-    </div>
-
-    <div class="textcenter">
-        {if $capatacha}
-        <div class="captchainput">
-            <p>{$LANG.captchaverify}</p>
-            {if $capatacha eq "recaptcha"}
-            <p>{$recapatchahtml}</p>
-            {else}
-            <p><img src="includes/verifyimage.php" align="middle" /> <input type="text" name="code" class="input-small" maxlength="5" /></p>
-            {/if}
-        </div>
-        {/if}
-        <div class="internalpadding"><input type="submit" value="{$LANG.checkavailability}" class="btn btn-primary btn-large" />{if $condlinks.domaintrans} <input type="submit" name="transfer" value="{$LANG.domainstransfer}" class="btn btn-success btn-large" />{/if} <input type="submit" name="hosting" value="{$LANG.domaincheckerhostingonly}" class="btn btn-large" /></div>
+{if $bulkdomainsearchenabled}
+<div class="container-padding-default">
+    <div class="textcenter domainsearch-links">
+        <a class="d-search" href="domainchecker.php?search=bulkregister">{$LANG.domainbulksearch}</a>
+        <a class="d-transfer" href="domainchecker.php?search=bulktransfer">{$LANG.domainbulktransfersearch}</a>
     </div>
 </div>
+{/if}
 
+<form method="post" action="domainchecker.php" class="form-horizontal">
+    <div class="well textcenter search-domain" style="margin-top: 25px;">
+        <div class="styled_title">
+            {$LANG.domaincheckerenterdomain}
+        </div>
+        <input class="bigfield styled" name="domain" type="text" value="{if $domain}{$domain}{else}{$LANG.domaincheckerdomainexample}{/if}" onfocus="if(this.value=='{$LANG.domaincheckerdomainexample}')this.value=''" onblur="if(this.value=='')this.value='{$LANG.domaincheckerdomainexample}'" />
+        <input type="button" value="{$LANG.searchmultipletlds}" class="send-message" style="height: 46px; color: #fff;" onclick="jQuery('#tlds').slideToggle()" />
+
+        <div class="domcheckertldselect hide" id="tlds">
+            {foreach from=$tldslist key=num item=listtld}
+                <div class="col4 textcenter">
+                    <label class="full">
+                    <input type="checkbox" name="tlds[]" value="{$listtld}"{if in_array($listtld,$tlds) || !$tlds && $num==1} checked{/if}> {$listtld}
+                    </label>
+                </div>
+            {/foreach}
+            <div class="clear"></div>
+        </div>
+        <div class="textcenter">
+            <div class="capatacha-wrap nomargin control-group">
+                {if $capatacha}
+                    <div class="capatacha-code-wrap">
+                        {$LANG.captchaverify}
+                        {if $capatacha eq "recaptcha"}
+                            {$recapatchahtml}
+                        {else}
+                            <img src="includes/verifyimage.php" align="middle" />
+                            <input type="text" name="code" class="input-small" maxlength="5" />
+                        {/if}
+                    </div>
+                {/if}
+                <div class="internalpadding">
+                    <input type="submit" value="{$LANG.checkavailability}" class="" />
+                    {if $condlinks.domaintrans}
+                        <input type="submit" name="transfer" value="{$LANG.domainstransfer}" class="" />
+                    {/if}
+                    <input type="submit" name="hosting" value="{$LANG.domaincheckerhostingonly}" class="" />
+                </div>
+            </div>
+        </div>
+    </div>
 </form>
 
 {if $lookup}

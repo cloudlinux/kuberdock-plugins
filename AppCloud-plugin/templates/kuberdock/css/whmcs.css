@@ -315,42 +315,6 @@ input[type="image"], input[type="checkbox"], input[type="radio"] {
     height: 18px;
 }
 
-/* Table Styling */
-
-.table-framed {
-    border: 1px solid #DDD;
-    border-collapse: separate;
-    -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    border-radius: 4px;
-}
-table.table-striped tr td {
-    vertical-align: middle;
-}
-table.table-striped tr.subtotal td {
-    background-color:#FFFFDD;
-    font-weight: bold;
-}
-table.table-striped tr.tax td {
-    background-color:#EBF2FE;
-    font-weight: bold;
-}
-table.table-striped tr.credit td {
-    background-color:#FFE1E1;
-    font-weight: bold;
-}
-table.table-striped tr.total td {
-    background-color:#E7FFDA;
-    font-weight: bold;
-}
-table.table-striped tr.recurring td {
-    background-color:#FFE1E1;
-    font-weight: bold;
-}
-table.table-centered tr th, table.table-centered tr td {
-    text-align: center;
-}
-
 .whmcscontainer table .headerSortasc {
     background-color: rgba(141, 192, 219, 0.25);
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
@@ -713,7 +677,10 @@ body.popupwindow .popupcontainer {
     -o-border-radius: 6px;
     border-radius: 6px;
 }
-
+.whmcscontainer table.custom.striped tbody tr:nth-child(even) td,
+.whmcscontainer table.custom.striped thead tr th{
+    background-color: #f4f4f4;
+}
 .whmcscontainer table.ticketrating {
   display: table;
   width: auto;
@@ -730,6 +697,20 @@ body.popupwindow .popupcontainer {
     -webkit-border-radius: 0;
     -o-border-radius: 0;
     border-radius: 0;
+}
+.subtotal, .tax{
+    color: #111111;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 21px;
+    margin-bottom: 15px;
+}
+.total{
+    color: #6da73a;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 21px;
+    margin-bottom: 15px;
 }
 .whmcscontainer table.ticketrating td {
   display: table-cell;
@@ -1115,11 +1096,11 @@ body {
 }
 
 /* dropdown */
-.navbar .nav.pull-right .dropdown #Menu-Account{
+.navbar .nav.pull-right .dropdown{
     position: relative;
     padding-left: 34px;
 }
-.navbar .nav.pull-right .dropdown #Menu-Account:before{
+.navbar .nav.pull-right > .dropdown:before{
     top: 0;
     left: 0;
     bottom: 0;
@@ -1158,8 +1139,7 @@ body {
     border-radius: 0px;
 }
 .dropdown-menu a{
-    position: relative;
-    padding: 3px 15px 3px 28px;
+    padding: 3px 15px;
 }
 .dropdown-menu li > a,
 .dropdown-menu .active > a,
@@ -1171,22 +1151,6 @@ body {
 .dropdown-menu .active > a:hover{
 /*    color: #294174;*/
     background-color: #294174;
-}
-.dropdown-menu li > a:before,
-.dropdown-menu .active > a:before,
-.dropdown-menu .active > a:before{
-    content: "• ";
-    color: #294174; /* or whatever color you prefer */
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 12px;
-    margin: auto;
-    line-height: 24px;
-}
-.dropdown-menu li > a:hover:before,
-.dropdown-menu .active > a:hover:before{
-    color: #fff;
 }
 /* content */
 .whmcscontainer {
@@ -1337,7 +1301,8 @@ label.checkbox input:checked + span{
 .register select:focus,
 .knowledge-search input[type="text"]:focus,
 .register-form .capatacha-code-wrap input[type="text"]:focus,
-.choose-contact > select:focus{
+.choose-contact > select:focus,
+.well.search-domain textarea:focus{
     border-color: #294174;
     -webkit-box-shadow: 0px 0px 5px 0px rgba(41,65,116,1);
     -moz-box-shadow: 0px 0px 5px 0px rgba(41,65,116,1);
@@ -1455,6 +1420,10 @@ label.checkbox input:checked + span{
     text-align: right;
     font-size: 0;
 }
+.whmcscontainer .capatacha-wrap.nomargin{
+    text-align: center;
+    margin-bottom: 0;
+}
 .whmcscontainer .capatacha-wrap.well{
     text-align: center;
 }
@@ -1468,7 +1437,7 @@ label.checkbox input:checked + span{
     position: relative;
     margin-right: 17px;
 }
-.whmcscontainer .center95 .capatacha-wrap input[type="text"],
+.whmcscontainer .center95 .capatacha-wrap input[type="text"]
 .whmcscontainer .capatacha-wrap input[type="text"]{
     width: 100%;
     max-width: 233px;
@@ -1627,6 +1596,19 @@ label.checkbox input:checked + span{
 .well.search-domain {
     margin-top: 53px;
 }
+.well.search-domain .styled_title{
+    font-size: 14px;
+    color: #294174;
+    font-weight: 600;
+    width: 70%;
+    margin: 0 auto 20px;
+    line-height: 21px;
+}
+.well.search-domain textarea{
+    resize: none;
+    padding: 10px;
+    margin-bottom: 20px;
+}
 .well.search-domain > input{
     color: #294174;
     font-size: 14px;
@@ -1665,6 +1647,9 @@ label.checkbox input:checked + span{
     -o-transition: 0.1s linear all;
     transition: 0.1s linear all;
 }
+.well.search-domain .internalpadding input[type="submit"] + input[type="submit"]{
+    margin-left: 4px;
+}
 .form-horizontal .control-group.register{
     font-size: 0;
     margin-bottom: 46px;
@@ -1672,7 +1657,7 @@ label.checkbox input:checked + span{
 .register input,
 .register select,
 #pwstrengthbox,
-.register-form .capatacha-code-wrap input[type="text"],
+.capatacha-code-wrap input[type="text"],
 .send-message,
 .changepassword-form input[type="password"]{
     width: 100%;
@@ -1751,24 +1736,32 @@ label.checkbox input:checked + span{
     display: inline-block;
     line-height: 20px;
 }
-.usr-links li a{
+.usr-links li a,
+.domainsearch-links a{
     color: #6da73a;
     font-size: 14px;
     position: relative;
 }
-.usr-links li.icons a{
+.usr-links li.icons a,
+.domainsearch-links a{
     padding-left: 26px;
 }
-.usr-links li.icons a:before{
+.usr-links li.icons a:before,
+.domainsearch-links a:before{
     top: 0;
     left: 0;
     bottom: 0;
-    width: 19px;
-    height: 18px;
     margin: auto;
     content: '';
     position: absolute;
+}
+.usr-links li.icons a:before{
+    width: 19px;
+    height: 18px;
     background: url(../img/users-control-sprite.png) 0 -18px no-repeat;
+}
+.domainsearch-links a:before{
+    background: url(../img/domain-search-sprite.png) 0 0 no-repeat;
 }
 .usr-links li.urer a:before{
     background-position-x: 0;
@@ -1785,18 +1778,35 @@ label.checkbox input:checked + span{
     background-position-x: -45px;
 }
 .usr-links li:hover a,
-.usr-links li.active a{
+.usr-links li.active a,
+.domainsearch-links a:hover{
     color: #2c2c2c;
+    text-decoration: none;
     background-color: transparent;
 }
 .usr-links li:hover a:before,
 .usr-links li.active a:before{
     background-position-y: 0;
 }
-.usr-links li + li{
+.usr-links li + li,
+.domainsearch-links a + a{
     margin-left: 40px;
 }
-
+.domainsearch-links a.d-search:before,
+.domainsearch-links a.d-transfer:before{
+    width: 17px;
+    height: 17px;
+}
+.domainsearch-links a.d-search:before{
+    background-position: 0 0;
+}
+.domainsearch-links a.d-search:hover:before,
+.domainsearch-links a.d-transfer:hover:before{
+    background-position-y: -18px;
+}
+.domainsearch-links a.d-transfer:before{
+    background-position: -17px 0;
+}
 .choose-contact{
     font-size: 0;
 }
@@ -1808,7 +1818,8 @@ label.checkbox input:checked + span{
     vertical-align: top;
 }
 .choose-contact > select,
-.searchbox input[type="text"]{
+.searchbox input[type="text"],
+.bigfield.styled{
     font-size: 14px;
     padding: 13px 20px;
     height: 46px;
@@ -1891,11 +1902,14 @@ select:focus{
     outline: 0;
     outline: none;
 }
+input, textarea, select, .uneditable-input{
+    -moz-border-radius: 0;
+    -webkit-border-radius: 0;
+    -o-border-radius: 0;
+    border-radius: 0;
+}
 
 /* tables */
-/*table.custom{
-    margin-bottom: 82px;
-}*/
 .whmcscontainer table th a {
     color: #294174;
     display: block;
@@ -1935,11 +1949,9 @@ select:focus{
     content: "";
     display: table;
 }
-
 .clearfix:after {
     clear: both;
 }
-
 .clearfix {
     *zoom: 1;
 }

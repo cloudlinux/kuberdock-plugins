@@ -1,7 +1,8 @@
 {include file="$template/pageheader.tpl" title=$LANG.clientareaemails desc=$LANG.emailstagline}
 <div class="container-padding-default">
-    <p>{$numitems} {$LANG.recordsfound}, {$LANG.page} {$pagenumber} {$LANG.pageof} {$totalpages}</p>
+    <div class="resultsbox">{$numitems} {$LANG.recordsfound}, {$LANG.page} {$pagenumber} {$LANG.pageof} {$totalpages}</div>
 </div>
+
 <table class="table custom">
     <thead>
         <tr>
