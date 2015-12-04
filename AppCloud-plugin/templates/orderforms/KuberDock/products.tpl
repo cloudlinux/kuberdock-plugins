@@ -2,34 +2,38 @@
 <link rel="stylesheet" type="text/css" href="templates/orderforms/{$carttpl}/style.css" />
 
 <div id="order-modern">
+    <div class="page-header">
+        <div class="styled_title">
+            <h1>{$groupname}</h1>
+        </div>
+    </div>
+    <div class="container-padding-default row-down">
+        <div class="textcenter domainsearch-links">
+            <div id="categories">
+                {foreach key=num item=productgroup from=$productgroups}
+                    {if $productgroup.gid neq $gid}<a href="cart.php?gid={$productgroup.gid}">{$productgroup.name}</a>{/if}
+                {/foreach}
+                {if $loggedin}
+                    {if $gid neq "addons"}<a href="cart.php?gid=addons">{$LANG.cartproductaddons}</a>{/if}
+                    {if $renewalsenabled && $gid neq "renewals"}<a href="cart.php?gid=renewals">{$LANG.domainrenewals}</a>{/if}
+                {/if}
+                {if $registerdomainenabled && $domain neq "register"}<a href="cart.php?a=add&domain=register">{$LANG.registerdomain}</a>{/if}
+                {if $transferdomainenabled && $domain neq "transfer"}<a href="cart.php?a=add&domain=transfer">{$LANG.transferdomain}</a>{/if}
+                <a href="cart.php?a=view">{$LANG.viewcart}</a>
+            </div>
+            <div class="clear"></div>
+        </div>
+    </div>
 
-<h1>{$groupname}</h1>
-<div align="center"><a href="#" onclick="showcats();return false;">({$LANG.cartchooseanothercategory})</a></div>
-
-<div id="categories">
-{foreach key=num item=productgroup from=$productgroups}
-{if $productgroup.gid neq $gid}<a href="cart.php?gid={$productgroup.gid}">{$productgroup.name}</a>{/if}
-{/foreach}
-{if $loggedin}
-{if $gid neq "addons"}<a href="cart.php?gid=addons">{$LANG.cartproductaddons}</a>{/if}
-{if $renewalsenabled && $gid neq "renewals"}<a href="cart.php?gid=renewals">{$LANG.domainrenewals}</a>{/if}
-{/if}
-{if $registerdomainenabled && $domain neq "register"}<a href="cart.php?a=add&domain=register">{$LANG.registerdomain}</a>{/if}
-{if $transferdomainenabled && $domain neq "transfer"}<a href="cart.php?a=add&domain=transfer">{$LANG.transferdomain}</a>{/if}
-<a href="cart.php?a=view">{$LANG.viewcart}</a>
-</div>
-<div class="clear"></div>
-
-{if !$loggedin && $currencies}
-<div id="currencychooser">
-{foreach from=$currencies item=curr}
-<a href="cart.php?gid={$gid}&currency={$curr.id}"><img src="images/flags/{if $curr.code eq "AUD"}au{elseif $curr.code eq "CAD"}ca{elseif $curr.code eq "EUR"}eu{elseif $curr.code eq "GBP"}gb{elseif $curr.code eq "INR"}in{elseif $curr.code eq "JPY"}jp{elseif $curr.code eq "USD"}us{elseif $curr.code eq "ZAR"}za{else}na{/if}.png" border="0" alt="" /> {$curr.code}</a>
-{/foreach}
-</div>
-<div class="clear"></div>
-{else}
-<br />
-{/if}
+    {if !$loggedin && $currencies}
+        <br/>
+        <div id="currencychooser">
+            {foreach from=$currencies item=curr}
+                <a href="cart.php?gid={$gid}&currency={$curr.id}"><img src="images/flags/{if $curr.code eq "AUD"}au{elseif $curr.code eq "CAD"}ca{elseif $curr.code eq "EUR"}eu{elseif $curr.code eq "GBP"}gb{elseif $curr.code eq "INR"}in{elseif $curr.code eq "JPY"}jp{elseif $curr.code eq "USD"}us{elseif $curr.code eq "ZAR"}za{else}na{/if}.png" border="0" alt="" /> {$curr.code}</a>
+            {/foreach}
+        </div>
+        <div class="clear"></div>
+    {/if}
 
 {foreach from=$products key=num item=product}
 <div class="products {$num}">

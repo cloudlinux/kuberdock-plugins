@@ -21,9 +21,9 @@ jQuery(document).ready(function(){
     });
 });
 
-function showcats() {
+/*function showcats() {
     jQuery("#categories").slideToggle();
-}
+}*/
 
 function selproduct(num) {
     jQuery('#productslider').slider("value", num);

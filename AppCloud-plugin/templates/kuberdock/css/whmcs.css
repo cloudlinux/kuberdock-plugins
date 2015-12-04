@@ -23,7 +23,10 @@ a,
 .whmcscontainer .alert.alert-error a,
 .whmcscontainer .alert.alert-success a,
 .whmcscontainer .alert.alert-info a {
-    color: #004A95;
+    color: #6da73a;
+}
+a:hover{
+    color: #2c2c2c;
 }
 
 .fontsize2 {
@@ -50,7 +53,8 @@ a,
     text-align: right !important;
 }
 
-.textcenter, .textcenter td {
+.textcenter,
+.textcenter td {
     text-align: center !important;
 }
 
@@ -677,8 +681,8 @@ body.popupwindow .popupcontainer {
     -o-border-radius: 6px;
     border-radius: 6px;
 }
-.whmcscontainer table.custom.striped tbody tr:nth-child(even) td,
-.whmcscontainer table.custom.striped thead tr th{
+table.custom.striped tbody tr:nth-child(even) td,
+table.custom.striped thead tr th{
     background-color: #f4f4f4;
 }
 .whmcscontainer table.ticketrating {
@@ -783,282 +787,6 @@ div.twofabackupcode p {
     line-height: 24px;
 }
 
-/* Order Form Resets */
-
-#whmcsorderfrm p, #whmcsorderfrm dl, #whmcsorderfrm multicol {
-  display: block;
-  margin: 1em 0;
-}
-
-#whmcsorderfrm label, #whmcsorderfrm label input, #whmcsorderfrm label textarea, #whmcsorderfrm label select {
-    display: inline;
-}
-
-#whmcsorderfrm div.loading {
-    display: none;
-}
-
-#whmcsorderfrm dd {
-  display: block;
-  -moz-margin-start: 40px;
-}
-
-/*#whmcsorderfrm label {
-    padding: 0;
-    font-size: 1em;
-    line-height: 14px;
-    width: auto;
-    text-align: left;
-    float: none;
-}*/
-
-#whmcsorderfrm input[type="image"] {
-    height: auto;
-    border: 0;
-    -webkit-transaction: none;
-    -webkit-box-shadow: none;
-    box-shadow: none;
-}
-
-#whmcsorderfrm input[type="checkbox"], #whmcsorderfrm input[type="radio"] {
-    margin: 0 5px;
-    padding: 0;
-}
-
-#whmcsorderfrm blockquote {
-  display: block;
-  margin: 1em 40px;
-}
-
-#whmcsorderfrm center {
-  display: block;
-  text-align: -moz-center;
-}
-
-#whmcsorderfrm blockquote[type=cite] {
-  display: block;
-  margin: 1em 0px;
-  -moz-padding-start: 1em;
-  -moz-border-start: solid;
-  border-color: blue;
-  border-width: thin;
-}
-
-#whmcsorderfrm span[_moz_quote=true] {
-  color: blue;
-}
-
-#whmcsorderfrm pre[_moz_quote=true] {
-  color: blue;
-}
-
-#whmcsorderfrm h1 {
-  display: block;
-  font-size: 2em;
-  font-weight: bold;
-  margin: .67em 0;
-}
-
-#whmcsorderfrm h2 {
-  display: block;
-  font-size: 1.5em;
-  font-weight: bold;
-  margin: .83em 0;
-}
-
-#whmcsorderfrm h3 {
-  display: block;
-  font-size: 1.17em;
-  font-weight: bold;
-  margin: 1em 0;
-}
-
-#whmcsorderfrm h4 {
-  display: block;
-  font-weight: bold;
-  margin: 1.33em 0;
-}
-
-#whmcsorderfrm h5 {
-  display: block;
-  font-size: 0.83em;
-  font-weight: bold;
-  margin: 1.67em 0;
-}
-
-#whmcsorderfrm h6 {
-  display: block;
-  font-size: 0.67em;
-  font-weight: bold;
-  margin: 2.33em 0;
-}
-
-#whmcsorderfrm xmp, #whmcsorderfrm pre, #whmcsorderfrm plaintext {
-  display: block;
-  font-family: -moz-fixed;
-  white-space: pre;
-  margin: 1em 0;
-}
-
-/* tables */
-
-#whmcsorderfrm table {
-    display: table;
-    border: 0;
-    border-spacing: 1px; /* 2px ? */
-    border-collapse: separate;
-    margin-top: 0;
-    margin-bottom: 0;
-  /* XXXldb do we want this if we're border-collapse:collapse ? */
-    -moz-box-sizing: border-box;
-    text-indent: 0;
-    -moz-border-radius: 0;
-    -webkit-border-radius: 0;
-    -o-border-radius: 0;
-    border-radius: 0;
-}
-
-#whmcsorderfrm table tr, #whmcsorderfrm table th, #whmcsorderfrm table td {
-    border: 0;
-}
-
-#whmcsorderfrm table tbody tr:first-child td:first-child, #whmcsorderfrm table tbody tr:first-child td:last-child,
-#whmcsorderfrm table tbody tr:last-child td:first-child, #whmcsorderfrm table tbody tr:last-child td:last-child {
-    -moz-border-radius: 0;
-    -webkit-border-radius: 0;
-    -o-border-radius: 0;
-    border-radius: 0;
-}
-
-#whmcsorderfrm table[align="left"] {
-  float: left;
-}
-
-#whmcsorderfrm table[align="right"] {
-  float: right;
-  text-align: start;
-}
-
-#whmcsorderfrm table[rules]:not([rules="none"]) {
-  border-collapse: collapse;
-}
-
-/* caption inherits from table not table-outer */
-#whmcsorderfrm caption {
-  display: table-caption;
-  text-align: center;
-  -moz-box-sizing: border-box;
-}
-
-#whmcsorderfrm table[align="center"] > caption {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-#whmcsorderfrm table[align="center"] > caption[align="left"] {
-  margin-right: 0;
-}
-
-#whmcsorderfrm table[align="center"] > caption[align="right"] {
-  margin-left: 0;
-}
-
-#whmcsorderfrm tr {
-  display: table-row;
-  vertical-align: inherit;
-}
-
-#whmcsorderfrm col {
-  display: table-column;
-}
-
-#whmcsorderfrm colgroup {
-  display: table-column-group;
-}
-
-#whmcsorderfrm tbody {
-  display: table-row-group;
-  vertical-align: middle;
-}
-
-#whmcsorderfrm thead {
-  display: table-header-group;
-  vertical-align: middle;
-}
-
-#whmcsorderfrm tfoot {
-  display: table-footer-group;
-  vertical-align: middle;
-}
-
-/* for XHTML tables without tbody */
-#whmcsorderfrm table > tr {
-  vertical-align: middle;
-}
-
-#whmcsorderfrm td {
-  display: table-cell;
-  vertical-align: inherit;
-  text-align: inherit;
-  padding: 1px;
-}
-
-#whmcsorderfrm th {
-  display: table-cell;
-  vertical-align: inherit;
-  font-weight: bold;
-  padding: 1px;
-}
-
-#whmcsorderfrm tr > form:-moz-is-html, #whmcsorderfrm tbody > form:-moz-is-html,
-#whmcsorderfrm thead > form:-moz-is-html, #whmcsorderfrm tfoot > form:-moz-is-html,
-#whmcsorderfrm table > form:-moz-is-html {
-  /* Important: don't show these forms in HTML */
-  display: none !important;
-}
-
-/* inlines */
-
-#whmcsorderfrm q:before {
-  content: open-quote;
-}
-
-#whmcsorderfrm q:after {
-  content: close-quote;
-}
-
-#whmcsorderfrm b, #whmcsorderfrm strong {
-  font-weight: bolder;
-}
-
-#whmcsorderfrm i, #whmcsorderfrm cite, #whmcsorderfrm em, #whmcsorderfrm var, #whmcsorderfrm dfn {
-  font-style: italic;
-}
-
-#whmcsorderfrm u, #whmcsorderfrm ins {
-  text-decoration: underline;
-}
-
-#whmcsorderfrm s, #whmcsorderfrm strike, #whmcsorderfrm del {
-  text-decoration: line-through;
-}
-
-#whmcsorderfrm sub {
-  vertical-align: sub;
-  font-size: smaller;
-  line-height: normal;
-}
-
-#whmcsorderfrm sup {
-  vertical-align: super;
-  font-size: smaller;
-  line-height: normal;
-}
-
-#whmcsorderfrm nobr {
-  white-space: nowrap;
-}
-
 
 
 /* new style */
@@ -1161,7 +889,8 @@ body {
     border-left: 1px solid #eeeeee;
     border-right: 1px solid #eeeeee;
 }
-.contentpadded > p {
+.contentpadded > p,
+#whmcsorderfrm > p{
     color: #294174;
     margin-bottom: 0;
     padding-bottom: 30px;
@@ -1210,6 +939,13 @@ label.checkbox{
     position: relative;
     padding-left: 24px;
     margin-bottom: 0;
+}
+
+th label.checkbox,
+td label.checkbox{
+    padding: 0;
+    width: 17px;
+    margin: 0 auto;
 }
 .logincontainer .rememberme span,
 label.checkbox span{
@@ -1477,6 +1213,10 @@ label.checkbox input:checked + span{
     padding-left: 45px;
     padding-right: 45px;
 }
+.container-padding-default.row-down{
+    padding-bottom: 26px;
+    border-bottom: 1px solid #eeeeee;
+}
 .container-padding-63{
     padding-left: 63px;
     padding-right: 63px;
@@ -1621,19 +1361,23 @@ label.checkbox input:checked + span{
 .well.search-domain .internalpadding input,
 .gray-button{
     outline: none;
-    background-color: transparent;
     -webkit-box-shadow: none;
+    background-color: transparent;
     -moz-box-shadow: none;
     box-shadow: none;
     -webkit-border-radius: 0;
     -moz-border-radius: 0;
     border-radius: 0;
-    padding: 8px 32px;
-    font-size: 14px;
-    line-height: 26px;
     color: #6da73a;
-    border-color: #6da73a;
+    font-size: 14px;
     margin-bottom: 0;
+    padding: 8px 32px;
+    line-height: 26px;
+    border-color: #6da73a;
+    display: inline-block;
+}
+.gray-button:hover{
+    text-decoration: none;
 }
 .well.search-domain .internalpadding input:hover,
 .well.search-domain .internalpadding input:focus,
@@ -1746,6 +1490,9 @@ label.checkbox input:checked + span{
 .domainsearch-links a{
     padding-left: 26px;
 }
+.domainsearch-links #categories a{
+    padding-left: 0;
+}
 .usr-links li.icons a:before,
 .domainsearch-links a:before{
     top: 0;
@@ -1791,6 +1538,9 @@ label.checkbox input:checked + span{
 .usr-links li + li,
 .domainsearch-links a + a{
     margin-left: 40px;
+}
+.domainsearch-links #categories a + a{
+    margin-left: 25px;
 }
 .domainsearch-links a.d-search:before,
 .domainsearch-links a.d-transfer:before{
@@ -1910,7 +1660,12 @@ input, textarea, select, .uneditable-input{
 }
 
 /* tables */
-.whmcscontainer table th a {
+.whmcscontainer table.custom{
+    width: 100%;
+    margin-bottom: 18px;
+}
+.whmcscontainer table th a,
+table.custom th a {
     color: #294174;
     display: block;
     margin: -10px -10px -9px;
@@ -1918,23 +1673,31 @@ input, textarea, select, .uneditable-input{
 }
 .whmcscontainer table th:hover,
 .table tbody tr:hover td,
-.table tbody tr:hover th{
+.table tbody tr:hover th,
+table.custom th:hover,
+.table.custom tbody tr:hover td,
+.table.custom tbody tr:hover th{
     background-color: #eef0f4;
 }
-.table tbody tr td{
+.table tbody tr td,
+table.custom tbody tr td{
     vertical-align: middle;
 }
-.whmcscontainer table th:hover a{
+.whmcscontainer table th:hover a,
+table.custom th:hover a{
     text-decoration: none;
 }
-.whmcscontainer table .headerSortdesc {
+.whmcscontainer table .headerSortdesc,
+table.custom .headerSortdesc {
     background-color: #eef0f4;
     background-image:url('../img/sortdesc.png');
     background-repeat:no-repeat;
     background-position:95% 50%;
 }
 .table th,
-.table td {
+.table td,
+table.custom th,
+table.custom td {
     padding: 15px 8px;
     border-top: 1px solid #dddddd;
 }

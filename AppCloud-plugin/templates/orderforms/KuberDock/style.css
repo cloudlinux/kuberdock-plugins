@@ -4,7 +4,6 @@ Master
 
 #order-modern {
     margin: 0;
-    padding: 20px 0;
 }
 
 #order-modern h1 {
@@ -49,21 +48,15 @@ Master
     display: none;
     margin: 10px auto 10px auto;
     padding: 10px 15px;
-    background-color: #FBEEEB;
     border: 1px dashed #cc0000;
     width: 90%;
-    font-weight: bold;
     color: #cc0000;
     text-align: center;
-    -moz-border-radius: 6px;
-    -webkit-border-radius: 6px;
-    -o-border-radius: 6px;
-    border-radius: 6px;
+    font-size: 12px
 }
 #order-modern .errorbox p {
     margin: 0;
     padding: 0;
-    font-weight: bold;
     text-align: left;
 }
 #order-modern .errorbox li {
@@ -92,35 +85,10 @@ Master
     color: #cc0000;
 }
 
-#order-modern table tr td {
-    padding: 2px 3px;
-}
-
 /*
 Product Categories
 */
 
-#order-modern #categories {
-    display: none;
-    width: 75%;
-    margin: 10px auto 0 auto;
-    padding: 10px 0 10px 15px;
-    background-color: #666;
-    text-align: center;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    -o-border-radius: 5px;
-    border-radius: 5px;
-}
-#order-modern #categories a {
-    text-decoration: none;
-    padding-right: 20px;
-    font-weight: bold;
-    color: #fff;
-}
-#order-modern #categories a:hover {
-    color: #000;
-}
 #order-modern #currencychooser img {
     vertical-align: baseline;
 }
@@ -281,9 +249,7 @@ Product Listing
     transition: 0.1s linear all;
 }
 
-/*
-Domain Registrations
-*/
+/* Domain Registrations */
 
 #order-modern .domainreg {
     margin: 0 auto 15px auto;
@@ -331,16 +297,20 @@ Domain Registrations
     background-color: #EDF1FE;
 }
 
-#order-modern .domainreginput {
-    margin: 0;
-    padding: 10px;
+#order-modern input.thame1,
+#order-modern select.thame1{
     font-size: 14px;
-    text-align: center;
-}
-
-#order-modern .domainreginput input, #order-modern .domainreginput select, #order-modern .domainregperiod select {
-    font-size: 14px;
-    padding: 3px;
+    padding: 0 20px;
+    border: 1px solid #e8e8e8;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+    margin-bottom: 0;
+    padding: 13px 20px;
+    height: 46px;
 }
 
 #greyout {
@@ -371,15 +341,11 @@ Domain Registrations
 
 #domainresults {
     width: 550px;
-    margin: 0 auto 0 auto;
-    padding: 15px 0 15px 0;
-    border: 15px solid #fff;
-    background-color: #fff;
     text-align: center;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -o-border-radius: 10px;
-    border-radius: 10px;
+    border-bottom: none;
+    margin: 0 auto 0 auto;
+    background-color: #fff;
+    border: 15px solid transparent;
 }
 
 #order-modern .domainbox {
@@ -640,51 +606,10 @@ Addons
     max-width: 50%;
 }
 
-/*
-Domain Renewals
-*/
+/* Domain Renewals */
 
-#order-modern .regperiod {
-    padding: 3px;
-    border: 1px solid #ccc;
-}
 
-#order-modern table.renewals {
-    width: 100%;
-}
-#order-modern table.renewals th {
-    background-color: #666;
-    font-size: 12px;
-    font-weight: bold;
-    text-align: center;
-    padding: 3px;
-    line-height: 20px;
-}
-#order-modern table.renewals td {
-    background-color: #FFF;
-    text-align: center;
-    border-bottom: 1px solid #EBEBEB;
-    font-size: 12px;
-    line-height: 28px;
-}
-#order-modern table.renewals tr.rowhighlight td {
-    background-color: #EFF2F9;
-}
-#order-modern table.renewals tr:hover td {
-    background-color: #EFF2F9;
-}
-#order-modern table.renewals th, table.datatable th a, table.datatable th a:visited {
-    color: #FFF;
-    text-decoration: none;
-}
-#order-modern table.renewals th a:hover {
-    color: #FFF;
-    text-decoration: underline;
-}
-
-/*
-Shopping Cart
-*/
+/* Shopping Cart */
 
 #order-modern table.cart {
     width: 100%;

@@ -146,7 +146,14 @@
     <table class="table custom">
         <thead>
             <tr>
-                {if $masspay}<th class="textcenter"><input type="checkbox" onclick="toggleCheckboxes('invids')" /></th>{/if}
+                {if $masspay}
+                    <th>
+                        <label class="checkbox">
+                            <input type="checkbox" onclick="toggleCheckboxes('invids')" />
+                            <span></span>
+                        </label>
+                    </th>
+                {/if}
                 <th class="headerSortdesc"><a href="clientarea.php?action=invoices&orderby=id">{$LANG.invoicestitle}</a></th>
                 <th{if $orderby eq "date"} class="headerSort{$sort}"{/if}><a href="clientarea.php?action=invoices&orderby=date">{$LANG.invoicesdatecreated}</a></th>
                 <th{if $orderby eq "duedate"} class="headerSort{$sort}"{/if}><a href="clientarea.php?action=invoices&orderby=duedate">{$LANG.invoicesdatedue}</a></th>
@@ -159,7 +166,14 @@
         <tbody>
         {foreach from=$invoices item=invoice}
             <tr>
-                {if $masspay}<td class="textcenter"><input type="checkbox" name="invoiceids[]" value="{$invoice.id}" class="invids" /></td>{/if}
+                {if $masspay}
+                    <td>
+                        <label class="checkbox">
+                            <input type="checkbox" name="invoiceids[]" value="{$invoice.id}" class="invids" />
+                            <span></span>
+                        </label>
+                    </td>
+                {/if}
                 <td><a href="viewinvoice.php?id={$invoice.id}" target="_blank">{$invoice.invoicenum}</a></td>
                 <td>{$invoice.datecreated}</td>
                 <td>{$invoice.datedue}</td>
@@ -173,18 +187,21 @@
                 <td colspan="{if $masspay}8{else}7{/if}" class="textcenter">{$LANG.invoicesnoneunpaid}</td>
             </tr>
         {/foreach}
-        {if $invoices}
-            <tr>
-                <td colspan="{if $masspay}4{else}3{/if}">{if $masspay}<div align="left"><input type="submit" value="{$LANG.masspayselected}" class="btn" /> <a href="clientarea.php?action=masspay&all=true" class="btn btn-success"><i class="icon-ok-circle icon-white"></i> {$LANG.masspayall}</a></div>{/if}</td>
-                <td class="textright"><strong>{$LANG.invoicestotaldue}</strong></td>
-                <td><strong>{$totalbalance}</strong></td>
-                <td colspan="2">&nbsp;</td>
-            </tr>
-        {/if}
         </tbody>
     </table>
-</form>
 
+    {if $masspay}
+    <br/>
+    <div class="container-padding-default">
+        <div class="textright total"><strong>{$LANG.invoicestotaldue}</strong> {$totalbalance}</div>
+        <p align="center">
+            <input type="submit" value="{$LANG.masspayselected}" class="gray-button" />
+            <input type="button" class="send-message" value="{$LANG.masspayall}" onclick="window.location='clientarea.php?action=masspay&all=true'" />
+        </p>
+    {/if}
+    <br/>
+    </div>
+</form>
 {/if}
 
 {if $files}
