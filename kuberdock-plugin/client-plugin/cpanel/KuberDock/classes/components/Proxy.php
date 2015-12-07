@@ -40,11 +40,6 @@ class Proxy {
     {
         $htaccessPath = $this->getHtaccessPathByDomain($domain);
         $rule = $this->getRewriteRule($dir, '%s', $port);
-        $dirPath = $this->getDocRootByDomain($domain) . DS . $dir;
-
-        if(!file_exists($dirPath)) {
-            mkdir($dirPath);
-        }
 
         $command = sprintf('%s --pod_name="%s" --path=%s --rule=\'%s\' -c 1',
             $this->getProxyCommand(), $podName, $htaccessPath, $rule);
@@ -227,6 +222,11 @@ class Proxy {
                     return $row['documentroot'];
                 }
             }
+        }
+
+        $home = getenv('HOME') . DS . 'public_html';
+        if(file_exists($home)) {
+            return $home;
         }
 
         throw new CException(sprintf('Can not find document root by domain %s', $domain));

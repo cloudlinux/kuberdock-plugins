@@ -1,7 +1,7 @@
 <div id="app-page" class="container-fluid content">
     <div class="row">
         <div class="col-md-12 splitter">
-            <h2>Application "<?php echo $pod->name?>"</h2>
+            <h2>Application "<?php echo $app->getName()?>"</h2>
             <?php if($postDescription):?>
                 <div class="alert alert-dismissible alert-success"  role="alert">
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -65,7 +65,7 @@
                                 none
                             <?php endif;?>
                             </td>
-                            <td class="col-md-3"><?php echo $statusText == 'Start' ? 'Stopped' : 'Running' ?></td>
+                            <td class="col-md-3"><?php echo ucfirst($pod->status) ?></td>
                             <td>
                                 <button type="button" class="btn btn-<?php echo $statusText == 'Start' ? 'success' : 'danger' ?> btn-xs <?php echo $statusClass?>" data-target=".confirm-modal" data-app="<?php echo $pod->name?>" title="<?php echo $statusText?>">
                                     <span class="glyphicon glyphicon-<?php echo $statusText == 'Start' ? 'play' : 'stop' ?>" aria-hidden="true"></span>

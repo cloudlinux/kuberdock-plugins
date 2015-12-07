@@ -8,6 +8,10 @@ namespace exceptions;
 
 use Exception;
 
+/**
+ * Class CException
+ * @package exceptions
+ */
 class CException extends Exception {
 
     public function __construct($message, $code = 0, Exception $previous = null) {
@@ -32,6 +36,15 @@ class CException extends Exception {
             logModuleCall(KUBERDOCK_MODULE_NAME, $filePath, sprintf('Line: %d %s', $exception->getLine(),
                 $exception->getMessage()), $exception->getTraceAsString());
         }
+    }
+
+    /**
+     * @param Exception $exception
+     */
+    public static function displayError(Exception $exception)
+    {
+        $_SESSION['kdError' . session_id()] = $exception->getMessage();
+        header('Location: /kderrorpage.php');
     }
 
     /**
