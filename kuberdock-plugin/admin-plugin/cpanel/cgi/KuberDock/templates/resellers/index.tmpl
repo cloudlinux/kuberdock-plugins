@@ -21,7 +21,7 @@
                                         <input type="text" name="[% reseller.key %]:server" value="[% reseller.value.server %]">
                                     </td>
                                     <td><input type="text" name="[% reseller.key %]:username" value="[% reseller.value.username %]"></td>
-                                    <td><input type="password" name="[% reseller.key %]:password" value="[% reseller.value.password %]"></td>
+                                    <td><input type="password" name="[% reseller.key %]:password" value="[% reseller.value.password %]" autocomplete="off"></td>
                                     <td class="text-center actions">
                                         <input type="submit" id="save" value="Save" class="btn btn-xs btn-success">
                                         <input class="btn btn-xs btn-danger" type="submit" id="res-delete" value="Delete" owner="[% reseller.key %]" onclick="return resDelete(this);">
@@ -48,7 +48,7 @@
                         <tr>
                             <td><input type="text" name="newServer" placeholder="WHMCS server URL\IP"></td>
                             <td><input type="text" name="newUsername" placeholder="WHMCS Admin Username"></td>
-                            <td><input type="text" name="newPassword" placeholder="WHMCS Admin Password"></td>
+                            <td><input type="password" name="newPassword" placeholder="WHMCS Admin Password" autocomplete="off"></td>
                             <td class="actions"><input type="submit" id="add" class="btn btn-success btn-xs" value="Add"></td>
                         </tr>
                     </tbody>

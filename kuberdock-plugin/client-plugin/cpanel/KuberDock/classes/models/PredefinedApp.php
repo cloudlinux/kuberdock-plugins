@@ -708,7 +708,7 @@ class PredefinedApp {
     {
         $variables = array();
 
-        $publicIp = isset($data['public_ip']) ? $data['public_ip'] : '"IP address not set"';
+        $publicIp = isset($data['public_ip']) ? $data['public_ip'] : '"Public IP address not set"';
         $variables['PUBLIC_ADDRESS'] = $publicIp;
         $this->variables['PUBLIC_ADDRESS'] = $publicIp;
 

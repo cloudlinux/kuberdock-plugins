@@ -9,7 +9,7 @@
         </p>
 
         <div class="page-header">
-            <h2>Setup "<?php echo $app->getName()?>"</h2>
+            <h2><?php echo $app->getName()?></h2>
         </div>
     </div>
 

@@ -36,7 +36,7 @@ class KuberDock_Api {
     /**
      * seconds
      */
-    const API_CONNECTION_TIMEOUT = 30;
+    const API_CONNECTION_TIMEOUT = 150;
 
     /**
      * @var string
@@ -327,13 +327,31 @@ class KuberDock_Api {
     }
 
     /**
-     * @param $user
+     * @param string $user
      * @return KuberDock_ApiResponse
      * @throws Exception
      */
     public function deleteUser($user)
     {
         $this->url = $this->serverUrl . '/api/users/' . $user;
+        $response = $this->call(array(), 'DELETE');
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param string $user
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function deleteUserFull($user)
+    {
+        $this->url = $this->serverUrl . '/api/users/full/' . $user;
         $response = $this->call(array(), 'DELETE');
 
         if(!$response->getStatus()) {
@@ -818,7 +836,7 @@ class KuberDock_Api {
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
+            throw new Exception('Error while creating pod from YAML. <br>' . $response->getMessage());
         }
 
         return $response;

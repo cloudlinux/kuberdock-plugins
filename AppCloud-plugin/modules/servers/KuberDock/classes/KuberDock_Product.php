@@ -156,12 +156,14 @@ class KuberDock_Product extends CL_Product {
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
         if($service->isActive() && $predefinedApp) {
-            if(!($pod = $predefinedApp->isPodExists($service->id))) {
-                $pod = $predefinedApp->create($service->id);
-                $predefinedApp->start($pod['id'], $service->id);
-                header('Location: ' . sprintf('/cart.php?a=complete&sid=%s&podId=%s', $service->id, $pod['id']));
-            } else {
-                header('Location: ' . sprintf('/cart.php?a=complete&sid=%s&podId=%s', $service->id, $pod['id']));
+            try {
+                if(!($pod = $predefinedApp->isPodExists($service->id))) {
+                    $pod = $predefinedApp->create($service->id);
+                    $predefinedApp->start($pod['id'], $service->id);
+                }
+                header('Location: ' . sprintf('cart.php?a=complete&sid=%s&podId=%s', $service->id, $pod['id']));
+            } catch(Exception $e) {
+                CException::displayError($e);
             }
         }
     }
@@ -265,7 +267,7 @@ class KuberDock_Product extends CL_Product {
             FROM `".$this->tableName."` product
                 LEFT JOIN `".CL_Hosting::model()->tableName."` hosting ON hosting.packageid=product.id
                 LEFT JOIN `".CL_Client::model()->tableName."` client ON hosting.userid=client.id
-            WHERE product.`servertype` = ? AND client.id = ?";
+            WHERE product.`servertype` = ? AND client.id = ? AND hosting.domainstatus IN ('Active', 'Suspened')";
 
         if($serverId) {
             $params[] = $serverId;

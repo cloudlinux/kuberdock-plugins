@@ -135,6 +135,8 @@ function KuberDock_ShoppingCartValidateCheckout($params)
     if(isset($_SESSION['cart']) && $params['userid']) {
         foreach($_SESSION['cart']['products'] as $product) {
             $product = KuberDock_Product::model()->loadById($product['pid']);
+            if(!$product->isKuberProduct()) continue;
+
             try {
                 $server = $product->getServer();
                 $userProducts = KuberDock_Product::model()->getByUser($params['userid'], $server->id);
@@ -142,14 +144,30 @@ function KuberDock_ShoppingCartValidateCheckout($params)
                 CException::log($e);
             }
 
-            if(!$product->isKuberProduct()) continue;
-
             if($userProducts) {
                 $errors[] = 'You can not buy more than 1 KuberDock product.';
             }
 
             if($product->getConfigOption('enableTrial') && KuberDock_Addon_Trial::model()->loadById($params['userid'])) {
                 $errors[] = 'You are already have trial KuberDock product.';
+            } elseif($userProducts) {
+                $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+                if($predefinedApp) {
+                    $userServices = KuberDock_Hosting::model()->getByUser($params['userid']);
+                    foreach($userServices as $row) {
+                        if($row['domainstatus'] == 'Active' && $row['packageid'] == $predefinedApp->product_id) {
+                            try {
+                                if(!($pod = $predefinedApp->isPodExists($row['id']))) {
+                                    $pod = $predefinedApp->create($row['id']);
+                                    $predefinedApp->start($pod['id'], $row['id']);
+                                }
+                                header('Location: ' . sprintf('cart.php?a=view&sid=%s&podId=%s', $row['id'], $pod['id']));
+                            } catch(Exception $e) {
+                                CException::displayError($e);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -254,7 +272,7 @@ function KuberDock_ClientAreaPage($params)
     $currency = CL_Currency::model()->getDefaultCurrency();
 
     if($values['filename'] == 'index') {
-        header('Location: /cart.php');
+        header('Location: cart.php');
     }
 
     // registration fix
@@ -318,15 +336,22 @@ function KuberDock_ClientAreaPage($params)
         $predefinedApp = KuberDock_Addon_PredefinedApp::model();
         if(isset($_GET[$predefinedApp::KUBERDOCK_YAML_FIELD])) {
             $kdProductId = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_PRODUCT_ID_FIELD);
-            $yaml = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_YAML_FIELD);
+            $yaml = html_entity_decode(urldecode(CL_Base::model()->getParam($predefinedApp::KUBERDOCK_YAML_FIELD)), ENT_QUOTES);
             $parsedYaml = Spyc::YAMLLoadString($yaml);
 
             try {
                 if(isset($parsedYaml['kuberdock']['package_id'])) {
                     $kdProductId = $parsedYaml['kuberdock']['package_id'];
                 }
-                $referer = isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] ?
-                    $_SERVER['HTTP_REFERER'] : 'https://136.243.221.249';       // TODO: FIX IT
+
+                if(isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER']) {
+                    $referer = $_SERVER['HTTP_REFERER'];
+                } elseif($server = KuberDock_Server::model()->getActive()) {
+                    $referer = $server->getApiServerUrl();
+                } else {
+                    throw new CException('Cannot get KuberDock server url');
+                }
+
                 if(isset($parsedYaml['kuberdock']['server'])) {
                     $referer = $parsedYaml['kuberdock']['server'];
                 }
@@ -351,9 +376,10 @@ function KuberDock_ClientAreaPage($params)
             } catch(Exception $e) {
                 // product not founded
                 CException::log($e);
+                CException::displayError($e);
             }
 
-            header('Location: /cart.php?a=view');
+            header('Location: cart.php?a=view');
         }
 
         if(isset($values['products'])) {
@@ -425,26 +451,29 @@ function KuberDock_ClientAreaPage($params)
         }
 
         // Complete page
-        if(CL_Base::model()->getParam('a') == 'complete') {
+        if(in_array(CL_Base::model()->getParam('a'), array('complete', 'view'))) {
             $serviceId = CL_Base::model()->getParam('sid');
             $podId = CL_Base::model()->getParam('podId');
-            $service = KuberDock_Hosting::model()->loadById($serviceId);
 
-            if($service && $podId) {
-                $view = new \base\CL_View();
-                $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-                try {
-                    $pod = $service->getApi()->getPod($podId);
-                    $view->renderPartial('client/preapp_complete', array(
-                        'serverLink' => $service->getServer()->getLoginPageLink(),
-                        'token' => $service->getToken(),
-                        'podId' => $podId,
-                        'postDescription' => $predefinedApp->getPostDescription($pod),
-                    ));
-                    exit;
-                } catch(Exception $e) {
-                    CException::log($e);
-                }
+            if(!$serviceId || !$podId) {
+                return;
+            }
+
+            $service = KuberDock_Hosting::model()->loadById($serviceId);
+            $view = new \base\CL_View();
+            $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+            try {
+                $pod = $service->getApi()->getPod($podId);
+                $view->renderPartial('client/preapp_complete', array(
+                    'serverLink' => $service->getServer()->getLoginPageLink(),
+                    'token' => $service->getToken(),
+                    'podId' => $podId,
+                    'postDescription' => $predefinedApp->getPostDescription($pod),
+                ));
+                exit;
+            } catch(Exception $e) {
+                CException::log($e);
+                CException::displayError($e);
             }
         }
     }

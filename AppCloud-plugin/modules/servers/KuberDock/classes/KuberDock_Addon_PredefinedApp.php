@@ -160,7 +160,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
      */
     private function getVariables($pod)
     {
-        $publicIp = isset($pod['public_ip']) ? $pod['public_ip'] : '{IP address not set}';
+        $publicIp = isset($pod['public_ip']) ? $pod['public_ip'] : '{Public IP address not set}';
         $variables['%PUBLIC_ADDRESS%'] = $publicIp;
 
         return $variables;

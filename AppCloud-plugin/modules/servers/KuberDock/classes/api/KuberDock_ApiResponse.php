@@ -50,15 +50,16 @@ class KuberDock_ApiResponse {
             if(isset($this->parsed['data']) && $this->parsed['data']) {
                 if(is_array($this->parsed['data'])) {
                     $response = array();
-                    foreach($this->parsed['data'] as $k=>$v) {
-                        if(is_array($v)) {
-                            $response[] = sprintf("%s: %s", $k, implode('; ', $v));
-                        } else {
-                            $response[] = sprintf("%s: %s", $k, $v);
+                    $iterator = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($this->parsed['data']));
+                    foreach($iterator as $row) {
+                        $path = array();
+                        foreach(range(0, $iterator->getDepth()) as $depth) {
+                            $path[] = $iterator->getSubIterator($depth)->key();
                         }
+                        $variable = array(join(': ', $path) . ' - ' . $row);
+                        $response = array_merge($response, $variable);
                     }
-
-                    return implode('| ', $response);
+                    return implode('<br>', $response);
                 } else {
                     return $this->parsed['data'];
                 }
