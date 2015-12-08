@@ -1,160 +1,104 @@
-/* *****************************************************
-
-     WHMCS Printable Invoice CSS Stylesheet
-     Created: 1st September 2011
-     Last Updated: 20th November 2011
-     Version: 1.3
-
-     This file is part of the WHMCS Billing Software
-       http://www.whmcs.com/
-
-***************************************************** */
-
-body {
-    margin: 15px;
+body{
+    margin: 30px 0;
     padding: 0;
-    background-color: #efefef;
+    background-color: #ffffff;
 }
-
 body,td,input,select {
     font-family: Tahoma;
-    font-size: 11px;
-    color: #000000;
-}
-
-form {
-    margin: 0px;
-}
-
-a {
     font-size: 14px;
-    color: #1E598A;
+    color: #40495c;
+}
+form{ margin: 0px; }
+a{
+    font-size: 14px;
+    color: #6da73a;
     padding: 10px;
 }
-
 a:hover {
+    color: #2c2c2c;
     text-decoration: none;
 }
-
-.textcenter {
-    text-align: center;
-}
-
-.textright {
-    text-align: right;
-}
-
-.wrapper {
+.check-buttons{ margin: 50px 0; }
+.textcenter{ text-align: center; }
+.textright{ text-align: right; }
+.wrapper{
     margin: 0 auto;
-    padding: 10px 20px 70px 20px;
-    width: 600px;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    -moz-border-radius: 6px;
-    -webkit-border-radius: 6px;
-    -o-border-radius: 6px;
-    border-radius: 6px;
+    width: 100%;
+    max-width: 960px;
 }
-
-.header {
+.header{
     margin: 0 0 15px 0;
     width: 100%;
 }
-
-.addressbox {
-    height: 100px;
-    padding: 10px;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    color: #000;
-    overflow: hidden;
+.row{ margin: 55px 0 25px; }
+.title{
+    color: #294174;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 26px;
+    margin-bottom: 10px;
 }
-
+.subtitle{
+    color: #294174;
+    font-size: 14px;
+    font-weight: 600;
+}
+.total{
+    color: #6da73a;
+    font-size: 18px;
+    font-weight: 600;
+}
+.subtotal{
+    color: #111111;
+    font-size: 14px;
+    font-weight: 600;
+}
+h1{
+    font-size: 26px;
+    color: #294174;
+}
+.details div{ min-height: 46px; }
+.details div p{
+    margin: 0;
+    line-height: 25px;
+}
+.paid, .refunded, .cancelled, .unpaid{
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+.paid{ color: #779500; }
+.unpaid{ color: #cc0000; }
+.refunded{ color: #224488; }
+.cancelled{
+    font-size: 14px;
+    color: #cccccc;
+    font-weight: 600;
+}
+select.form-control.select-inline{
+    width: 100%;
+    height: 46px;
+    outline: none;
+    padding: 0 16px;
+    max-width: 250px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    border: 1px solid #e8e8e8;
+}
 table.items {
     width: 100%;
-    background-color: #ccc;
     border-spacing: 0;
     border-collapse: separate;
-    border-left: 1px solid #ccc;
 }
-
-table.items tr.title td {
-    margin: 0;
-    padding: 2px 5px;
-    line-height: 16px;
-    background-color: #efefef;
-    border: 1px solid #ccc;
-    border-bottom: 0;
-    border-left: 0;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-table.items td {
-    margin: 0;
-    padding: 2px;
-    line-height: 15px;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-bottom: 0;
-    border-left: 0;
-}
-
-table.items tr:last-child td {
-    border-bottom: 1px solid #ccc;
-}
-
-.row {
-    margin: 15px 0;
-}
-
-.title {
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.subtitle {
-    font-size: 13px;
-    font-weight: bold;
-}
-
-.unpaid {
-    font-size: 16px;
-    color: #cc0000;
-    font-weight: bold;
-}
-
-.paid {
-    font-size: 16px;
-    color: #779500;
-    font-weight: bold;
-}
-
-.refunded {
-    font-size: 16px;
-    color: #224488;
-    font-weight: bold;
-}
-
-.cancelled {
-    font-size: 16px;
-    color: #cccccc;
-    font-weight: bold;
-}
-
-.collections {
-    font-size: 16px;
-    color: #ffcc00;
-    font-weight: bold;
-}
-
-.creditbox {
-    margin: 0 auto 15px auto;
-    padding: 10px;
-    border: 1px dashed #cc0000;
-    font-weight: bold;
-    background-color: #FBEEEB;
-    text-align: center;
-    width: 95%;
-    color: #cc0000;
+table.items td{ padding: 15px 0px; }
+table.items tr td:first-child{ padding-left: 7%;}
+table.items tr td:last-child{ padding-right: 7%; }
+table.items.clean tr td:first-child{ padding-left: 0;}
+table.items.clean tr td:last-child{ padding-right: 0; }
+table.items tr:nth-child(odd) td{ background-color: #f4f4f4; }
+table.items.clean tr:nth-child(odd) td{ background-color: transparent; }
+table.items.clean tr td:first-child,
+table.items.clean tr td:last-child{
+    border-bottom: 1px solid #d8d8d8;
 }

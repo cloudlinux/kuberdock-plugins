@@ -70,8 +70,6 @@
         </div>
     </div>
 </div>
-<br/>
-<br/>
 <div class="textcenter">
     <div class="page-header">
         <div class="styled_title"><h1>{$LANG.orderpaymentmethod}</h1></div>
