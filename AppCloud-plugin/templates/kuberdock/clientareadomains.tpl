@@ -35,7 +35,12 @@ $(document).ready(function() {
 <table class="table custom">
     <thead>
         <tr>
-            <th class="textcenter"><input type="checkbox" onclick="toggleCheckboxes('domids')" /></th>
+            <th class="textcenter">
+                <label class="checkbox">
+                    <input type="checkbox" onclick="toggleCheckboxes('domids')" />
+                    <span></span>
+                </label>
+            </th>
             <th{if $orderby eq "domain"} class="headerSort{$sort}"{/if}><a href="clientarea.php?action=domains{if $q}&q={$q}{/if}&orderby=domain">{$LANG.clientareahostingdomain}</a></th>
             <th{if $orderby eq "regdate"} class="headerSort{$sort}"{/if}><a href="clientarea.php?action=domains{if $q}&q={$q}{/if}&orderby=regdate">{$LANG.clientareahostingregdate}</a></th>
             <th{if $orderby eq "nextduedate"} class="headerSort{$sort}"{/if}><a href="clientarea.php?action=domains{if $q}&q={$q}{/if}&orderby=nextduedate">{$LANG.clientareahostingnextduedate}</a></th>
@@ -47,7 +52,12 @@ $(document).ready(function() {
     <tbody>
 {foreach key=num item=domain from=$domains}
         <tr>
-            <td class="textcenter"><input type="checkbox" name="domids[]" class="domids" value="{$domain.id}" /></td>
+            <td class="textcenter">
+                <label class="ceckbox">
+                    <input type="checkbox" name="domids[]" class="domids" value="{$domain.id}" />
+                    <span></span>
+                </label>
+            </td>
             <td><a href="http://{$domain.domain}/" target="_blank">{$domain.domain}</a></td>
             <td>{$domain.registrationdate}</td>
             <td>{$domain.nextduedate}</td>

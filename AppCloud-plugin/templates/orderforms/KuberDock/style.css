@@ -420,18 +420,40 @@ Product Listing
     border-radius: 5px;
 }
 
-/*
-Product Config
-*/
+/* Product Config */
 
 #order-modern .prodconfigcol1 {
     float: left;
-    width: 65%;
+    width: 52%;
 }
 
 #order-modern .prodconfigcol2 {
     float: right;
-    width: 33%;
+    width: 40%;
+}
+#order-modern .prodconfigcol2 .ordersummary tr td{
+    padding: 14px 0;
+    font-weight: 800;
+    border-bottom: 1px solid #d8d8d8;
+}
+#order-modern .prodconfigcol2 .ordersummary tr td:nth-child(even),
+#order-modern .prodconfigcol2 .ordersummary tr td:nth-child(odd),
+#order-modern .prodconfigcol2 .ordersummary table:last-child tr td{
+    padding-right: 7%;
+    padding-left: 7%;
+}
+#order-modern .prodconfigcol1 tr td{
+    padding-left: 7%;
+}
+#order-modern .prodconfigcol1 > h3,
+#order-modern .prodconfigcol2 > h3{
+    color: #294174;
+    height: 46px;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 26px;
+    padding-left: 7%;
+    border-bottom: 1px solid #d8d8d8;
 }
 
 #order-modern .billingcycle {
@@ -474,39 +496,31 @@ Product Config
     border-radius: 5px;
 }
 
-#order-modern .customfields {
-    border: 1px solid #ccc;
-    padding: 1px;
-    margin-bottom: 20px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    -o-border-radius: 5px;
-    border-radius: 5px;
+.totaltobay{
+    color: #6da73a;
+    font-size: 14px;
+    font-weight: 800;
+    border-bottom: none;
 }
 
-/*
-Config Tables
-*/
+/* Config Tables */
 
 #order-modern .configtable td {
-    padding: 2px 5px 2px 5px;
+    padding: 14px 0;
+    border-bottom: 1px solid #d8d8d8;
+}
+#order-modern .configtable tr:last-child td{
+    border-bottom: none;
 }
 
 #order-modern .configtable td.fieldlabel {
-    width: 150px;
-    text-align: right;
+    width: 40%;
+    font-weight: 800;
 }
 
 #order-modern .configtable td.radiofield {
     width: 30px;
     text-align: center;
-}
-
-#order-modern .configtable td.fieldarea {
-    background-color: #efefef;
-    border-bottom: 1px solid #fff;
-    padding: 5px;
-    text-align: left;
 }
 
 #order-modern .configoplabel {
@@ -516,20 +530,11 @@ Config Tables
     font-size: 14px;
 }
 
-/*
-Order Summary
-*/
+/* Order Summary */
 
-#order-modern .ordersummary {
-    border: 1px solid #ccc;
-    padding: 10px;
-    min-height: 100px;
-    margin-bottom: 20px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    -o-border-radius: 5px;
-    border-radius: 5px;
-}
+/*#order-modern .ordersummary {
+
+}*/
 
 #order-modern .ordersummarytbl {
     width: 100%;
@@ -537,36 +542,19 @@ Order Summary
 
 #order-modern .ordersummarytbl td {
     font-size: 11px;
+    font-weight: 800;
 }
 
 #order-modern .summaryproduct {
-    padding-bottom: 5px;
-    margin-bottom: 5px;
+    padding: 14px 0 15px 7%;
     border-bottom: 1px solid #ccc;
 }
 
 #order-modern .checkoutbuttons {
-    text-align: center;
+    margin: 30px 0 50px;
 }
 
-#order-modern .checkoutbuttons input {
-    border: 1px solid #ccc;
-    background-color: #fff;
-    font-size: 14px;
-    padding: 5px 20px 5px 20px;
-    margin-bottom: 10px;
-}
-
-#order-modern .checkoutbuttons input.checkout {
-    border: 1px solid #ccc;
-    background-color: #E0FBA8;
-    font-size: 14px;
-    padding: 5px 20px 5px 20px;
-}
-
-/*
-Addons
-*/
+/* Addons */
 
 #order-modern .addoncontainer {
     margin: 0 auto 15px auto;
@@ -683,15 +671,13 @@ Addons
     text-decoration: underline;
 }
 
-#order-modern .cartedit {
-    font-size: 11px;
-    color: #888;
+tr.carttableproduct td strong{
+    vertical-align: middle;
+    display: inline-block;
+    line-height: 20px;
+    font-size: 14px;
 }
 
-#order-modern .cartremove {
-    font-size: 11px;
-    color: #cc0000;
-}
 
 #order-modern .cartbuttons {
     float: right;
@@ -701,7 +687,7 @@ Addons
     text-align: center;
 }
 
-#order-modern .checkoutcol1 {
+/*#order-modern .checkoutcol1 {
     float: left;
     width: 49%;
 }
@@ -709,36 +695,50 @@ Addons
 #order-modern .checkoutcol2 {
     float: right;
     width: 49%;
-}
+}*/
 
 #order-modern .signuptype {
     float: left;
-    margin: 0 5px 0 0;
+    z-index: 2;
+    color: #6da73a;
+    margin: 0 13px;
+    font-size: 14px;
+    line-height: 34px;
+    position: relative;
     padding: 0 10px 0 10px;
-    border: 1px solid #ccc;
-    border-bottom: 0;
-    line-height: 20px;
-    color: #000;
-    -moz-border-radius-topleft: 5px;
-    -moz-border-radius-topright: 5px;
-    -webkit-border-radius-topleft: 5px;
-    -webkit-border-radius-topright: 5px;
-    -o-border-radius-topleft: 5px;
-    -o-border-radius-topright: 5px;
-    border-radius-topleft: 5px;
-    border-radius-topright: 5px;
+    background-color: #fff;
+    border: 1px solid transparent;
+}
+#order-modern .signuptype + .signuptype{
+    margin-left: 0;
+}
+#order-modern .signuptype:before,
+#order-modern .signuptype:after{
+    top: 0;
+    bottom: 0;
+    z-index: 3;
+    content: '';
+    width: 13px;
+    height: 100%;
+    margin: auto;
+    position: absolute;
+    background-color: #fff;
+}
+#order-modern .signuptype:before{
+    left: -14px;
+}
+#order-modern .signuptype:after{
+    right: -14px;
 }
 #order-modern .signuptype:hover {
-    cursor: hand;
     cursor: pointer;
+    border-color: #6da73a;
 }
 #order-modern .signuptype.active {
-    background-color: #efefef;
-    color: #000;
-    font-weight: bold;
+    border-color: #6da73a;
 }
 
-#order-modern .signupfields {
+/*#order-modern .signupfields {
     border: 1px solid #ccc;
     padding: 1px;
     margin: 0 0 20px 0;
@@ -746,7 +746,7 @@ Addons
     -webkit-border-radius: 5px;
     -o-border-radius: 5px;
     border-radius: 5px;
-}
+}*/
 #order-modern .signupfields .configtable td.fieldlabel {
     width: 100px;
 }
