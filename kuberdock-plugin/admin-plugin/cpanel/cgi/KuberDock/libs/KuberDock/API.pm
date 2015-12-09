@@ -45,6 +45,21 @@ sub getPackageKubesById {
     return $self->request('/api/pricing/packages/' . $packageId . '/kubes-by-id', 'GET');
 }
 
+sub getPackagesKubes {
+    my ($self) = @_;
+    my @data;
+    my $packages;
+
+    $packages = $self->getPackages();
+
+    foreach(@{$packages}) {
+        $_->{kubes} = $self->getPackageKubes($_->{id}) || [];
+        push(@data, $_);
+    }
+
+    return [@data];
+}
+
 sub request {
     my ($self, $url, $requestType, $data) = @_;
     my $agent = LWP::UserAgent->new(ssl_opts => { verify_hostname => 0 },);

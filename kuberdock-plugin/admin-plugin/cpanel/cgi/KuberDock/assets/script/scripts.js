@@ -7,43 +7,43 @@ var resDelete = function(obj) {
     return false;
 };
 
-var getKubes = function() {
-    if(!$('#packageId').length) {
-        return;
+var renderDefaults = function() {
+    if(typeof defaults == 'undefined' || typeof packagesKubes == 'undefined') {
+        throw('Defaults cannot initialize');
     }
 
-    $.ajax({
-        url: 'addon_kuberdock.cgi?a=getPackageKubes&reqType=json',
-        data: {
-            packageId: $('#packageId').val()
-        },
-        dataType: 'json'
-    }).done(function(data) {
-        $('#kubeType').empty();
-        $.each(data, function(k, v) {
-            $('#kubeType').append($('<option>', {
-                value: v.id,
-                text: v.name
-            }));
-        });
+    var selectedPackage = $('#packageId').val();
+    $('#packageId').empty().append(jQuery('<option>', {text: 'Empty'}));
+    $('#kubeType').empty().append(jQuery('<option>', {text: 'Empty'}));
+
+    $.each(packagesKubes, function(k, v) {
+        selectedPackage = selectedPackage ? selectedPackage : defaults.packageId;
+        $('#packageId').append(jQuery('<option>', {value: v.id, text: v.name, selected: selectedPackage == v.id}));
+
+        if(selectedPackage == v.id) {
+            $.each(v.kubes, function(kKube, vKube) {
+                $('#kubeType').append(jQuery('<option>', {
+                    value: vKube.id, text: vKube.name, selected: vKube.id == defaults.kubeType
+                }));
+            });
+        }
     });
 };
 
 $(document).on('change', '#packageId', function() {
-    getKubes();
+    renderDefaults();
 });
 
 $(document).ready(function() {
-    getKubes();
-
-    if(location.hash) {
-        $('a[href="' + location.hash + '"]').tab('show');
-
-    }
+    renderDefaults();
 
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         if (typeof(editor) !== 'undefined') {
             editor.refresh();
         }
     })
+
+    if(location.hash) {
+        $('a[href="' + location.hash + '"]').tab('show');
+    }
 });

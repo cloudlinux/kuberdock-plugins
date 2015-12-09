@@ -115,7 +115,7 @@ function KuberDock_AdminServicesTabFields($params) {
     $product = KuberDock_Product::model()->loadById($params['pid']);
     $currency = CL_Currency::model()->getDefaultCurrency();
     $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
-    $trialTime = $product->getConfigOption('trialTime');
+    $trialTime = (int) $product->getConfigOption('trialTime');
     $enableTrial = $product->getConfigOption('enableTrial');
     $regDate = new DateTime($service->regdate);
     $trialExpired = '';

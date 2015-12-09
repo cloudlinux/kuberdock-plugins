@@ -1,22 +1,14 @@
 <div id="default-app-setting" class="container-fluid top-offset">
     <div class="row">
-        <form action="?a=setDefaults" method="post">
+        <form action="?a=setDefaults#defaults" method="post">
         <div class="col-md-12">
             <div class="form-group">
                 <label for="packageId">Default package</label>
-                <select name="packageId" id="packageId">
-                [% FOREACH row IN packages %]
-                    <option value="[% row.id %]"[% IF row.id == defaults.packageId %] selected[% END %]>[% row.name %]</option>
-                [% END %]
-                </select>
+                <select name="packageId" id="packageId"></select>
             </div>
             <div class="form-group" class="kube-count-div">
                 <label for="kubeType">Default kube type</label>
-                <select name="kubeType" id="kubeType">
-                [% FOREACH row IN kubes %]
-                    <option value="[% row.id %]"[% IF row.id == defaults.kubeType %] selected[% END %]>[% row.name %]</option>
-                [% END %]
-                </select>
+                <select name="kubeType" id="kubeType"></select>
             </div>
         </div>
         <div class="col-md-12">
