@@ -43,10 +43,6 @@ try {
     $serverIds = array();
     $products = KuberDock_Addon_Product::model()->getByServerUrl($kdServer);
 
-    if(!$products) {
-        throw new CException("No available products for KuberDock server: " . $kdServer);
-    }
-
     foreach($products as &$row) {
         $product = KuberDock_Product::model()->loadByParams($row);
         $row['kubes'] = $product->getKubes();
@@ -96,5 +92,5 @@ try {
 
     $apiresults = array('result' => 'success', 'results' => $userData);
 } catch (Exception $e) {
-    $apiresults = array('result' => 'error', 'message' => 'API error: ' . $e->getMessage());
+    $apiresults = array('result' => 'error', 'message' => 'Billing API error: ' . $e->getMessage());
 }

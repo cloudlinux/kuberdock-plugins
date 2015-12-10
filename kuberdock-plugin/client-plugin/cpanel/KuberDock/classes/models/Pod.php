@@ -178,6 +178,26 @@ class Pod {
     }
 
     /**
+     * @return array
+     */
+    public function getPorts()
+    {
+        $ports = array();
+
+        foreach($this->containers as $k => $row) {
+            if(!isset($row['ports'])) continue;
+
+            foreach($row['ports'] as $p) {
+                if(isset($p['hostPort'])) {
+                    $ports[] = $p['hostPort'];
+                }
+            }
+        }
+
+        return $ports;
+    }
+
+    /**
      * @param $values
      * @return $this
      */

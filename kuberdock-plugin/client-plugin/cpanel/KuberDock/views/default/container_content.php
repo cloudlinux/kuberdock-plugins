@@ -1,4 +1,5 @@
-<?php foreach($pods as $pod): if($pod->status == 'stopped') {
+<?php foreach($pods as $pod):
+    if($pod->status == 'stopped') {
         $statusClass = 'container-start';
         $statusText = 'Start';
     } else {
