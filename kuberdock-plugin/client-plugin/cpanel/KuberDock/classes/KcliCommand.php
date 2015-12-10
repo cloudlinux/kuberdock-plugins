@@ -171,13 +171,13 @@ class KcliCommand extends Command {
     }
 
     /**
-     * @param $name
-     * @param $image
-     * @param $kubeName
-     * @param $kubeCount
+     * @param string $name
+     * @param string $image
+     * @param string $kubeName
+     * @param int $kubes
      * @return array
      */
-    public function createContainer($name, $image, $kubeName, $kubeCount)
+    public function createContainer($name, $image, $kubeName, $kubes)
     {
         $values = array(
             $this->returnType,
@@ -185,7 +185,7 @@ class KcliCommand extends Command {
             'create' => sprintf("'%s'", $name),
             '-C' => $image,
             '--kube-type' => sprintf("'%s'", $kubeName),
-            '--kubes' => $kubeCount,
+            '--kubes' => $kubes,
         );
 
         $this->execute($values);
@@ -193,12 +193,13 @@ class KcliCommand extends Command {
     }
 
     /**
-     * @param $name string
-     * @param $image string
-     * @param $values array [isPublic => '', containerPort => '', hostPort => '', protocol => ''], [...]
+     * @param string $name string
+     * @param string $image
+     * @param array $values [isPublic => '', containerPort => '', hostPort => '', protocol => ''], [...]
+     * @param int $kubes
      * @return array
      */
-    public function setContainerPorts($name, $image, $values)
+    public function setContainerPorts($name, $image, $values, $kubes)
     {
         $ports = array_map(function($e) {
             $port = '';
@@ -216,16 +217,18 @@ class KcliCommand extends Command {
             'set' => sprintf("'%s'", $name),
             '-C' => $image,
             '--container-port' => $ports ? implode(',', $ports) : "''",
+            '--kubes' => $kubes,
         ));
     }
 
     /**
-     * @param $name string
-     * @param $image string
-     * @param $values array [env_name => '', env_value => ''], [...]
+     * @param string $name
+     * @param string $image
+     * @param array $values  [env_name => '', env_value => ''], [...]
+     * @param int $kubes
      * @return array
      */
-    public function setContainerEnvVars($name, $image, $values)
+    public function setContainerEnvVars($name, $image, $values, $kubes)
     {
         $env = array_map(function($e) {
             if(isset($e['name']) && isset($e['value'])) {
@@ -239,6 +242,7 @@ class KcliCommand extends Command {
             'set' => sprintf("'%s'", $name),
             '-C' => $image,
             '--env' => implode(',', $env),
+            '--kubes' => $kubes,
         ));
     }
 
@@ -247,10 +251,11 @@ class KcliCommand extends Command {
      * @param string $image
      * @param int $index
      * @param array $params
+     * @param int $kubes
      * @return array
      * @throws CException
      */
-    public function setMountPath($name, $image, $index, $params)
+    public function setMountPath($name, $image, $index, $params, $kubes)
     {
         if(empty($params['mountPath'])) {
             throw new CException('Mount path is empty.');
@@ -263,6 +268,7 @@ class KcliCommand extends Command {
             '-C' => $image,
             '--mount-path' => $params['mountPath'],
             '--index' => $index,
+            '--kubes' => $kubes,
         );
 
         if(isset($params['name']) && isset($params['size']) && $params['name'] && $params['size']) {
