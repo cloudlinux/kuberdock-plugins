@@ -65,7 +65,7 @@ try {
 
     $services = KuberDock_Hosting::model()->getByUser($userData['userDetails']['userid']);
     $userServices = array_filter($services, function(&$e) use ($serverIds) {
-        if(in_array($e['server'], $serverIds) && $e['domainstatus'] == 'Active') {
+        if(in_array($e['server'], $serverIds)) {
             $model = KuberDock_Hosting::model()->loadByParams($e);
             $e['password'] = $model->decryptPassword();
             $e['token'] = $model->getToken();

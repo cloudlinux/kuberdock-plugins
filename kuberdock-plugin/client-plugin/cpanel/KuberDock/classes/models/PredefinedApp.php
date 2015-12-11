@@ -266,7 +266,8 @@ class PredefinedApp {
 
         // Create order with kuberdock product
         $product = $this->api->getProductById($this->packageId);
-        if(!$this->api->getService()) {
+        $service = $this->api->getService();
+        if(!$service) {
             if($this->api->getUserCredit() < $product['firstDeposit']) {
                 $currency = $this->api->getCurrency();
                 $rest = abs($this->api->getUserCredit() - $product['firstDeposit']);
@@ -288,6 +289,10 @@ class PredefinedApp {
             list($username, $password, $token) = $this->api->getAuthData();
             $this->command = new KcliCommand($username, $password, $token);
             $this->command->setConfig();
+        } elseif($service['domainstatus'] == 'Pending') {
+            $this->api->moduleCreate($service['id']);
+            $this->api = $this->api->setKuberDockInfo();
+            $this->command = $this->api->getCommand();
         }
 
         file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template));

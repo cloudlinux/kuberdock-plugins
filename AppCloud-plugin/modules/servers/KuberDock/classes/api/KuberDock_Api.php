@@ -301,7 +301,13 @@ class KuberDock_Api {
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
+
+            if(strpos($response->getMessage(), 'email - has already been taken') !== false) {
+                throw new Exception(sprintf('Cannot create KuberDock user with username: %s because email - has already been taken',
+                    $values['username']));
+            } else {
+                throw new Exception($response->getMessage());
+            }
         }
 
         return $response;

@@ -6,6 +6,7 @@
             <th>Images</th>
             <th>Kubes</th>
             <th>Kube type</th>
+            <th>Status</th>
         </tr>
 
         <?php foreach($pods as $pod):
@@ -20,6 +21,7 @@
             <td><?php echo implode(',', $pod['images'])?></td>
             <td><?php echo $pod['kubes']?></td>
             <td><?php echo $kubes[$pod['kube_type']]['kube_name']?></td>
+            <td><?php echo $pod['status']?></td>
         </tr>
         <?php endforeach;?>
     </table>

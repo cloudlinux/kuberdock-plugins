@@ -162,7 +162,7 @@ function KuberDock_ClientArea($params) {
     $currency = CL_Currency::model()->getDefaultCurrency();
     $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
     $server = KuberDock_Server::model()->loadById($service->server);
-    $trialTime = $product->getConfigOption('trialTime');
+    $trialTime = (int) $product->getConfigOption('trialTime');
     $enableTrial = $product->getConfigOption('enableTrial');
     $regDate = new DateTime($service->regdate);
     $trialExpired = '';
@@ -171,17 +171,20 @@ function KuberDock_ClientArea($params) {
         $trialExpired = $regDate->modify('+'.$trialTime.' day')->format('Y-m-d');
     }
 
-    try {
-        $adminApi = $service->getAdminApi();
-        $stat = $adminApi->getUsage($service->username);
-        $stat = $stat->getData();
-    } catch(Exception $e) {
-        $stat = $e->getMessage();
-    }
-
     $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(
         'product_id' => $product->pid,
     ));
+
+    try {
+        $pods = $service->getApi()->getPods()->getData();
+        $productStatistic = $view->renderPartial('client/product_statistic', array(
+            'pods' => $pods,
+            'kubes' => \base\CL_Tools::getKeyAsField($kubes, 'kuber_kube_id'),
+            'service' => $service,
+        ), false);
+    } catch(Exception $e) {
+        $productStatistic = sprintf('<div class="error">%s</div>', $e->getMessage());
+    }
 
     $productInfo = $view->renderPartial('client/product_info', array(
         'currency' => $currency,
@@ -190,10 +193,6 @@ function KuberDock_ClientArea($params) {
         'kubes' => $kubes,
         'server' => $server,
         'trialExpired' => $trialExpired,
-    ), false);
-
-    $productStatistic = $view->renderPartial('client/product_statistic', array(
-        'stat' => $stat,
     ), false);
 
     return $productInfo . $productStatistic;
