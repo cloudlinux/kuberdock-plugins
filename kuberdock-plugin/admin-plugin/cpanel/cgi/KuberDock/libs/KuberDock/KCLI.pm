@@ -10,6 +10,7 @@ use KuberDock::JSON;
 
 use constant KUBERDOCK_KCLI_PATH => '/usr/bin/kcli';
 use constant KUBERDOCK_CONF_NAME => '.kubecli.conf';
+use constant KUBERDOCK_TEMPLATE_ORIGIN => 'cpanel';
 
 our $responseJSON = 0;
 
@@ -19,13 +20,13 @@ sub getTemplate {
 }
 
 sub getTemplates {
-    return KuberDock::KCLI::execute('kubectl', 'get', 'templates');
+    return KuberDock::KCLI::execute('kubectl', 'get', 'templates', '--origin', KuberDock::KCLI::KUBERDOCK_TEMPLATE_ORIGIN);
 }
 
 sub createTemplate {
     my ($filename, $name) = @_;
     return KuberDock::KCLI::execute('kubectl', 'create', 'template', '-f', $filename,
-        '--name', sprintf("'%s'", $name));
+        '--name', sprintf("'%s'", $name), '--origin', KuberDock::KCLI::KUBERDOCK_TEMPLATE_ORIGIN);
 }
 
 sub updateTemplate {

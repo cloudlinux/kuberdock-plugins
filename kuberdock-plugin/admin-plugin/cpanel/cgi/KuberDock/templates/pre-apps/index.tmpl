@@ -17,16 +17,14 @@
                     <td class="text-center">[% i %]</td>
                     <td>[% app.name %]</td>
                     <td class="text-center actions">
-                    [% IF !app.kuberdock %]
-                        [% IF app.installed %]
-                            <a href="?a=uninstallApp&app=[% app.id %]#pre_apps">
-                                <button class="btn btn-warning btn-xs">Uninstall</button>
-                            </a>
-                        [% ELSE %]
-                            <a href="?a=installApp&app=[% app.id %]#pre_apps">
-                                <button class="btn btn-success btn-xs">Install</button>
-                            </a>
-                        [% END %]
+                    [% IF app.installed %]
+                        <a href="?a=uninstallApp&app=[% app.id %]#pre_apps">
+                            <button class="btn btn-warning btn-xs">Uninstall</button>
+                        </a>
+                    [% ELSE %]
+                        <a href="?a=installApp&app=[% app.id %]#pre_apps">
+                            <button class="btn btn-success btn-xs">Install</button>
+                        </a>
                     [% END %]
                         <a href="?a=updateApp&app=[% app.id %]#pre_apps">
                             <button type="button" class="btn btn-primary btn-xs" title="Update">

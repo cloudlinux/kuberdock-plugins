@@ -8,13 +8,13 @@ var resDelete = function(obj) {
 };
 
 var renderDefaults = function() {
-    if(typeof defaults == 'undefined' || typeof packagesKubes == 'undefined') {
-        throw('Defaults cannot initialize');
-    }
-
     var selectedPackage = $('#packageId').val();
     $('#packageId').empty().append(jQuery('<option>', {text: 'Empty'}));
     $('#kubeType').empty().append(jQuery('<option>', {text: 'Empty'}));
+
+    if(typeof defaults == 'undefined' || typeof packagesKubes == 'undefined') {
+        return;
+    }
 
     $.each(packagesKubes, function(k, v) {
         selectedPackage = selectedPackage ? selectedPackage : defaults.packageId;

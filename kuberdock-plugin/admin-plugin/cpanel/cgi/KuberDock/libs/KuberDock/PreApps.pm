@@ -72,13 +72,7 @@ sub getList() {
         my $path = $self->{_appsDir} . '/'. $appId . '/install.json';
 
         $i->{'installed'} = -e dirname($path) . '/' . 'installed' ? 1 : 0;
-        if(!-e dirname($path)) {
-            $i->{'kuberdock'} = 1;
-            $i->{'name'} = 'Template created in KuberDock. For use it in cPanel, please update it.';
-        } else {
-            $i->{'name'} = $yaml->{'kuberdock'}->{'name'} || 'Undefined';
-        }
-
+        $i->{'name'} = $yaml->{'kuberdock'}->{'name'} || 'Undefined';
         $i->{'appId'} = $appId;
 
         push @data, $i;

@@ -8,7 +8,7 @@ License: CloudLinux Commercial License
 URL: http://www.cloudlinux.com
 Source0: %{name}-%{version}.tar.bz2
 
-Requires: kuberdock-cli >= 0.1-24
+Requires: kuberdock-cli >= 0.1-29
 
 AutoReq: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -51,7 +51,7 @@ fi
 
 %changelog
 
-* Tue Dec 11 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-16
+* Fri Dec 11 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-16
 - cPanel. Display error if product is Pending
 - AC-1645 cPanel > KuberDock > Quantity of kubes displayed incorrect
 - AC-1720 cPanel > KuberDock plugin > Billing Integration tab > User can see password from console
