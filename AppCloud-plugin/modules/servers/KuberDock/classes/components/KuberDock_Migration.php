@@ -64,7 +64,7 @@ class KuberDock_Migration extends CL_Component {
         $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
                 `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            array(0, null, null, 'Standard kube', null, 0, 0.01, 64, 1, 0, KuberDock_Server::model()->getActive()->id));
+            array(0, null, null, 'Standard', null, 0, 0.01, 64, 1, 0, KuberDock_Server::model()->getActive()->id));
     }
 
     /**

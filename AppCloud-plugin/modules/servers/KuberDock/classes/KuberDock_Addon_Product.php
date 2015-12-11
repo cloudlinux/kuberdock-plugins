@@ -209,12 +209,12 @@ class KuberDock_Addon_Product extends CL_Model {
             LEFT JOIN tblservergroups sg ON p.servergroup=sg.id
             LEFT JOIN tblservergroupsrel sgr ON sg.id=sgr.groupid
             LEFT JOIN tblservers s ON sgr.serverid=s.id
-                WHERE p.hidden != 1 AND s.ipaddress = ? AND s.type = ?', array(
-            $host, KUBERDOCK_MODULE_NAME,
+                WHERE p.hidden != 1 AND (s.ipaddress = ? OR s.hostname = ?) AND s.type = ?', array(
+            $host, $host, KUBERDOCK_MODULE_NAME,
         ))->getRows();
 
         if(!$rows) {
-            throw new CException('Products not founded');
+            throw new CException("No available products for KuberDock server: " . $host);
         }
 
         return $rows;

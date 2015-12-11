@@ -94,9 +94,7 @@ class KcliCommand extends Command {
                 'pods',
             ));
         } catch(CException $e) {
-            if(stripos($e->getMessage(), 'hostingPanel') !== false) {
-                return array();
-            }
+            return array();
         }
     }
 

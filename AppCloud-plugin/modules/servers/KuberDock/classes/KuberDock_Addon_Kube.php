@@ -25,7 +25,7 @@ class KuberDock_Addon_Kube extends CL_Model {
     /**
      *
      */
-    const STANDARD_KUBE_NAME = 'Standard kube';
+    const STANDARD_KUBE_NAME = 'Standard';
     /**
      *
      */

@@ -92,10 +92,14 @@ sub indexAction() {
     }
     my $defaults = $resellers->loadDefaults();
 
+    if(defined $resellersData->{ALL}) {
+        $resellersData->{ALL}->{password} =~ s/./\*/g;
+    }
+
     my $vars = {
         resellers => [$resellers->get()],
         apps => [$apps->getList()],
-        data => defined $resellersData->{ALL} ? $resellersData : {},
+        data => $resellersData,
         packagesKubes => $json->encode(@packagesKubes, 1),
         defaults => $json->encode($defaults, 1),
         action => 'addon_kuberdock.cgi?a=createApp#create',
@@ -118,23 +122,23 @@ sub addResellerAction() {
     );
 
     $reseller->save(%data);
-    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#resellers');
+    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#billing');
 }
 
 sub saveResellerAction() {
     my ($self) = @_;
     my $resellers = KuberDock::Resellers->new();
+    my $data = $resellers->loadData();
+    my $oldPassword = $data->{ALL}->{password};
+    my $password = $self->{_cgi}->param('ALL:password');
+    $oldPassword =~ s/./\*/g;
 
-    my %data = (
-        ALL => {
-            server => $self->{_cgi}->param('ALL:server'),
-            username => $self->{_cgi}->param('ALL:username'),
-            password => $self->{_cgi}->param('ALL:password'),
-        }
-    );
+    $data->{ALL}->{server} = $self->{_cgi}->param('ALL:server');
+    $data->{ALL}->{username} = $self->{_cgi}->param('ALL:username');
+    $data->{ALL}->{password} = $self->{_cgi}->param('ALL:password') if($oldPassword ne $password);
 
-    $resellers->save(%data);
-    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#resellers');
+    $resellers->save(%{$data});
+    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#billing');
 }
 
 sub deleteResellerAction() {
@@ -144,7 +148,7 @@ sub deleteResellerAction() {
     my $reseller = KuberDock::Resellers->new();
 
     $reseller->delete($owner);
-    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#resellers');
+    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#billing');
 }
 
 sub createAppAction() {

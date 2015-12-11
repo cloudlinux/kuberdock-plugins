@@ -76,11 +76,11 @@ class AppController extends KuberDock_Controller {
                 try {
                     $app->setPackageId(Tools::getPost('product_id'));
                     $app->createApp($_POST);
-                    //$app->start();
+                    $app->start();
 
                     echo json_encode(array(
                         'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
-                        'redirect' => sprintf('%s?c=app&a=installPredefined&template=%s&podName=%s&postDescription=%s&start=1',
+                        'redirect' => sprintf('%s?c=app&a=installPredefined&template=%s&podName=%s&postDescription=%s',
                             $_SERVER['SCRIPT_URI'], $templateId, $app->getPodName(), 1),
                     ));
                 } catch (CException $e) {

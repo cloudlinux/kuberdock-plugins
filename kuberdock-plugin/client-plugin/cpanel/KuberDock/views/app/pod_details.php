@@ -5,7 +5,7 @@
             <?php if($postDescription):?>
                 <div class="alert alert-dismissible alert-success"  role="alert">
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <?php echo $postDescription?>
+                    <pre><?php echo $postDescription?></pre>
                 </div>
             <?php endif;?>
             <div class="message"><?php echo $this->controller->error?></div>
@@ -19,22 +19,6 @@
                 } else {
                     $statusClass = 'container-stop';
                     $statusText = 'Stop';
-                }
-
-                $i = 0;
-                while($i < $pod->kubeCount) {
-                    $i++;
-                }
-
-                $ports = array();
-                foreach($pod->containers as $r) {
-                    if(!isset($r['ports'])) continue;
-
-                    foreach($r['ports'] as $p) {
-                        if(isset($p['hostPort'])) {
-                            $ports[] = $p['hostPort'];
-                        }
-                    }
                 }
             ?>
             <div class="splitter last">
@@ -58,9 +42,11 @@
                                 Kube quantity: <?php echo $pod->kubeCount ?>
                             </td>
                             <td>
-                            <?php if($ip = $pod->getPublicIp()):?>
-                                <?php echo $ip ?>
-                                <?php echo $ports ? '<br>Available ports: ' . implode(', ', $ports) : ''?>
+                            <?php if($ip = $pod->getPublicIp()):
+                                $ports = $pod->getPorts();
+                                echo $ip;
+                                echo $ports ? '<br>Available ports: ' . implode(', ', $ports) : ''
+                            ?>
                             <?php else: ?>
                                 none
                             <?php endif;?>
@@ -116,11 +102,3 @@
         </div>
     </div>
 </div>
-
-<?php if($start && $pod->status == 'stopped'):?>
-<script>
-    $(document).ready(function() {
-        $('.container-start').trigger('click');
-    });
-</script>
-<?php endif;?>
