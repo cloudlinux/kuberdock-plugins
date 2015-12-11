@@ -480,11 +480,11 @@ class Pod {
         $container['env'] = $this->parseEnv($container['env']);
         $container['volumeMounts'] = $this->parseVolumeMounts($container['volumeMounts']);
 
-        $this->command->setContainerPorts($this->name, $container['image'], $container['ports']);
-        $this->command->setContainerEnvVars($this->name, $container['image'], $container['env']);
+        $this->command->setContainerPorts($this->name, $container['image'], $container['ports'], $container['kubes']);
+        $this->command->setContainerEnvVars($this->name, $container['image'], $container['env'], $container['kubes']);
 
         foreach($container['volumeMounts'] as $index => $data) {
-            $this->command->setMountPath($this->name, $container['image'], $index, $data);
+            $this->command->setMountPath($this->name, $container['image'], $index, $data, $container['kubes']);
         }
 
         $this->command->saveContainer($this->name);
