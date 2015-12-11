@@ -413,6 +413,8 @@ class KuberDock_Product extends CL_Product {
                 return 'day';
             case 'hourly':
                 return 'hour';
+            default:
+                return 'unknown';
         }
     }
 

@@ -32,7 +32,14 @@ class KuberDock_Addon extends CL_Component {
         $server = KuberDock_Server::model()->getActive();
 
         if(!$server) {
-            throw new CException('Add KuberDock server before activating addon.');
+            throw new CException('Add KuberDock server and server group before activating addon.');
+        }
+
+        $group = CL_Query::model()->query('SELECT * FROM `tblproductgroups` WHERE hidden != 1 ORDER BY `order` ASC LIMIT 1')
+            ->getRow();
+
+        if(!$group) {
+            throw new CException('Add product group before activating addon.');
         }
 
         try {
@@ -110,9 +117,6 @@ class KuberDock_Addon extends CL_Component {
 
             if(!KuberDock_Product::model()->loadByAttributes(array('name' => self::STANDARD_PRODUCT, 'servertype' => KUBERDOCK_MODULE_NAME))) {
                 // Create standard product
-                $group = CL_Query::model()->query('SELECT * FROM `tblproductgroups` WHERE hidden != 1 ORDER BY `order` ASC LIMIT 1')
-                    ->getRow();
-
                 $product->setAttributes(array(
                     'gid' => $group['id'],
                     'type' => 'other',

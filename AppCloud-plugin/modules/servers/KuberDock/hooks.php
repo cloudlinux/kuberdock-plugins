@@ -144,8 +144,9 @@ function KuberDock_ShoppingCartValidateCheckout($params)
                 CException::log($e);
             }
 
-            if($userProducts) {
-                $errors[] = 'You can not buy more than 1 KuberDock product.';
+            $errorMessage = 'You can not buy more than 1 KuberDock product.';
+            if($userProducts && !in_array($errorMessage, $userProducts)) {
+                $errors[] = $errorMessage;
             }
 
             if($product->getConfigOption('enableTrial') && KuberDock_Addon_Trial::model()->loadById($params['userid'])) {
@@ -697,7 +698,7 @@ function KuberDock_ClientDelete($params)
     foreach($rows as $row) {
         $service = KuberDock_Hosting::model()->loadByParams($row);
         try {
-            $service->getAdminApi()->deleteUser($service->username);
+            $service->getAdminApi()->deleteUserFull($service->username);
         } catch(Exception $e) {
             CException::log($e);
         }

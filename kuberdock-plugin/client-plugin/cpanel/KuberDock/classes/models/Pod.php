@@ -441,7 +441,8 @@ class Pod {
 
         // Create order with kuberdock product
         $product = $this->api->getProductById($this->packageId);
-        if(!$this->api->getService()) {
+        $service = $this->api->getService();
+        if(!$service) {
             if($this->api->getUserCredit() < $product['firstDeposit']) {
                 $currency = $this->api->getCurrency();
                 $rest = abs($this->api->getUserCredit() - $product['firstDeposit']);
@@ -460,6 +461,10 @@ class Pod {
             $this->api->acceptOrder($data['orderid'], false);
             $this->api->moduleCreate($data['productids']);
 
+            $this->api = $this->api->setKuberDockInfo();
+            $this->command = $this->api->getCommand();
+        } elseif($service['domainstatus'] == 'Pending') {
+            $this->api->moduleCreate($service['id']);
             $this->api = $this->api->setKuberDockInfo();
             $this->command = $this->api->getCommand();
         }
