@@ -296,7 +296,7 @@ class KuberDock_Api {
      */
     public function createUser($values)
     {
-        $this->url = $this->serverUrl . '/api/users/';
+        $this->url = $this->serverUrl . '/api/users/all';
         $response = $this->call($values, 'POST');
 
         if(!$response->getStatus()) {
@@ -321,7 +321,7 @@ class KuberDock_Api {
      */
     public function updateUser($values, $user)
     {
-        $this->url = $this->serverUrl . '/api/users/' . $user;
+        $this->url = $this->serverUrl . '/api/users/all/' . $user;
         $response = $this->call($values, 'PUT');
 
         if(!$response->getStatus()) {
@@ -339,7 +339,7 @@ class KuberDock_Api {
      */
     public function deleteUser($user)
     {
-        $this->url = $this->serverUrl . '/api/users/' . $user;
+        $this->url = $this->serverUrl . '/api/users/all/' . $user;
         $response = $this->call(array(), 'DELETE');
 
         if(!$response->getStatus()) {
@@ -393,7 +393,7 @@ class KuberDock_Api {
      */
     public function getUser($user)
     {
-        $this->url = $this->serverUrl . '/api/users/' . $user;
+        $this->url = $this->serverUrl . '/api/users/all/' . $user;
         $response = $this->call();
 
         if(!$response->getStatus()) {

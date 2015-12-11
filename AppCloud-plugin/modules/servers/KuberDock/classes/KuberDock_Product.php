@@ -117,7 +117,7 @@ class KuberDock_Product extends CL_Product {
         try {
             $response = $api->getUser($service->username);
             $api->unDeleteUser($service->username);
-            $this->update($serviceId);
+            $this->update($serviceId, true);
         } catch(Exception $e) {
             $response = $api->createUser(array(
                 'first_name' => $this->client->firstname,
@@ -170,10 +170,11 @@ class KuberDock_Product extends CL_Product {
 
     /**
      * @param int $serviceId
+     * @param bool $activate
      * @return void
      * @throws Exception
      */
-    public function update($serviceId)
+    public function update($serviceId, $activate = false)
     {
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
         $api = $service->getAdminApi();
@@ -194,7 +195,7 @@ class KuberDock_Product extends CL_Product {
             'last_name' => $this->client->lastname,
             'username' => $service->username,
             'password' => $password,
-            'active' => $service->isTerminated() ? 0 : 1,
+            'active' => $service->isTerminated() && !$activate ? 0 : 1,
             'suspended' => $service->isSuspended() ? 1 : 0,
             //'email' => $this->client->email,
             'rolename' => $role,
@@ -226,7 +227,7 @@ class KuberDock_Product extends CL_Product {
     {
         $service = KuberDock_Hosting::model()->loadById($serviceId);
         $api = $service->getAdminApi();
-        $api->updateUser(array('active' => 0), $service->username);
+        $api->updateUser(array('active' => 0, 'suspended' => 0), $service->username);
     }
 
     /**
