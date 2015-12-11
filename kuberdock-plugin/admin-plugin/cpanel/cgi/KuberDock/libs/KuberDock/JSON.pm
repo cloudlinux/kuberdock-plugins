@@ -13,15 +13,17 @@ sub new {
 }
 
 sub decode() {
-    my ($self, $data) = @_;
-    my $coder = JSON::XS->new->utf8->pretty->allow_nonref;
+    my ($self, $data, $notPretty) = @_;
+    my $coder = JSON::XS->new->utf8->allow_nonref;
+    $coder->pretty if !defined $notPretty;
 
     return $coder->decode($data);
 }
 
 sub encode() {
-    my ($self, $data) = @_;
-    my $coder = JSON::XS->new->utf8->pretty->allow_nonref;
+    my ($self, $data, $notPretty) = @_;
+    my $coder = JSON::XS->new->utf8->allow_nonref;
+    $coder->pretty if !defined $notPretty;
 
     return $coder->encode($data);
 }

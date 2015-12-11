@@ -12,6 +12,7 @@ use KuberDock::PreApps;
 use KuberDock::KCLI;
 use KuberDock::API;
 use KuberDock::Exception;
+use KuberDock::JSON;
 use Data::Dumper;
 
 use constant KUBERDOCK_TEMPLATE_PATH => '/usr/local/cpanel/whostmgr/docroot/cgi/KuberDock/templates';
@@ -75,9 +76,13 @@ sub indexAction() {
     my $resellersData = $resellers->loadData();
     my $apps = KuberDock::PreApps->new($self->{_cgi});
     my $api = KuberDock::API->new;
-    my $packages;
+    my $json = KuberDock::JSON->new;
+    my @packagesKubes;
+    my $appName = $self->{_cgi}->param('app_name') || '';
+    my $code = $self->{_cgi}->param('code');
+
     eval {
-        $packages = $api->getPackages();
+        @packagesKubes = $api->getPackagesKubes();
     };
 
     if($@) {
@@ -91,11 +96,11 @@ sub indexAction() {
         resellers => [$resellers->get()],
         apps => [$apps->getList()],
         data => defined $resellersData->{ALL} ? $resellersData : {},
-        packages => $packages,
-        kubes => $api->getPackageKubes(@$packages[0]->{id}),
-        defaults => $defaults,
-        action => 'addon_kuberdock.cgi?a=createApp',
-        yaml => '# Please input your yaml here',
+        packagesKubes => $json->encode(@packagesKubes, 1),
+        defaults => $json->encode($defaults, 1),
+        action => 'addon_kuberdock.cgi?a=createApp#create',
+        yaml => $code || '# Please input your yaml here',
+        appName => $appName,
     };
 
     $self->render('index.tmpl', $vars);
@@ -186,7 +191,8 @@ sub createAppAction() {
 
         if($@) {
             KuberDock::Exception::throw($@);
-            $self->render('pre-apps/form.tmpl', $vars);
+            $self->indexAction();
+            #$self->render('pre-apps/form.tmpl', $vars);
             return 0;
         }
         $yaml->{kuberdock}->{name} = $appName;
