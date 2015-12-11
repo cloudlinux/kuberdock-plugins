@@ -1,7 +1,7 @@
 Version: 0.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 15%{?dist}.cloudlinux
+Release: 16%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -50,6 +50,12 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Tue Dec 11 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-16
+- cPanel. Display error if product is Pending
+- AC-1645 cPanel > KuberDock > Quantity of kubes displayed incorrect
+- AC-1720 cPanel > KuberDock plugin > Billing Integration tab > User can see password from console
+- AC-1755 cPanel. Refactor app defaults
 
 * Tue Dec 1 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-15
 - AC-1550 cPanel. Usability issues
