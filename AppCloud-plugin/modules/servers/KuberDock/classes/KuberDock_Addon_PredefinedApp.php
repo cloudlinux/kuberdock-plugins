@@ -24,6 +24,10 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     /**
      *
      */
+    const KUBERDOCK_REFERER_FIELD = 'referer';
+    /**
+     *
+     */
     const KUBERDOCK_YAML_POST_DESCRIPTION_FIELD = 'postDescription';
 
     /**

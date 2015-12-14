@@ -61,7 +61,6 @@ class AppController extends KuberDock_Controller {
         $new = Tools::getParam('new', '');
         $podName = Tools::getParam('podName', '');
         $postDescription = Tools::getParam('postDescription', '');
-        $start = Tools::getParam('start', '');
 
         try {
             $app = new PredefinedApp($templateId);
@@ -112,24 +111,46 @@ class AppController extends KuberDock_Controller {
                         $postDescription = $bbCode->toHTML($postDescription);
                     }
 
-                    $this->render('pod_details', array(
-                        'app' => $app,
-                        'pod' => $pod,
-                        'postDescription' => $postDescription,
-                        'podsCount' => $podsCount,
-                        'templateId' => $templateId,
-                        'start' => $start,
-                    ));
+                    if(Tools::getIsAjaxRequest()) {
+                        echo json_encode(array(
+                            'content' => $this->renderPartial('pod_details', array(
+                                'app' => $app,
+                                'pod' => $pod,
+                                'podsCount' => $podsCount,
+                            ), false)
+                        ));
+                    } else {
+                        $this->render('pod_page', array(
+                            'app' => $app,
+                            'pod' => $pod,
+                            'postDescription' => $postDescription,
+                            'podsCount' => $podsCount,
+                        ));
+                    }
                     break;
                 default:
-                    $this->render('index', array(
-                        'app' => $app,
-                        'pods' => $app->getExistingPods(),
-                    ));
+                    if(Tools::getIsAjaxRequest()) {
+                        echo json_encode(array(
+                            'content' => $this->renderPartial('container_content', array(
+                                'pods' => $app->getExistingPods(),
+                            ), false)
+                        ));
+                        exit;
+                    } else {
+                        $this->render('index', array(
+                            'app' => $app,
+                            'pods' => $app->getExistingPods(),
+                        ));
+                    }
                     break;
             }
         } catch(CException $e) {
-            echo $e;
+            if(Tools::getIsAjaxRequest()) {
+                header('HTTP/1.1 500 Internal Server Error');
+                echo $e->getJSON();
+            } else {
+                throw $e;
+            }
         }
     }
 }

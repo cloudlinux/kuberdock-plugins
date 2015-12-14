@@ -187,7 +187,7 @@ class KuberDock_Addon_Product extends CL_Model {
         }
 
         if(!$rows) {
-            throw new CException('Product not founded');
+            throw new CException(sprintf('Product for KuberDock server: %s not founded ', $serverUrl));
         }
 
         return $this->loadByParams(current($rows));

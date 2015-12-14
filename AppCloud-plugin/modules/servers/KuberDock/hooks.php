@@ -338,6 +338,7 @@ function KuberDock_ClientAreaPage($params)
         if(isset($_GET[$predefinedApp::KUBERDOCK_YAML_FIELD])) {
             $kdProductId = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_PRODUCT_ID_FIELD);
             $yaml = html_entity_decode(urldecode(CL_Base::model()->getParam($predefinedApp::KUBERDOCK_YAML_FIELD)), ENT_QUOTES);
+            $referer = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_REFERER_FIELD);
             $parsedYaml = Spyc::YAMLLoadString($yaml);
 
             try {
@@ -345,16 +346,16 @@ function KuberDock_ClientAreaPage($params)
                     $kdProductId = $parsedYaml['kuberdock']['package_id'];
                 }
 
-                if(isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER']) {
-                    $referer = $_SERVER['HTTP_REFERER'];
-                } elseif($server = KuberDock_Server::model()->getActive()) {
-                    $referer = $server->getApiServerUrl();
-                } else {
-                    throw new CException('Cannot get KuberDock server url');
-                }
-
-                if(isset($parsedYaml['kuberdock']['server'])) {
-                    $referer = $parsedYaml['kuberdock']['server'];
+                if(!$referer) {
+                    if(isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER']) {
+                        $referer = $_SERVER['HTTP_REFERER'];
+                    } elseif(isset($parsedYaml['kuberdock']['server'])) {
+                        $referer = $parsedYaml['kuberdock']['server'];
+                    } elseif($server = KuberDock_Server::model()->getActive()) {
+                        $referer = $server->getApiServerUrl();
+                    } else {
+                        throw new CException('Cannot get KuberDock server url');
+                    }
                 }
 
                 $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $referer);

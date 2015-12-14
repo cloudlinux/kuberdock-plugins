@@ -2,11 +2,24 @@ var _$ = $.noConflict();
 
 (function($) {
     $(document).ready(function() {
-        window.setInterval(function() {
-            getPodList();
-        }, 120 * 1000);
-
         $('[data-toggle="tooltip"]').tooltip();
+
+        var eventHandler = function() {
+            var source = new EventSource('kuberdock.live.php?a=stream');
+
+            source.addEventListener('pull_pods_state', function(e) {
+                getPodList();
+                getPodDetails();
+            }, false);
+
+            source.addEventListener('error', function(e) {
+                console.info('SSE connection lost');
+                source.close();
+                setTimeout(eventHandler, 5000);
+            }, false);
+        }
+
+        eventHandler();
     });
 
     var displayMessage = function(message) {
@@ -19,13 +32,13 @@ var _$ = $.noConflict();
     };
 
     var getPodList = function(el) {
-        if(!$('div.container-content').length) return false;
+        if(!$('table.pod-list').length) return false;
 
-        var loader = typeof el === 'undefined' ? $('.ajax-loader') :
+        var loader = typeof el === 'undefined' ? $('.ajax-loader').last() :
             el.parents('tr:eq(0)').find('.pod-refresher.ajax-loader');
 
         $.ajax({
-            url: '?a=podList',
+            url: window.location.href,
             dataType: 'json',
             beforeSend: function() {
                 if(el) el.addClass('hidden')
@@ -34,7 +47,31 @@ var _$ = $.noConflict();
         }).done(function(data) {
             if(el) el.removeClass('hidden')
             loader.addClass('hidden');
-            $('div.container-content').replaceWith(data.content);
+            $('table.pod-list tbody').html(data.content);
+        }).error(function(data) {
+            if(el) el.removeClass('hidden')
+            loader.addClass('hidden');
+            displayMessage(data.responseJSON.message);
+        });
+    };
+
+    var getPodDetails = function(el) {
+        if(!$('div.pod-details').length) return false;
+
+        var loader = typeof el === 'undefined' ? $('.ajax-loader').last() :
+            el.parents('tr:eq(0)').find('.pod-refresher.ajax-loader');
+
+        $.ajax({
+            url: window.location.href,
+            dataType: 'json',
+            beforeSend: function() {
+                if(el) el.addClass('hidden')
+                loader.removeClass('hidden');
+            }
+        }).done(function(data) {
+            if(el) el.removeClass('hidden')
+            loader.addClass('hidden');
+            $('div.pod-details').replaceWith(data.content);
         }).error(function(data) {
             if(el) el.removeClass('hidden')
             loader.addClass('hidden');
@@ -165,7 +202,7 @@ var _$ = $.noConflict();
                 .removeClass('btn-success').addClass('btn-danger');
             el.find('span:eq(0)').removeClass('glyphicon-play').addClass('glyphicon-stop');
             el.find('span:eq(1)').text('Stop');
-            el.parents('tr').find('td:eq(2)').html('Running');
+            el.parents('tr').find('td:eq(2)').html('Pending');
         }).error(function(data) {
             displayMessage(data.responseJSON.message);
         });

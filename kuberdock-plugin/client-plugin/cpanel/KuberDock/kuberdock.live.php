@@ -12,8 +12,8 @@ try {
     echo $e->getMessage();
 }
 
-// Catch ajax requests
-if(Tools::getIsAjaxRequest()) {
+// Catch ajax\stream requests
+if(Tools::getIsAjaxRequest() || Tools::getIsStreamRequest()) {
     $loader->run();
     $cPanel->end();
     exit();

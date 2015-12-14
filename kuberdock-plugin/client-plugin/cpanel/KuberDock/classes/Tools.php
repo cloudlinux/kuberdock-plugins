@@ -38,6 +38,14 @@ class Tools {
     }
 
     /**
+     * @return bool
+     */
+    public static function getIsStreamRequest()
+    {
+        return isset($_SERVER['HTTP_ACCEPT']) && stripos($_SERVER['HTTP_ACCEPT'], 'stream') !== false;
+    }
+
+    /**
      * @param $description
      * @return array
      */

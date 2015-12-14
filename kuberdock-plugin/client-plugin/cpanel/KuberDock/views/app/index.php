@@ -18,7 +18,7 @@
     </div>
     <div class="row">
         <div class="col-md-12">
-            <table class="table apps-list">
+            <table class="table apps-list pod-list">
                 <thead>
                     <tr>
                         <th>Name</th>

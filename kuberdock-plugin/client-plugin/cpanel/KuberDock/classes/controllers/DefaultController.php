@@ -14,27 +14,24 @@ class DefaultController extends KuberDock_Controller {
             $pod = new Pod();
             $pods = $pod->getPods();
         } catch(CException $e) {
-            throw $e;
+            if(Tools::getIsAjaxRequest()) {
+                header('HTTP/1.1 500 Internal Server Error');
+                echo $e->getJSON();
+            } else {
+                throw $e;
+            }
         }
 
-        $this->render('index', array(
-            'pods' => $pods,
-        ));
-    }
-
-    public function podListAction()
-    {
-        if(!Tools::getIsAjaxRequest()) {
-            return;
-        }
-
-        try {
+        if(Tools::getIsAjaxRequest()) {
             echo json_encode(array(
-                'content' => $this->getContainersList(),
+                'content' => $this->renderPartial('container_content', array(
+                    'pods' => $pods,
+                ), false),
             ));
-        } catch(CException $e) {
-            header('HTTP/1.1 500 Internal Server Error');
-            echo $e->getJSON();
+        } else {
+            $this->render('index', array(
+                'pods' => $pods,
+            ));
         }
     }
 
@@ -44,14 +41,32 @@ class DefaultController extends KuberDock_Controller {
         $postDescription = Tools::getParam('postDescription', '');
         $templateId = Tools::getParam('templateId', null);
 
-        $pod = new Pod();
-        $pod = $pod->loadByName($podName);
+        try {
+            $pod = new Pod();
+            $pod = $pod->loadByName($podName);
+        } catch(CException $e) {
+            if(Tools::getIsAjaxRequest()) {
+                header('HTTP/1.1 500 Internal Server Error');
+                echo $e->getJSON();
+            } else {
+                throw $e;
+            }
+        }
 
-        $this->render('pod_details', array(
-            'pod' => $pod,
-            'postDescription' => $postDescription,
-            'templateId' => $templateId,
-        ));
+        if(Tools::getIsAjaxRequest()) {
+            echo json_encode(array(
+                'content' => $this->renderPartial('pod_details', array(
+                    'pod' => $pod,
+                    'templateId' => $templateId,
+                ), false),
+            ));
+        } else {
+            $this->render('pod_page', array(
+                'pod' => $pod,
+                'postDescription' => $postDescription,
+                'templateId' => $templateId,
+            ));
+        }
     }
 
     public function searchAction()
@@ -236,22 +251,30 @@ class DefaultController extends KuberDock_Controller {
         }
     }
 
-    private function getContainersList()
+    public function streamAction()
     {
-        try {
-            $pod = new Pod();
-            $pods = $pod->getPods();
-        } catch(CException $e) {
-            $pods = array();
+        set_time_limit(0);
+        header('Content-Type: text/event-stream');
 
-            if(strpos($e->getMessage(), '[]') !== false) //dump fix
-                $this->error = '';
-            else
-                $this->error = $e;
+        $config = KcliCommand::getConfig();
+
+        if(!isset($config['url']) || !isset($config['token'])) {
+            exit;
         }
 
-        return $this->renderPartial('container_content', array(
-            'pods' => $pods,
-        ), false);
+        $url = sprintf('%s/api/stream?token=%s', $config['url'], $config['token']);
+        $handle = fopen($url, 'r');
+
+        while($handle) {
+            $response = fgets($handle);
+            if($response) {
+                echo sprintf("%s", $response);
+            }
+            flush();
+            sleep(1);
+        }
+
+        echo "retry: 2000\n\n";
+        fclose($handle);
     }
-} 
+}
