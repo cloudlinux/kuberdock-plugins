@@ -510,11 +510,12 @@ class KcliCommand extends Command {
 
     /**
      * Get user config file data
+     * @param bool $global
      * @return array
      */
-    static public function getConfig()
+    static public function getConfig($global = false)
     {
-        $path = self::getUserConfigPath();
+        $path = self::getUserConfigPath($global);
 
         $data = array();
         $fp = fopen($path, 'r');
@@ -534,15 +535,16 @@ class KcliCommand extends Command {
 
     public function setConfig()
     {
+        $globalConfig = self::getConfig(true);
         $config = self::getConfig();
 
-        if(isset($config['token']) && $this->token == $config['token']) {
+        if(isset($config['token']) && $this->token == $config['token'] && $globalConfig['url'] == $config['url']) {
             return;
         }
 
         $newConfig = array(
             'global' => array(
-                'url' => $config['url'],
+                'url' => $globalConfig['url'],
             ),
             'defaults' => array(
                 'registry' => $config['registry'],
@@ -581,17 +583,23 @@ class KcliCommand extends Command {
     }
 
     /**
+     * @param bool $global
      * @return string
      * @throws CException
      */
-    static private function  getUserConfigPath()
+    static private function  getUserConfigPath($global = false)
     {
+        if(!file_exists(self::GLOBAL_CONF_FILE)) {
+            throw new CException('Global config file not founded');
+        }
+
+        if($global) {
+            return self::GLOBAL_CONF_FILE;
+        }
+
         $path = getenv('HOME') .DS . '.kubecli.conf';
 
         if(!file_exists($path)) {
-            if(!file_exists(self::GLOBAL_CONF_FILE)) {
-                throw new CException('Global config file not founded');
-            }
             copy(self::GLOBAL_CONF_FILE, $path);
         }
 

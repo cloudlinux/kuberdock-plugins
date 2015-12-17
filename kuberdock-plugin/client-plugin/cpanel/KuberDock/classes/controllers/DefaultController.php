@@ -259,6 +259,7 @@ class DefaultController extends KuberDock_Controller {
         $config = KcliCommand::getConfig();
 
         if(!isset($config['url']) || !isset($config['token'])) {
+            echo "retry: 10000\n\n";
             exit;
         }
 
@@ -274,7 +275,7 @@ class DefaultController extends KuberDock_Controller {
             sleep(1);
         }
 
-        echo "retry: 2000\n\n";
+        echo "retry: 10000\n\n";
         fclose($handle);
     }
 }

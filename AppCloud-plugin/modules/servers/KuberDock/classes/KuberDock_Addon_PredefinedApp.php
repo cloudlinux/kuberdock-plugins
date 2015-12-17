@@ -118,10 +118,10 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
             $spec = $data['spec'];
         }
 
-        foreach($spec as $row) {
-            if(is_array($row) && $row) {
-                $kube = isset($row['kubes']) ? $row['kubes'] : 1;
-                $total += $kube * $kubePrice;
+        $containers = $spec['containers'] ? $spec['containers'] : $spec;
+        foreach($containers as $row) {
+            if(isset($row['kubes'])) {
+                $total += $row['kubes'] * $kubePrice;
             }
         }
 

@@ -404,7 +404,7 @@ class WHMCSApi extends Base {
     }
 
     /**
-     * @return mixed
+     * @return array
      * @throws CException
      */
     public function getUserDomains()

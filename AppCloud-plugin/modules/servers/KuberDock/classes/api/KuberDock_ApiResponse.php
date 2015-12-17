@@ -44,6 +44,13 @@ class KuberDock_ApiResponse {
      */
     public function getMessage()
     {
+        if(isset($this->parsed['type'])) {
+            $exception = sprintf('\exceptions\%sException', $this->parsed['type']);
+            if(class_exists($exception)) {
+                throw new $exception;
+            }
+        }
+
         if(isset($this->parsed['message'])) {
             return $this->parsed['message'];
         } elseif(isset($this->parsed['status'])) {

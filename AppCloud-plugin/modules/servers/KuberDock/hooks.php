@@ -272,10 +272,6 @@ function KuberDock_ClientAreaPage($params)
     $values = $smarty->get_template_vars();
     $currency = CL_Currency::model()->getDefaultCurrency();
 
-    if($values['filename'] == 'index') {
-        header('Location: cart.php');
-    }
-
     // registration fix
     if(!isset($values['uneditablefields'])) {
         $values['uneditablefields'] = array();
@@ -391,6 +387,7 @@ function KuberDock_ClientAreaPage($params)
                 }
 
                 $p = KuberDock_Product::model()->loadById($product['pid']);
+                if(!$p->isKuberProduct()) continue;
                 $product['features'] = $p->getDescription();
 
                 if($depositPrice = $p->getConfigOption('firstDeposit')) {
@@ -402,8 +399,10 @@ function KuberDock_ClientAreaPage($params)
                 }
 
                 if(($predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId()) && isset($product['pricingtext'])) {
-                    $product['pricingtext'] = $currency->getFullPrice($predefinedApp->getTotalPrice())
-                        . ' / ' . $p->getReadablePaymentType();
+                    $price =  $currency->getFullPrice($predefinedApp->getTotalPrice());
+                    $product['pricingtext'] = $price . '/' . $p->getReadablePaymentType();
+                    $product['pricing']['totaltodayexcltax'] = $price;
+                    $product['billingcyclefriendly'] = $p->getReadablePaymentType();
                 }
             }
         }
@@ -457,25 +456,23 @@ function KuberDock_ClientAreaPage($params)
             $serviceId = CL_Base::model()->getParam('sid');
             $podId = CL_Base::model()->getParam('podId');
 
-            if(!$serviceId || !$podId) {
-                return;
-            }
-
-            $service = KuberDock_Hosting::model()->loadById($serviceId);
-            $view = new \base\CL_View();
-            $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-            try {
-                $pod = $service->getApi()->getPod($podId);
-                $view->renderPartial('client/preapp_complete', array(
-                    'serverLink' => $service->getServer()->getLoginPageLink(),
-                    'token' => $service->getToken(),
-                    'podId' => $podId,
-                    'postDescription' => $predefinedApp->getPostDescription($pod),
-                ));
-                exit;
-            } catch(Exception $e) {
-                CException::log($e);
-                CException::displayError($e);
+            if($serviceId && $podId) {
+                $service = KuberDock_Hosting::model()->loadById($serviceId);
+                $view = new \base\CL_View();
+                $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+                try {
+                    $pod = $service->getApi()->getPod($podId);
+                    $view->renderPartial('client/preapp_complete', array(
+                        'serverLink' => $service->getServer()->getLoginPageLink(),
+                        'token' => $service->getToken(),
+                        'podId' => $podId,
+                        'postDescription' => htmlentities($predefinedApp->getPostDescription($pod), ENT_QUOTES),
+                    ));
+                    exit;
+                } catch (Exception $e) {
+                    CException::log($e);
+                    CException::displayError($e);
+                }
             }
         }
     }

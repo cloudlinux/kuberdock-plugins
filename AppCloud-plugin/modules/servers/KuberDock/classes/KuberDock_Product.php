@@ -13,6 +13,7 @@ use base\models\CL_Client;
 use base\models\CL_MailTemplate;
 use components\KuberDock_Units;
 use exceptions\CException;
+use exceptions\UserNotFoundException;
 
 /**
  * Class KuberDock_Product
@@ -118,7 +119,7 @@ class KuberDock_Product extends CL_Product {
             $response = $api->getUser($service->username);
             $api->unDeleteUser($service->username);
             $this->update($serviceId, true);
-        } catch(Exception $e) {
+        } catch(UserNotFoundException $e) {
             $response = $api->createUser(array(
                 'first_name' => $this->client->firstname,
                 'last_name' => $this->client->lastname,

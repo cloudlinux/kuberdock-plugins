@@ -8,13 +8,12 @@ require 'modules/servers/KuberDock/init.php';
 $ca = new WHMCS_ClientArea();
 $templatePath = '../../modules/servers/KuberDock/view/smarty';
 
-$ca->setPageTitle('Add custom invoice');
+$ca->setPageTitle('KuberDock error page');
 
 $ca->addToBreadCrumb('index.php',$whmcs->get_lang('globalsystemname'));
-$ca->addToBreadCrumb('customeinvoice.php','Custom invoice');
+$ca->addToBreadCrumb('kderrorpage.php', 'KuberDock errors');
 
 $ca->initPage();
-$ca->requireLogin();
 
 if(isset($_SESSION['kdError' . session_id()])) {
     $error = $_SESSION['kdError' . session_id()];

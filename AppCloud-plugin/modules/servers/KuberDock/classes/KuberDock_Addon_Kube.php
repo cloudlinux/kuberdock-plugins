@@ -285,12 +285,18 @@ class KuberDock_Addon_Kube extends CL_Model {
     }
 
     /**
-     * @return api\KuberDock_Api
+     * @return \api\KuberDock_Api
+     * @throws CException
+     * @throws Exception
      */
     private function getApi()
     {
         if($this->server_id) {
-            return KuberDock_Server::model()->loadById($this->server_id)->getApi();
+            $server = KuberDock_Server::model()->loadById($this->server_id);
+            if(!$server) {
+                throw new CException('Cannot get KuberDock server');
+            }
+            return $server->getApi();
         } elseif($this->product_id) {
             return KuberDock_Product::model()->loadById($this->product_id)->getApi();
         } else {

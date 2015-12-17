@@ -52,6 +52,10 @@ function KuberDock_CreateAccount($params) {
 
         return 'success';
     } catch(Exception $e) {
+        $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
+        $service->updateById($params['serviceid'], array(
+            'domainstatus' => 'Pending',
+        ));
         CException::log($e);
         return 'ERROR: ' . $e->getMessage();
     }

@@ -44,7 +44,7 @@ class CException extends Exception {
     public static function displayError(Exception $exception)
     {
         $_SESSION['kdError' . session_id()] = $exception->getMessage();
-        header('Location: /kderrorpage.php');
+        header('Location: kderrorpage.php');
     }
 
     /**

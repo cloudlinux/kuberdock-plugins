@@ -236,17 +236,15 @@ class PredefinedApp {
 
         if(preg_match_all(self::TEMPLATE_REGEXP, $value, $match)) {
             foreach($match['variable'] as $k => $row) {
+                $type = $this->getType($row, $match['default'][$k]);
                 $data[$row] = array(
                     'replace' => $match[0][$k],
                     'default' => $this->getDefault($match['default'][$k]),
-                    'type' => $this->getType($row, $match['default'][$k]),
+                    'type' => $type,
                     'description' => $this->getDescription($match['description'][$k]),
                     'path' => $path,
+                    'data' => $this->getVariableData($type),
                 );
-
-                if(in_array($row, array('KUBETYPE', 'KUBE_TYPE'))) {
-                    $data[$row]['data'] = $this->getKubeTypes();
-                }
             }
         }
 
@@ -334,9 +332,16 @@ class PredefinedApp {
      */
     public function renderVariable($variable, $controller)
     {
+        $allowedTypes = array(
+            'autogen',
+            'kube_type',
+            'kube_count',
+            'input',
+            'user_domain_list'
+        );
         $data = $this->variables[$variable];
 
-        if(!in_array($data['type'], array('autogen', 'select', 'kube_count', 'input'))) {
+        if(!in_array($data['type'], $allowedTypes)) {
             throw new CException('Undefined variable type: ' . $data['type']);
         }
 
@@ -563,7 +568,9 @@ class PredefinedApp {
         } elseif(stripos($var, 'KUBE_COUNT') !== false || stripos($var, 'KUBES') !== false) {
             return 'kube_count';
         } elseif(in_array($var, array('KUBE_TYPE', 'KUBETYPE'))) {
-            return 'select';
+            return 'kube_type';
+        } elseif($default == '%USER_DOMAIN_LIST%') {
+            return 'user_domain_list';
         } else {
             return 'input';
         }
@@ -576,6 +583,23 @@ class PredefinedApp {
     private function getDescription($value)
     {
         return $value;
+    }
+
+    /**
+     * @param string $type
+     * @return array|string
+     */
+    private function getVariableData($type)
+    {
+        switch($type) {
+            case 'kube_type':
+                return $this->getKubeTypes();
+            case 'user_domain_list':
+                return $this->api->getUserDomains();
+            default:
+                return '';
+                break;
+        }
     }
 
     /**

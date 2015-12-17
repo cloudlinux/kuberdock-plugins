@@ -1,14 +1,14 @@
 Version: 0.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 16%{?dist}.cloudlinux
+Release: 17%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
 URL: http://www.cloudlinux.com
 Source0: %{name}-%{version}.tar.bz2
 
-Requires: kuberdock-cli >= 0.1-29
+Requires: kuberdock-cli >= 0.1-28
 
 AutoReq: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -50,6 +50,11 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Thu Dec 17 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-17
+- AC-1820 cPanel. Using variable in YAML for user`s domain usage
+- AC-1646 cPanel. Display actual pod status
+- AC-1742 cPanel. Display only own yaml templates
 
 * Fri Dec 11 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-16
 - cPanel. Display error if product is Pending
