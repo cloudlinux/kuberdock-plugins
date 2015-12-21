@@ -43,6 +43,9 @@ class KuberDock_Product extends CL_Product {
      */
     public function getConfig()
     {
+        $psUnit = KuberDock_Units::getPSUnits();
+        $trafficUnit = KuberDock_Units::getTrafficUnits();
+
         $config = array(
             'enableTrial' => array(
                 'FriendlyName' => 'Trial package',
@@ -74,21 +77,21 @@ class KuberDock_Product extends CL_Product {
                 'Type' => 'text',
                 'Size' => '10',
                 'Default' => '0',
-                'Description' => 'per hour',
+                'Description' => '<span>per IP/hour</span>',
             ),
             'pricePersistentStorage' => array(
                 'FriendlyName' => 'Price for persistent storage',
                 'Type' => 'text',
                 'Size' => '10',
                 'Default' => '0',
-                'Description' => 'per '.KuberDock_Units::getHDDUnits(),
+                'Description' => '<span data-unit="' . $psUnit . '">per ' . $psUnit . '/hour</span>',
             ),
             'priceOverTraffic' => array(
                 'FriendlyName' => 'Price for additional traffic',
                 'Type' => 'text',
                 'Size' => '10',
                 'Default' => '0',
-                'Description' => 'per '.KuberDock_Units::getTrafficUnits(),
+                'Description' => '<span data-unit="' . $trafficUnit . '">per ' . $trafficUnit . '/hour</span>',
             ),
             'firstDeposit' => array(
                 'FriendlyName' => 'First Deposit',

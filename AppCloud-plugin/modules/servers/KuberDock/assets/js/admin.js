@@ -74,6 +74,42 @@ $(document).ready(function() {
             trialManage();
         });
     }
+
+    var getPaymentType = function(selectType) {
+        switch(selectType) {
+            case 'annually':
+                return 'year';
+            case 'quarterly':
+                return 'quarter';
+            case 'monthly':
+                return 'month';
+            case 'daily':
+                return 'day';
+            case 'hourly':
+                return 'hour';
+            default:
+                return 'unknown';
+        }
+    };
+
+    var priceDescriptionManage = function() {
+        var paymentType = getPaymentType($('select[name="packageconfigoption[3]"]').val());
+
+        var priceIpSpan = $('input[name="packageconfigoption[5]"] + span');
+        priceIpSpan.text('per IP/' + paymentType);
+
+        var pricePsSpan = $('input[name="packageconfigoption[6]"] + span');
+        pricePsSpan.text('per ' + pricePsSpan.data('unit') + '/' + paymentType);
+
+        var priceTrafficSpan = $('input[name="packageconfigoption[7]"] + span');
+        priceTrafficSpan.text('per ' + priceTrafficSpan.data('unit') + '/' + paymentType);
+    };
+
+    $(document).on('change', 'select[name="packageconfigoption[3]"]', function() {
+        priceDescriptionManage();
+    });
+
+    priceDescriptionManage();
 });
 
 $(function() {
