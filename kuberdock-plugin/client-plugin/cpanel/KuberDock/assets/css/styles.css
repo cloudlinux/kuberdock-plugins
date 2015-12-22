@@ -155,3 +155,134 @@ p {
 .modal-footer {
     border-top: none;
 }
+
+.nopadding{
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+.preapp-install-page p.pre-app-desc{
+    color: #333333;
+    font-size: 14px;
+    font-weight: 400;
+    margin-bottom: 45px;
+}
+
+
+
+/* preapp install */
+
+.preapp-install-page .page-header{
+    padding: 0;
+    margin-top: 0;
+    position: relative;
+}
+
+.header-ico-preapp-install{
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 47px;
+    margin: auto;
+    height: 65px;
+    display: block;
+    background: url(../images/preapinstall-ico.png) center no-repeat;
+
+}
+.preapp-install-page .page-header h2{
+    margin-bottom: 0;
+    line-height: 64px;
+    position: relative;
+    display: inline-block;
+}
+
+
+.preapp-install-page .kube-slider,
+.preapp-install-page .kube-slider-value{
+    font-size: 0;
+    display: inline-block;
+    vertical-align: middle;
+}
+.preapp-install-page .kube-slider{
+    width: 85%;
+}
+.preapp-install-page .kube-slider-value{
+    width: 14%;
+    font-size: 14px;
+    text-align: center;
+}
+.preapp-install-page .kube-slider .noUi-base{
+    background-color: #fff;
+}
+.preapp-install-page .kube-slider .noUi-target{
+    border: 1px solid #d2d2d2;
+}
+.preapp-install-page .predefined input,
+.preapp-install-page .predefined select{
+    color: #555555;
+    padding: 0 20px;
+    font-size: 14px;
+    padding: 6px 20px;
+    line-height: 14px;
+    border: 1px solid #cccccc;
+    background-color: #fff;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    outline: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+.preapp-install-page .predefined label{
+    color: #333333;
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+.total-border-wrapper{
+    margin-bottom: 39px;
+    position: relative;
+    border-bottom: 1px solid #d2d2d2;
+}
+.total-border{
+    top: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    height: 33px;
+    color: #333333;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 0px 20px;
+    line-height: 33px;
+    position: absolute;
+    display: inline-block;
+    background-color: #fff;
+    border: 1px solid #d2d2d2;
+}
+
+.preapp-install-page .product-description pre{
+    padding: 0;
+    border: none;
+    color: #333333;
+    display: block;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 22px;
+    margin: 0px 0 30px;
+    word-break: break-all;
+    word-wrap: break-word;
+    background-color: transparent;
+    font-family: 'Open Sans',sans-serif;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+}
+
+.preapp-install-page button.btn.btn-primary{
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+}
