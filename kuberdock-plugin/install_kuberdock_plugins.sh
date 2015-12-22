@@ -142,7 +142,16 @@ function upgrade
         fi
         /bin/cp -R $CLIENT_SOURCE_PATH/$PLUGIN_NAME $template
         /bin/chmod 755 $template/$PLUGIN_NAME/bin/*
+
+        # uninstall default apps
+        for needless_plugin in memcache mysql elastic redis; do
+            if [ -e ${template}/dynamicui/dynamicui_kuberdock-${needless_plugin}.conf ]; then
+                rm -f ${template}/dynamicui/dynamicui_kuberdock-${needless_plugin}.conf
+            fi
+        done
     done
+
+    /usr/local/cpanel/bin/rebuild_sprites --force
 
     if [ -e /usr/local/cpanel/scripts/install_plugin ]; then
         /bin/tar -cjf $CONF_PATH/kuberdock-plugin.tar.bz2 -C $CONF_PATH/kuberdock-plugin/ .
