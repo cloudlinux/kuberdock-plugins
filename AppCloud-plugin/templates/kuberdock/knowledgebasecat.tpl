@@ -18,19 +18,21 @@
 {if $kbcats}
 {include file="$template/subheader.tpl" title=$LANG.knowledgebasecategories}
 
-<div class="control-group">
-{foreach name=kbasecats from=$kbcats item=kbcat}
-    <div class="col4">
-        <div class="internalpadding">
-            <img src="{$BASE_PATH_IMG}/folder.gif" /> <a href="{if $seofriendlyurls}knowledgebase/{$kbcat.id}/{$kbcat.urlfriendlyname}{else}knowledgebase.php?action=displaycat&amp;catid={$kbcat.id}{/if}" class="fontsize2"><strong>{$kbcat.name}</strong></a> ({$kbcat.numarticles})<br />
-            {$kbcat.description}
+<div class="container-padding-63">
+    <div class="control-group">
+    {foreach name=kbasecats from=$kbcats item=kbcat}
+        <div class="col4">
+            <div class="internalpadding">
+                <img src="{$BASE_PATH_IMG}/folder.gif" /> <a href="{if $seofriendlyurls}knowledgebase/{$kbcat.id}/{$kbcat.urlfriendlyname}{else}knowledgebase.php?action=displaycat&amp;catid={$kbcat.id}{/if}" class="fontsize2"><strong>{$kbcat.name}</strong></a> ({$kbcat.numarticles})<br />
+                {$kbcat.description}
+            </div>
         </div>
+        {if ($smarty.foreach.kbasecats.index+1) is div by 4}<div class="clear"></div>
+        {/if}
+    {/foreach}
     </div>
-    {if ($smarty.foreach.kbasecats.index+1) is div by 4}<div class="clear"></div>
-    {/if}
-{/foreach}
+    <div class="clear"></div>
 </div>
-<div class="clear"></div>
 {/if}{if $kbarticles}
 {include file="$template/subheader.tpl" title=$LANG.knowledgebasearticles}
 

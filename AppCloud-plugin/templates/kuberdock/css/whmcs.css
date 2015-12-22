@@ -996,9 +996,16 @@ label.checkbox input:checked + span{
 .container-padding-left .row a.btn.btn-large.btn-primary{
     color: #fff;
     margin-bottom: 0;
-    padding: 18px 47px;
     border-color: #6da73a;
     background-color: #6da73a;
+}
+.send-message,
+.container-padding-left .row a.btn.btn-large.btn-primary{
+    padding: 18px 47px;
+}
+.reset-btn,
+.logincontainer .loginbtn input{
+    padding: 10px 47px;
 }
 .green-button:hover,
 .logincontainer .loginbtn input:hover,
