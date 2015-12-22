@@ -54,6 +54,7 @@ function KuberDock_ProductEdit($params)
         }
 
         $product = KuberDock_Product::model()->loadById($params['pid']);
+
         $i = 1;
         foreach($product->getConfig() as $row) {
             $value = isset($options[$i]) ? $options[$i] : '';
@@ -68,6 +69,10 @@ function KuberDock_ProductEdit($params)
         $product->save();
 
         try {
+            KuberDock_Addon_Kube::model()->updateByAttributes(array(
+                'server_id' => $product->getServer()->id,
+            ), array('product_id' => $product->id));
+
             $addonProduct = KuberDock_Addon_Product::model();
             $addonProduct->updateKubePricing($params['pid']);
 
@@ -76,6 +81,8 @@ function KuberDock_ProductEdit($params)
                 $standardKube = KuberDock_Addon_Kube::model()->getStandardKube($product->id, $server->id);
                 if(!$standardKube) {
                     KuberDock_Addon_Kube::model()->createStandardKube($product->id, $server->id);
+                    $product->hidden = 0;
+                    $product->save();
                 }
             }
         } catch(Exception $e) {

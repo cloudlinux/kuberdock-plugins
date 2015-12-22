@@ -25,4 +25,9 @@ interface CL_iDBDriver {
      * @return array
      */
     public function getRows();
+
+    /**
+     * @return int
+     */
+    public function getLastId();
 } 

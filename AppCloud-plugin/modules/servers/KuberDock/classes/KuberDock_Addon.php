@@ -4,6 +4,7 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+use PDO;
 use base\CL_Component;
 use base\CL_Query;
 use base\models\CL_MailTemplate;
@@ -26,6 +27,10 @@ class KuberDock_Addon extends CL_Component {
     {
         if(version_compare(phpversion(), self::REQUIRED_PHP_VERSION) < 0) {
             throw new CException('KuberDock plugin require PHP version' . self::REQUIRED_PHP_VERSION . ' or greater.');
+        }
+
+        if(!class_exists('PDO')) {
+            throw new CException('KuberDock plugin require PHP (PDO).');
         }
 
         $db = CL_Query::model();

@@ -209,7 +209,7 @@ function KuberDock_ClientArea($params) {
 function KuberDock_LoginLink($params) {
     $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
 
-    return sprintf('<a href="%s" target="_blank">Login into KuberDock</a>', $service->getLoginByTokenLink());
+    return sprintf('<a href="%s" target="_blank">Login to KuberDock</a>', $service->getLoginByTokenLink());
 }
 
 /**

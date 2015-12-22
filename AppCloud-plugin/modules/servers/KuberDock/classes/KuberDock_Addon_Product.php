@@ -178,7 +178,8 @@ class KuberDock_Addon_Product extends CL_Model {
               LEFT JOIN tblservergroups sg ON p.servergroup=sg.id
               LEFT JOIN tblservergroupsrel sgr ON sg.id=sgr.groupid
               LEFT JOIN tblservers s ON sgr.serverid=s.id
-                WHERE p.hidden != 1 AND s.ipaddress = ? AND kp.kuber_product_id = ?', array($host, $id))->getRows();
+                WHERE p.hidden != 1 AND (s.ipaddress = ? OR s.hostname = ?)
+                AND kp.kuber_product_id = ?', array($host, $host, $id))->getRows();
 
         } else {
             $rows = $this->loadByAttributes(array(

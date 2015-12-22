@@ -275,6 +275,39 @@ class CL_Model {
     }
 
     /**
+     * @param $values
+     * @param array $attributes
+     * @return bool|mixed
+     */
+    public function updateByAttributes($values, $attributes = array())
+    {
+        if(empty($values)) {
+            return false;
+        }
+
+        foreach($values as $field=>$value) {
+            if(array_key_exists($field, $this->relations())) {
+                unset($values[$field]);
+                continue;
+            }
+            $fields[] = "`$field`=?";
+        }
+
+        $sql = "UPDATE `".$this->tableName."` SET ".implode(',', $fields);
+        if($attributes) {
+            $fields = array();
+            foreach($attributes as $field=>$value) {
+                $fields[] = "`$field`=?";
+            }
+            $sql .= " WHERE " . implode(' AND', $fields);
+        }
+
+        $values = array_merge(array_values($values), array_values($attributes));
+
+        return $this->_db->query($sql, $values);
+    }
+
+    /**
      * @return $this
      */
     public function save()

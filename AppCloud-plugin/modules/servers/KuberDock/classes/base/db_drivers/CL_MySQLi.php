@@ -2,6 +2,8 @@
 /**
  * @project whmcs-plugin
  * @author: Ruslan Rakhmanberdiev
+ *
+ * Not used
  */
 
 namespace base\db_drivers;
@@ -24,5 +26,13 @@ class CL_MySQLi implements CL_iDBDriver {
     public function getRows()
     {
         // future
+    }
+
+    /**
+     * @return int
+     */
+    public function getLastId()
+    {
+
     }
 } 

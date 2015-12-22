@@ -8,6 +8,7 @@ namespace base;
 
 use \base\db_drivers\CL_MySQL;
 use \base\db_drivers\CL_MySQLi;
+use \base\db_drivers\CL_PDO;
 use \base\interfaces\CL_iDBDriver;
 
 class CL_Query extends CL_Base implements CL_iDBDriver {
@@ -21,12 +22,7 @@ class CL_Query extends CL_Base implements CL_iDBDriver {
      */
     public function __construct()
     {
-        if(function_exists('mysql_query')) {
-            $this->driver = new CL_MySQL;
-        } else {
-            // future
-            $this->driver = new CL_MySQLi;
-        }
+        $this->driver = new CL_PDO();
     }
 
     /**
@@ -53,6 +49,14 @@ class CL_Query extends CL_Base implements CL_iDBDriver {
     public function getRows()
     {
         return $this->driver->getRows();
+    }
+
+    /**
+     * @return int
+     */
+    public function getLastId()
+    {
+        return $this->driver->getLastId();
     }
 
     /**

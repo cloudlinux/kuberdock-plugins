@@ -2,6 +2,8 @@
 /**
  * @project whmcs-plugin
  * @author: Ruslan Rakhmanberdiev
+ *
+ * Not used
  */
 
 namespace base\db_drivers;

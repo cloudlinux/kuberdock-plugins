@@ -1,5 +1,5 @@
 <div class="login-link">
-    <input type="button" value="Login into KuberDock" class="btn" onclick="window.open('<?php echo $service->getLoginByTokenLink();?>', '_blank')">
+    <input type="button" value="Login to KuberDock" class="btn" onclick="window.open('<?php echo $service->getLoginByTokenLink();?>', '_blank')">
 </div>
 
 <?php if($trialExpired):?>
