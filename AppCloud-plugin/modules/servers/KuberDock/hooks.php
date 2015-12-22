@@ -48,12 +48,12 @@ add_hook('DailyCronJob', 1, 'KuberDock_DailyCronJob');
 function KuberDock_ProductEdit($params)
 {
     $options = CL_Base::model()->getPost('packageconfigoption');
-    if($params['servertype'] == KUBERDOCK_MODULE_NAME) {
+    $product = KuberDock_Product::model()->loadById($params['pid']);
+
+    if($product->isKuberProduct()) {
         if(empty($options)) {
             return;
         }
-
-        $product = KuberDock_Product::model()->loadById($params['pid']);
 
         $i = 1;
         foreach($product->getConfig() as $row) {
@@ -409,6 +409,7 @@ function KuberDock_ClientAreaPage($params)
                     $price =  $currency->getFullPrice($predefinedApp->getTotalPrice());
                     $product['pricingtext'] = $price . '/' . $p->getReadablePaymentType();
                     $product['pricing']['totaltodayexcltax'] = $price;
+                    $product['pricing']['totalTodayExcludingTaxSetup'] = $price;
                     $product['billingcyclefriendly'] = $p->getReadablePaymentType();
                 }
             }
