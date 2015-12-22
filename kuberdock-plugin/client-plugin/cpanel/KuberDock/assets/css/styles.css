@@ -286,3 +286,10 @@ p {
     -moz-border-radius: 0;
     border-radius: 0;
 }
+
+.preapp-install-page .ajax-loader {
+    display: block;
+    margin-right: -20px;
+    position: relative;
+    top: 6px;
+}
