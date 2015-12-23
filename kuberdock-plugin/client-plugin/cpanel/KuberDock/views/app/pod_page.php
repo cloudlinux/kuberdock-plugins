@@ -16,6 +16,7 @@
         'app' => $app,
         'pod' => $pod,
         'podsCount' => $podsCount,
+        'domains' => $domains,
     ))?>
 
     <div class="modal fade bs-example-modal-sm confirm-modal" tabindex="-1" role="dialog" aria-labelledby="Confirm">

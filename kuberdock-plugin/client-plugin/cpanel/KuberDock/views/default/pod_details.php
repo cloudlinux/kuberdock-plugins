@@ -32,7 +32,7 @@
                         <?php echo (isset($pod->public_ip) && $pod->public_ip ? $pod->public_ip :
                             (isset($pod->labels['kuberdock-public-ip']) ? $pod->labels['kuberdock-public-ip'] : 'none'))?>
                     </td>
-                    <td class="col-md-3"><?php echo $statusText == 'Start' ? 'Stopped' : 'Running' ?></td>
+                    <td class="col-md-3"><?php echo ucfirst($pod->status) ?></td>
                     <td>
                         <button type="button" class="btn btn-<?php echo $statusText == 'Start' ? 'success' : 'danger' ?> btn-xs <?php echo $statusClass?>" data-target=".confirm-modal" data-app="<?php echo $pod->name?>" title="<?php echo $statusText?>">
                             <span class="glyphicon glyphicon-<?php echo $statusText == 'Start' ? 'play' : 'stop' ?>" aria-hidden="true"></span>
@@ -72,7 +72,7 @@
                     <?php foreach($row['ports'] as $port):
                         if(!isset($port['hostPort']) && isset($port['containerPort']))
                             $port['hostPort'] = $port['containerPort'];
-                        if(!isset($ports['isPublic']))
+                        if(!isset($port['isPublic']))
                             $port['isPublic'] = false;
                         if(!isset($ports['protocol']))
                             $port['protocol'] = 'tcp';
@@ -104,10 +104,10 @@
                 <?php foreach($pod->containers as $row):?>
                     <?php foreach($row['volumeMounts'] as $volume):
                         $pd = $pod->getPersistentStorageByName($volume['name']);
-                        ?>
+                    ?>
                         <tr>
                             <td><?php echo $volume['mountPath']?></td>
-                            <td><input type="checkbox" disabled<?php echo isset($volume['readOnly']) && !$volume['readOnly'] ? ' checked' : ''?>></td>
+                            <td><input type="checkbox" disabled<?php echo isset($pd['persistentDisk']) ? ' checked' : ''?>></td>
                             <td><?php echo isset($pd['persistentDisk']) ? $pd['persistentDisk']['pdName'] : '-'?></td>
                             <td><?php echo isset($pd['persistentDisk']) ? $pd['persistentDisk']['pdSize'] : '-'?></td>
                         </tr>

@@ -317,7 +317,8 @@ class PredefinedApp {
                     $container = $this->getContainerData($this->getPodName(), $proxy['container']);
                     if($ports = $container['ports']) {
                         foreach($ports as $port) {
-                            $model->addProxy($this->getPodName(), $dir, $proxy['domain'], $port['hostPort']);
+                            $port = isset($port['hostPort']) ? $port['hostPort'] : $port['containerPort'];
+                            $model->addProxy($this->getPodName(), $dir, $proxy['domain'], $port);
                         }
                     }
                 }
