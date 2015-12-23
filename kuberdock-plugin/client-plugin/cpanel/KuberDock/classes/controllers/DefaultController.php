@@ -161,10 +161,16 @@ class DefaultController extends KuberDock_Controller {
         try {
             $pod = new Pod();
             $pod = $pod->loadByName($container);
-            $pod->start();
+
+            if (in_array($pod->status, array('stopped', 'terminated', 'failed', 'succeeded'))) {
+                $pod->start();
+                $message = 'Application started';
+            } else {
+                $message = 'Application is already running';
+            }
 
             echo json_encode(array(
-                'message' => $this->renderPartial('success', array('message' => 'Application started'), false),
+                'message' => $this->renderPartial('success', array('message' => $message), false),
             ));
         } catch(CException $e) {
             header('HTTP/1.1 500 Internal Server Error');
@@ -183,10 +189,16 @@ class DefaultController extends KuberDock_Controller {
         try {
             $pod = new Pod();
             $pod = $pod->loadByName($container);
-            $pod->stop();
+
+            if (in_array($pod->status, array('running', 'pending'))) {
+                $pod->stop();
+                $message = 'Application stopped';
+            } else {
+                $message = 'Application is already stopped';
+            }
 
             echo json_encode(array(
-                'message' => $this->renderPartial('success', array('message' => 'Application stopped'), false),
+                'message' => $this->renderPartial('success', array('message' => $message), false),
             ));
         } catch(CException $e) {
             header('HTTP/1.1 500 Internal Server Error');
