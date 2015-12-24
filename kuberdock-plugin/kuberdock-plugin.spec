@@ -1,7 +1,7 @@
 Version: 0.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 17%{?dist}.cloudlinux
+Release: 18%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -50,6 +50,15 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Thu Dec 24 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-18
+- AC-1904 Fix error 'value must be of string type' for sugarcrm.yaml
+- cPanel. Fixed add env
+- AC-1887 cPanel. Display app url if proxy section exists cPanel. Fixed template app link, display public IP\PD name on details pod page correctly
+- cPanel. Fixed yaml variable regexp
+- cPanel. Fixed ajax loader on app install page
+- AC-1803: add style to preapp install page (cpanel client plugin)
+- AC-1658 - cPanel. Rename our block with apps
 
 * Thu Dec 17 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-17
 - AC-1820 cPanel. Using variable in YAML for user`s domain usage
