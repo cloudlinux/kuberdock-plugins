@@ -218,8 +218,18 @@ class PredefinedApp {
                 $path[] = $iterator->getSubIterator($depth)->key();
             }
 
-            $variable = $this->parseTemplateString($row, join('.', $path));
+            $sPath = join('.', $path);
+            $variable = $this->parseTemplateString($row, $sPath);
             $this->variables = array_merge($this->variables, $variable);
+
+            // Numeric env value to string
+            if(stripos($sPath, '.env') !== false && is_numeric($row)) {
+                $r = &$this->template;
+                foreach(explode('.', $sPath) as $v) {
+                    $r = &$r[$v];
+                }
+                $r = "{$row}";
+            }
         }
 
         return $this->variables;

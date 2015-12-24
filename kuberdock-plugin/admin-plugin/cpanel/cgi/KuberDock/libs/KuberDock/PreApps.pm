@@ -181,7 +181,6 @@ sub readYamlFile() {
     my $path = $self->getFilePath($fileName);
     my $yaml;
 
-    #$yaml = YAML::LoadFile($path);
     $yaml = YAML::Tiny->read($path);
 
     if(defined $asText && $asText) {
