@@ -9,7 +9,7 @@ class PredefinedApp {
     /**
      *
      */
-    const TEMPLATE_REGEXP = '/\$(?<variable>\w+)\|default:(?<default>[[:alnum:]\w\W\s]+)\|(?<description>[[:alnum:]\s]+)\$/';
+    const TEMPLATE_REGEXP = '/\$(?<variable>\w+)\|default:(?<default>[[:alnum:]\w\W\s]+)\|(?<description>[[:alnum:]()-_\s]+)\$/';
     /**
      *
      */
