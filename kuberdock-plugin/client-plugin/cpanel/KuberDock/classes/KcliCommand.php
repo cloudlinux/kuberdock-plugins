@@ -241,7 +241,7 @@ class KcliCommand extends Command {
             'kuberdock',
             'set' => sprintf("'%s'", $name),
             '-C' => $image,
-            '--env' => implode(',', $env),
+            '--env' => sprintf("'%s'", implode(',', $env)),
             '--kubes' => $kubes,
         ));
     }
