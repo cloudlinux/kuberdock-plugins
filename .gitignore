@@ -4,5 +4,7 @@
 CloudLinux-plugin/whmcs-cl-plugin*.zip
 AppCloud-plugin/whmcs-kuberdock-plugin*.zip
 kuberdock-plugin/.idea
+kuberdock-plugin/admin-plugin/cpanel/cgi/KuberDock/.idea/
+kuberdock-plugin/client-plugin/cpanel/KuberDock/.idea
 AppCloud-plugin/.idea
 

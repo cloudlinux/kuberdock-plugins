@@ -34,3 +34,9 @@
         </div>
     </div>
 </div>
+
+<div class="container-fluid support">
+    If you have a problem contact our support team via <a href="mailto:helpdesk@kuberdock.com">
+        helpdesk@kuberdock.com</a> or create a request in helpdesk <a href="https://helpdesk.cloudlinux.com">
+        https://helpdesk.cloudlinux.com</a>
+</div>

@@ -110,6 +110,11 @@ $(document).ready(function() {
     });
 
     priceDescriptionManage();
+
+    var support = 'If you have a problem contact our support team via <a href="mailto:helpdesk@kuberdock.com">' +
+        'helpdesk@kuberdock.com</a> or create a request in helpdesk <a href="https://helpdesk.cloudlinux.com">' +
+        'https://helpdesk.cloudlinux.com</a>';
+    $('.btn-container').append('<div class="col-md-12 support">' + support + '</div>');
 });
 
 $(function() {
