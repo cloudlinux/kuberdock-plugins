@@ -8,7 +8,13 @@
     }
     ?>
     <tr>
-        <td class="col-md-3"><a href="?a=podDetails&podName=<?php echo $pod->name?>"><?php echo $pod->name?></a></td>
+        <td class="col-md-3">
+        <?php if($pod->template_id):?>
+            <a href="?c=app&a=installPredefined&podName=<?php echo $pod->name?>&template=<?php echo $pod->template_id?>"><?php echo $pod->name?></a>
+        <?php else:?>
+            <a href="?a=podDetails&podName=<?php echo $pod->name?>"><?php echo $pod->name?></a>
+        <?php endif;?>
+        </td>
         <td class="col-md-3">
             <?php echo isset($pod->public_ip) && $pod->public_ip ? $pod->public_ip :
                 (isset($pod->labels['kuberdock-public-ip']) ? $pod->labels['kuberdock-public-ip'] : 'none')?>

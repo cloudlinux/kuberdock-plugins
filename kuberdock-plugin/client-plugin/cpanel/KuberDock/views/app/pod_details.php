@@ -27,6 +27,12 @@
                         Traffic: <?php echo $pod->kubeType['traffic_limit'] * $pod->kubeCount.' '.$pod->units['traffic']?><br>
                         Kube type: <?php echo $pod->kubeType['kube_name']?> <br>
                         Kube quantity: <?php echo $pod->kubeCount ?>
+                    <?php if($domains):?>
+                        <br>Domains:
+                        <?php foreach($domains as $domain):?>
+                            <a href="http://<?php echo $domain?>" target="_blank"><?php echo $domain?></a><br>
+                        <?php endforeach;?>
+                    <?php endif;?>
                     </td>
                     <td>
                         <?php if($ip = $pod->getPublicIp()):

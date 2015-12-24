@@ -69,7 +69,7 @@ class AppController extends KuberDock_Controller {
             $pods = $app->getExistingPods();
             $podsCount = count($pods);
             $podsCount = $new ? 0 : $podsCount;
-            $podsCount = $postDescription ? 1 : $podsCount;
+            $podsCount = $postDescription || $podName ? 1 : $podsCount;
 
             if($_POST) {
                 try {
@@ -111,12 +111,20 @@ class AppController extends KuberDock_Controller {
                         $postDescription = $bbCode->toHTML($postDescription);
                     }
 
+                    $domains = array();
+                    if(isset($parsedTemplate['kuberdock']['proxy'])) {
+                        foreach($parsedTemplate['kuberdock']['proxy'] as $dir => $proxy) {
+                            $domains[] = $proxy['domain'] . '/' . $dir;
+                        }
+                    }
+
                     if(Tools::getIsAjaxRequest()) {
                         echo json_encode(array(
                             'content' => $this->renderPartial('pod_details', array(
                                 'app' => $app,
                                 'pod' => $pod,
                                 'podsCount' => $podsCount,
+                                'domains' => $domains,
                             ), false)
                         ));
                     } else {
@@ -125,6 +133,7 @@ class AppController extends KuberDock_Controller {
                             'pod' => $pod,
                             'postDescription' => $postDescription,
                             'podsCount' => $podsCount,
+                            'domains' => $domains,
                         ));
                     }
                     break;

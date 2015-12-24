@@ -165,7 +165,7 @@ class Pod {
     /**
      * @return array
      */
-    public function getVolumes() {
+    public function getVolumeMounts() {
         $volumes = array();
 
         foreach($this->containers as $k => $row) {
