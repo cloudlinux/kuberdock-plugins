@@ -2,7 +2,13 @@ var kubeTemplate = _.template('<pre>' +
     'CPU: <%= cpu %><br>' +
     'Memory: <%= memory %><br>' +
     'Local storage: <%= hdd %><br>' +
-    'Traffic: <%= traffic %>' +
+    'Traffic: <%= traffic %><br>' +
+    '<% if(ip) { %>' +
+    'Public IP: yes<br>' +
+    '<% } %>' +
+    '<% if(pd) { %>' +
+    'Persistent storage: <%= pd %><br>' +
+    '<% } %>' +
 '</pre>');
 
 function getFormattedValue(value, unit, decimals) {

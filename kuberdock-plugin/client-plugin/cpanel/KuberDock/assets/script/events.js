@@ -282,4 +282,15 @@ var _$ = $.noConflict();
 
         details.is(':hidden') ? details.show(400) : details.hide(400);
     });
+
+    $(document).on('click', '.show-details', function(e) {
+        var description = $(this).next('.product-description');
+        description.toggleClass('hidden');
+
+        if(description.hasClass('hidden')) {
+            $(this).text('Show details');
+        } else {
+            $(this).text('Hide details');
+        }
+    });
 }(_$));

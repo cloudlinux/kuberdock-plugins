@@ -263,7 +263,7 @@ p {
     border: 1px solid #d2d2d2;
 }
 
-.preapp-install-page .product-description pre{
+.preapp-install-page .product-description pre, .preapp-plan-page .product-description pre{
     padding: 0;
     border: none;
     color: #333333;

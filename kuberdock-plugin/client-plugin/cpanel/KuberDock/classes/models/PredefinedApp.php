@@ -205,6 +205,83 @@ class PredefinedApp {
     }
 
     /**
+     * @return mixed
+     * @throws CException
+     */
+    public function getKDSection()
+    {
+        if(isset($this->template['kuberdock']) && is_array($this->template['kuberdock'])) {
+            return $this->template['kuberdock'];
+        } else {
+            throw new CException('"kuberdock" section not exist in the template');
+        }
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPlans()
+    {
+        $kdSection = $this->getKDSection();
+        if(isset($kdSection['plans']) && is_array($kdSection['plans'])) {
+            return $kdSection['plans'];
+        } else {
+            return array();
+        }
+    }
+
+    /**
+     * @param $id
+     * @return mixed
+     * @throws CException
+     */
+    public function getPlan($id)
+    {
+        $plans = $this->getPlans();
+
+        if(!isset($plans[$id])) {
+            throw new CException(sprintf('Plan with key %s does not exist', $id));
+        }
+
+        return $plans[$id];
+    }
+
+    /**
+     * @param $id
+     * @return string
+     * @throws CException
+     */
+    public function renderTotalByPlanId($id)
+    {
+        $plan = $this->getPlan($id);
+        $kubeType = $plan['kubeType'];
+
+        $kube = array_map(function($e) use ($kubeType) {
+            foreach($e['kubes'] as $row) {
+                if($row['kuber_kube_id'] == $kubeType) {
+                    return $row;
+                }
+            }
+        }, $this->getApi()->getKubes());
+
+        if(!$kube) {
+            throw new CException(sprintf('KubeType %s not available for you current package', $kubeType));
+        }
+
+        $totalKubes = 0;
+        array_map(function($e) use (&$totalKubes) {
+            $totalKubes += $e['kubes'];
+        }, $plan['containers']);
+
+        $view = new KuberDock_View();
+        return $view->renderPartial('app/plan_details', array(
+            'kube' => current($kube),
+            'plan' => $plan,
+            'totalKubes' => $totalKubes,
+        ), false);
+    }
+
+    /**
      * @return array
      */
     public function getVariables()
@@ -471,13 +548,18 @@ class PredefinedApp {
     }
 
     /**
+     * @param null|int $planId
      * @return int
      */
-    public function getTotalKubes()
+    public function getTotalKubes($planId = null)
     {
         $total = 0;
-        $containers = isset($this->template['spec']['template']['spec']['containers']) ?
-            $this->template['spec']['template']['spec']['containers'] : $this->template['spec']['containers'];
+
+        if($planId) {
+            $containers = $this->getPlan($planId)['containers'];
+        } else {
+            $containers = $this->getContainers();
+        }
 
         foreach($containers as $image) {
             if(isset($image['kubes'])) {
@@ -488,6 +570,43 @@ class PredefinedApp {
         }
 
         return $total;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPublicIP()
+    {
+        $containers = $this->getContainers();
+
+        foreach($containers as $container) {
+            if(isset($container['ports']) && is_array($container['ports'])) {
+                foreach($container['ports'] as $port) {
+                    if(isset($port['isPublic']) && (bool) $port['isPublic']) {
+                        return 1;
+                    }
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * @return float|int
+     */
+    public function getPersistentStorageSize()
+    {
+        $size = 0;
+        $volumes = $this->getVolumes();
+
+        foreach($volumes as $volume) {
+            if(isset($volume['persistentDisk']) && isset($volume['persistentDisk']['pdSize'])) {
+                $size += (float) $volume['persistentDisk']['pdSize'];
+            }
+        }
+
+        return $size;
     }
 
     /**
@@ -530,6 +649,24 @@ class PredefinedApp {
     public function getTemplateId()
     {
         return $this->templateId;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getContainers()
+    {
+        return isset($this->template['spec']['template']['spec']['containers']) ?
+            $this->template['spec']['template']['spec']['containers'] : $this->template['spec']['containers'];
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getVolumes()
+    {
+        return isset($this->template['spec']['template']['spec']['volumes']) ?
+            $this->template['spec']['template']['spec']['volumes'] : $this->template['spec']['volumes'];
     }
 
     /**
@@ -738,6 +875,24 @@ class PredefinedApp {
                 $this->variables[$k]['value'] = $v;
                 $this->setByPath($this->template, $this->variables[$k]['path'], $this->variables[$k]['replace'], $v);
             }
+        }
+
+        if(isset($data['plan'])) {
+            $plan = $this->getPlan($data['plan']);
+            $containers = $this->getContainers();
+            foreach($plan['containers'] as $container) {
+                foreach($containers as &$row) {
+                    if($row['name'] == $container['name']) {
+                        $row['kubes'] = $container['kubes'];
+                    }
+                }
+            }
+        }
+
+        if(isset($this->template['spec']['template']['spec']['containers'])) {
+            $this->template['spec']['template']['spec']['containers'] = $containers;
+        } else {
+            $this->template['spec']['containers'] = $containers;
         }
     }
 

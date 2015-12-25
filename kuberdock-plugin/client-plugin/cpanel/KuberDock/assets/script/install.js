@@ -108,25 +108,30 @@
             kubeEl = $('#kube_count, #total_kube_count, input[id*="KUBE_COUNT"], input[id*="KUBES"]'),
             productId = el.data('pid'),
             kube = kubes[productId].kubes[el.val()],
-            currency = kubes[productId].currency;
+            currency = kubes[productId].currency,
+            publicIp = parseInt($('#public_ip').val()),
+            totalPdSize = parseFloat($('#total_pd_size').val());
 
         $.each(kubeEl, function() {
             kubeCount += parseInt($(this).val());
         });
 
+        var additionalPrice = kubes[productId]['priceIP'] * publicIp
+            + kubes[productId]['pricePersistentStorage'] * totalPdSize;
         var price = wNumb({
                 decimals: 2,
                 prefix: kubes[productId].currency.prefix,
                 postfix: kubes[productId].currency.suffix  + ' / ' + kubes[productId].paymentType.replace('ly', '')
-            }).to(kube.kube_price * kubeCount);
+            }).to(kube.kube_price * kubeCount + additionalPrice);
 
         $('.product-description').html(kubeTemplate({
             cpu: getFormattedValue(kube.cpu_limit * kubeCount, units.cpu),
             memory: getFormattedValue(kube.memory_limit * kubeCount, units.memory, 0),
             traffic: getFormattedValue(kube.traffic_limit * kubeCount, units.traffic),
-            hdd: getFormattedValue(kube.hdd_limit * kubeCount, units.hdd)
+            hdd: getFormattedValue(kube.hdd_limit * kubeCount, units.hdd),
+            ip: publicIp,
+            pd: totalPdSize ? getFormattedValue(totalPdSize, units.hdd, 0) : 0
         }));
-
         $('#product_id').val(productId);
         $('#priceBlock').html(price);
     };

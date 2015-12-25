@@ -137,7 +137,7 @@ class WHMCSApi extends Base {
     {
         $kubes = array();
         $currency = $this->getCurrency();
-        $packageAttributes = array('paymentType');
+        $packageAttributes = array('paymentType', 'pricePersistentStorage', 'priceIP');
 
         foreach($this->getProducts() as $row) {
             $kubes[$row['id']]['currency'] = $currency;
