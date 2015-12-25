@@ -33,7 +33,7 @@
 
         <div class="row">
             <div class="col-xs-11 col-xs-offset-1 nopadding">
-                <div class="col-sm-5 no-paddind">
+                <div class="col-sm-5 nopadding">
                     <div class="product-description"></div>
                 </div>
             </div>
@@ -46,7 +46,7 @@
         <div class="row" style="margin-bottom: 23px;">
             <div class="text-right">
                 <?php if($plan):?>
-                    <a href="kuberdock.live.php?c=app&a=installPredefined&template=<?php echo $app->getTemplateId()?>" class="btn btn-primary">
+                    <a href="kuberdock.live.php?c=app&a=installPredefined&template=<?php echo $app->getTemplateId()?>" class="btn btn-default">
                         Choose different plan
                     </a>
                 <?php endif;?>
