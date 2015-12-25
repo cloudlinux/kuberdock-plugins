@@ -61,6 +61,8 @@ class AppController extends KuberDock_Controller {
         $new = Tools::getParam('new', '');
         $podName = Tools::getParam('podName', '');
         $postDescription = Tools::getParam('postDescription', '');
+        $plan = Tools::getParam('plan', '');
+        $planDetails = Tools::getParam('planDetails', '');
 
         try {
             $app = new PredefinedApp($templateId);
@@ -68,8 +70,13 @@ class AppController extends KuberDock_Controller {
             $variables = $app->getVariables();
             $pods = $app->getExistingPods();
             $podsCount = count($pods);
-            $podsCount = $new ? 0 : $podsCount;
+            $podsCount = $new || $planDetails ? 0 : $podsCount;
             $podsCount = $postDescription || $podName ? 1 : $podsCount;
+
+            $plans = $app->getPlans();
+            if(!$planDetails && (($plans && $new) || ($plans && !$podsCount))) {
+                $podsCount = 2;
+            }
 
             if($_POST) {
                 try {
@@ -95,6 +102,7 @@ class AppController extends KuberDock_Controller {
                         'app' => $app,
                         'variables' => $variables,
                         'podsCount' => $podsCount,
+                        'plan' => $plan,
                     ));
                     break;
                 case 1:
@@ -136,6 +144,13 @@ class AppController extends KuberDock_Controller {
                             'domains' => $domains,
                         ));
                     }
+                    break;
+                case 2:
+                    $this->render('selectPlan', array(
+                        'app' => $app,
+                        'variables' => $variables,
+                        'plans' => $plans,
+                    ));
                     break;
                 default:
                     if(Tools::getIsAjaxRequest()) {

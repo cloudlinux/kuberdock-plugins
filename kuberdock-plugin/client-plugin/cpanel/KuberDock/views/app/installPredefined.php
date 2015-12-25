@@ -16,9 +16,12 @@
     <div class="message"><?php echo $this->controller->error?></div>
 
     <form class="form-horizontal container-install predefined" method="post" action="<?php echo $_SERVER['REQUEST_URI']?>">
+        <input type="hidden" name="plan" id="plan" value="<?php echo $plan?>">
         <input type="hidden" name="product_id" id="product_id" value="<?php echo $app->getPackageId(true)?>">
         <input type="hidden" name="kube_type" id="kube_type" value="<?php echo $app->getKubeTypeId()?>" data-pid="<?php echo $app->getPackageId(true)?>">
-        <input type="hidden" name="total_kube_count" id="total_kube_count" value="<?php echo $app->getTotalKubes()?>">
+        <input type="hidden" name="total_kube_count" id="total_kube_count" value="<?php echo $app->getTotalKubes($plan)?>">
+        <input type="hidden" name="public_ip" id="public_ip" value="<?php echo $app->getPublicIP()?>">
+        <input type="hidden" name="total_pd_size" id="total_pd_size" value="<?php echo $app->getPersistentStorageSize()?>">
 
         <div class="row">
             <div class="col-xs-11 col-xs-offset-1 nopadding">
@@ -42,6 +45,12 @@
 
         <div class="row" style="margin-bottom: 23px;">
             <div class="text-right">
+                <?php if($plan):?>
+                    <a href="kuberdock.live.php?c=app&a=installPredefined&template=<?php echo $app->getTemplateId()?>" class="btn btn-primary">
+                        Choose different plan
+                    </a>
+                <?php endif;?>
+
                 <button type="submit" class="btn btn-primary">Start your App</button>
                 <div class="ajax-loader buttons hidden"></div>
             </div>

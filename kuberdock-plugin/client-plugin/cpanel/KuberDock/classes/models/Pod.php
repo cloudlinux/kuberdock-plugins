@@ -359,7 +359,7 @@ class Pod {
         $product = $this->api->getProduct();
         $kube = $this->getKubeType();
 
-        return $currency['prefix'] . ($kube['kube_price'] * $this->getKubeCount())
+        return $currency['prefix'] . number_format($kube['kube_price'] * $this->getKubeCount(), 2)
             . $currency['suffix'] . ' / ' . str_replace('ly', '', $product['paymentType']);
     }
 
