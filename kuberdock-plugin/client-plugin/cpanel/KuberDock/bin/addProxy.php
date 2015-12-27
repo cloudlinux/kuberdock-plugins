@@ -13,12 +13,12 @@ $opts = getopt('c:', array(
 if(!isset($opts['pod_name']) || !isset($opts['rule']) || !isset($opts['path']) || !isset($opts['c'])) {
     echo <<<USAGE
 Usage:
-createProxy --pod_name="POD_NAME" --rule='HTACCESS_RULE' --path="HTACESS_PATH" -c TRY_COUNT
+createProxy --pod_name="POD_NAME" --rule='HTACCESS_RULE' --path="HTACCESS_PATH" -c TRY_COUNT
 
 Params:
 --pod_name          Pod name
---rule              Htaccess rule template
---path              Htaccess file path
+--rule              .htaccess rule template
+--path              .htaccess file path
 -c                  Start count
 USAGE;
     exit(0);

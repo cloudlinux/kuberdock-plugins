@@ -75,9 +75,9 @@ class DefaultController extends KuberDock_Controller {
         $page = Tools::getParam('page', Tools::getPost('page', 1));
 
         try {
-            $apps = new PredefinedApp();
-            $templates = $apps->getTemplates();
             $pod = new Pod();
+            $template = new Template($pod->getApi());
+            $templates = $template->getAll();
             $images = $pod->searchImages($search, $page);
             $registryUrl = $pod->command->getRegistryUrl();
         } catch(CException $e) {

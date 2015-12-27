@@ -243,11 +243,12 @@ sub install() {
     $tar->write($tarPath, COMPRESS_GZIP);
 
     if(-e $tarPath) {
-        $self->execute(CPANEL_INSTALL_PLUGIN, $tarPath);
+        $self->execute(CPANEL_INSTALL_PLUGIN, $tarPath, '--theme', 'paper_lantern');
+        $self->execute(CPANEL_INSTALL_PLUGIN, $tarPath, '--theme', 'x3');
         $self->execute('/bin/touch', $self->getFilePath('installed'));
         $self->execute('/bin/cp', $self->getFilePath($self->{_appId} . '_32.png'),
             '/usr/local/cpanel/base/frontend/x3/branding/'.$self->{_appId}.'.png');
-        $self->execute('/usr/local/cpanel/bin/rebuild_sprites', '-force');
+        $self->executeSilent('/usr/local/cpanel/bin/rebuild_sprites');
     }
 
     return 1;
@@ -290,6 +291,12 @@ sub delete() {
 sub execute() {
     my $self = shift;
     push @_, '>/dev/null 2>&1';
+    system(join(' ', @_));
+}
+
+sub executeSilent() {
+    my $self = shift;
+    push @_, '>/dev/null 2>&1 &';
     system(join(' ', @_));
 }
 

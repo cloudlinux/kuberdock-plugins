@@ -94,7 +94,7 @@
                                 </td>
                                 <td><input type="text" name="Ports[<?php echo $k?>][hostPort]" placeholder="Empty" value="<?php echo $port['hostPort']?>"></td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="Ports[<?php echo $k?>][isPublic]" value="1"<?php echo $port['isPublic'] ? ' checked' : ''?>>
+                                    <input type="checkbox" name="Ports[<?php echo $k?>][isPublic]" class="is-public" value="1"<?php echo $port['isPublic'] ? ' checked' : ''?>>
                                 </td>
                                 <td><button type="button" class="btn btn-default btn-sm delete-port old-button">
                                     <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
@@ -175,7 +175,7 @@
                                         <td>
                                             <input type="text" name="Volume[<?php echo $k?>][size]" class="short volume-size" placeholder="Empty" disabled>
                                         </td>
-                                        <td class="text-center"><small>MB</small></td>
+                                        <td class="text-center"><small><?php echo Units::getHDDUnits()?></small></td>
                                         <td>
                                             <button type="button" class="btn btn-default btn-sm delete-volume old-button">
                                                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>

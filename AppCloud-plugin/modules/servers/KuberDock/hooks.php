@@ -345,8 +345,8 @@ function KuberDock_ClientAreaPage($params)
             $parsedYaml = Spyc::YAMLLoadString($yaml);
 
             try {
-                if(isset($parsedYaml['kuberdock']['package_id'])) {
-                    $kdProductId = $parsedYaml['kuberdock']['package_id'];
+                if(isset($parsedYaml['kuberdock']['packageID'])) {
+                    $kdProductId = $parsedYaml['kuberdock']['packageID'];
                 }
 
                 if(!$referer) {

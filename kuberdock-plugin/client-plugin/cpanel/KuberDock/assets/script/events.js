@@ -7,9 +7,13 @@ var _$ = $.noConflict();
         var eventHandler = function() {
             var source = new EventSource('kuberdock.live.php?a=stream');
 
-            source.addEventListener('pull_pods_state', function(e) {
+            source.addEventListener('pod:change', function(e) {
                 getPodList();
                 getPodDetails();
+            }, false);
+
+            source.addEventListener('message', function(e) {
+                console.log(e);
             }, false);
 
             source.addEventListener('error', function(e) {

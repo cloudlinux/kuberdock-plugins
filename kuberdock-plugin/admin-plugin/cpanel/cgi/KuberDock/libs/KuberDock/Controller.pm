@@ -206,11 +206,6 @@ sub createAppAction() {
             $yaml->{kuberdock}->{kube_type} = $defaults->{kubeType};
         }
 
-        if(!defined $yaml->{kuberdock}->{package_id} && !$yaml->{kuberdock}->{package_id}
-            && defined $defaults->{packageId}) {
-            $yaml->{kuberdock}->{package_id} = $defaults->{packageId};
-        }
-
         $app->saveYaml('app.yaml', $yaml);
         my $template = KuberDock::KCLI::createTemplate($app->getFilePath('app.yaml'), $appName);
 
@@ -320,11 +315,6 @@ sub updateAppAction() {
         if(!defined $yaml->{kuberdock}->{kube_type} && !$yaml->{kuberdock}->{kube_type}
                 && defined $defaults->{kubeType}) {
             $yaml->{kuberdock}->{kube_type} = $defaults->{kubeType};
-        }
-
-        if(!defined $yaml->{kuberdock}->{package_id} && !$yaml->{kuberdock}->{package_id}
-            && defined $defaults->{packageId}) {
-            $yaml->{kuberdock}->{package_id} = $defaults->{packageId};
         }
 
         if(defined $yaml->{kuberdock}->{'icon'} && $yaml->{kuberdock}->{'icon'}) {

@@ -1,7 +1,7 @@
 <div id="app-page" class="container-fluid content">
     <div class="row">
         <div class="col-md-12 splitter">
-            <h2>Application "<?php echo $app->getName()?>"</h2>
+            <h2>Application "<?php echo $app->template->getName()?>"</h2>
             <?php if($postDescription):?>
                 <div class="alert alert-dismissible alert-success"  role="alert">
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>

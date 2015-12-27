@@ -97,7 +97,7 @@
                     <th class="col-md-3">Container path</th>
                     <th class="col-md-3">Persistent</th>
                     <th class="col-md-3">Name</th>
-                    <th class="col-md-3">Size (<?php echo $pod->units['hdd']?>)</th>
+                    <th class="col-md-3">Size (<?php echo Units::getHDDUnits()?>)</th>
                 </tr>
                 </thead>
                 <tbody>

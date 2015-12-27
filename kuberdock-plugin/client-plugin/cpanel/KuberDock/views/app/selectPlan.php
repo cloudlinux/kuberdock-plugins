@@ -2,10 +2,10 @@
     <div class="row">
         <div class="page-header">
             <div class="col-xs-1 nopadding"><span class="header-ico-preapp-install"></span></div>
-            <h2><?php echo $app->getName()?></h2>
+            <h2><?php echo $app->template->getName()?></h2>
         </div>
         <div class="col-xs-11 col-xs-offset-1 nopadding">
-            <p class="pre-app-desc"><?php echo $app->getPreDescription();?></p>
+            <p class="pre-app-desc"><?php echo $app->template->getPreDescription();?></p>
         </div>
     </div>
 
@@ -30,17 +30,17 @@
                                 <span class="plan-name"><?php echo $plan['name']?></span>
                                 <div class="price-wrapper">
                                     <div class="price">
-                                        $31<span>/month</span>
+                                        <?php echo $app->template->renderTotalByPlanId($k, true);?>
                                     </div>
                                 </div>
                             </div>
                             <div class="description">
                                 <strong>Good for</strong>
-                                <span><?php echo $plan['goodfor']?></span>
+                                <span><?php echo $plan['goodFor']?></span>
                             </div>
                             <div class="text-center">
                                 <a class="show-details rotate">Show details</a>
-                                <?php echo $app->renderTotalByPlanId($k);?>
+                                <?php echo $app->template->renderTotalByPlanId($k);?>
                             </div>
                             <div class="margin-top">
                                 <a href="kuberdock.live.php?c=app&a=installPredefined&planDetails=1&template=<?php echo $app->getTemplateId()?>&plan=<?php echo $k?>" class="btn btn-primary">

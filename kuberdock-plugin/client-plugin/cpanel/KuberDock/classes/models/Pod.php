@@ -358,8 +358,29 @@ class Pod {
         $currency = $this->api->getCurrency();
         $product = $this->api->getProduct();
         $kube = $this->getKubeType();
+        $publicIp = 0;
+        $pdSize = 0;
 
-        return $currency['prefix'] . number_format($kube['kube_price'] * $this->getKubeCount(), 2)
+        foreach($this->volumes as $row) {
+            if(isset($row['persistentDisk']['pdSize'])) {
+                $pdSize += $row['persistentDisk']['pdSize'];
+            }
+        }
+
+        foreach($this->containers as $container) {
+            if(!isset($container['ports'])) continue;
+
+            foreach($container['ports'] as $row) {
+                if (isset($row['isPublic']) && $row['isPublic']) {
+                    $publicIp = 1;
+                    break;
+                }
+            }
+        }
+        $total = $kube['kube_price'] * $this->getKubeCount() + $publicIp * $product['priceIP']
+            + $pdSize * $product['pricePersistentStorage'];
+
+        return $currency['prefix'] . number_format($total, 2)
             . $currency['suffix'] . ' / ' . str_replace('ly', '', $product['paymentType']);
     }
 
@@ -514,6 +535,11 @@ class Pod {
     public function stop()
     {
         $this->command->stopContainer($this->name);
+
+        if($this->template_id) {
+            $proxy = new Proxy($this->api);
+            $proxy->removeRuleFromPod($this);
+        }
     }
 
     /**

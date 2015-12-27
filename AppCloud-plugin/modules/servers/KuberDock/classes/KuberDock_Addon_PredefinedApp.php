@@ -111,6 +111,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
         $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
         $kubeType = isset($data['kuberdock']['kube_type']) ? $data['kuberdock']['kube_type'] : 0;
         $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
+        $publicIp = 0;
 
         if(isset($data['spec']['template']['spec'])) {
             $spec = $data['spec']['template']['spec'];
@@ -122,6 +123,24 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
         foreach($containers as $row) {
             if(isset($row['kubes'])) {
                 $total += $row['kubes'] * $kubePrice;
+            }
+
+            if(isset($row['ports'])) {
+                foreach($row['ports'] as $port) {
+                    if(isset($port['isPublic']) && $port['isPublic']) {
+                        $publicIp = 1;
+                    }
+                }
+            }
+        }
+
+        $total += $publicIp * (float) $product->getConfigOption('priceIP');
+
+        if(isset($spec['volumes'])) {
+            foreach($spec['volumes'] as $row) {
+                if(isset($row['persistentDisk']['pdSize'])) {
+                    $total += $row['persistentDisk']['pdSize'] * (float) $product->getConfigOption('pricePersistentStorage');
+                }
             }
         }
 

@@ -69,7 +69,7 @@
                 var parent = _this.$current.parents('tr:eq(0)');
 
                 parent.find('input.volume-name').val($(this).data('name'));
-                parent.find('input.volume-size').val($(this).data('size'));
+                parent.find('input.volume-size').val($(this).data('size')).trigger('change');
                 _this.popupHide();
             };
 
@@ -105,19 +105,38 @@
         var el = $('#kuber_kube_id option:selected, #KUBETYPE option:selected, #KUBE_TYPE option:selected'),
             el = el.length ? el : $('#kube_type'),
             kubeCount = 0,
+            pdTotal = 0,
             kubeEl = $('#kube_count, #total_kube_count, input[id*="KUBE_COUNT"], input[id*="KUBES"]'),
+            pdEl = $('#total_pd_size, input[id*="PD_SIZE"], input[type="checkbox"][class="set-persistent"]'),
             productId = el.data('pid'),
             kube = kubes[productId].kubes[el.val()],
             currency = kubes[productId].currency,
-            publicIp = parseInt($('#public_ip').val()),
-            totalPdSize = parseFloat($('#total_pd_size').val());
+            publicIp = parseInt($('#public_ip').val()) || 0;
+
+        if($('input.is-public').length) {
+            $('input.is-public').each(function() {
+                if($(this).prop('checked')) {
+                    publicIp = 1;
+                }
+            });
+        }
 
         $.each(kubeEl, function() {
             kubeCount += parseInt($(this).val());
         });
 
+        $.each(pdEl, function() {
+            if(pdEl.is(':checkbox')) {
+                if(pdEl.prop('checked')) {
+                    pdTotal += parseInt(pdEl.parents('tr').find('.volume-size').val()) || 0;
+                }
+            } else {
+                pdTotal += parseInt($(this).val());
+            }
+        });
+
         var additionalPrice = kubes[productId]['priceIP'] * publicIp
-            + kubes[productId]['pricePersistentStorage'] * totalPdSize;
+            + kubes[productId]['pricePersistentStorage'] * pdTotal;
         var price = wNumb({
                 decimals: 2,
                 prefix: kubes[productId].currency.prefix,
@@ -130,7 +149,7 @@
             traffic: getFormattedValue(kube.traffic_limit * kubeCount, units.traffic),
             hdd: getFormattedValue(kube.hdd_limit * kubeCount, units.hdd),
             ip: publicIp,
-            pd: totalPdSize ? getFormattedValue(totalPdSize, units.hdd, 0) : 0
+            pd: pdTotal ? getFormattedValue(pdTotal, units.hdd, 0) : 0
         }));
         $('#product_id').val(productId);
         $('#priceBlock').html(price);
@@ -169,6 +188,8 @@
 
     $(document).on('change', '#kuber_kube_id, #KUBETYPE, #KUBE_TYPE', calculateTotal);
     $(document).on('change', '.kube-slider, input[id*="KUBE_COUNT"], input[id*="KUBES"]', calculateTotal);
+    $(document).on('change', 'input[id*="PD_SIZE"], input[type="checkbox"][class="set-persistent"], input.volume-size', calculateTotal);
+    $(document).on('change', 'input.is-public', calculateTotal);
 
     // Ports
     $(document).on('click', 'button#add_port', function(e) {
@@ -180,7 +201,7 @@
                 '<option value="tcp">tcp</option><option value="udp">udp</option>' +
                 '</select></td>' +
                 '<td><input type="text" name="Ports[' + k + '][hostPort]" placeholder="Empty"></td>' +
-                '<td class="text-center"><input type="checkbox" value="1" name="Ports[' + k + '][isPublic]"></td>' +
+                '<td class="text-center"><input type="checkbox" value="1" class="is-public" name="Ports[' + k + '][isPublic]"></td>' +
                 '<td><button type="button" class="btn btn-default btn-sm delete-port">' +
                 '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>' +
                 '</button></td></tr>';
@@ -223,7 +244,7 @@
                 '<td class="text-center"><input type="checkbox" name="Volume[' + k + '][persistent]" class="set-persistent" value="1"></td>' +
                 '<td><input type="text" class="short volume-name" name="Volume[' + k + '][name]" autocomplete="off" placeholder="Empty" disabled></td>' +
                 '<td><input type="text" class="short volume-size" name="Volume[' + k + '][size]" placeholder="Empty" disabled></td>' +
-                '<td><small>MB</small></td>' +
+                '<td><small>GB</small></td>' +
                 '<td><button type="button" class="btn btn-default btn-sm delete-port">' +
                 '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>' +
                 '</button></td></tr>';

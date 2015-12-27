@@ -6,10 +6,10 @@
     <div class="row">
         <div class="page-header">
             <div class="col-xs-1 nopadding"><span class="header-ico-preapp-install"></span></div>
-            <h2><?php echo $app->getName()?></h2>
+            <h2><?php echo $app->template->getName()?></h2>
         </div>
         <div class="col-xs-11 col-xs-offset-1 nopadding">
-            <p class="pre-app-desc"><?php echo $app->getPreDescription();?></p>
+            <p class="pre-app-desc"><?php echo $app->template->getPreDescription();?></p>
         </div>
     </div>
 
@@ -18,10 +18,10 @@
     <form class="form-horizontal container-install predefined" method="post" action="<?php echo $_SERVER['REQUEST_URI']?>">
         <input type="hidden" name="plan" id="plan" value="<?php echo $plan?>">
         <input type="hidden" name="product_id" id="product_id" value="<?php echo $app->getPackageId(true)?>">
-        <input type="hidden" name="kube_type" id="kube_type" value="<?php echo $app->getKubeTypeId()?>" data-pid="<?php echo $app->getPackageId(true)?>">
-        <input type="hidden" name="total_kube_count" id="total_kube_count" value="<?php echo $app->getTotalKubes($plan)?>">
-        <input type="hidden" name="public_ip" id="public_ip" value="<?php echo $app->getPublicIP()?>">
-        <input type="hidden" name="total_pd_size" id="total_pd_size" value="<?php echo $app->getPersistentStorageSize()?>">
+        <input type="hidden" name="kube_type" id="kube_type" value="<?php echo $app->template->getKubeTypeId($plan)?>" data-pid="<?php echo $app->getPackageId(true)?>">
+        <input type="hidden" name="total_kube_count" id="total_kube_count" value="<?php echo $app->template->getTotalKubes($plan)?>">
+        <input type="hidden" name="public_ip" id="public_ip" value="<?php echo $app->template->getPublicIP()?>">
+        <input type="hidden" name="total_pd_size" id="total_pd_size" value="<?php echo $app->template->getPersistentStorageSize($plan)?>">
 
         <div class="row">
             <div class="col-xs-11 col-xs-offset-1 nopadding">
@@ -45,8 +45,8 @@
 
         <div class="row" style="margin-bottom: 23px;">
             <div class="text-right">
-                <?php if($plan):?>
-                    <a href="kuberdock.live.php?c=app&a=installPredefined&template=<?php echo $app->getTemplateId()?>" class="btn btn-default">
+                <?php if(is_numeric($plan)):?>
+                    <a href="kuberdock.live.php?c=app&a=installPredefined&template=<?php echo $app->getTemplateId()?>" class="btn btn-primary">
                         Choose different plan
                     </a>
                 <?php endif;?>
@@ -60,5 +60,5 @@
 
 <script>
     var kubes = <?php echo json_encode($app->getApi()->getKubes())?>,
-        units = <?php echo json_encode($app->units)?>;
+        units = <?php echo json_encode($app->pod->units)?>;
 </script>

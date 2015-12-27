@@ -100,6 +100,22 @@ class WHMCSApi extends Base {
     }
 
     /**
+     * @param int $id
+     * @return array
+     * @throws CException
+     */
+    public function getProductByKuberId($id)
+    {
+        foreach($this->getProducts() as $row) {
+            if($row['kuber_product_id'] == $id) {
+                return $row;
+            }
+        }
+
+        throw new CException(sprintf('Package with id: %s not founded', $id));
+    }
+
+    /**
      * @return array
      */
     public function getServices()

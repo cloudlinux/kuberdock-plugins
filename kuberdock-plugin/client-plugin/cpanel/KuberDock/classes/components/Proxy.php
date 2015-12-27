@@ -15,7 +15,11 @@ class Proxy {
     /**
      *
      */
-    const HTACCESS_REWRITE_RULE_TEMPLATE = 'RewriteRule %s/(.*)$ %s://%s:%s/$1 [L,P]';
+    const HTACCESS_REWRITE_RULE_TEMPLATE = 'RewriteRule %s(.*)$ %s://%s:%s/$1 [L,P]';
+    /**
+     *
+     */
+    const ROOT_DIR = 'root';
 
     /**
      * @var WHMCSApi
@@ -40,7 +44,6 @@ class Proxy {
     {
         $htaccessPath = $this->getHtaccessPathByDomain($domain);
         $rule = $this->getRewriteRule($dir, '%s', $port);
-
         $command = sprintf('%s --pod_name="%s" --path=%s --rule=\'%s\' -c 1',
             $this->getProxyCommand(), $podName, $htaccessPath, $rule);
         exec($command);
@@ -118,7 +121,8 @@ class Proxy {
         if(preg_match($this->getHtaccessRegexp(), $htaccess)) {
             $htaccess = preg_replace_callback($this->getHtaccessRegexp(), function($e) use ($dir) {
                 $rules = array_filter(explode("\n", $e[1]), function($r) use ($dir) {
-                    if(strpos($r, $dir . '/(.*)') === false) {
+                    $dir = ($dir == self::ROOT_DIR) ? '' : $dir . '/';
+                    if(strpos($r, $dir . '(.*)') === false) {
                         return $r;
                     }
                 });
@@ -136,7 +140,7 @@ class Proxy {
     public function addRuleToPod(Pod $pod)
     {
         $app = new PredefinedApp($pod->template_id);
-        $template = $app->loadTemplate($pod->name);
+        $template = $app->getTemplateByPodName($pod->name);
 
         if(isset($template['kuberdock']['proxy'])) {
             foreach($template['kuberdock']['proxy'] as $dir => $proxy) {
@@ -144,7 +148,8 @@ class Proxy {
                     $container = $app->getContainerData($pod->name, $proxy['container']);
                     if ($ports = $container['ports']) {
                         foreach ($ports as $port) {
-                            $this->addProxy($pod->name, $dir, $proxy['domain'], $port['hostPort']);
+                            $port = isset($port['hostPort']) ? $port['hostPort'] : $port['containerPort'];
+                            $this->addProxy($pod->name, $dir, $proxy['domain'], $port);
                         }
                     }
                 }
@@ -159,7 +164,7 @@ class Proxy {
     public function removeRuleFromPod(Pod $pod)
     {
         $app = new PredefinedApp($pod->template_id);
-        $template = $app->loadTemplate($pod->name);
+        $template = $app->getTemplateByPodName($pod->name);
 
         if(isset($template['kuberdock']['proxy'])) {
             foreach($template['kuberdock']['proxy'] as $dir => $proxy) {
@@ -179,6 +184,7 @@ class Proxy {
      */
     public function getRewriteRule($dir, $ip, $port, $scheme = 'http')
     {
+        $dir = ($dir == self::ROOT_DIR) ? '' : $dir . '/';
         return sprintf(self::HTACCESS_REWRITE_RULE_TEMPLATE, $dir, $scheme, $ip, $port);
     }
 

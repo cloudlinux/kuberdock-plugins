@@ -144,18 +144,18 @@ class KuberDock_Product extends CL_Product {
             $created = true;
         }
 
+        $service->updateById($serviceId, array(
+            'username' => $service->username,
+            'password' => $service->encryptPassword($password),
+            'domainstatus' => 'Active',
+        ));
+
         if(isset($created) && $created) {
             // Send module create email
             CL_MailTemplate::model()->sendPreDefinedEmail($serviceId, CL_MailTemplate::MODULE_CREATE_NAME, array(
                 'kuberdock_link' => $service->getServer()->getLoginPageLink(),
             ));
         }
-
-        $service->updateById($serviceId, array(
-            'username' => $service->username,
-            'password' => $service->encryptPassword($password),
-            'domainstatus' => 'Active',
-        ));
 
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
         $service = \KuberDock_Hosting::model()->loadById($serviceId);

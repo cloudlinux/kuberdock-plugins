@@ -77,7 +77,7 @@
             <a class="pull-left btn btn-default" href="kuberdock.live.php">Back to main page</a>
         <?php endif;?>
         <a class="pull-right btn btn-primary" href="kuberdock.live.php?c=app&a=installPredefined&new=1&template=<?php echo $app->getTemplateId()?>">
-            Add more "<?php echo $app->getName()?>" apps
+            Add more "<?php echo $app->template->getName()?>" apps
         </a>
         <div class="clearfix"></div>
     </div>

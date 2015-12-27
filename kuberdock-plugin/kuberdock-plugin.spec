@@ -1,7 +1,7 @@
 Version: 0.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 18%{?dist}.cloudlinux
+Release: 19%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -50,6 +50,16 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Mon Dec 28 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com>, Prokhor Sednev <psednev@cloudlinux.com> 0.1-19
+- AC-1917 cPanel. Support new yaml format. Move template to own model, also calculate publicIp&PD, fixed x3 theme icons
+- AC-1892: Add style to choose plan preapp in cpanel
+- AC-1899 - link to support in cPanel and whmcs plugins
+- Fix style in preapp install page + add some styles to choose plan page
+- AC-1902 cPanel. Select plan page skeleton
+- AC-1648 cPanel > KuberDock > Null error
+- AC-1661 cPanel. Remove default apps
+
 
 * Thu Dec 24 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-18
 - AC-1904 Fix error 'value must be of string type' for sugarcrm.yaml

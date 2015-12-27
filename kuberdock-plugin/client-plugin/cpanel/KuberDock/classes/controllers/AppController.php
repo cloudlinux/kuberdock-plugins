@@ -66,14 +66,14 @@ class AppController extends KuberDock_Controller {
 
         try {
             $app = new PredefinedApp($templateId);
-            $parsedTemplate = $app->loadTemplate($podName);
+            $parsedTemplate = $app->getTemplateByPodName($podName);
             $variables = $app->getVariables();
             $pods = $app->getExistingPods();
             $podsCount = count($pods);
             $podsCount = $new || $planDetails ? 0 : $podsCount;
             $podsCount = $postDescription || $podName ? 1 : $podsCount;
 
-            $plans = $app->getPlans();
+            $plans = $app->template->getPlans();
             if(!$planDetails && (($plans && $new) || ($plans && !$podsCount))) {
                 $podsCount = 2;
             }
@@ -82,12 +82,12 @@ class AppController extends KuberDock_Controller {
                 try {
                     $app->setPackageId(Tools::getPost('product_id'));
                     $app->createApp($_POST);
-                    $app->start();
+                    $app->getPod()->loadByName($app->template->getPodName())->start();
 
                     echo json_encode(array(
                         'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
                         'redirect' => sprintf('%s?c=app&a=installPredefined&template=%s&podName=%s&postDescription=%s',
-                            $_SERVER['SCRIPT_URI'], $templateId, $app->getPodName(), 1),
+                            $_SERVER['SCRIPT_URI'], $templateId, $app->template->getPodName(), 1),
                     ));
                 } catch (CException $e) {
                     echo $e->getJSON();
@@ -122,7 +122,7 @@ class AppController extends KuberDock_Controller {
                     $domains = array();
                     if(isset($parsedTemplate['kuberdock']['proxy'])) {
                         foreach($parsedTemplate['kuberdock']['proxy'] as $dir => $proxy) {
-                            $domains[] = $proxy['domain'] . '/' . $dir;
+                            $domains[] = $proxy['domain'] . ($dir == Proxy::ROOT_DIR ? '' : '/' . $dir);
                         }
                     }
 

@@ -22,29 +22,15 @@ class PredefinedApp {
     /**
      * @var int
      */
-    private $packageId;
-    /**
-     * @var int
-     */
     private $templateId;
     /**
-     * Yaml template
-     * @var string
+     * @var Template
      */
     private $template;
     /**
      * @var array
      */
-    private $parsedTemplate = array();
-    /**
-     * @var array
-     */
     private $variables = array();
-    /**
-     * KuberDock token
-     * @var string
-     */
-    private $token;
 
     /**
      * @var WHMCSApi
@@ -54,6 +40,10 @@ class PredefinedApp {
      * @var KcliCommand
      */
     private $command;
+    /**
+     * @var Pod
+     */
+    private $pod;
     /**
      * @var array
      */
@@ -121,11 +111,13 @@ class PredefinedApp {
      */
     public function init()
     {
-        $this->api = WHMCSApi::model();
+        $this->pod = new Pod();
+        $this->api = $this->pod->getApi();
         $this->command = $this->api->getCommand();
 
         if($this->templateId) {
-            $this->getTemplate($this->templateId);
+            $this->template = new Template($this->api);
+            $this->template->getById($this->templateId);
         }
     }
 
@@ -138,6 +130,23 @@ class PredefinedApp {
     }
 
     /**
+     * @return Pod
+     */
+    public function getPod()
+    {
+        return $this->pod;
+    }
+
+    /**
+     * @param string $podName
+     * @return array|bool
+     */
+    public function getTemplateByPodName($podName)
+    {
+        return $this->template->getTemplateByPath($this->getAppPath($podName));
+    }
+
+    /**
      * @param $packageId
      * @throws CException
      */
@@ -147,138 +156,7 @@ class PredefinedApp {
             throw new CException('Unknown package');
         }
 
-        $this->packageId = $packageId;
-    }
-
-    /**
-     * @param $id
-     * @return array
-     * @throws CException
-     */
-    public function getTemplate($id)
-    {
-        $this->templateId = $id;
-        $template = $this->api->getGlobalTemplate($id);
-
-        if(!$template) {
-            throw new CException('Template not exists');
-        }
-
-        $this->template = Spyc::YAMLLoadString($template['template']);
-
-        return $this->template;
-    }
-
-    /**
-     * @return array
-     * @throws CException
-     */
-    public function getTemplates()
-    {
-        $data = array();
-        $templates = $this->api->getGlobalTemplates();
-
-        foreach($templates as &$row) {
-            $row['template'] = Spyc::YAMLLoadString($row['template']);
-
-            if($this->isPackageExists($row['template']) && (!isset($row['kuberdock']) || !$row['kuberdock'])) {
-                $data[] = $row;
-            }
-        }
-
-        return $data;
-    }
-
-    /**
-     * @param string $podName
-     * @return array|bool
-     */
-    public function loadTemplate($podName)
-    {
-        $path = $this->getAppPath($podName);
-
-        if(!file_exists($path)) {
-            return false;
-        }
-
-        return Spyc::YAMLLoadString(file_get_contents($path));
-    }
-
-    /**
-     * @return mixed
-     * @throws CException
-     */
-    public function getKDSection()
-    {
-        if(isset($this->template['kuberdock']) && is_array($this->template['kuberdock'])) {
-            return $this->template['kuberdock'];
-        } else {
-            throw new CException('"kuberdock" section not exist in the template');
-        }
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getPlans()
-    {
-        $kdSection = $this->getKDSection();
-        if(isset($kdSection['plans']) && is_array($kdSection['plans'])) {
-            return $kdSection['plans'];
-        } else {
-            return array();
-        }
-    }
-
-    /**
-     * @param $id
-     * @return mixed
-     * @throws CException
-     */
-    public function getPlan($id)
-    {
-        $plans = $this->getPlans();
-
-        if(!isset($plans[$id])) {
-            throw new CException(sprintf('Plan with key %s does not exist', $id));
-        }
-
-        return $plans[$id];
-    }
-
-    /**
-     * @param $id
-     * @return string
-     * @throws CException
-     */
-    public function renderTotalByPlanId($id)
-    {
-        $plan = $this->getPlan($id);
-        $kubeType = $plan['kubeType'];
-
-        $kube = array_map(function($e) use ($kubeType) {
-            foreach($e['kubes'] as $row) {
-                if($row['kuber_kube_id'] == $kubeType) {
-                    return $row;
-                }
-            }
-        }, $this->getApi()->getKubes());
-
-        if(!$kube) {
-            throw new CException(sprintf('KubeType %s not available for you current package', $kubeType));
-        }
-
-        $totalKubes = 0;
-        array_map(function($e) use (&$totalKubes) {
-            $totalKubes += $e['kubes'];
-        }, $plan['containers']);
-
-        $view = new KuberDock_View();
-        return $view->renderPartial('app/plan_details', array(
-            'kube' => current($kube),
-            'plan' => $plan,
-            'totalKubes' => $totalKubes,
-        ), false);
+        $this->pod->packageId = $packageId;
     }
 
     /**
@@ -286,8 +164,7 @@ class PredefinedApp {
      */
     public function getVariables()
     {
-        $this->parsedTemplate = array();
-        $iterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($this->template));
+        $iterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($this->template->data));
 
         foreach($iterator as $row) {
             $path = array();
@@ -301,7 +178,7 @@ class PredefinedApp {
 
             // Numeric env value to string
             if(stripos($sPath, '.env') !== false && is_numeric($row)) {
-                $r = &$this->template;
+                $r = &$this->template->data;
                 foreach(explode('.', $sPath) as $v) {
                     $r = &$r[$v];
                 }
@@ -345,72 +222,19 @@ class PredefinedApp {
      */
     public function createApp($data = array())
     {
-        $ownerData = $this->api->getOwnerData();
-        $billingLink = sprintf('<a href="%s" target="_blank">%s</a>', $ownerData['server'], $ownerData['server']);
         $this->setVariables($data);
 
         // Create order with kuberdock product
-        $product = $this->api->getProductById($this->packageId);
-        $service = $this->api->getService();
-        if(!$service) {
-            if($this->api->getUserCredit() < $product['firstDeposit']) {
-                $currency = $this->api->getCurrency();
-                $rest = abs($this->api->getUserCredit() - $product['firstDeposit']);
-                throw new CException(sprintf('You have not enough funds for first deposit.
-                    You need to make payment %.2f %s at %s', $rest, $currency['suffix'], $billingLink));
-            }
-            $data = $this->api->addOrder($this->api->getUserId(), $this->packageId);
-            if($data['invoiceid'] > 0) {
-                $invoice = $this->api->getInvoice($data['invoiceid']);
-                if($invoice['status'] == 'Unpaid') {
-                    throw new CException('You have no enough funds.
-                                Please make payment in billing system at ' . $billingLink);
-                }
-            }
-            $this->api->acceptOrder($data['orderid'], false);
-            $this->api->moduleCreate($data['productids']);
-
-            $this->api->setKuberDockInfo();
-            list($username, $password, $token) = $this->api->getAuthData();
-            $this->command = new KcliCommand($username, $password, $token);
-            $this->command->setConfig();
-        } elseif($service['domainstatus'] == 'Pending') {
-            $this->api->moduleCreate($service['id']);
-            $this->api = $this->api->setKuberDockInfo();
-            $this->command = $this->api->getCommand();
-        }
-
-        file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template));
+        $pod = $this->pod->create();
+        $this->command = $pod->getCommand();
+        file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template->data));
         $response = $this->command->createPodFromYaml($this->getAppPath());
 
         $this->setPostInstallVariables($response);
-        file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template));
-        file_put_contents($this->getAppPath($this->getPodName()), Spyc::YAMLDump($this->template));
+        file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template->data));
+        file_put_contents($this->getAppPath($this->template->getPodName()), Spyc::YAMLDump($this->template->data));
 
         return $response;
-    }
-
-    /**
-     *
-     */
-    public function start()
-    {
-        $this->command->startContainer($this->getPodName());
-
-        if($this->proxy) {
-            $model = new Proxy($this->api);
-            foreach($this->proxy as $dir => $proxy) {
-                if(isset($proxy['domain']) && isset($proxy['container'])) {
-                    $container = $this->getContainerData($this->getPodName(), $proxy['container']);
-                    if($ports = $container['ports']) {
-                        foreach($ports as $port) {
-                            $port = isset($port['hostPort']) ? $port['hostPort'] : $port['containerPort'];
-                            $model->addProxy($this->getPodName(), $dir, $proxy['domain'], $port);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -440,53 +264,6 @@ class PredefinedApp {
     }
 
     /**
-     * @return string
-     */
-    public function getName()
-    {
-        return isset($this->template['kuberdock']['name']) ?
-            $this->template['kuberdock']['name'] : 'Undefined';
-    }
-
-    /**
-     * @return string
-     */
-    public function getPodName()
-    {
-        return isset($this->template['metadata']['name']) ?
-            $this->template['metadata']['name'] : 'Undefined';
-    }
-
-    /**
-     * @return string
-     */
-    public function getPreDescription()
-    {
-        $bbCode = new BBCode();
-
-        return isset($this->template['kuberdock']['preDescription']) ?
-            $bbCode->toHTML($this->template['kuberdock']['preDescription']) : '';
-    }
-
-    /**
-     * @return string
-     */
-    public function getPostDescription()
-    {
-        return isset($this->template['kuberdock']['postDescription']) ?
-            $this->template['kuberdock']['postDescription'] : 'Application started.';
-    }
-
-    /**
-     * @return array
-     */
-    public function getProxy()
-    {
-        return isset($this->template['kuberdock']['proxy']) ?
-            $this->template['kuberdock']['proxy'] : array();
-    }
-
-    /**
      * @param bool $fromBilling
      * @return string
      * @throws CException
@@ -502,8 +279,8 @@ class PredefinedApp {
         $defaults = $this->api->getDefaults();
         $defaultPackageId = isset($defaults['packageId']) ? $defaults['packageId'] : 0;
 
-        $packageId = isset($this->template['kuberdock']['package_id']) ?
-            $this->template['kuberdock']['package_id'] : $defaultPackageId;
+        $templatePackageId = $this->template->getPackageId();
+        $packageId = $templatePackageId ? $templatePackageId : $defaultPackageId;
 
         if(!$fromBilling) {
             return $packageId;
@@ -516,110 +293,6 @@ class PredefinedApp {
         }
 
         throw new CException('Cannot get KuberDock package or template has package that is different from user package');
-    }
-
-    /**
-     * @param string $template
-     * @return bool
-     */
-    public function isPackageExists($template)
-    {
-        if(!isset($template['kuberdock']['package_id'])) {
-            return true;
-        }
-
-        $service = $this->api->getService();
-        $templateProductId = $template['kuberdock']['package_id'];
-
-        if($service && $templateProductId != $service['kuber_product_id'] ) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * @return string
-     */
-    public function getKubeTypeId()
-    {
-        return isset($this->template['kuberdock']['kube_type']) ?
-            $this->template['kuberdock']['kube_type'] : 0;
-    }
-
-    /**
-     * @param null|int $planId
-     * @return int
-     */
-    public function getTotalKubes($planId = null)
-    {
-        $total = 0;
-
-        if($planId) {
-            $containers = $this->getPlan($planId)['containers'];
-        } else {
-            $containers = $this->getContainers();
-        }
-
-        foreach($containers as $image) {
-            if(isset($image['kubes'])) {
-                $total += $image['kubes'];
-            } else {
-                $total++;
-            }
-        }
-
-        return $total;
-    }
-
-    /**
-     * @return int
-     */
-    public function getPublicIP()
-    {
-        $containers = $this->getContainers();
-
-        foreach($containers as $container) {
-            if(isset($container['ports']) && is_array($container['ports'])) {
-                foreach($container['ports'] as $port) {
-                    if(isset($port['isPublic']) && (bool) $port['isPublic']) {
-                        return 1;
-                    }
-                }
-            }
-        }
-
-        return 0;
-    }
-
-    /**
-     * @return float|int
-     */
-    public function getPersistentStorageSize()
-    {
-        $size = 0;
-        $volumes = $this->getVolumes();
-
-        foreach($volumes as $volume) {
-            if(isset($volume['persistentDisk']) && isset($volume['persistentDisk']['pdSize'])) {
-                $size += (float) $volume['persistentDisk']['pdSize'];
-            }
-        }
-
-        return $size;
-    }
-
-    /**
-     * @return array
-     */
-    public function getUnits()
-    {
-        return array(
-            'cpu' => Units::getCPUUnits(),
-            'memory' => Units::getMemoryUnits(),
-            'hdd' => Units::getHDDUnits(),
-            'traffic' => Units::getTrafficUnits(),
-        );
     }
 
     /**
@@ -652,21 +325,11 @@ class PredefinedApp {
     }
 
     /**
-     * @return mixed
+     * @return Template
      */
-    public function getContainers()
+    public function getTemplate()
     {
-        return isset($this->template['spec']['template']['spec']['containers']) ?
-            $this->template['spec']['template']['spec']['containers'] : $this->template['spec']['containers'];
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getVolumes()
-    {
-        return isset($this->template['spec']['template']['spec']['volumes']) ?
-            $this->template['spec']['template']['spec']['volumes'] : $this->template['spec']['volumes'];
+        return $this->template;
     }
 
     /**
@@ -677,15 +340,9 @@ class PredefinedApp {
      */
     public function getContainerData($podName, $containerName)
     {
-        $pod = $this->command->describePod($podName);
+        $pod = $this->pod->loadByName($podName);
 
-        foreach($pod['containers'] as $container) {
-            if($container['name'] == $containerName) {
-                return $container;
-            }
-        }
-
-        throw new CException('Can not find container by name in the template');
+        return $pod->getContainerByName($containerName);
     }
 
     /**
@@ -717,7 +374,7 @@ class PredefinedApp {
             return 'kube_count';
         } elseif(in_array($var, array('KUBE_TYPE', 'KUBETYPE'))) {
             return 'kube_type';
-        } elseif($default == '%USER_DOMAIN_LIST%') {
+        } elseif(stripos($default, 'USER_DOMAIN_LIST') !== false) {
             return 'user_domain_list';
         } else {
             return 'input';
@@ -863,7 +520,7 @@ class PredefinedApp {
     {
         $this->setDefaultVariables();
 
-        array_walk_recursive($this->template, function(&$e) use ($data) {
+        array_walk_recursive($this->template->data, function(&$e) use ($data) {
             // bug with returned type of value (preg_replace_callback)
             if(preg_match(self::VARIABLE_REGEXP, $e)) {
                 $e = $this->replaceTemplateVariable($e, $data);
@@ -873,26 +530,45 @@ class PredefinedApp {
         foreach($data as $k => $v) {
             if(isset($this->variables[$k])) {
                 $this->variables[$k]['value'] = $v;
-                $this->setByPath($this->template, $this->variables[$k]['path'], $this->variables[$k]['replace'], $v);
+                $this->setByPath($this->template->data, $this->variables[$k]['path'], $this->variables[$k]['replace'], $v);
             }
         }
 
+        // TODO: Add few pod support
         if(isset($data['plan'])) {
-            $plan = $this->getPlan($data['plan']);
-            $containers = $this->getContainers();
-            foreach($plan['containers'] as $container) {
-                foreach($containers as &$row) {
-                    if($row['name'] == $container['name']) {
-                        $row['kubes'] = $container['kubes'];
+            $plan = $this->template->getPlan($data['plan']);
+            $containers = $this->template->getContainers();
+            $volumes = $this->template->getVolumes();
+
+            foreach($plan['pods'] as $pod) {
+                foreach($pod['containers'] as $container) {
+                    foreach($containers as &$row) {
+                        if($row['name'] == $container['name']) {
+                            $row['kubes'] = $container['kubes'];
+                        }
+                    }
+                }
+                foreach($pod['persistentDisks'] as $pd) {
+                    foreach($volumes as &$row) {
+                        if($row['name'] == $pd['name']) {
+                            $row['persistentDisk']['pdSize'] = $pd['pdSize'];
+                        }
                     }
                 }
             }
-        }
 
-        if(isset($this->template['spec']['template']['spec']['containers'])) {
-            $this->template['spec']['template']['spec']['containers'] = $containers;
-        } else {
-            $this->template['spec']['containers'] = $containers;
+            if(isset($plan['publicIP']) && !$plan['publicIP']) {
+                foreach($containers as &$row) {
+                    if(isset($row['ports'])) continue;
+
+                    foreach($row['ports'] as &$port) {
+                        $port['isPublic'] = false;
+                    }
+                }
+            }
+
+            $this->template->setContainers($containers);
+            $this->template->setVolumes($volumes);
         }
     }
 
@@ -907,7 +583,7 @@ class PredefinedApp {
         $variables['PUBLIC_ADDRESS'] = $publicIp;
         $this->variables['PUBLIC_ADDRESS'] = $publicIp;
 
-        array_walk_recursive($this->template, function(&$e) use ($variables) {
+        array_walk_recursive($this->template->data, function(&$e) use ($variables) {
             // bug with returned type of value (preg_replace_callback)
             if(preg_match(self::SPECIAL_VARIABLE_REGEXP, $e)) {
                 $e = $this->replaceTemplateVariable($e, $variables, self::SPECIAL_VARIABLE_REGEXP);
