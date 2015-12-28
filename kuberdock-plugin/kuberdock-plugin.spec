@@ -60,7 +60,6 @@ fi
 - AC-1648 cPanel > KuberDock > Null error
 - AC-1661 cPanel. Remove default apps
 
-
 * Thu Dec 24 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-18
 - AC-1904 Fix error 'value must be of string type' for sugarcrm.yaml
 - cPanel. Fixed add env
