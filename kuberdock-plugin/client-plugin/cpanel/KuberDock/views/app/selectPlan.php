@@ -14,31 +14,39 @@
     <form class="form-horizontal container-install predefined palans" method="post" action="<?php echo $_SERVER['REQUEST_URI']?>">
         <div class="col-xs-11 col-xs-offset-1 nopadding">
             <div class="row">
-                <strong>Choose plan:</strong>
+                <strong>Choose plan:</strong><br/><br/>
             </div>
-
-            <div class="row col-xs-12 nopadding">
+            <div class="row col-xs-12 nopadding plans-area">
                 <?php foreach($plans as $k => $plan):?>
                     <?php if(isset($plan['recommended'])):?>
-                        <div class="col-xs-3 item recommended">
+                        <div class="col-md-3 col-sm-6 col-xs-12" >
+                            <div class="item recommended">
+                                <span class="title">recommended</span>
                     <?php else:?>
-                        <div class="col-xs-3 item">
+                        <div class="col-md-3 col-sm-6 col-xs-12">
+                            <div class="item">
                     <?php endif;?>
-                        <img src="img path">
-                        <div class="plan-name"><?php echo $plan['name']?></div>
-                        <div class="description">
-                            <strong>Good for</strong><br/>
-                            <span><?php echo $plan['goodfor']?></span>
-                        </div>
-
-                        <a class="show-details">Show details</a>
-
-                        <?php echo $app->renderTotalByPlanId($k);?>
-
-                        <div class="margin-top">
-                            <a href="kuberdock.live.php?c=app&a=installPredefined&planDetails=1&template=<?php echo $app->getTemplateId()?>&plan=<?php echo $k?>" class="btn btn-primary">
-                                Choose plan
-                            </a>
+                            <div class="img-wrapper">
+                                <span class="plan-name"><?php echo $plan['name']?></span>
+                                <div class="price-wrapper">
+                                    <div class="price">
+                                        $31<span>/month</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="description">
+                                <strong>Good for</strong>
+                                <span><?php echo $plan['goodfor']?></span>
+                            </div>
+                            <div class="text-center">
+                                <a class="show-details rotate">Show details</a>
+                                <?php echo $app->renderTotalByPlanId($k);?>
+                            </div>
+                            <div class="margin-top">
+                                <a href="kuberdock.live.php?c=app&a=installPredefined&planDetails=1&template=<?php echo $app->getTemplateId()?>&plan=<?php echo $k?>" class="btn btn-primary">
+                                    Choose plan
+                                </a>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach;?>

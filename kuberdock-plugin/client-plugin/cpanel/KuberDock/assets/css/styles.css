@@ -85,12 +85,6 @@ label.title{
     float: right;
 }
 
-* {
-    box-shadow: none !important;
-}
-
-
-
 p {
     font-size: 100%;
 }
@@ -285,9 +279,28 @@ p {
 .preapp-install-page button.btn.btn-primary,
 .preapp-install-page a.btn.btn-default,
 .preapp-plan-page a.btn.btn-primary{
+    border-color: transparent;
+    -webkit-transition: all 300ms;
+    -moz-transition: all 300ms;
+    -ms-transition: all 300ms;
+    -o-transition: all 300ms;
+    -webkit-box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.35);
+    -moz-box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.35);
+    box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.35);
     -webkit-border-radius: 0;
     -moz-border-radius: 0;
     border-radius: 0;
+}
+.preapp-install-page button.btn.btn-primary:hover,
+.preapp-install-page a.btn.btn-default:hover,
+.preapp-plan-page a.btn.btn-primary:hover{
+    cursor: pointer;
+    -webkit-box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18);
+    -moz-box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18);
+    box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18);
+}
+.preapp-plan-page a.btn.btn-primary{
+    margin-bottom: -15px;
 }
 
 .preapp-install-page .ajax-loader {
@@ -299,16 +312,102 @@ p {
 
 /* preapp-plan-page */
 .preapp-plan-page form.palans .item{
-    margin-bottom: 100px;
+    position: relative;
+    padding: 28px 10% 0;
 }
-.preapp-plan-page form.palans .item img{
-    margin-bottom: 15px;
+.preapp-plan-page form.palans .item.recommended{
+    background: white;
+    border: 1px solid #e0e0e0;
+}
+.preapp-plan-page form.palans .item.recommended .title{
+    top: -12px;
+    left: 0;
+    padding: 3px 0;
+    right: 0;
+    color: #fff;
+    margin: auto;
+    width: 119px;
+    font-size: 12px;
+    font-weight: 800;
+    position: absolute;
+    text-align: center;
+    text-transform: uppercase;
+    background-color: #e65583;
+}
+.preapp-plan-page form.palans .item .img{
+    left: 0;
+    right: 0;
+    top: 28px;
+    position: relative;
+}
+.preapp-plan-page form.palans .item .img-wrapper{
+    width: 119px;
+    padding-top: 30px;
+    position: relative;
+    margin: 0 auto 18px;
+    background: url(../images/chocolate.png) 0 0 no-repeat;
+}
+.preapp-plan-page form.palans .item .img-wrapper .plan-name{
+    position: absolute;
+    top: -10px;
+    z-index: 1;
+    min-width: 47px;
+    padding: 0 10px;
+    right: -15px;
+    height: 47px;
+    color: #fffefe;
+    font-size: 17px;
+    line-height: 47px;
+    text-align: center;
+    background-color: #3d8acd;
+    display: inline-block;
+    -webkit-border-radius: 50px;
+    -moz-border-radius: 50px;
+    border-radius: 50px;
+}
+.preapp-plan-page form.palans .item.recommended .img-wrapper .plan-name{
+    background-color: #e65583;
+}
+.preapp-plan-page form.palans .item.recommended .margin-top a.btn.btn-primary{
+    background-color: #e65583;
+}
+.preapp-plan-page form.palans .item.recommended .margin-top a.btn.btn-primary:hover{
+    background-color: #CD3C6A;
+}
+.preapp-plan-page form.palans .item .img-wrapper .price-wrapper{
+    height: 133px;
+    margin: 0 auto;
+    position: relative;
+    background: url('../images/price-area.png') 0 0 no-repeat;
+}
+.preapp-plan-page form.palans .item .img-wrapper .price-wrapper .price{
+    color: #fff;
+    font-size: 40px;
+    line-height: 51px;
+    height: 51px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    left: 0;
+    right: 0;
+    text-align: center;
+}
+.preapp-plan-page form.palans .item .img-wrapper .price-wrapper .price span{
+    font-size: 12px;
+    line-height: 12px;
+    text-align: right;
 }
 .preapp-plan-page form.palans .item .description{
     color: #e65583;
     font-size: 14px;
     font-weight: 800;
     line-height: 14px;
+    padding-bottom: 0;
+    margin-bottom: 15px;
+}
+.preapp-plan-page form.palans .item .description strong{
+    display: block;
 }
 .preapp-plan-page form.palans .item .show-details,
 .preapp-plan-page form.palans .item .hide-details{
@@ -320,16 +419,48 @@ p {
     margin-bottom: 15px;
     display: inline-block;
 }
-.preapp-plan-page form.palans .item{
-    background: white;
-    border: 1px solid black;
+.preapp-plan-page form.palans .item .show-details:before,
+.preapp-plan-page form.palans .item .hide-details:before{
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 18px;
+    content: '';
+    height: 18px;
+    margin: auto;
+    position: absolute;
+    background: url('../images/item-arrow.png') 0 0 no-repeat;
+}
+.preapp-plan-page form.palans .item .hide-details:before{
+    transform: rotate(90deg) scale(0.817) skew(1deg) translate(0px);
+    -webkit-transform: rotate(90deg) scale(0.817) skew(1deg) translate(0px);
+    -moz-transform: rotate(90deg) scale(0.817) skew(1deg) translate(0px);
+    -o-transform: rotate(90deg) scale(0.817) skew(1deg) translate(0px);
+    -ms-transform: rotate(90deg) scale(0.817) skew(1deg) translate(0px);
 }
 .preapp-plan-page form.palans .item .product-description{
-    padding: 20px 10px;
+    padding: 10px;
+    font-size: 12px;
+    text-align: left;
+    margin-bottom: 20px;
     background-color: #f5f5f5;
     border: 1px solid #e0e0e0;
 }
-
+.preapp-plan-page form.palans .plans-area{
+    margin-bottom: 100px;
+}
+.preapp-plan-page form.palans .plans-area > div:nth-child(2) .item .img-wrapper{
+    padding-top: 70px;
+}
+.preapp-plan-page form.palans .plans-area > div:nth-child(3) .item .img-wrapper{
+    padding-top: 100px;
+}
+.preapp-plan-page form.palans .plans-area > div:nth-child(4) .item .img-wrapper{
+    padding-top: 130px;
+}
+.preapp-plan-page form.palans .plans-area > div:nth-child(5) .item .img-wrapper{
+    padding-top: 160px;
+}
 .preapp-plan-page form.palans .item .description span{
     font-size: 19px;
     line-height: 19px;
