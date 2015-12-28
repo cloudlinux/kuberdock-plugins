@@ -142,16 +142,10 @@ function upgrade
         fi
         /bin/cp -R $CLIENT_SOURCE_PATH/$PLUGIN_NAME $template
         /bin/chmod 755 $template/$PLUGIN_NAME/bin/*
-
-        # uninstall default apps
-        for needless_plugin in memcache mysql elastic redis; do
-            if [ -e ${template}/dynamicui/dynamicui_kuberdock-${needless_plugin}.conf ]; then
-                rm -f ${template}/dynamicui/dynamicui_kuberdock-${needless_plugin}.conf
-            fi
-        done
     done
 
-    /usr/local/cpanel/bin/rebuild_sprites --force
+    # delete unneeded apps
+    remove_bad_apps
 
     if [ -e /usr/local/cpanel/scripts/install_plugin ]; then
         /bin/tar -cjf $CONF_PATH/kuberdock-plugin.tar.bz2 -C $CONF_PATH/kuberdock-plugin/ .
@@ -190,6 +184,44 @@ function upgrade
     /bin/chmod 666 /var/log/kuberdock-plugin.log
 
     echo "Plugin upgraded"
+}
+
+function remove_bad_apps
+{
+    # find all installed in cpanel predefined apps
+    all_installed_predefined=()
+    for installed_predefined in $(kcli -c /root/.kubecli.conf kubectl get templates --origin cpanel \
+        | /bin/grep -oE '(kuberdock_template_id: )[0-9]+');
+    do
+         if [ ! ${installed_predefined} == 'kuberdock_template_id:' ]; then
+            all_installed_predefined+=(${installed_predefined})
+         fi
+    done
+
+    for template in $( /bin/find $CPANEL_TEMPLATE_PATH -mindepth 1 -maxdepth 1 -type d ! -type l ); do
+        # uninstall default apps
+        for needless_plugin in memcache mysql elastic redis; do
+            if [ -e ${template}/dynamicui/dynamicui_kuberdock-${needless_plugin}.conf ]; then
+                /bin/rm -f ${template}/dynamicui/dynamicui_kuberdock-${needless_plugin}.conf
+            fi
+        done
+
+        # delete uninstalled predefined apps part1
+        for plugin in $( /bin/find ${template}/dynamicui -regex '.*dynamicui_kuberdock_\([0-9]+\)\.conf'); do
+            if [[ ! " ${all_installed_predefined[@]} " =~ " $(echo "$plugin" | grep -o '[0-9]\+') " ]]; then
+                 /bin/rm -f ${plugin}
+            fi
+        done
+    done
+
+    # delete uninstalled predefined apps part2
+    for plugin in $( /bin/find /root/.kuberdock_pre_apps -type d -regex '.*kuberdock_\([0-9]+\)'); do
+        if [[ ! " ${all_installed_predefined[@]} " =~ " $(echo "$plugin" | grep -o '[0-9]\+') " ]]; then
+            /bin/rm -R ${plugin}
+        fi
+    done
+
+    /usr/local/cpanel/bin/rebuild_sprites --force
 }
 
 function usage
