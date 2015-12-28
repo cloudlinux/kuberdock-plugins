@@ -289,8 +289,10 @@ var _$ = $.noConflict();
 
         if(description.hasClass('hidden')) {
             $(this).text('Show details');
+            $(this).removeClass('rotate');
         } else {
             $(this).text('Hide details');
+            $(this).addClass('rotate');
         }
     });
 }(_$));
