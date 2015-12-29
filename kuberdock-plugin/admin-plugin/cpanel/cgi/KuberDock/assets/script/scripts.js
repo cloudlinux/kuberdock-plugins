@@ -32,6 +32,14 @@ var renderDefaults = function() {
 
 $(document).on('change', '#packageId', function() {
     renderDefaults();
+
+    var defaultPackage = packagesKubes[defaults.packageId].name || 'Empty';
+    $('label[for="packageId"]').html('Default package <span class="grey">(' + defaultPackage + ')</span>');
+});
+
+$(document).on('change', '#kubeType', function() {
+    var defaultKubeType = packagesKubes[defaults.packageId].kubes[defaults.kubeType].name || 'Empty';
+    $('label[for="kubeType"]').html('Default Kube Type <span class="grey">(' + defaultKubeType + ')</span>');
 });
 
 $(document).ready(function() {

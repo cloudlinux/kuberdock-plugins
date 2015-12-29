@@ -123,3 +123,9 @@ div#doctitle h1 span img {
     margin: 20px 0;
     color: rgba(51, 51, 51, 0.7);
 }
+
+.grey{
+    color: rgba(51, 51, 51, 0.7);
+    font-size: 12px;
+    font-weight: 400;
+}
