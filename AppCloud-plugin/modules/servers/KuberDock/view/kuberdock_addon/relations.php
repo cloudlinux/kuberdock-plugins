@@ -8,7 +8,8 @@
     </div>
 
     <div>
-        <table class="table table-bordered">
+        <table id="relations_table" class="tablesorter table table-bordered">
+            <thead>
             <tr class="active">
                 <th>Package name</th>
                 <th>Kube type name</th>
@@ -21,19 +22,9 @@
                 <th>Price</th>
                 <th>Price type</th>
             </tr>
+            </thead>
 
-            <?php foreach($brokenPackages as $row):
-                $product = KuberDock_Product::model()->loadByParams($row);
-            ?>
-            <tr class="danger">
-                <td><a href="configproducts.php?action=edit&id=<?php echo $row['id']?>" target="_blank"><?php echo $row['name']?></a></td>
-                <td colspan="8">
-                    <span class="glyphicon  glyphicon-exclamation-sign" aria-hidden="true"></span>
-                    Package not added to KuberDock. Please edit <a href="configproducts.php?action=edit&id=<?php echo $row['id']?>">product</a>
-                </td>
-                <td>per <?php echo $product->getReadablePaymentType()?></td>
-            </tr>
-            <?php endforeach;?>
+            <tbody>
 
             <?php foreach($productKubes as $kube):
                 $product = KuberDock_Product::model()->loadByParams($products[$kube['product_id']]);
@@ -51,6 +42,35 @@
                 <td>per <?php echo $product->getReadablePaymentType()?></td>
             </tr>
             <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <table  class="table table-bordered">
+            <tr class="active">
+                <th>Package name</th>
+                <th>Status</th>
+                <th>Price type</th>
+            </tr>
+            <?php foreach($brokenPackages as $row):
+                $product = KuberDock_Product::model()->loadByParams($row);
+                ?>
+                <tr class="danger">
+                    <td><a href="configproducts.php?action=edit&id=<?php echo $row['id']?>" target="_blank"><?php echo $row['name']?></a></td>
+                    <td>
+                        <span class="glyphicon  glyphicon-exclamation-sign" aria-hidden="true"></span>
+                        Package not added to KuberDock. Please edit <a href="configproducts.php?action=edit&id=<?php echo $row['id']?>">product</a>
+                    </td>
+                    <td>per <?php echo $product->getReadablePaymentType()?></td>
+                </tr>
+            <?php endforeach;?>
         </table>
     </div>
 </div>
+
+<script>
+    $(function() {
+        $$('#relations_table').tablesorter({
+            sortList: [[2,0]],
+        });
+    });
+</script>

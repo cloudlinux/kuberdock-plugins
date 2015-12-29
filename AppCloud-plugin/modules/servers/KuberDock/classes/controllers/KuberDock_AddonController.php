@@ -27,9 +27,12 @@ class KuberDock_AddonController extends CL_Controller {
 
     public function indexAction()
     {
+        $this->assets->registerScriptFiles(array('jquery.tablesorter.min'));
+
         $products = \KuberDock_Product::model()->getActive();
         $search = CL_Base::model()->getPost('Search', array());
         $search = array_filter($search);
+
         $kubes = \KuberDock_Addon_Kube::model()->loadByAttributes($search, 'product_id IS NULL',
             array('order' => 'kube_name'));
         $productKubes = \KuberDock_Addon_Kube::model()->loadByAttributes($search, 'product_id IS NOT NULL',

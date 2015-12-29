@@ -1,3 +1,5 @@
+
+
 <div class="container-fluid">
     <div class="row offset-top">
         <p class="text-right">
@@ -8,7 +10,8 @@
     </div>
 
     <div class="row">
-        <table class="table table-bordered">
+        <table id="kubes_table" class="tablesorter table table-bordered">
+            <thead>
             <tr class="active">
                 <th>Kube type name</th>
                 <th>CPU limit (<?php echo \components\KuberDock_Units::getCPUUnits()?>)</th>
@@ -18,7 +21,9 @@
                 <th>Server</th>
                 <th></th>
             </tr>
+            </thead>
 
+            <tbody>
             <?php foreach($kubes as $kube):
                 $usedKubes = array_filter($productKubes, function($e) use ($kube) {
                     if($e['kuber_kube_id'] == $kube['kuber_kube_id'] && $e['server_id'] == $kube['server_id']) {
@@ -44,6 +49,18 @@
                 </td>
             </tr>
             <?php endforeach; ?>
+            </tbody>
         </table>
     </div>
 </div>
+
+<script>
+    $(function() {
+        $$('#kubes_table').tablesorter({
+            sortList: [[0,0]],
+            headers: {
+                6: {sorter: false}
+            }
+        });
+    });
+</script>

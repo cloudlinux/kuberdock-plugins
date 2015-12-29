@@ -23,3 +23,17 @@ div.login-link { display: block; margin: 10px auto; text-align: left; }
     color: rgba(51, 51, 51, 0.7);
 }
 .support a{  color: #337ab7 ; }
+
+table.tablesorter thead tr .header {
+    background-image: url(../images/bg.gif);
+    background-repeat: no-repeat;
+    background-position: center right;
+    cursor: pointer;
+}
+table.tablesorter thead tr .headerSortUp {
+    background-image: url(../images/asc.gif);
+    background-position: right 28px;
+}
+table.tablesorter thead tr .headerSortDown {
+    background-image: url(../images/desc.gif);
+}

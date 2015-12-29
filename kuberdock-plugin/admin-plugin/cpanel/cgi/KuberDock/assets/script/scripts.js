@@ -9,12 +9,18 @@ var resDelete = function(obj) {
 
 var renderDefaults = function() {
     var selectedPackage = $('#packageId').val();
-    $('#packageId').empty().append(jQuery('<option>', {text: 'Empty'}));
-    $('#kubeType').empty().append(jQuery('<option>', {text: 'Empty'}));
+    $('#packageId').empty().append(jQuery('<option>', {text: 'Choose package'}));
+    $('#kubeType').empty().append(jQuery('<option>', {text: 'Choose Kube Type'}));
 
     if(typeof defaults == 'undefined' || typeof packagesKubes == 'undefined') {
         return;
     }
+
+    var defaultPackage = packagesKubes[defaults.packageId].name || 'Empty';
+    $('label[for="packageId"]').html('Default package <span class="grey">(' + defaultPackage + ')</span>');
+
+    var defaultKubeType = packagesKubes[defaults.packageId].kubes[defaults.kubeType].name || 'Empty';
+    $('label[for="kubeType"]').html('Default Kube Type <span class="grey">(' + defaultKubeType + ')</span>');
 
     $.each(packagesKubes, function(k, v) {
         selectedPackage = selectedPackage ? selectedPackage : defaults.packageId;
@@ -32,14 +38,6 @@ var renderDefaults = function() {
 
 $(document).on('change', '#packageId', function() {
     renderDefaults();
-
-    var defaultPackage = packagesKubes[defaults.packageId].name || 'Empty';
-    $('label[for="packageId"]').html('Default package <span class="grey">(' + defaultPackage + ')</span>');
-});
-
-$(document).on('change', '#kubeType', function() {
-    var defaultKubeType = packagesKubes[defaults.packageId].kubes[defaults.kubeType].name || 'Empty';
-    $('label[for="kubeType"]').html('Default Kube Type <span class="grey">(' + defaultKubeType + ')</span>');
 });
 
 $(document).ready(function() {
