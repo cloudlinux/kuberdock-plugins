@@ -559,9 +559,9 @@ class PredefinedApp {
                 }
             }
 
-            if(isset($plan['publicIP']) && !$plan['publicIP']) {
+            if(isset($plan['publicIP']) && !(bool) $plan['publicIP']) {
                 foreach($containers as &$row) {
-                    if(isset($row['ports'])) continue;
+                    if(!isset($row['ports'])) continue;
 
                     foreach($row['ports'] as &$port) {
                         $port['isPublic'] = false;
