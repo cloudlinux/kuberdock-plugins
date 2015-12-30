@@ -169,7 +169,9 @@ var _$ = $.noConflict();
     });
 
     $(document).on('click', '.container-delete', function(e) {
-        $($(this).data('target')).find('.modal-header').html('Do you want to delete application?');
+        $($(this).data('target')).find('.modal-header').html('Do you want to delete application?<br><br>' +
+            '<samp>Note: that after you delete application all persistent drives and public IP`s will not be deleted and we`ll' +
+            ' charge you for that. Please, go to KuberDock admin panel and delete everything you no longer need.</samp>');
         $($(this).data('target')).find('button.btn-action').text('Delete')
             .data('action', 'delete')
             .data('app', $(this).data('app'));

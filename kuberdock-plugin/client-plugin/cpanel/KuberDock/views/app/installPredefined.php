@@ -47,7 +47,7 @@
             <div class="text-right">
                 <?php if(is_numeric($plan)):?>
                     <a href="kuberdock.live.php?c=app&a=installPredefined&template=<?php echo $app->getTemplateId()?>" class="btn btn-primary">
-                        Choose different plan
+                        Choose different package
                     </a>
                 <?php endif;?>
 

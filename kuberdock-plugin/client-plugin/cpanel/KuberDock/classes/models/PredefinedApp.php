@@ -541,6 +541,8 @@ class PredefinedApp {
             $volumes = $this->template->getVolumes();
 
             foreach($plan['pods'] as $pod) {
+                $this->template->setKubeType($pod['kubeType']);
+
                 foreach($pod['containers'] as $container) {
                     foreach($containers as &$row) {
                         if($row['name'] == $container['name']) {

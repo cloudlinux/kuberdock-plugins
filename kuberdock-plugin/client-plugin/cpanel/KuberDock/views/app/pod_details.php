@@ -25,8 +25,8 @@
                         Local storage: <?php echo $pod->kubeType['hdd_limit'] * $pod->kubeCount.' '.$pod->units['hdd']?><br>
                         Memory: <?php echo $pod->kubeType['memory_limit'] * $pod->kubeCount.' '.$pod->units['memory']?><br>
                         Traffic: <?php echo $pod->kubeType['traffic_limit'] * $pod->kubeCount.' '.$pod->units['traffic']?><br>
-                        Kube type: <?php echo $pod->kubeType['kube_name']?> <br>
-                        Kube quantity: <?php echo $pod->kubeCount ?>
+                        Kube Type: <?php echo $pod->kubeType['kube_name']?> <br>
+                        Number of Kubes: <?php echo $pod->kubeCount ?>
                     <?php if($domains):?>
                         <br>Domains:
                         <?php foreach($domains as $domain):?>

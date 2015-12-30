@@ -129,7 +129,7 @@ sub uploadFileByUrl() {
 
     if(@allowed) {
         if(!grep {$_ eq $type} @allowed) {
-            die "Type '${type}' not allowed";
+            return '';
         }
     }
 

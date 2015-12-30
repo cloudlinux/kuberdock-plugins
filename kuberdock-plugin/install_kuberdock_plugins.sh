@@ -15,7 +15,7 @@ function install
 
     for template in $( /bin/find $CPANEL_TEMPLATE_PATH -mindepth 1 -maxdepth 1 -type d ! -type l ); do
         if [ ! -e $template/dynamicui ]; then
-            mkdir $template/dynamicui
+            /bin/mkdir $template/dynamicui
         fi
         /bin/cp $CONF_PATH/dynamicui_kuberdockgroup.conf $template/dynamicui
         /bin/cp -R $CLIENT_SOURCE_PATH/$PLUGIN_NAME $template
@@ -152,7 +152,7 @@ function upgrade
         /usr/local/cpanel/scripts/install_plugin $CONF_PATH/kuberdock-plugin.tar.bz2
     fi
 
-    for plugin in $( /bin/find $CONF_PATH/*.plugin -type f ); do
+    for plugin in $( /bin/find $CONF_PATH/*.plugin -type f ! -name "*redis*" ! -name "*mysql*" ! -name "*elastic*" ! -name "*memcache*" ); do
         /usr/local/cpanel/bin/register_cpanelplugin $plugin
     done
 

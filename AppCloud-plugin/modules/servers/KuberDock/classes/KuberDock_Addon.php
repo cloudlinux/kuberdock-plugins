@@ -149,29 +149,29 @@ class KuberDock_Addon extends CL_Component {
                 $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
                     `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    array(0, NULL, NULL, 'Standard', NULL, 0, 0.01, 64, 1, 0, $server->id));
+                    array(0, NULL, NULL, 'Small', NULL, 0, 0.01, 64, 1, 0, $server->id));
                 $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
                     `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                      array(0, 0, $product->id, 'Standard', 0, 0, 0.01, 64, 1, 0, $server->id));
+                      array(0, 0, $product->id, 'Small', 0, 0, 0.01, 16, 1, 0, $server->id));
 
                 $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
                     `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    array(1, NULL, NULL, 'High CPU', NULL, 0, 0.02, 64, 1, 0, $server->id));
+                    array(1, NULL, NULL, 'Standard', NULL, 0, 0.06, 64, 1, 0, $server->id));
                 $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
                     `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    array(1, 0, $product->id, 'High CPU', 0, 0, 0.02, 64, 1, 0, $server->id));
+                    array(1, 0, $product->id, 'Standard', 0, 0, 0.06, 64, 1, 0, $server->id));
 
                 $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
                     `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    array(2, NULL, NULL, 'High memory', NULL, 0, 0.01, 256, 1, 0, $server->id));
+                    array(2, NULL, NULL, 'High memory', NULL, 0, 0.01, 256, 2, 0, $server->id));
                 $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
                     `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    array(2, 0, $product->id, 'High memory', 0, 0, 0.01, 256, 1, 0, $server->id));
+                    array(2, 0, $product->id, 'High memory', 0, 0, 0.125, 256, 2, 0, $server->id));
             }
         } catch(Exception $e) {
             $db->query('DROP TABLE IF EXISTS `KuberDock_preapps`');

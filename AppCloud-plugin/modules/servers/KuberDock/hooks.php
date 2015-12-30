@@ -252,6 +252,8 @@ function KuberDock_ShoppingCartCheckoutCompletePage($params)
 function KuberDock_OrderProductPricingOverride($params)
 {
     $product = KuberDock_Product::model()->loadById($params['pid']);
+    if(!$product) return;
+
     $setup = $product->getConfigOption('firstDeposit') ? $product->getConfigOption('firstDeposit') : 0;
 
     $productPrice = array(

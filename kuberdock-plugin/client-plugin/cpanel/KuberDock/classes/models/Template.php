@@ -395,4 +395,9 @@ class Template
 
         return $this;
     }
+
+    public function setKubeType($id)
+    {
+        $this->data['kuberdock']['kube_type'] = $id;
+    }
 }

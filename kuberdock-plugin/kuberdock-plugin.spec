@@ -30,10 +30,11 @@ cp -r * %{buildroot}/usr/share/kuberdock-plugin
 rm -rf %{buildroot}
 
 %post
-if [ $1 == 1 ] ; then
+if [ $1 = 1 ] ; then
     bash /usr/share/kuberdock-plugin/install_kuberdock_plugins.sh -i
     exit 0
-elif [ $1 == 2 ] ; then
+fi
+if [ $1 = 2 ] ; then
     bash /usr/share/kuberdock-plugin/install_kuberdock_plugins.sh -u
     exit 0
 fi

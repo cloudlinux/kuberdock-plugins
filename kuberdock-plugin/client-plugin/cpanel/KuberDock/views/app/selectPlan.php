@@ -14,7 +14,7 @@
     <form class="form-horizontal container-install predefined palans" method="post" action="<?php echo $_SERVER['REQUEST_URI']?>">
         <div class="col-xs-11 col-xs-offset-1 nopadding">
             <div class="row">
-                <strong>Choose plan:</strong><br/><br/>
+                <strong>Choose package:</strong><br/><br/>
             </div>
             <div class="row col-xs-12 nopadding plans-area">
                 <?php foreach($plans as $k => $plan):?>
@@ -44,7 +44,7 @@
                             </div>
                             <div class="margin-top">
                                 <a href="kuberdock.live.php?c=app&a=installPredefined&planDetails=1&template=<?php echo $app->getTemplateId()?>&plan=<?php echo $k?>" class="btn btn-primary">
-                                    Choose plan
+                                    Choose package
                                 </a>
                             </div>
                         </div>
@@ -53,6 +53,6 @@
             </div>
         </form>
 
-        <div class="row col-xs-12 info-description">You can choose another plan at any time</div>
+        <div class="row col-xs-12 info-description">You can choose another package at any time</div>
     </div>
 </div>
