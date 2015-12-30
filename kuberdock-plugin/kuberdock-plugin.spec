@@ -1,7 +1,7 @@
 Version: 0.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 19%{?dist}.cloudlinux
+Release: 20%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -51,6 +51,12 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Wed Dec 30 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com>, Prokhor Sednev <psednev@cloudlinux.com> 0.1-20
+- AC-1932 cPanel. Notice for app delete, fixed error for icon param
+- AC-1814 cPanel > KuberDock plugin > Apps from old version available after install new version cPanel plugin
+- AC-1801 cPanel current values in application defaults tab
+- cPanel. Alert style fix
 
 * Mon Dec 28 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com>, Prokhor Sednev <psednev@cloudlinux.com> 0.1-19
 - AC-1917 cPanel. Support new yaml format. Move template to own model, also calculate publicIp&PD, fixed x3 theme icons
