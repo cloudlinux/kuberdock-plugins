@@ -224,6 +224,23 @@ function remove_bad_apps
     /usr/local/cpanel/bin/rebuild_sprites --force
 }
 
+function home_script
+{
+    home_script='<script src="/frontend/paper_lantern/KuberDock/assets/script/home.js"></script>'
+    for template in "paper_lantern/index.auto.tmpl" "x3/index.html"; do
+        index=$CPANEL_TEMPLATE_PATH/$template;
+        if [ -e $index ]; then
+            tail=$( tail -1 $index );
+            if [[ $tail != $home_script && $1 == "add" ]]; then
+                $( echo $home_script >> $index )
+            fi;
+            if [[ $tail == $home_script && $1 == "remove" ]]; then
+                $( head -n -1 $index > tmp && mv tmp $index )
+            fi;
+        fi;
+    done
+}
+
 function usage
 {
     echo "Use following syntax to manage KuberDock install utility:"
@@ -233,11 +250,14 @@ function usage
     echo " -u    : upgrade KuberDock plugin"
 }
 
-if [ $1 == "-i" ]; then
+if [[ $1 == "-i" ]]; then
+    home_script add
     install
-elif [ $1 == "-u" ]; then
+elif [[ $1 == "-u" ]]; then
+    home_script add
     upgrade
-elif [ $1 == "-d" ]; then
+elif [[ $1 == "-d" ]]; then
+    home_script remove
     uninstall
 else
     usage
