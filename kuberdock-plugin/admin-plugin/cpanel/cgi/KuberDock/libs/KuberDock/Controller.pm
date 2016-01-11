@@ -9,6 +9,7 @@ use Template;
 
 use KuberDock::Resellers;
 use KuberDock::PreApps;
+use KuberDock::KubeCliConf;
 use KuberDock::KCLI;
 use KuberDock::API;
 use KuberDock::Exception;
@@ -57,7 +58,7 @@ sub run() {
         my $method = $self->{_action};
         $self->$method();
     } else {
-        print 'Action not founded';
+        print 'Action not found';
         return 0;
     }
 }
@@ -77,6 +78,7 @@ sub indexAction() {
     my $apps = KuberDock::PreApps->new($self->{_cgi});
     my $api = KuberDock::API->new;
     my $json = KuberDock::JSON->new;
+    my $cubeCliConf = KuberDock::KubeCliConf->new;
     my @packagesKubes;
     my $appName = $self->{_cgi}->param('app_name') || '';
     my $code = $self->{_cgi}->param('code');
@@ -86,9 +88,11 @@ sub indexAction() {
     };
 
     if($@) {
-        KuberDock::Exception::throw('Cannot connect to KuberDock server, invalid credentials or server url in ~/.kubecli.conf');
-        $self->render('header.tmpl');
-        return 0;
+        $self->render('index.tmpl', {
+            kubeCli => $cubeCliConf->read,
+            error => 1,
+        });
+        return;
     }
     my $defaults = $resellers->loadDefaults();
 
@@ -102,6 +106,7 @@ sub indexAction() {
         data => $resellersData,
         packagesKubes => $json->encode(@packagesKubes, 1),
         defaults => $json->encode($defaults, 1),
+        kubeCli => $cubeCliConf->read,
         action => 'addon_kuberdock.cgi?a=createApp#create',
         yaml => $code || '# Please input your yaml here',
         appName => $appName,
@@ -408,6 +413,21 @@ sub setDefaultsAction {
 
     $reseller->save(%{$data});
     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#defaults');
+}
+
+sub updateKubecliAction {
+     my ($self) = @_;
+     my $cubeCliConf = KuberDock::KubeCliConf->new;
+     my $data = {
+         url => $self->{_cgi}->param('kubecli_url'),
+         user => $self->{_cgi}->param('kubecli_user'),
+         password => $self->{_cgi}->param('kubecli_password'),
+         registry => $self->{_cgi}->param('kubecli_registry'),
+     };
+
+     $cubeCliConf->save($data);
+
+     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#kubecli');
 }
 
 1;

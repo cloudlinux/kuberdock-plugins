@@ -1,0 +1,29 @@
+<div id="edit-kubecli-conf" class="container-fluid [% IF error %]row [% ELSE %]pull-left [% END %]top-offset">
+
+    <form action="?a=updateKubecli" method="post" class="form-inline">
+
+        <div class="row col-md-12">
+            <label for="app_name">Kuberdock master url</label>
+            <input type="text" name="kubecli_url" value="[% kubeCli.url %]">
+        </div>
+
+        <div class="row col-md-12">
+            <label for="app_name">User</label>
+            <input type="text" name="kubecli_user" value="[% kubeCli.user %]">
+        </div>
+
+        <div class="row col-md-12">
+            <label for="app_name">Password</label>
+            <input type="text" name="kubecli_password" value="[% kubeCli.password %]" autocomplete="off">
+        </div>
+
+        <div class="row col-md-12">
+            <label for="app_name">Registry</label>
+            <input type="text" name="kubecli_registry" value="[% kubeCli.registry %]">
+        </div>
+
+        <div class="row col-md-12">
+            <button type="submit" class="btn btn-primary" name="save">Save</button>
+        </div>
+    </form>
+</div>

@@ -82,12 +82,14 @@ div#doctitle h1 span img {
     margin-left: 25px;
 }
 #admin-plugin #default-app-setting .form-group label,
+#edit-kubecli-conf label,
 #create-new-app label{
     display: block;
     margin-top: 10px;
     margin-bottom: 10px;
 }
 #default-app-setting .form-group select,
+#edit-kubecli-conf input[type="text"],
 #create-new-app input[type="text"]{
     height: 33px;
     padding: 0 20px;
@@ -96,6 +98,7 @@ div#doctitle h1 span img {
     border: 1px solid #ddd;
     background-color: #fff;
 }
+#edit-kubecli-conf input[type="text"],
 #create-new-app input[type="text"]{
     -webkit-border-radius: none !important;
     -moz-border-radius: none !important;
@@ -104,7 +107,8 @@ div#doctitle h1 span img {
     margin-bottom: 20px;
     border: 1px solid #ddd;
 }
-#create-new-app input[type="text"] + .help-block.form-error{
+#create-new-app input[type="text"] + .help-block.form-error,
+#edit-kubecli-conf input[type="text"] + .help-block.form-error{
     margin: 0;
     min-height: 33px;
     line-height: 33px;
@@ -115,6 +119,7 @@ div#doctitle h1 span img {
 #create-new-app .CodeMirror-scroll{
     padding: 10px 20px;
 }
+
 .support{
     background-color: white;
     text-align: left;

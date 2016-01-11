@@ -1,0 +1,48 @@
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="active">
+                <a href="#pre_apps" aria-controls="pre_apps" role="tab" data-toggle="tab">Existing apps</a>
+            </li>
+
+            <li role="presentation">
+                <a href="#create" aria-controls="defaults" role="tab" data-toggle="tab">Add new application</a>
+            </li>
+
+            <li role="presentation">
+                <a href="#billing" aria-controls="billing" role="tab" data-toggle="tab">Billing Integration</a>
+            </li>
+
+            <li role="presentation">
+                <a href="#defaults" aria-controls="defaults" role="tab" data-toggle="tab">Application defaults</a>
+            </li>
+
+            <li role="presentation">
+                <a href="#kubecli" aria-controls="kubecli" role="tab" data-toggle="tab">Edit kubecli.conf</a>
+            </li>
+        </ul>
+    </div>
+</div>
+<div class="row">
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="pre_apps">
+            [% INCLUDE 'pre-apps/index.tmpl' %]
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="create">
+            [% INCLUDE 'pre-apps/form.tmpl' %]
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="billing">
+            [% INCLUDE 'resellers/index.tmpl' data=data resellers=resellers %]
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="defaults">
+            [% INCLUDE 'defaults/index.tmpl' %]
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="kubecli">
+            [% INCLUDE 'kubecli/index.tmpl' kubeCli=kubeCli %]
+        </div>
+    </div>
+</div>
