@@ -23,6 +23,16 @@ class KuberDock_Addon extends CL_Component {
     /**
      *
      */
+    const KD_PACKAGE_ID = 0;
+
+    /**
+     * Can not be deleted
+     */
+    const STANDARD_KUBE_TYPE = 0;
+
+    /**
+     *
+     */
     public function activate()
     {
         if(version_compare(phpversion(), self::REQUIRED_PHP_VERSION) < 0) {
@@ -48,13 +58,13 @@ class KuberDock_Addon extends CL_Component {
         }
 
         try {
-            $db->query('CREATE TABLE `KuberDock_products` (
+            $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_products` (
                 product_id INT,
                 kuber_product_id INT,
                 UNIQUE KEY (product_id)
             ) ENGINE=INNODB');
 
-            $db->query('CREATE TABLE `KuberDock_kubes` (
+            $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_kubes` (
                 id INT AUTO_INCREMENT,
                 kuber_kube_id INT,
                 product_id INT,
@@ -63,7 +73,7 @@ class KuberDock_Addon extends CL_Component {
                 kube_weight DECIMAL(10,2),
                 kube_price DECIMAL(10,2),
                 kube_type TINYINT(1) DEFAULT 0,
-                cpu_limit DECIMAL(10,2),
+                cpu_limit DECIMAL(10,4),
                 memory_limit INT,
                 hdd_limit INT,
                 traffic_limit DECIMAL(10,2),
@@ -75,13 +85,13 @@ class KuberDock_Addon extends CL_Component {
                     ON UPDATE CASCADE ON DELETE CASCADE
             ) ENGINE=INNODB');
 
-            $db->query('CREATE TABLE `KuberDock_trial` (
+            $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_trial` (
                 user_id INT,
                 service_id INT,
                 UNIQUE KEY (user_id)
             ) ENGINE=INNODB');
 
-            $db->query('CREATE TABLE `KuberDock_states` (
+            $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_states` (
                 id INT AUTO_INCREMENT,
                 hosting_id INT NOT NULL,
                 product_id INT,
@@ -94,7 +104,7 @@ class KuberDock_Addon extends CL_Component {
                 PRIMARY KEY (id)
             ) ENGINE=INNODB');
 
-            $db->query('CREATE TABLE `KuberDock_preapps` (
+            $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_preapps` (
                 id INT AUTO_INCREMENT,
                 session_id varchar(64) NOT NULL,
                 product_id INT NOT NULL,
@@ -120,7 +130,10 @@ class KuberDock_Addon extends CL_Component {
 
             $product = new KuberDock_Product();
 
-            if(!KuberDock_Product::model()->loadByAttributes(array('name' => self::STANDARD_PRODUCT, 'servertype' => KUBERDOCK_MODULE_NAME))) {
+            if(!KuberDock_Product::model()->loadByAttributes(array(
+                'name' => self::STANDARD_PRODUCT,
+                'servertype' => KUBERDOCK_MODULE_NAME
+            ))) {
                 // Create standard product
                 $product->setAttributes(array(
                     'gid' => $group['id'],
@@ -133,12 +146,19 @@ class KuberDock_Addon extends CL_Component {
                     //'order' => 1,
                     //'hidden' => '',
                 ));
+
+
+                $api = $server->getApi();
+                $package = $api->getPackageById(self::KD_PACKAGE_ID)->getData();
+                $kubes = $api->getPackageKubes(self::KD_PACKAGE_ID)->getData();
+
                 $product->setConfigOption('enableTrial', 0);
-                $product->setConfigOption('firstDeposit', 0);
-                $product->setConfigOption('priceOverTraffic', 0);
-                $product->setConfigOption('pricePersistentStorage', 0);
-                $product->setConfigOption('priceIP', 0);
-                $product->setConfigOption('paymentType', 'hourly');
+                $product->setConfigOption('firstDeposit', $package['first_deposit']);
+                $product->setConfigOption('priceOverTraffic', $package['price_over_traffic']);
+                $product->setConfigOption('pricePersistentStorage', $package['price_pstorage']);
+                $product->setConfigOption('priceIP', $package['price_ip']);
+                $product->setConfigOption('paymentType', KuberDock_Product::$payment_periods[$package['period']]);
+
                 $product->setConfigOption('debug', 0);
 
                 $product->save();
@@ -146,32 +166,27 @@ class KuberDock_Addon extends CL_Component {
 
                 $db->query('INSERT INTO KuberDock_products VALUES (?, ?)', array($product->id, 0));
 
-                $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
-                    `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    array(0, NULL, NULL, 'Small', NULL, 0, 0.01, 64, 1, 0, $server->id));
-                $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
-                    `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                      array(0, 0, $product->id, 'Small', 0, 0, 0.01, 16, 1, 0, $server->id));
+                $KuberDock_kubes_sql = "INSERT INTO KuberDock_kubes (
+                        `kuber_kube_id`,`kuber_product_id`,`product_id`,`kube_name`,`kube_price`,
+                        `kube_type`,`cpu_limit`,
+                        `memory_limit`,`hdd_limit`,`traffic_limit`,`server_id`
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-                $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
-                    `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    array(1, NULL, NULL, 'Standard', NULL, 0, 0.06, 64, 1, 0, $server->id));
-                $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
-                    `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    array(1, 0, $product->id, 'Standard', 0, 0, 0.06, 64, 1, 0, $server->id));
+                foreach ($kubes as $kube) {
+                    $values = array(self::STANDARD_KUBE_TYPE, round($kube['cpu'], 4), $kube['memory'], $kube['disk_space'], 0, $server->id);
 
-                $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
-                    `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    array(2, NULL, NULL, 'High memory', NULL, 0, 0.01, 256, 2, 0, $server->id));
-                $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
-                    `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    array(2, 0, $product->id, 'High memory', 0, 0, 0.125, 256, 2, 0, $server->id));
+                    $db->query($KuberDock_kubes_sql, array_merge(
+                            array($kube['id'], NULL, NULL, $kube['name'], NULL),
+                            $values
+                        )
+                    );
+
+                    $db->query($KuberDock_kubes_sql, array_merge(
+                            array($kube['id'], self::KD_PACKAGE_ID, $product->id, $kube['name'], $kube['kube_price']),
+                            $values
+                        )
+                    );
+                }
             }
         } catch(Exception $e) {
             $db->query('DROP TABLE IF EXISTS `KuberDock_preapps`');
@@ -220,15 +235,18 @@ class KuberDock_Addon extends CL_Component {
             // pass
         }
 
-        $products = KuberDock_Addon_Product::model()->loadByAttributes();
-        foreach($products as $row) {
-            if($row['kuber_product_id'] == 0) continue;
-
-            try {
-                KuberDock_Addon_Product::model()->loadByParams($row)->deletePackage();
-            } catch(Exception $e) {
-                // pass
+        try {
+            $products = KuberDock_Addon_Product::model()->loadByAttributes();
+            foreach($products as $row) {
+                if($row['kuber_product_id'] == 0) continue;
+                try {
+                    KuberDock_Addon_Product::model()->loadByParams($row)->deletePackage();
+                } catch(Exception $e) {
+                    // pass
+                }
             }
+        } catch(Exception $e) {
+            // pass
         }
 
         $db->query('DROP TABLE IF EXISTS `KuberDock_preapps`');
@@ -261,4 +279,6 @@ class KuberDock_Addon extends CL_Component {
             return self::$_models[$className];
         }
     }
+
+
 } 

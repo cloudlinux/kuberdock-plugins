@@ -34,7 +34,7 @@
                 <td><?php echo $kube['kube_name']?></td>
                 <td><?php echo $kube['kuber_kube_id']?></td>
                 <td><?php echo isset($servers[$kube['server_id']]) ? $servers[$kube['server_id']]->name : ''?></td>
-                <td><?php echo $kube['cpu_limit']?></td>
+                <td><?php echo (float) $kube['cpu_limit']?></td>
                 <td><?php echo $kube['memory_limit']?></td>
                 <td><?php echo $kube['hdd_limit']?></td>
                 <td><?php echo $kube['traffic_limit']?></td>

@@ -449,7 +449,7 @@ function KuberDock_ClientAreaPage($params)
                     'name' => 'Kube ' . $kube['kube_name'],
                     'description' => vsprintf($desc, array(
                         $currency->getFullPrice($kube['kube_price']) .' \ '. $product->getReadablePaymentType(),
-                        $kube['cpu_limit'],
+                        (float) $kube['cpu_limit'],
                         $kube['memory_limit'],
                         KuberDock_Units::getMemoryUnits(),
                         $kube['hdd_limit'],

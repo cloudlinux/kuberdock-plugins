@@ -20,6 +20,16 @@ use exceptions\UserNotFoundException;
  */
 class KuberDock_Product extends CL_Product {
 
+    const UNKNOWN_PAYMENT_PERIOD = 'unknown';
+
+    public static $payment_periods = array(
+        'annual' => 'annually',
+        'quarter' => 'quarterly',
+        'month' => 'monthly',
+        'day' => 'daily',
+        'hour' => 'hourly',
+    );
+
     /**
      *
      */
@@ -407,20 +417,12 @@ class KuberDock_Product extends CL_Product {
      */
     public function getReadablePaymentType()
     {
-        switch($this->getConfigOption('paymentType')) {
-            case 'annually':
-                return 'annual';
-            case 'quarterly':
-                return 'quarter';
-            case 'monthly':
-                return 'month';
-            case 'daily':
-                return 'day';
-            case 'hourly':
-                return 'hour';
-            default:
-                return 'unknown';
-        }
+        $type = $this->getConfigOption('paymentType');
+        $types = array_flip(self::$payment_periods);
+
+        return array_key_exists($type, $types)
+            ? $types[$type]
+            : self::UNKNOWN_PAYMENT_PERIOD;
     }
 
     /**
