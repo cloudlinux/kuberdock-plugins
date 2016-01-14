@@ -1,7 +1,7 @@
 Version: 1.0
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 0%{?dist}.rc.1.cloudlinux
+Release: 0%{?dist}.rc.2.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -51,6 +51,11 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Thu Jan 14 2016 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com>, Prokhor Sednev <psednev@cloudlinux.com> 1.0-0.rc.2
+- AC-1558 cPanel > KuberDock plugin > Resellers tab > Validation fields
+- AC-1927 - Possibility to edit kubecli conf in cpanel
+- AC-1934 - apps sorting in cPanel
 
 * Wed Dec 30 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com>, Prokhor Sednev <psednev@cloudlinux.com> 0.1-20
 - AC-1932 cPanel. Notice for app delete, fixed error for icon param
