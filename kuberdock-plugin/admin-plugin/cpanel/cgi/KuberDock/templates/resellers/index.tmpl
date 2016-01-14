@@ -17,14 +17,14 @@
                             [% IF reseller.key != 'defaults' %]
                                 <tr>
                                     <td>
-                                        <input type="hidden" name="[% reseller.key %]:owner">
-                                        <input type="text" name="[% reseller.key %]:server" value="[% reseller.value.server %]">
+                                        <input type="hidden" name="owner" value="ALL">
+                                        <input type="text" name="server" value="[% reseller.value.server %]" autocomplete="off">
                                     </td>
-                                    <td><input type="text" name="[% reseller.key %]:username" value="[% reseller.value.username %]"></td>
-                                    <td><input type="password" name="[% reseller.key %]:password" value="[% reseller.value.password %]" autocomplete="off"></td>
+                                    <td><input type="text" name="username" value="[% reseller.value.username %]" autocomplete="off"></td>
+                                    <td><input type="password" name="password" value="[% reseller.value.password %]" autocomplete="off"></td>
                                     <td class="text-center actions">
                                         <input type="submit" id="save" value="Save" class="btn btn-xs btn-success">
-                                        <input class="btn btn-xs btn-danger" type="submit" id="res-delete" value="Delete" owner="[% reseller.key %]" onclick="return resDelete(this);">
+                                        <input class="btn btn-xs btn-danger" type="submit" id="res-delete" value="Delete" owner="ALL" onclick="return resDelete(this);">
                                     </td>
                                 </tr>
                             [% END %]
@@ -34,7 +34,7 @@
             </form>
             [% ELSE %]
             <form action="?a=addReseller" method="post">
-                <input type="hidden" name="newOwner" value="ALL">
+                <input type="hidden" name="owner" value="ALL">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -46,9 +46,9 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><input type="text" name="newServer" placeholder="WHMCS server URL\IP"></td>
-                            <td><input type="text" name="newUsername" placeholder="WHMCS Admin Username"></td>
-                            <td><input type="password" name="newPassword" placeholder="WHMCS Admin Password" autocomplete="off"></td>
+                            <td><input type="text" name="server" placeholder="WHMCS server URL\IP"></td>
+                            <td><input type="text" name="username" placeholder="WHMCS Admin Username"></td>
+                            <td><input type="password" name="password" placeholder="WHMCS Admin Password" autocomplete="off"></td>
                             <td class="actions"><input type="submit" id="add" class="btn btn-success btn-xs" value="Add"></td>
                         </tr>
                     </tbody>

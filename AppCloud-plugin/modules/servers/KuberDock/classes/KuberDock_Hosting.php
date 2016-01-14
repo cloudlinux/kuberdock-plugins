@@ -127,7 +127,7 @@ class KuberDock_Hosting extends CL_Hosting {
     {
         $nextDueDate = CL_Tools::sqlDateToDateTime($this->nextduedate);
 
-        if(is_null($nextDueDate) || $date == $nextDueDate) {
+        if(is_null($nextDueDate) || $date <= $nextDueDate) {
             switch ($paymentType) {
                 case 'hourly':
                     return $this->getHourlyUsage($date, $kubes);

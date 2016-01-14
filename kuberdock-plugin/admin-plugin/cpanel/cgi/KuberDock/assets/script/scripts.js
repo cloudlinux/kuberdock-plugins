@@ -12,14 +12,15 @@ var renderDefaults = function() {
     $('#packageId').empty().append(jQuery('<option>', {text: 'Choose package'}));
     $('#kubeType').empty().append(jQuery('<option>', {text: 'Choose Kube Type'}));
 
-    if(typeof defaults == 'undefined' || typeof packagesKubes == 'undefined') {
+    if(typeof(defaults) == 'undefined' || typeof(packagesKubes) == 'undefined') {
         return;
     }
 
-    var defaultPackage = packagesKubes[defaults.packageId].name || 'Empty';
+    var defaultPackage = jQuery.isEmptyObject(defaults) ? 'Empty' : packagesKubes[defaults.packageId].name;
     $('label[for="packageId"]').html('Default package <span class="grey">(' + defaultPackage + ')</span>');
 
-    var defaultKubeType = packagesKubes[defaults.packageId].kubes[defaults.kubeType].name || 'Empty';
+    var defaultKubeType = jQuery.isEmptyObject(defaults) ?
+        'Empty' : packagesKubes[defaults.packageId].kubes[defaults.kubeType].name;
     $('label[for="kubeType"]').html('Default Kube Type <span class="grey">(' + defaultKubeType + ')</span>');
 
     $.each(packagesKubes, function(k, v) {
@@ -47,9 +48,11 @@ $(document).ready(function() {
         if (typeof(editor) !== 'undefined') {
             editor.refresh();
         }
-    })
+    });
 
     if(location.hash) {
         $('a[href="' + location.hash + '"]').tab('show');
+    } else if(typeof(activeTab) !== 'undefined') {
+        $('a[href="' + activeTab + '"]').tab('show');
     }
 });

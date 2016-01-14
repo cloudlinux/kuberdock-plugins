@@ -14,6 +14,7 @@ use KuberDock::KCLI;
 use KuberDock::API;
 use KuberDock::Exception;
 use KuberDock::JSON;
+use KuberDock::Validate;
 use Data::Dumper;
 
 use constant KUBERDOCK_TEMPLATE_PATH => '/usr/local/cpanel/whostmgr/docroot/cgi/KuberDock/templates';
@@ -72,7 +73,7 @@ sub render() {
 }
 
 sub indexAction() {
-    my ($self) = @_;
+    my ($self, $activeTab) = @_;
     my $resellers = KuberDock::Resellers->new();
     my $resellersData = $resellers->loadData();
     my $apps = KuberDock::PreApps->new($self->{_cgi});
@@ -110,6 +111,7 @@ sub indexAction() {
         action => 'addon_kuberdock.cgi?a=createApp#create',
         yaml => $code || '# Please input your yaml here',
         appName => $appName,
+        activeTab => $activeTab,
     };
 
     $self->render('index.tmpl', $vars);
@@ -119,12 +121,30 @@ sub addResellerAction() {
     my ($self) = @_;
     my $reseller = KuberDock::Resellers->new();
     my %data = (
-        $self->{_cgi}->param('newOwner') => {
-            server => $self->{_cgi}->param('newServer'),
-            username => $self->{_cgi}->param('newUsername'),
-            password => $self->{_cgi}->param('newPassword'),
+        $self->{_cgi}->param('owner') => {
+            server => $self->{_cgi}->param('server'),
+            username => $self->{_cgi}->param('username'),
+            password => $self->{_cgi}->param('password'),
         }
     );
+
+    my $validator = KuberDock::Validate->new;
+    my %rules = (
+        username => { required => 1, min => 3, max => 64 },
+        password => { required => 1, min => 3, max => 64 },
+        server => { required => 1, url => 1 },
+    );
+    my %vars = $self->{_cgi}->Vars;
+
+    eval {
+        $validator->validate(\%vars, \%rules);
+    };
+
+    if($@) {
+        KuberDock::Exception::throw($@);
+        $self->indexAction('#billing');
+        exit 0;
+    }
 
     $reseller->save(%data);
     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#billing');
@@ -135,12 +155,30 @@ sub saveResellerAction() {
     my $resellers = KuberDock::Resellers->new();
     my $data = $resellers->loadData();
     my $oldPassword = $data->{ALL}->{password};
-    my $password = $self->{_cgi}->param('ALL:password');
+    my $password = $self->{_cgi}->param('password');
     $oldPassword =~ s/./\*/g;
 
-    $data->{ALL}->{server} = $self->{_cgi}->param('ALL:server');
-    $data->{ALL}->{username} = $self->{_cgi}->param('ALL:username');
-    $data->{ALL}->{password} = $self->{_cgi}->param('ALL:password') if($oldPassword ne $password);
+    my $validator = KuberDock::Validate->new;
+    my %rules = (
+        username => { required => 1, min => 3, max => 64 },
+        password => { required => 1, min => 3, max => 64 },
+        server => { required => 1, url => 1 },
+    );
+    my %vars = $self->{_cgi}->Vars;
+
+    eval {
+        $validator->validate(\%vars, \%rules);
+    };
+
+    if($@) {
+        KuberDock::Exception::throw($@);
+        $self->indexAction('#billing');
+        exit 0;
+    }
+
+    $data->{ALL}->{server} = $self->{_cgi}->param('server');
+    $data->{ALL}->{username} = $self->{_cgi}->param('username');
+    $data->{ALL}->{password} = $self->{_cgi}->param('password') if($oldPassword ne $password);
 
     $resellers->save(%{$data});
     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#billing');
@@ -158,7 +196,7 @@ sub deleteResellerAction() {
 
 sub createAppAction() {
     my ($self) = @_;
-    my $appName = $self->{_cgi}->param('app_name') || 'Undefined';
+    my $appName = $self->{_cgi}->param('app_name');
     my $app = KuberDock::PreApps->new($self->{_cgi});
     my $uploadYaml = $self->{_cgi}->param('yaml_file');
     my $code = $self->{_cgi}->param('code');
@@ -169,6 +207,22 @@ sub createAppAction() {
         yaml => $code || '# Please input your yaml here',
         appName => $appName,
     };
+
+    my $validator = KuberDock::Validate->new;
+    my %rules = (
+        app_name => { required => 1, min => 2, max => 64 },
+    );
+    my %vars = $self->{_cgi}->Vars;
+
+    eval {
+        $validator->validate(\%vars, \%rules);
+    };
+
+    if($@) {
+        KuberDock::Exception::throw($@);
+        $self->indexAction('#create');
+        exit 0;
+    }
 
     if($uploadYaml) {
         if($app->uploadFile('yaml_file', 'app.yaml')) {
@@ -271,7 +325,7 @@ sub updateAppAction() {
     #    return 0;
     #}
 
-    my $appName = $self->{_cgi}->param('app_name') || 'Undefined';
+    my $appName = $self->{_cgi}->param('app_name');
     my $yaml = $app->readYaml($template->{'template'});
 
     my $vars = {
@@ -280,6 +334,22 @@ sub updateAppAction() {
         update => 1,
         action => 'addon_kuberdock.cgi?a=updateApp&app=' . $app->{_templateId},
     };
+
+    my $validator = KuberDock::Validate->new;
+    my %rules = (
+        app_name => { required => 1, min => 2, max => 64 },
+    );
+    my %vars = $self->{_cgi}->Vars;
+
+    eval {
+        $validator->validate(\%vars, \%rules);
+    };
+
+    if($@) {
+        KuberDock::Exception::throw($@);
+        $self->render('pre-apps/form.tmpl', $vars);
+        exit 0;
+    }
 
     if($uploadYaml) {
         if($app->uploadFile('yaml_file', 'app.yaml')) {
