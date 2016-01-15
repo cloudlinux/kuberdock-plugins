@@ -1,3 +1,10 @@
+<?php
+/**
+ * @var array $brokenPackages
+ * @var array $productKubes
+ */
+?>
+
 <div class="container-fluid">
     <div class="row offset-top">
         <p class="text-right">
@@ -45,6 +52,7 @@
             </tbody>
         </table>
 
+        <?php if (count($brokenPackages)): ?>
         <table  class="table table-bordered">
             <tr class="active">
                 <th>Package name</th>
@@ -64,6 +72,7 @@
                 </tr>
             <?php endforeach;?>
         </table>
+        <?php endif;?>
     </div>
 </div>
 
