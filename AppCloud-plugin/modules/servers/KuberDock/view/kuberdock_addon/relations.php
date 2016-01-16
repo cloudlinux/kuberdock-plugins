@@ -18,16 +18,16 @@
         <table id="relations_table" class="tablesorter table table-bordered">
             <thead>
             <tr class="active">
-                <th>Package name</th>
-                <th>Kube type name</th>
-                <th>KuberDock kube type ID</th>
-                <th>Server</th>
-                <th>CPU limit (<?php echo \components\KuberDock_Units::getCPUUnits()?>)</th>
-                <th>Memory limit (<?php echo \components\KuberDock_Units::getMemoryUnits()?>)</th>
-                <th>HDD limit (<?php echo \components\KuberDock_Units::getHDDUnits()?>)</th>
-                <th>Traffic limit (<?php echo \components\KuberDock_Units::getTrafficUnits()?>)</th>
-                <th>Price</th>
-                <th>Price type</th>
+                <th>Package <br>name</th>
+                <th>Kube type <br>name</th>
+                <th>Kube type <br>ID</th>
+                <th>Server<br><br></th>
+                <th>CPU limit <br>(<?php echo \components\KuberDock_Units::getCPUUnits()?>)</th>
+                <th>Memory limit <br>(<?php echo \components\KuberDock_Units::getMemoryUnits()?>)</th>
+                <th>HDD limit <br>(<?php echo \components\KuberDock_Units::getHDDUnits()?>)</th>
+                <th>Traffic limit <br>(<?php echo \components\KuberDock_Units::getTrafficUnits()?>)</th>
+                <th>Price<br><br></th>
+                <th>Price <br>type</th>
             </tr>
             </thead>
 
