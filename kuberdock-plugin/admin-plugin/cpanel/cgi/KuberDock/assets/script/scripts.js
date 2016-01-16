@@ -16,22 +16,23 @@ var renderDefaults = function() {
         return;
     }
 
-    var defaultPackage = jQuery.isEmptyObject(defaults) ? 'Empty' : packagesKubes[defaults.packageId].name;
-    $('label[for="packageId"]').html('Default package <span class="grey">(' + defaultPackage + ')</span>');
-
-    var defaultKubeType = jQuery.isEmptyObject(defaults) ?
-        'Empty' : packagesKubes[defaults.packageId].kubes[defaults.kubeType].name;
-    $('label[for="kubeType"]').html('Default Kube Type <span class="grey">(' + defaultKubeType + ')</span>');
-
     $.each(packagesKubes, function(k, v) {
         selectedPackage = selectedPackage ? selectedPackage : defaults.packageId;
         $('#packageId').append(jQuery('<option>', {value: v.id, text: v.name, selected: selectedPackage == v.id}));
 
+        if(defaults.packageId == v.id){
+            $('label[for="packageId"]').html('Default package <span class="grey">(' + v.name + ')</span>');
+        }
+
         if(selectedPackage == v.id) {
             $.each(v.kubes, function(kKube, vKube) {
+                var selectedKube = vKube.id == defaults.kubeType;
                 $('#kubeType').append(jQuery('<option>', {
-                    value: vKube.id, text: vKube.name, selected: vKube.id == defaults.kubeType
+                    value: vKube.id, text: vKube.name, selected: selectedKube
                 }));
+                if(selectedKube) {
+                    $('label[for="kubeType"]').html('Default Kube Type <span class="grey">(' + vKube.name + ')</span>');
+                }
             });
         }
     });

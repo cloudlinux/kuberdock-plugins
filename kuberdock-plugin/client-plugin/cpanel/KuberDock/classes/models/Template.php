@@ -333,11 +333,15 @@ class Template
 
         if($sum) {
             $product = $this->api->getProductByKuberId($this->getPackageId());
-
-            return $this->api->getCurrency()['prefix'] . number_format($totalKubes * $kube['kube_price']
+            $currency = $this->api->getCurrency();
+            $price = $totalKubes * $kube['kube_price']
                 + $publicIp * (float) $product['priceIP']
-                + $totalPDSize * (float) $product['pricePersistentStorage'], 2)
-                . '<span>/' .str_replace('ly', '', $product['paymentType']). '</span>';
+                + $totalPDSize * (float) $product['pricePersistentStorage'];
+
+            return $currency['prefix'] . number_format($price, 2) . '<wbr>'
+                . '<span>'
+                . $currency['suffix'] . '/' . str_replace('ly', '', $product['paymentType'])
+                . '</span>';
         }
 
         $view = new KuberDock_View();
