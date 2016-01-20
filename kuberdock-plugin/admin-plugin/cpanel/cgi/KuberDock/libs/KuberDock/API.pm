@@ -47,7 +47,7 @@ sub getPackageKubesById {
 
 sub getPackagesKubes {
     my ($self) = @_;
-    my @data;
+    my @data = ();
     my $packages;
 
     $packages = $self->getPackages();

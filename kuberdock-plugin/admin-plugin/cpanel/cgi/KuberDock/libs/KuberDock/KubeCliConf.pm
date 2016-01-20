@@ -35,6 +35,18 @@ sub read {
     return $data;
 }
 
+sub readCGI {
+    my ($self, $cgi) = @_;
+    my $data = {
+        url => $cgi->param('kubecli_url'),
+        user => $cgi->param('kubecli_user'),
+        password => $cgi->param('kubecli_password'),
+        registry => $cgi->param('kubecli_registry'),
+    };
+
+    return $data;
+}
+
 sub save {
     my ($self, $data) = @_;
 

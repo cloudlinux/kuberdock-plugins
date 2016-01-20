@@ -90,7 +90,8 @@ sub indexAction() {
 
     if($@) {
         $self->render('index.tmpl', {
-            kubeCli => $cubeCliConf->read,
+            kubeCli => defined $self->{_cgi}->param('kubecli_url')
+                ? $cubeCliConf->readCGI($self->{_cgi}) : $cubeCliConf->read,
             error => 1,
         });
         return;
@@ -494,6 +495,25 @@ sub updateKubecliAction {
          password => $self->{_cgi}->param('kubecli_password'),
          registry => $self->{_cgi}->param('kubecli_registry'),
      };
+
+    my $validator = KuberDock::Validate->new;
+    my %rules = (
+        kubecli_user => { required => 1, max => 50 },
+        kubecli_password => { required => 1, max => 25 },
+        kubecli_url => { required => 1, url => 1, max => 50 },
+        kubecli_registry  => { required => 1, url => 1, max => 50 },
+    );
+    my %vars = $self->{_cgi}->Vars;
+
+    eval {
+        $validator->validate(\%vars, \%rules);
+    };
+
+    if($@) {
+        KuberDock::Exception::throw($@);
+        $self->indexAction('#kubecli');
+        exit 0;
+    }
 
      $cubeCliConf->save($data);
 
