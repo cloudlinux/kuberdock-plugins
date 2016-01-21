@@ -553,7 +553,7 @@ class PredefinedApp {
                 foreach($pod['persistentDisks'] as $pd) {
                     foreach($volumes as &$row) {
                         if($row['name'] == $pd['name']) {
-                            $row['persistentDisk']['pdSize'] = $pd['pdSize'];
+                            $row['persistentDisk']['pdSize'] = isset($pd['pdSize']) ? $pd['pdSize'] : 1;
                         }
                     }
                 }
