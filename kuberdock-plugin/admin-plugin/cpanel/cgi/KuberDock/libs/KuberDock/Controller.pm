@@ -292,6 +292,8 @@ sub createAppAction() {
                 $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_32.png'), 32, 32, 1);
                 $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_48.png'), 48, 48);
             }
+        } elsif(-e $app->getFilePath($app->{'_appId'} . '_48.png')) {
+            $app->executeSilent('/bin/rm -f ' . $app->getFilePath($app->{'_appId'} . '_48.png'));
         }
 
         $yaml->{kuberdock}->{'kuberdock_template_id'} = $template->{id};
@@ -409,6 +411,8 @@ sub updateAppAction() {
                 $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_32.png'), 32, 32, 1);
                 $app->resizeImage($iconPath, $app->getFilePath($app->{'_appId'} . '_48.png'), 48, 48);
             }
+        } elsif(-e $app->getFilePath($app->{'_appId'} . '_48.png')) {
+            $app->executeSilent('/bin/rm -f ' . $app->getFilePath($app->{'_appId'} . '_48.png'));
         }
 
         $yaml->{kuberdock}->{'kuberdock_template_id'} = $template->{id};
