@@ -38,8 +38,18 @@ var renderDefaults = function() {
     });
 };
 
+var toggleSubmit = function (){
+    var submitDisabled = isNaN($('#packageId').val()) || isNaN($('#kubeType').val());
+    $('button[type="submit"]').prop('disabled', submitDisabled);
+};
+
 $(document).on('change', '#packageId', function() {
     renderDefaults();
+    toggleSubmit();
+});
+
+$(document).on('change', '#kubeType', function() {
+    toggleSubmit();
 });
 
 $(document).ready(function() {
