@@ -1,4 +1,5 @@
 <form class="form-horizontal" method="post">
+    <?php echo \base\CL_Csrf::render(); ?>
     <div class="new-kube<?php echo $kubes->kuber_kube_id ? ' hidden' : ''?>">
         <div class="form-group">
             <label for="server_id" class="col-md-4 control-label">Server</label>

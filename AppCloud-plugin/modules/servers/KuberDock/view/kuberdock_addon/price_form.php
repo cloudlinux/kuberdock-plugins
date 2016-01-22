@@ -1,4 +1,5 @@
 <form class="form-horizontal" method="post" id="kube_price_form">
+    <?php echo \base\CL_Csrf::render(); ?>
     <table class="table table-bordered">
         <tr class="active">
             <th class="col-md-3">KuberDock package</th>

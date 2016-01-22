@@ -8,6 +8,7 @@ namespace controllers;
 
 use base\CL_Controller;
 use base\CL_Base;
+use base\CL_Csrf;
 use base\CL_Tools;
 use Exception;
 
@@ -64,6 +65,8 @@ class KuberDock_AddonController extends CL_Controller {
         }
 
         if($_POST) {
+            CL_Csrf::check();
+            unset($_POST['csrf_token']);
             unset($_POST['token']);
             $kube->setAttributes($_POST);
             $kube->setAttribute('kube_type', $kube::NON_STANDARD_TYPE);
@@ -105,7 +108,7 @@ class KuberDock_AddonController extends CL_Controller {
         if(CL_Tools::getIsAjaxRequest()) {
             try {
                 $base = CL_Base::model();
-                $productId = $base->getParam('product_id', CL_Base::model()->getPost('product_id'));
+                $productId = (int) $base->getParam('product_id', CL_Base::model()->getPost('product_id'));
                 $addonProduct = \KuberDock_Addon_Product::model()->loadById($productId);
                 $products = \KuberDock_Product::model()->getActive();
                 $product  = \KuberDock_Product::model()->loadById($productId);
@@ -121,6 +124,8 @@ class KuberDock_AddonController extends CL_Controller {
                 $kubes = $productKubes + $kubes;
 
                 if($_POST) {
+                    CL_Csrf::check();
+
                     foreach($_POST['id'] as $k=>$id) {
                         $kubePrice = $_POST['kube_price'][$k];
                         $kube = \KuberDock_Addon_Kube::model()->loadById($id);
