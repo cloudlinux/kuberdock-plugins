@@ -3,6 +3,7 @@ package KuberDock::KubeCliConf;
 use strict;
 use warnings FATAL => 'all';
 use Template;
+use KuberDock::KCLI;
 use Data::Dumper;
 
 use constant KUBE_CLI_CONF_ROOT_FILE => '/root/.kubecli.conf';
@@ -61,6 +62,9 @@ sub save {
         INTERPOLATE  => 1,
         OUTPUT => KUBE_CLI_CONF_ETC_FILE,
     })->process('kubecli/template_etc.tmpl', $data);
+
+    KuberDock::KCLI::setResponseType(1);
+    KuberDock::KCLI::registerPanel();
 }
 
 sub getKey {

@@ -40,6 +40,10 @@ sub deleteTemplate {
     return KuberDock::KCLI::execute('kubectl', 'delete', 'template', '--id', $templateId);
 }
 
+sub registerPanel {
+    return KuberDock::KCLI::execute('kubectl', 'register');
+}
+
 sub getConfPath {
     return File::HomeDir->my_home . "/" . KUBERDOCK_CONF_NAME;
 }
@@ -49,7 +53,7 @@ sub execute {
     my $confPath = KuberDock::KCLI::getConfPath();
     my @defaults = (KUBERDOCK_KCLI_PATH, '--json', '-c', $confPath);
     my $command = join(' ', (@defaults, @_));
-
+    
     my $response = `$command 2>&1`;
 
     if($responseJSON) {

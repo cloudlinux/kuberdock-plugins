@@ -126,6 +126,10 @@ function uninstall
         /bin/rm -f /var/log/kuberdock-plugin.log
     fi
 
+    if [ -e /root/.kubecli.conf ]; then
+        /usr/bin/kcli -c /root/.kubecli.conf kubectl register
+    fi
+
     echo "Plugin uninstalled"
 }
 

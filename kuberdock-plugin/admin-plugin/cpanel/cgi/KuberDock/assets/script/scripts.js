@@ -40,7 +40,7 @@ var renderDefaults = function() {
 
 var toggleSubmit = function (){
     var submitDisabled = isNaN($('#packageId').val()) || isNaN($('#kubeType').val());
-    $('button[type="submit"]').prop('disabled', submitDisabled);
+    $('button[type="submit"].save-defaults').prop('disabled', submitDisabled);
 };
 
 $(document).on('change', '#packageId', function() {
