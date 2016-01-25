@@ -1,14 +1,14 @@
 Version: 1.0
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 0%{?dist}.rc.2.cloudlinux
+Release: 0%{?dist}.rc.3.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
 URL: http://www.cloudlinux.com
 Source0: %{name}-%{version}.tar.bz2
 
-Requires: kuberdock-cli >= 0.1-28
+Requires: kuberdock-cli >= 0.1-29
 
 AutoReq: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -51,6 +51,15 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Thu Jan 14 2016 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com>, Prokhor Sednev <psednev@cloudlinux.com> 1.0-0.rc.3
+- cPanel. Register host in KD
+- AC-2006 cPanel. KuberDock Apps > Yaml's > Memcached
+- AC-2044 cPanel > KuberDock plugin > Edit kubecli.conf tab > Validation fields
+- AC-2037 - cPanel > KuberDock plugin > Application defaults tab > Software error
+- AC-2069 - mend in cPanel
+- AC-2050 - cPanel. Prefix and suffix in PA
+- AC-2017: Fix price displayed; AC-2016: Fix plan valign;
 
 * Thu Jan 14 2016 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com>, Prokhor Sednev <psednev@cloudlinux.com> 1.0-0.rc.2
 - AC-1558 cPanel > KuberDock plugin > Resellers tab > Validation fields
