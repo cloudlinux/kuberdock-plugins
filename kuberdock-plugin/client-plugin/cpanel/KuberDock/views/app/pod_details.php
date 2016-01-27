@@ -70,8 +70,8 @@
         </div>
 
         <?php if($podsCount > 1):?>
-            <a class="pull-left btn btn-default" href="kuberdock.live.php?c=app&a=installPredefined&template=<?php echo $app->getTemplateId()?>?>">
-                Back to "<?php echo $app->getName()?>" apps
+            <a class="pull-left btn btn-default" href="kuberdock.live.php?c=app&a=installPredefined&template=<?php echo $app->getTemplateId()?>">
+                Back to "<?php echo $app->template->getName()?>" apps
             </a>
         <?php else:?>
             <a class="pull-left btn btn-default" href="kuberdock.live.php">Back to main page</a>

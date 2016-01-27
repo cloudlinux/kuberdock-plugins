@@ -1,7 +1,7 @@
 <div id="all-apps" class="container-fluid content">
     <div class="row">
         <div class="col-md-12">
-            <h2>Application "<?php echo $app->getName()?>"</h2>
+            <h2>Application "<?php echo $app->template->getName()?>"</h2>
         </div>
         <div class="col-md-12">
             <p>
@@ -36,7 +36,7 @@
     <div class="row">
         <div class="col-md-12">
             <a href="kuberdock.live.php?c=app&a=installPredefined&new=1&template=<?php echo $app->getTemplateId()?>" class="btn btn-primary add-new-app pull-right">
-                Add new app "<?php echo $app->getName()?>"</a>
+                Add new app "<?php echo $app->template->getName()?>"</a>
             <div class="clearfix"></div>
         </div>
     </div>

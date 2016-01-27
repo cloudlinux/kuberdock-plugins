@@ -75,7 +75,7 @@ class AppController extends KuberDock_Controller {
 
             $plans = $app->template->getPlans();
             if(!$planDetails && (($plans && $new) || ($plans && !$podsCount))) {
-                $podsCount = 2;
+                $podsCount = -1;
             }
 
             if($_POST) {
@@ -97,6 +97,13 @@ class AppController extends KuberDock_Controller {
             }
 
             switch($podsCount) {
+                case -1:
+                    $this->render('selectPlan', array(
+                        'app' => $app,
+                        'variables' => $variables,
+                        'plans' => $plans,
+                    ));
+                    break;
                 case 0:
                     $this->render('installPredefined', array(
                         'app' => $app,
@@ -131,7 +138,7 @@ class AppController extends KuberDock_Controller {
                             'content' => $this->renderPartial('pod_details', array(
                                 'app' => $app,
                                 'pod' => $pod,
-                                'podsCount' => $podsCount,
+                                'podsCount' => count($pods),
                                 'domains' => $domains,
                             ), false)
                         ));
@@ -140,30 +147,23 @@ class AppController extends KuberDock_Controller {
                             'app' => $app,
                             'pod' => $pod,
                             'postDescription' => $postDescription,
-                            'podsCount' => $podsCount,
+                            'podsCount' => count($pods),
                             'domains' => $domains,
                         ));
                     }
-                    break;
-                case 2:
-                    $this->render('selectPlan', array(
-                        'app' => $app,
-                        'variables' => $variables,
-                        'plans' => $plans,
-                    ));
                     break;
                 default:
                     if(Tools::getIsAjaxRequest()) {
                         echo json_encode(array(
                             'content' => $this->renderPartial('container_content', array(
-                                'pods' => $app->getExistingPods(),
+                                'pods' => $pods,
                             ), false)
                         ));
                         exit;
                     } else {
                         $this->render('index', array(
                             'app' => $app,
-                            'pods' => $app->getExistingPods(),
+                            'pods' => $pods,
                         ));
                     }
                     break;
