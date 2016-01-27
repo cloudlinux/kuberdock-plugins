@@ -180,11 +180,13 @@ class Template
      */
     public function getKubeTypeId($planId)
     {
+        $defaults = $this->api->getDefaults();
         $plan = $this->getPlan($planId);
         // TODO: Add few pod support
         $pod = $plan['pods'][0];
 
-        return (int) preg_match('/default:(\d+)/', $pod['kubeType'] , $match) ? $match[1] : $pod['kubeType'];
+        return (int) preg_match('/default:(\d+)/', $pod['kubeType'] , $match) ? $match[1] :
+            (isset($pod['kubeType']) ? $pod['kubeType'] : $defaults['kubeType']);
     }
 
     /**
@@ -300,10 +302,12 @@ class Template
         $totalHDD = 0;
         $totalCPU = 0;
         $publicIp = (bool) isset($plan['publicIP']) ? $plan['publicIP'] : false;
+        $defaults = $this->api->getDefaults();
 
         foreach($plan['pods'] as $pod) {
             $totalKubes = 0;
-            $kubeType = (int) preg_match('/default:(\d+)/', $pod['kubeType'], $match) ? $match[1] : $pod['kubeType'];
+            $kubeType = preg_match('/default:(\d+)/', $pod['kubeType'], $match) ? $match[1] :
+                (isset($pod['kubeType']) ? $pod['kubeType'] : $defaults['kubeType']);
 
             $kube = array_map(function($e) use ($kubeType) {
                 foreach($e['kubes'] as $row) {

@@ -536,12 +536,13 @@ class PredefinedApp {
 
         // TODO: Add few pod support
         if(isset($data['plan'])) {
+            $defaults = $this->api->getDefaults();
             $plan = $this->template->getPlan($data['plan']);
             $containers = $this->template->getContainers();
             $volumes = $this->template->getVolumes();
 
             foreach($plan['pods'] as $pod) {
-                $this->template->setKubeType($pod['kubeType']);
+                $this->template->setKubeType(isset($pod['kubeType']) ? $pod['kubeType'] : $defaults['kubeType']);
 
                 foreach($pod['containers'] as $container) {
                     foreach($containers as &$row) {
