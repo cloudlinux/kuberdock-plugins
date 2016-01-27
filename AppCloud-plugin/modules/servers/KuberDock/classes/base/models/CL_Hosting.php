@@ -90,15 +90,17 @@ class CL_Hosting extends CL_Model {
      * @param DateTime $dueDate
      * @param float $amount
      * @param bool $autoApply
+     * @param string $description
      * @return null
      */
-    public function addInvoice($userId, DateTime $dueDate, $amount, $autoApply = true)
+    public function addInvoice($userId, DateTime $dueDate, $amount, $autoApply = true, $description = '')
     {
         $client = KuberDock_User::model()->getClientDetails($userId);
         $gateway = $client['client']['defaultgateway'] ? $client['client']['defaultgateway'] : $this->paymentmethod;
         $invoice = CL_Invoice::model();
+        $description = $description ? $description : 'Auto invoice';
 
-        return $invoice->createInvoice($userId, $amount, $gateway, $autoApply, 'Auto invoice', $dueDate);
+        return $invoice->createInvoice($userId, $amount, $gateway, $autoApply, $description, $dueDate);
     }
 
     /**

@@ -501,7 +501,7 @@ function KuberDock_ClientAreaPage($params)
                 $product = KuberDock_Product::model()->loadById($row['pid']);
 
                 if(($firstDeposit = $product->getConfigOption('firstDeposit')) && $product->isKuberProduct()) {
-                    $row['pricing']['type'] = 'onetime';
+                    $values['LANG']['orderfree'] = $currency->getFullPrice($firstDeposit).' First Deposit';
                     $row['pricing']['onetime'] = $currency->getFullPrice($firstDeposit).' First Deposit';
                     $row['pricing']['minprice']['price'] = $currency->getFullPrice($firstDeposit);
                 }
@@ -512,13 +512,12 @@ function KuberDock_ClientAreaPage($params)
             $oldProduct = $model->loadById($upgrade['oldproductid']);
             $model = new KuberDock_Product();
             $newProduct = $model->loadById($upgrade['newproductid']);
-            $service = KuberDock_Hosting::model()->loadById($values['id']);
 
-            if(($firstDeposit = $newProduct->getConfigOption('firstDeposit')) && $oldProduct->getConfigOption('enableTrial')
-                && $oldProduct->isKuberProduct()) {
-                $service->amount = -$firstDeposit;
-                $service->save();
+            if(($firstDeposit = $newProduct->getConfigOption('firstDeposit')) && $oldProduct->isKuberProduct()) {
                 $values['subtotal'] = $values['total'] = $currency->getFullPrice($firstDeposit);
+                if(isset($values['upgrades'][0])) {
+                    $values['upgrades'][0]['price'] = $currency->getFullPrice($firstDeposit);
+                }
             }
         }
     }
