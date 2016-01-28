@@ -52,13 +52,17 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade {
         if($deposit) {
             $service = KuberDock_Hosting::model()->loadById($this->relid);
             $clientDetails = CL_Client::model()->getClientDetails($service->userid);
+            $items[] = array(
+                'description' => CL_Invoice::CUSTOM_INVOICE_DESCRIPTION,
+                'total' => $deposit,
+            );
 
             if($clientDetails['client']['credit'] < $deposit) {
-                $service->addInvoice($service->userid, new \DateTime(), $deposit, false, CL_Invoice::CUSTOM_INVOICE_DESCRIPTION);
+                $service->addInvoice($service->userid, new \DateTime(), $items, false);
                 $service->suspendModule('Not enough funds');
                 return false;
             }
-            $service->addInvoice($service->userid, new \DateTime(), $deposit, true, CL_Invoice::CUSTOM_INVOICE_DESCRIPTION);
+            $service->addInvoice($service->userid, new \DateTime(), $items, true);
         }
 
         if($oldProduct->getConfigOption('paymentType') == 'hourly' && $newProduct->getConfigOption('paymentType') != 'hourly') {

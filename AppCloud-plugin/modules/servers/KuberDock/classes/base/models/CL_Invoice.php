@@ -36,16 +36,15 @@ class CL_Invoice extends CL_Model {
 
     /**
      * @param int $userId
-     * @param float $price
+     * @param array $items
      * @param string $gateway
      * @param bool $autoApply
-     * @param string $description
      * @param DateTime $dueDate
      * @param bool $sendInvoice
      * @return mixed
      * @throws Exception
      */
-    public function createInvoice($userId, $price, $gateway, $autoApply = true, $description = '', DateTime $dueDate = null, $sendInvoice = true)
+    public function createInvoice($userId, $items, $gateway, $autoApply = true, DateTime $dueDate = null, $sendInvoice = true)
     {
         $admin = KuberDock_User::model()->getCurrentAdmin();
 
@@ -54,8 +53,32 @@ class CL_Invoice extends CL_Model {
         $values['duedate'] = $dueDate ? $dueDate->format('Ymd') : date('Ymd', time());
         $values['paymentmethod'] = $gateway;
         $values['sendinvoice'] = $sendInvoice;
-        $values['itemdescription1'] = $description;
-        $values['itemamount1'] = $price;
+
+        $count = 0;
+//        https://cloudlinux.atlassian.net/browse/AC-2161
+//        $values['notes'] = '';
+        foreach ($items as $item) {
+            $count++;
+            if(isset($item['description'])) {
+                $title = $item['description'];
+            } else {
+                $title = $item['type'] . ': ' . $item['title'];
+            }
+            $values['itemdescription' . $count] = $title;
+            $values['itemamount' . $count] = $item['total'];
+
+//            $values['notes'] .= '
+//                <tr bgcolor="#fff">
+//                    <td align="center">' . $count . '</td>
+//                    <td align="left">' . $title . '</td>
+//                    <td align="center">' . $item['qty'] . '</td>
+//                    <td align="center">' . $item['units'] . '</td>
+//                    <td align="center">' . $item['price'] . '</td>
+//                    <td align="center">' . $item['total'] . '</td>
+//                </tr>
+//            ';
+        }
+
         $values['autoapplycredit'] = $autoApply;
 
         $results = localAPI('createinvoice', $values, $admin['username']);

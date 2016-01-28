@@ -9,6 +9,7 @@ use base\CL_Tools;
 use base\models\CL_MailTemplate;
 use base\models\CL_Client;
 use base\models\CL_Hosting;
+use components\KuberDock_Units;
 
 class KuberDock_Hosting extends CL_Hosting {
     /**
@@ -102,15 +103,17 @@ class KuberDock_Hosting extends CL_Hosting {
 
         $kubes = KuberDock_Product::model()->loadById($this->packageid)->getKubes();
         $kubes = CL_Tools::getKeyAsField($kubes, 'kuber_kube_id');
-        $factPrice = $this->calculateUsageByDate($date, $kubes, $paymentType);
+        $items = $this->calculateUsageByDate($date, $kubes, $paymentType);
 
-        if($factPrice) {
-            if($clientDetails['client']['credit'] < $factPrice) {
-                $this->addInvoice($this->userid, $date, $factPrice, false);
+        $totalPrice = $this->getItemsTotalPrice($items);
+
+        if($totalPrice) {
+            if($clientDetails['client']['credit'] < $totalPrice) {
+                $this->addInvoice($this->userid, $date, $items, false);
                 $this->suspendModule('Not enough funds');
                 return false;
             }
-            $this->addInvoice($this->userid, $date, $factPrice);
+            $this->addInvoice($this->userid, $date, $items);
         }
 
         return true;
@@ -120,7 +123,7 @@ class KuberDock_Hosting extends CL_Hosting {
      * @param DateTime $date
      * @param string $paymentType
      * @param array $kubes
-     * @return float
+     * @return array
      * @throws Exception
      */
     public function calculateUsageByDate(DateTime $date, $kubes, $paymentType = 'hourly')
@@ -161,19 +164,16 @@ class KuberDock_Hosting extends CL_Hosting {
         $response = $api->getUsage($this->username, $dateStart, $dateEnd);
         $usage = $response->getData();
 
-        $podStat = array();
+        $items = array();
         foreach($usage['pods_usage'] as $pod) {
             if(empty($pod['time'])) {
                 continue;
             }
 
+            // часы, когда хоть один из подов контейнера был запущен
             $usageHours = array();
-            $kubeId = $pod['kube_id'];
-
-            foreach($pod['time'] as $cName => $container) {
-                $kubeCount = 0;
+            foreach($pod['time'] as $container) {
                 foreach($container as $period) {
-                    $kubeCount = $period['kubes'];
                     $start = $period['start'];
                     $end = $period['end'];
 
@@ -181,13 +181,18 @@ class KuberDock_Hosting extends CL_Hosting {
                         continue;
                     }
                 }
-
-                $podStat[] = count($usageHours) * $kubes[$kubeId]['kube_price'] * $kubeCount;
             }
-        }
-        $factPrice = array_sum($podStat);
 
-        $stat = array();
+            $items[] = array(
+                'type' => 'Pod',
+                'title' => $pod['name'],
+                'qty' => count($usageHours),
+                'units' => 'hour',
+                'price' => $kubes[$pod['kube_id']]['kube_price'] * $pod['kubes'],
+                'total' => $kubes[$pod['kube_id']]['kube_price'] * $pod['kubes'] * count($usageHours),
+            );
+        }
+
         foreach($usage['ip_usage'] as $data) {
             $usageHours = array();
 
@@ -195,11 +200,16 @@ class KuberDock_Hosting extends CL_Hosting {
                 continue;
             }
 
-            $stat[] = count($usageHours) * (float) $product->getConfigOption('priceIP');
+            $items[] = array(
+                'type' => 'Ip',
+                'title' => $data['ip_address'],
+                'qty' => count($usageHours),
+                'units' => 'hour',
+                'price' => (float) $product->getConfigOption('priceIP'),
+                'total' => (float) $product->getConfigOption('priceIP') * count($usageHours),
+            );
         }
-        $factPrice += array_sum($stat);
 
-        $stat = array();
         foreach($usage['pd_usage'] as $data) {
             $usageHours = array();
 
@@ -207,14 +217,19 @@ class KuberDock_Hosting extends CL_Hosting {
                 continue;
             }
 
-            $stat[] = count($usageHours) * (float) $product->getConfigOption('pricePersistentStorage')
-                * $data['size'];
+            $items[] = array(
+                'type' => 'Pd',
+                'title' => $data['pd_name'],
+                'qty' => count($usageHours),
+                'units' => 'hour',
+                'price' => (float) $product->getConfigOption('pricePersistentStorage') * $data['size'],
+                'total' => (float) $product->getConfigOption('pricePersistentStorage') * $data['size'] * count($usageHours),
+            );
         }
-        $factPrice += array_sum($stat);
 
         $this->updateByApi($this->id, array('nextduedate' => $currentDate->modify('+1 day')->format('Y-m-d')));
 
-        return $factPrice;
+        return $items;
     }
 
     /**
@@ -256,80 +271,104 @@ class KuberDock_Hosting extends CL_Hosting {
             $dateEnd = clone($nextDueDate);
         }
 
-        if($product->proratabilling) {
-            if($product->proratadate >= 1 && $product->proratadate <= 31) {
-                $dateStart->setDate($dateStart->format('Y'), $dateStart->format('m'), $product->proratadate);
-                $dateEnd = clone($dateStart);
-                $dateEnd->modify('+'.$offset);
-            }
+        if($product->proratabilling && $product->proratadate >= 1 && $product->proratadate <= 31) {
+            $dateStart->setDate($dateStart->format('Y'), $dateStart->format('m'), $product->proratadate);
+            $dateEnd = clone($dateStart);
+            $dateEnd->modify('+'.$offset);
         }
 
         $response = $api->getUsage($this->username, $dateStart, $dateEnd);
         $usage = $response->getData();
 
-        $podStat = array();
-        $factPrice = 0;
+        $items = array();
         $totalKubeCount = 0;
-        $totalSum = 0;
 
         // TODO: kube price depends from package. waiting api
+        $allPods = array();
         foreach($usage['pods_usage'] as $pod) {
-            $kubeId = $pod['kube_id'];
-            $totalKubeCount += $pod['kubes'];
+            $title = preg_replace('/__[a-z0-9]+/i', '', $pod['name']);
+            if (!in_array($title, $allPods)) {
+                $allPods[] = $title;
+                $totalKubeCount += $pod['kubes'];
 
-            if(!isset($podStat[$kubeId]['sum'])) {
-                $podStat[$kubeId]['count'] = $pod['kubes'];
-                $podStat[$kubeId]['sum'] = $kubes[$kubeId]['kube_price'] * $pod['kubes'];
-                $totalSum = $kubes[$kubeId]['kube_price'] * $pod['kubes'];
-            } else {
-                $podStat[$kubeId]['count'] += $pod['kubes'];
-                $podStat[$kubeId]['sum'] += $kubes[$kubeId]['kube_price'] * $pod['kubes'];
-                $totalSum += $kubes[$kubeId]['kube_price'] * $pod['kubes'];
+                $items[] = array(
+                    'type' => 'Pod',
+                    'title' => $title,
+                    'qty' => $pod['kubes'],
+                    'units' => 'pcs',
+                    'price' => $kubes[$pod['kube_id']]['kube_price'],
+                    'total' => $kubes[$pod['kube_id']]['kube_price'] * $pod['kubes'],
+                );
             }
         }
 
         $totalIPs = array();
-        foreach($usage['ip_usage'] as $data) {
-            if(!in_array($data['ip_address'], $totalIPs)) {
+        foreach ($usage['ip_usage'] as $data) {
+            if (!in_array($data['ip_address'], $totalIPs)) {
                 $totalIPs[] = $data['ip_address'];
+                $price = (float) $product->getConfigOption('priceIP');
+                $items[] = array(
+                    'type' => 'Ip',
+                    'title' => $data['ip_address'],
+                    'qty' => 1,
+                    'units' => 'pcs',
+                    'price' => $price,
+                    'total' => $price,
+                );
             }
         }
-        $podStat['ip'] = $totalIPs;
-        $totalIPsSum = count($totalIPs) * (float) $product->getConfigOption('priceIP');
 
-        $totalPdSum = array();
         $totalPdSize = 0;
         foreach($usage['pd_usage'] as $data) {
             $totalPdSize += $data['size'];
-            $totalPdSum[] = (float) $product->getConfigOption('pricePersistentStorage') * $data['size'];
-        }
-        $podStat['pdSize'] = $totalPdSize;
+            $price = (float) $product->getConfigOption('pricePersistentStorage');
 
+            $items[] = array(
+                'type' => 'Pd',
+                'title' => $data['pd_name'],
+                'qty' => $data['size'],
+                'units' => KuberDock_Units::getPSUnits(),
+                'price' => $price,
+                'total' => $price * $data['size'],
+            );
+        }
+
+        // Предыдущая оплата в этом периоде
         $lastState = KuberDock_Addon_States::model()->getLastState($this->id, $dateStart, $dateEnd);
 
-        if(!$lastState || $totalKubeCount > $lastState->kube_count) {
-            $factPrice = !$lastState ? $totalSum : $totalSum - $lastState->total_sum;
+        // еще не оплачивалось или уже оплачивалось, но после этого добавились кубы
+        if (!$lastState || $totalKubeCount > $lastState->kube_count) {
 
-            if($lastState && !is_null($nextDueDate) && $date < $nextDueDate) {
+            // Если оплачиваем дополнительные кубы, убираем из списка уже оплаченные
+            if ($lastState) {
+                $paidItems = json_decode($lastState->details, true);
+                foreach ($paidItems as $paidItem) {
+                    $items = array_filter($items, function($item) use ($paidItem) {
+                        return !($item['title']==$paidItem['title'] && $item['type']==$paidItem['type']);
+                    });
+                }
+            }
+
+            // Если оплачиваем дополнительные кубы и дата оплаты еще не наступила
+            if ($lastState && !is_null($nextDueDate) && $date < $nextDueDate) {
+
                 $checkInDate = CL_Tools::sqlDateToDateTime($lastState->checkin_date);
-                if($checkInDate == $date) return 0;
+
+                // $checkInDate сегодня, оплачивать ничего не надо
+                if ($checkInDate == $date) return [];
+
+                // оплачиваем только остаток периода
                 $period = CL_Tools::model()->getIntervalDiff($dateStart, $dateEnd);
                 $periodRemained = CL_Tools::model()->getIntervalDiff($checkInDate, $nextDueDate);
 
-                $factPrice = round($factPrice / $period * $periodRemained, 4);
-
-                if($ipCount = abs($lastState->ip_count - count($totalIPs))) {
-                    $factPrice += count($ipCount) * (float) $product->getConfigOption('priceIP');
-                }
-                if($pdSize = abs($lastState->pd_size - $totalPdSize)) {
-                    $factPrice += $totalPdSize * (float) $product->getConfigOption('pricePersistentStorage');
-                }
-            } elseif(is_null($nextDueDate) || $date == $nextDueDate) {
+                $items = array_map(function ($item) use ($period, $periodRemained) {
+                    $item['total'] = round($item['total'] / $period * $periodRemained, 2);
+                    return $item;
+                }, $items);
+            } elseif (is_null($nextDueDate) || $date == $nextDueDate) {
+                // устанавливаем новый день оплаты
                 $currentDate = clone($date);
-                $this->updateByApi($this->id, array('nextduedate' => $currentDate->modify('+'.$offset)->format('Y-m-d')));
-
-                $factPrice += $totalIPsSum;
-                $factPrice += array_sum($totalPdSum);
+                $this->updateByApi($this->id, array('nextduedate' => $currentDate->modify('+' . $offset)->format('Y-m-d')));
             }
 
             $states = new KuberDock_Addon_States();
@@ -340,13 +379,13 @@ class KuberDock_Hosting extends CL_Hosting {
                 'kube_count' => $totalKubeCount,
                 'ps_size' => $totalPdSize,
                 'ip_count' => count($totalIPs),
-                'total_sum' => $factPrice,
-                'details' => json_encode($podStat),
+                'total_sum' => $this->getItemsTotalPrice($items),
+                'details' => json_encode($items),
             ));
             $states->save();
         }
 
-        return $factPrice;
+        return $items;
     }
 
     /**
@@ -376,7 +415,6 @@ class KuberDock_Hosting extends CL_Hosting {
 
     /**
      * @return KuberDock_Server
-     * @throws CException
      */
     public function getServer()
     {
@@ -499,7 +537,7 @@ class KuberDock_Hosting extends CL_Hosting {
         }
 
         if($timeStart > $periodStart && $periodEnd < $timeEnd) {
-            return array();
+            return [];
         }
 
         for($i = $timeStart; $i <= $timeEnd; $i += 3600) {
@@ -510,6 +548,18 @@ class KuberDock_Hosting extends CL_Hosting {
         }
 
         return $usagePeriod;
+    }
+
+    /**
+     * @param $items
+     * @return mixed
+     */
+    private function getItemsTotalPrice($items)
+    {
+        return array_reduce($items, function ($carry, $item) {
+            $carry += $item['total'];
+            return $carry;
+        });
     }
 
     /**
