@@ -1,7 +1,7 @@
 Version: 1.0
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 0%{?dist}.rc.3.cloudlinux
+Release: 0%{?dist}.rc.3.1.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -51,6 +51,10 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Thu Jan 14 2016 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com>, Prokhor Sednev <psednev@cloudlinux.com> 1.0-0.rc.3.1
+- AC-1307 cPanel. Set default package&kube_type p2
+- AC-1306 cPanel. Filter predefined apps p2
 
 * Thu Jan 14 2016 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com>, Prokhor Sednev <psednev@cloudlinux.com> 1.0-0.rc.3
 - cPanel. Register host in KD
