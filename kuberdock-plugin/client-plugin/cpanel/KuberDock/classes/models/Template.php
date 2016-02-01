@@ -404,8 +404,35 @@ class Template
         return $this;
     }
 
+    /**
+     * @param int $id
+     */
     public function setKubeType($id)
     {
         $this->data['kuberdock']['kube_type'] = $id;
+    }
+
+    /**
+     * @param int|null $id
+     * @throws CException
+     */
+    public function setPackageId($id = null)
+    {
+        $defaults = $this->api->getDefaults();
+
+        if($id) {
+            $this->data['kuberdock']['packageID'] = $id;
+        } elseif(!isset($this->data['kuberdock']['packageID'])) {
+            $defaultPackageId = isset($defaults['packageId']) ? $defaults['packageId'] : 0;
+            $this->data['kuberdock']['packageID'] = $defaultPackageId;
+        }
+    }
+
+    /**
+     * @param string $description
+     */
+    public function addPackagePostDescription($description)
+    {
+        $this->data['kuberdock']['postDescription'] .= "\n" . $description;
     }
 }

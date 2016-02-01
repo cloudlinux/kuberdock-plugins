@@ -534,6 +534,10 @@ class PredefinedApp {
             }
         }
 
+        if(!isset($this->template->data['kuberdock']['packageID'])) {
+            $this->template->setPackageId();
+        }
+
         // TODO: Add few pod support
         if(isset($data['plan'])) {
             $defaults = $this->api->getDefaults();
@@ -568,6 +572,10 @@ class PredefinedApp {
                         $port['isPublic'] = false;
                     }
                 }
+            }
+
+            if(isset($plan['packagePostDescription'])) {
+                $this->template->addPackagePostDescription($plan['packagePostDescription']);
             }
 
             $this->template->setContainers($containers);
