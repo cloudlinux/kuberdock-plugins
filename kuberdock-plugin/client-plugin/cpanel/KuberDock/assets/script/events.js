@@ -12,6 +12,11 @@ var _$ = $.noConflict();
                 getPodDetails();
             }, false);
 
+            source.addEventListener('pod:delete', function(e) {
+                getPodList();
+                getPodDetails();
+            }, false);
+
             source.addEventListener('message', function(e) {
                 console.log(e);
             }, false);

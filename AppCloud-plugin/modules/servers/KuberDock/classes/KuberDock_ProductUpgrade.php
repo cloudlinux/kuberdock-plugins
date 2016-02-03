@@ -2,7 +2,9 @@
 
 use base\models\CL_ProductUpgrade;
 use base\models\CL_Invoice;
+use base\models\CL_Client;
 use base\CL_Tools;
+use exceptions\CException;
 
 class KuberDock_ProductUpgrade extends CL_ProductUpgrade {
     /**
@@ -47,6 +49,17 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade {
         $newProduct = $this->getNewProduct();
 
         $deposit = KuberDock_Product::model()->getConfigOption('firstDeposit');
+        if($deposit) {
+            $service = KuberDock_Hosting::model()->loadById($this->relid);
+            $clientDetails = CL_Client::model()->getClientDetails($service->userid);
+
+            if($clientDetails['client']['credit'] < $deposit) {
+                $service->addInvoice($service->userid, new \DateTime(), $deposit, false, CL_Invoice::CUSTOM_INVOICE_DESCRIPTION);
+                $service->suspendModule('Not enough funds');
+                return false;
+            }
+            $service->addInvoice($service->userid, new \DateTime(), $deposit, true, CL_Invoice::CUSTOM_INVOICE_DESCRIPTION);
+        }
 
         if($oldProduct->getConfigOption('paymentType') == 'hourly' && $newProduct->getConfigOption('paymentType') != 'hourly') {
             // nothing
@@ -61,7 +74,7 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade {
      */
     public function getNewProduct()
     {
-        list($productId, $payment) = explode(','.$this->newvalue);
+        list($productId, $payment) = explode(',', $this->newvalue);
 
         return KuberDock_Product::model()->loadById($productId);
     }

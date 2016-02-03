@@ -53,7 +53,7 @@ sub execute {
     my $confPath = KuberDock::KCLI::getConfPath();
     my @defaults = (KUBERDOCK_KCLI_PATH, '--json', '-c', $confPath);
     my $command = join(' ', (@defaults, @_));
-    
+
     my $response = `$command 2>&1`;
 
     if($responseJSON) {
