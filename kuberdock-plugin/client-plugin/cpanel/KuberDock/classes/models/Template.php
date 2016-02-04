@@ -50,6 +50,25 @@ class Template
     }
 
     /**
+     * @param $id
+     * @return array
+     * @throws CException
+     */
+    public function getByPath($path, $id)
+    {
+        $this->id = $id;
+        $template = file_get_contents($path);
+
+        if(!$template) {
+            throw new CException('Template not exists');
+        }
+
+        $this->data = Spyc::YAMLLoadString($template);
+
+        return $this->data;
+    }
+
+    /**
      * @param $path
      * @return array|bool
      */

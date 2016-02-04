@@ -117,7 +117,13 @@ class PredefinedApp {
 
         if($this->templateId) {
             $this->template = new Template($this->api);
-            $this->template->getById($this->templateId);
+            try {
+                $this->template->getById($this->templateId);
+            } catch (Exception $e) {
+                // if global template is deleted, take local (user's)
+                $path = PredefinedApp::getAppPathByTemplateId($this->templateId);
+                $this->template->getByPath($path, $this->templateId);
+            }
         }
     }
 
