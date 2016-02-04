@@ -139,13 +139,13 @@ class Proxy {
      */
     public function addRuleToPod(Pod $pod)
     {
-        $app = new PredefinedApp($pod->template_id);
-        $template = $app->getTemplateByPodName($pod->name);
+        $template = PredefinedApp::getTemplateById($pod->template_id, $pod->name);
+        $pod = (new Pod)->loadByName($pod->name);
 
         if(isset($template['kuberdock']['proxy'])) {
             foreach($template['kuberdock']['proxy'] as $dir => $proxy) {
                 if(isset($proxy['domain']) && isset($proxy['container'])) {
-                    $container = $app->getContainerData($pod->name, $proxy['container']);
+                    $container = $pod->getContainerByName($proxy['container']);
                     if ($ports = $container['ports']) {
                         foreach ($ports as $port) {
                             $port = isset($port['hostPort']) ? $port['hostPort'] : $port['containerPort'];
@@ -163,8 +163,7 @@ class Proxy {
      */
     public function removeRuleFromPod(Pod $pod)
     {
-        $app = new PredefinedApp($pod->template_id);
-        $template = $app->getTemplateByPodName($pod->name);
+        $template = PredefinedApp::getTemplateById($pod->template_id, $pod->name);
 
         if(isset($template['kuberdock']['proxy'])) {
             foreach($template['kuberdock']['proxy'] as $dir => $proxy) {

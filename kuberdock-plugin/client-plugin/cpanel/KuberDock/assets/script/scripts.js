@@ -1,3 +1,5 @@
+var _$ = jQuery.noConflict();
+
 var kubeTemplate = _.template('<pre>' +
     'CPU: <%= cpu %><br>' +
     'Memory: <%= memory %><br>' +
@@ -21,7 +23,7 @@ function getFormattedValue(value, unit, decimals) {
     }).to(value);
 }
 
-$(document).ready(function() {
+_$(document).ready(function() {
     // Remove cPanel header. TODO: Temp or not
-    $('h1.page-header').remove();
+    _$('h1.page-header').remove();
 });

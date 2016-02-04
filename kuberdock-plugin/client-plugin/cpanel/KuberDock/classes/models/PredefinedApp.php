@@ -469,14 +469,34 @@ class PredefinedApp {
         return $data;
     }
 
+    /**
+     * @param $templateId
+     * @param $podName
+     * @return array|bool
+     */
+    public static function getTemplateById($templateId, $podName)
+    {
+        $appPath = self::getAppPathByTemplateId($templateId, $podName);
+        return Template::getTemplateByPath($appPath);
+    }
 
     /**
-     * @param string $name
+     * @param string|null $name
      * @return string
      */
     private function getAppPath($name = null)
     {
-        $path = array('.kuberdock_pre_apps', 'kuberdock_'. $this->templateId);
+        return $this->getAppPathByTemplateId($this->templateId, $name);
+    }
+
+    /**
+     * @param $templateId
+     * @param string|null $name
+     * @return string
+     */
+    private static function getAppPathByTemplateId($templateId, $name = null)
+    {
+        $path = array('.kuberdock_pre_apps', 'kuberdock_'. $templateId);
         $appDir = getenv('HOME');
 
         foreach($path as $row) {

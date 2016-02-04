@@ -53,7 +53,7 @@ class Template
      * @param $path
      * @return array|bool
      */
-    public function getTemplateByPath($path)
+    public static function getTemplateByPath($path)
     {
         if(!file_exists($path)) {
             return false;
