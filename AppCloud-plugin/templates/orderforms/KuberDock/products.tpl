@@ -46,7 +46,10 @@
 
 <div class="left-side">
     {foreach from=$product.features key=feature item=value}
-    <span class="prodfeature"><span class="feature">{$feature}</span><br />{$value}</span>
+    <div class="prodfeature">
+        <div class="feature">{$feature}</div>
+        {$value}
+    </div>
     {/foreach}
 </div>
 

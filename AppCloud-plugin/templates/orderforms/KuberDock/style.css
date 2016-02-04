@@ -213,7 +213,7 @@ Product Listing
     vertical-align: top;
 }
 #order-modern .product .prodfeature em{
-    margin-top: 7px;
+    margin-top: 3px;
     display: inline-block;
 }
 #order-modern .product .prodfeature br{ line-height: 0; height: 0; }
