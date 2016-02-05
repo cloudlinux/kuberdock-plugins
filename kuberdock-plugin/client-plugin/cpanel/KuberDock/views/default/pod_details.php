@@ -131,7 +131,7 @@
                     <?php foreach($row['env'] as $env):?>
                         <tr>
                             <td><small><?php echo $env['name']?></small></td>
-                            <td><small><?php echo $env['value']?></small></td>
+                            <td><small><?php echo htmlspecialchars($env['value'], ENT_QUOTES);?></small></td>
                         </tr>
                     <?php endforeach;?>
                 <?php endforeach;?>

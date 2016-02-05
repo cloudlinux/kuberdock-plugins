@@ -63,8 +63,29 @@ sub max {
 sub url {
     my ($self, $name, $value, $data) = @_;
 
-    if($value !~ m!^((http(?:s)?\:\/\/)?[a-zA-Z0-9]+(?:(?:\.|\-)[a-zA-Z0-9]+)+(?:\:\d+)?(?:\/[\w\-]+)*(?:\/?|\/\w+\.[a-zA-Z]{2,4}(?:\?[\w]+\=[\w\-]+)?)?(?:\&[\w]+\=[\w\-]+)*)$!) {
-        return sprintf('Enter correct URL to %s', $name);
+    return $self->regex(
+        $value,
+        '^((http(?:s)?\:\/\/)?[a-zA-Z0-9]+(?:(?:\.|\-)[a-zA-Z0-9]+)+(?:\:\d+)?(?:\/[\w\-]+)*(?:\/?|\/\w+\.[a-zA-Z]{2,4}(?:\?[\w]+\=[\w\-]+)?)?(?:\&[\w]+\=[\w\-]+)*)$',
+        sprintf('Enter correct URL to %s', $name)
+    );
+}
+
+# allowed characters are alphanum, minus and underscore
+sub alphanum {
+    my ($self, $name, $value, $data) = @_;
+
+    return $self->regex(
+        $value,
+        '^([a-zA-Z0-9\-\_]+)$',
+        sprintf('Only alphanum characters, minus and underscore allowed in %s', $name)
+    );
+}
+
+sub regex {
+    my ($self, $value, $regex, $msg) = @_;
+
+    if($value !~ m!$regex!) {
+        return $msg;
     }
 
     return 0;

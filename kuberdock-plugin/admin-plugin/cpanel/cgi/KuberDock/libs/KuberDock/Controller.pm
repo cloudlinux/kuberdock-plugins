@@ -211,7 +211,7 @@ sub createAppAction() {
 
     my $validator = KuberDock::Validate->new;
     my %rules = (
-        app_name => { required => 1, min => 2, max => 64 },
+        app_name => { required => 1, min => 2, max => 64, alphanum => 1 },
     );
     my %vars = $self->{_cgi}->Vars;
 
@@ -259,6 +259,7 @@ sub createAppAction() {
             #$self->render('pre-apps/form.tmpl', $vars);
             return 0;
         }
+
         $yaml->{kuberdock}->{name} = $appName;
 
         $app->saveYaml('app.yaml', $yaml);
@@ -335,7 +336,7 @@ sub updateAppAction() {
 
     my $validator = KuberDock::Validate->new;
     my %rules = (
-        app_name => { required => 1, min => 2, max => 64 },
+        app_name => { required => 1, min => 2, max => 64, alphanum => 1 },
     );
     my %vars = $self->{_cgi}->Vars;
 
