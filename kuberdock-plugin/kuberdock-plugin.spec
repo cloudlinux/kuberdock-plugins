@@ -1,7 +1,7 @@
 Version: 1.0
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 0%{?dist}.rc.3.1.cloudlinux
+Release: 0%{?dist}.rc.4.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -51,6 +51,10 @@ fi
 %{_datadir}/kuberdock-plugin/*
 
 %changelog
+
+* Mon Feb 08 2016 Prokhor Sednev <psednev@cloudlinux.com> 1.0-0.rc.4
+- AC-2177 - Cpanel input validation
+- AC-2200 - Cpanel plugin : start, stop, pod details  should work correct if predef apps yaml was deleted
 
 * Thu Jan 14 2016 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com>, Prokhor Sednev <psednev@cloudlinux.com> 1.0-0.rc.3.1
 - AC-2042 cPanel. Package-specific addition to the postDescription
