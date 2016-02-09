@@ -88,38 +88,38 @@ $pdf->Ln(10);
 # Invoice Items
 $tblhtml = '<table width="100%" bgcolor="#ccc" cellspacing="1" cellpadding="2" border="0">
     <tr height="30" bgcolor="#efefef" style="font-weight:bold;text-align:center;">
-        <td width="80%">'.$_LANG['invoicesdescription'].'</td>
-        <td width="20%">'.$_LANG['quotelinetotal'].'</td>
+        <td width="5%">#</td>
+        <td width="55%">'.$_LANG['invoicesdescription'].'</td>
+        <td width="10%">Qty</td>
+        <td width="10%">Units</td>
+        <td width="10%">Price</td>
+        <td width="10%">'.$_LANG['quotelinetotal'].'</td>
     </tr>';
-foreach ($invoiceitems AS $item) {
+
+    $tblhtml .= $notes;
+
     $tblhtml .= '
-    <tr bgcolor="#fff">
-        <td align="left">'.nl2br($item['description']).'<br /></td>
-        <td align="center">'.$item['amount'].'</td>
-    </tr>';
-}
-$tblhtml .= '
     <tr height="30" bgcolor="#efefef" style="font-weight:bold;">
-        <td align="right">'.$_LANG['invoicessubtotal'].'</td>
+        <td colspan="5" align="right">'.$_LANG['invoicessubtotal'].'</td>
         <td align="center">'.$subtotal.'</td>
     </tr>';
-if ($taxname) $tblhtml .= '
+    if ($taxname) $tblhtml .= '
     <tr height="30" bgcolor="#efefef" style="font-weight:bold;">
-        <td align="right">'.$taxrate.'% '.$taxname.'</td>
+        <td colspan="5" align="right">'.$taxrate.'% '.$taxname.'</td>
         <td align="center">'.$tax.'</td>
     </tr>';
-if ($taxname2) $tblhtml .= '
+    if ($taxname2) $tblhtml .= '
     <tr height="30" bgcolor="#efefef" style="font-weight:bold;">
-        <td align="right">'.$taxrate2.'% '.$taxname2.'</td>
+        <td colspan="5" align="right">'.$taxrate2.'% '.$taxname2.'</td>
         <td align="center">'.$tax2.'</td>
     </tr>';
-$tblhtml .= '
+    $tblhtml .= '
     <tr height="30" bgcolor="#efefef" style="font-weight:bold;">
-        <td align="right">'.$_LANG['invoicescredit'].'</td>
+        <td colspan="5" align="right">'.$_LANG['invoicescredit'].'</td>
         <td align="center">'.$credit.'</td>
     </tr>
     <tr height="30" bgcolor="#efefef" style="font-weight:bold;">
-        <td align="right">'.$_LANG['invoicestotal'].'</td>
+        <td colspan="5" align="right">'.$_LANG['invoicestotal'].'</td>
         <td align="center">'.$total.'</td>
     </tr>
 </table>';
@@ -170,13 +170,14 @@ $tblhtml .= '
 $pdf->writeHTML($tblhtml, true, false, false, false, '');
 
 # Notes
-if ($notes) {
-    $pdf->Ln(5);
-    $pdf->SetFont($pdfFont,'',8);
-    $pdf->MultiCell(170,5,$_LANG["invoicesnotes"].": $notes");
-}
+#if ($notes) {
+#    $pdf->Ln(5);
+#    $pdf->SetFont($pdfFont,'',8);
+#    $pdf->MultiCell(170,5,$_LANG["invoicesnotes"].": $notes");
+#}
 
 # Generation Date
 $pdf->SetFont($pdfFont,'',8);
 $pdf->Ln(5);
 $pdf->Cell(180,4,$_LANG['invoicepdfgenerated'].' '.getTodaysDate(1),'','','C');
+
