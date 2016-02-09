@@ -56,8 +56,17 @@ function KuberDock_CreateAccount($params) {
         $service->updateById($params['serviceid'], array(
             'domainstatus' => 'Pending',
         ));
+
         CException::log($e);
-        return 'ERROR: ' . $e->getMessage();
+
+        // to distinguish a common user from admin
+        if (isset($_SESSION['uid'])) {
+            // sending user to error page
+            CException::displayError($e);
+        } else {
+            // show error to admin
+            return 'ERROR: ' . $e->getMessage();
+        }
     }
 }
 
