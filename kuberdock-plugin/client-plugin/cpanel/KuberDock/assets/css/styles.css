@@ -1,6 +1,16 @@
 .alert {
     box-shadow: none !important;
 }
+.centered {
+    font-size: 0;
+    text-align: center;
+}
+.centered > div {
+    float: none;
+    display: inline-block;
+    text-align: left;
+    font-size: 13px;
+}
 #all-apps, #app-page{
     padding: 25px;
     margin-bottom: 20px;
@@ -316,6 +326,7 @@ p {
 /* preapp-plan-page */
 .preapp-plan-page form.palans .item{
     position: relative;
+    margin-bottom: 50px;
     padding: 28px 10% 0;
 }
 .preapp-plan-page form.palans .item.recommended{
@@ -453,7 +464,7 @@ p {
     border: 1px solid #e0e0e0;
 }
 .preapp-plan-page form.palans .plans-area{
-    margin-bottom: 100px;
+    margin-bottom: 50px;
 }
 .preapp-plan-page form.palans .plans-area > div:nth-child(1) .item .img-wrapper{
     margin-top: 140px;

@@ -16,7 +16,7 @@
             <div class="row">
                 <strong>Choose package:</strong><br/><br/>
             </div>
-            <div class="row col-xs-12 nopadding plans-area">
+            <div class="row col-xs-12 nopadding plans-area centered">
                 <?php foreach($plans as $k => $plan):?>
                     <?php if(isset($plan['recommended'])):?>
                         <div class="col-md-3 col-sm-6 col-xs-12" >
