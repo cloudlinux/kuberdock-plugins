@@ -37,6 +37,8 @@ function KuberDock_CreateAccount($params) {
     try {
         $product = KuberDock_Product::model()->loadById($params['pid']);
         $client = CL_Client::model()->loadByParams($params['clientsdetails']);
+        $client->filterValues();
+
         $product->setClient($client);
         $product->create($params['serviceid']);
 

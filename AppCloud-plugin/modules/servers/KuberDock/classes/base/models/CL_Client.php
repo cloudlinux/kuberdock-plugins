@@ -6,6 +6,7 @@
 
 namespace base\models;
 
+use base\CL_Tools;
 use exceptions\CException;
 use base\CL_Model;
 
@@ -46,6 +47,40 @@ class CL_Client extends CL_Model {
         $results = localAPI('getclientsdetails', $values, $adminuser);
 
         return ($results['result'] == 'success') ? $results : array();
+    }
+
+    public function filterValues()
+    {
+        $this->_values['firstname'] = $this->prepareName($this->_values['firstname']);
+        $this->_values['lastname'] = $this->prepareName($this->_values['lastname']);
+        $this->_values['email'] = $this->prepareEmail($this->_values['email']);
+    }
+
+    private function prepareName($name)
+    {
+        $name = preg_replace ('/[\W]+/iu', '', $name);
+        $name = substr_replace($name, '', 25);
+
+        if ($name == '') {
+            $name = CL_Tools::generateRandomString();
+        }
+
+        return $name;
+    }
+
+    private function prepareEmail($email)
+    {
+        $email = trim($email, '.');
+        $email = preg_replace ('/\.+/i', '.', $email);
+
+        $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+        if ($email == false || $email == '') {
+            $email = \JTransliteration::transliterate($this->_values['lastname']) . mt_rand(1, 1000) . '@kd.com';
+
+        }
+        $email = substr_replace($email, '', 50);
+
+        return $email;
     }
 
     /**

@@ -166,4 +166,17 @@ class CL_Tools extends CL_Component {
             return self::$_models[$className];
         }
     }
+
+    public static function generateRandomString($length = 8)
+    {
+        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $pass = array();
+
+        for($i=0; $i<$length; $i++) {
+            $n = rand(0, strlen($alphabet)-1);
+            $pass[] = $alphabet[$n];
+        }
+
+        return strtolower(implode($pass));
+    }
 } 
