@@ -73,7 +73,7 @@ class KuberDock_Product extends CL_Product {
             'paymentType' => array(
                 'FriendlyName' => 'Service payment type',
                 'Type' => 'dropdown',
-                'Options' => implode(',', $this->getPaymentType()),
+                'Options' => implode(',', $this->getPaymentTypes()),
                 'Default' => 'hourly',
                 'Description' => '',
             ),
@@ -417,7 +417,7 @@ class KuberDock_Product extends CL_Product {
      */
     public function getReadablePaymentType()
     {
-        $type = $this->getConfigOption('paymentType');
+        $type = $this->getPaymentType();
         $types = array_flip(self::$payment_periods);
 
         return array_key_exists($type, $types)
@@ -495,7 +495,7 @@ class KuberDock_Product extends CL_Product {
      */
     public function getPeriodInDays()
     {
-        switch($this->getConfigOption('paymentType')) {
+        switch($this->getPaymentType()) {
             case 'hourly':
                 return 1;
             case 'monthly':
@@ -532,7 +532,7 @@ class KuberDock_Product extends CL_Product {
     /**
      * @return array
      */
-    private function getPaymentType()
+    public static function getPaymentTypes()
     {
         return array(
             'annually',
@@ -540,6 +540,11 @@ class KuberDock_Product extends CL_Product {
             'monthly',
             'hourly',
         );
+    }
+
+    public function getPaymentType()
+    {
+        return $this->getConfigOption('paymentType');
     }
 
     /**

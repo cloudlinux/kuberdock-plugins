@@ -1,34 +1,24 @@
+<?php
+/**
+ * @var $log array Change log
+ * @var $currency \base\models\CL_Currency
+ */
+?>
+
 <div class="container-fluid">
     <div role="tabpanel">
         <ul class="nav nav-tabs" role="tablist" id="kuber_tab">
-            <li role="presentation" class="active"><a href="#kube" aria-controls="relation" role="tab" data-toggle="tab">Kube types</a></li>
-            <li role="presentation"><a href="#relation" aria-controls="relation" role="tab" data-toggle="tab">Kube Relations</a></li>
-            <li role="presentation"><a href="#price" aria-controls="price" role="tab" data-toggle="tab">Kube types pricing</a></li>
+            <li role="presentation" class="active">
+                <a href="#kubes" aria-controls="kubes" role="tab" data-toggle="tab">Kube types</a>
+            </li>
         </ul>
 
         <div class="tab-content">
-            <div role="tabpanel" class="tab-pane active" id="kube">
+            <div role="tabpanel" class="tab-pane active" id="kubes">
                 <?php $this->renderPartial('kubes', array(
                     'kubes' => $kubes,
-                    'servers' => $servers,
-                    'productKubes' => $productKubes,
-                ))?>
-            </div>
-
-            <div role="tabpanel" class="tab-pane" id="relation">
-                <?php $this->renderPartial('relations', array(
                     'products' => $products,
-                    'servers' => $servers,
-                    'search' => $search,
-                    'productKubes' => $productKubes,
                     'brokenPackages' => $brokenPackages,
-                ))?>
-            </div>
-
-            <div role="tabpanel" class="tab-pane" id="price">
-                <?php $this->renderPartial('price', array(
-                    'products' => $products,
-                    'kubes' => $kubes,
                 ))?>
             </div>
         </div>

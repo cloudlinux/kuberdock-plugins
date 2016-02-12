@@ -10,6 +10,7 @@ use base\CL_Controller;
 use base\CL_Base;
 use base\CL_Csrf;
 use base\CL_Tools;
+use base\models\CL_Currency;
 use Exception;
 
 class KuberDock_AddonController extends CL_Controller {
@@ -30,25 +31,49 @@ class KuberDock_AddonController extends CL_Controller {
     {
         $this->assets->registerScriptFiles(array('jquery.tablesorter.min'));
 
-        $products = \KuberDock_Product::model()->getActive();
-        $search = CL_Base::model()->getPost('Search', array());
-        $search = array_filter($search);
+        /** @var $currency CL_Currency */
+        $currency = CL_Currency::model()->getDefaultCurrency();
+        $products = $this->getSortedActiveProducts();
 
-        $kubes = \KuberDock_Addon_Kube::model()->loadByAttributes($search, 'product_id IS NULL',
-            array('order' => 'kube_name'));
-        $productKubes = \KuberDock_Addon_Kube::model()->loadByAttributes($search, 'product_id IS NOT NULL',
-            array('order' => 'product_id'));
+        $kubes = \KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NULL',
+            array('order' => 'kuber_kube_id'));
+
+        $productKubes = \KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NOT NULL');
+
         $brokenPackages = \KuberDock_Addon_Product::model()->getBrokenPackages();
-        $servers = \KuberDock_Server::model()->getServers();
+
+        foreach ($kubes as &$kube) {
+            foreach ($products as $product) {
+                $productKube = $this->getProductKube($productKubes, $kube['kuber_kube_id'], $product['id']);
+
+                $kube['packages'][] = array(
+                    'name' => $product['name'],
+                    'payment_type' => $product['payment_type'],
+                    'product_id' => $product['id'],
+                    'id' => $productKube ? $productKube['id'] : null,
+                    'kube_price' => $productKube ? $productKube['kube_price'] : null,
+                );
+            }
+        }
+        unset($kube);
 
         $this->render('index', array(
-            'productKubes' => $productKubes,
             'kubes' => $kubes,
-            'servers' => $servers,
             'products' => $products,
-            'search' => $search,
             'brokenPackages' => $brokenPackages,
+            'currency' => $currency,
         ));
+    }
+
+    private function getProductKube($productKubes, $kube_id, $product_id)
+    {
+        foreach ($productKubes as $kube) {
+            if ($kube['product_id']==$product_id && $kube['kuber_kube_id']==$kube_id) {
+                return $kube;
+            }
+        }
+
+        return null;
     }
 
     public function addAction()
@@ -105,61 +130,63 @@ class KuberDock_AddonController extends CL_Controller {
 
     public function kubePriceAction()
     {
-        if(CL_Tools::getIsAjaxRequest()) {
-            try {
-                $base = CL_Base::model();
-                $productId = (int) $base->getParam('product_id', CL_Base::model()->getPost('product_id'));
-                $addonProduct = \KuberDock_Addon_Product::model()->loadById($productId);
-                $products = \KuberDock_Product::model()->getActive();
-                $product  = \KuberDock_Product::model()->loadById($productId);
-                $server = $product ? $product->getServer() : null;
-                $kubes = \KuberDock_Addon_Kube::model()->loadByAttributes(array(
-                    'server_id' => $server ? $server->id : null,
-                ), 'product_id IS NULL', array('order' => 'kube_name'));
-                $productKubes = \KuberDock_Addon_Kube::model()->loadByAttributes(array('product_id' => $productId));
-
-                $kubes = CL_Tools::getKeyAsField($kubes, 'kuber_kube_id');
-                $productKubes = CL_Tools::getKeyAsField($productKubes, 'kuber_kube_id');
-
-                $kubes = $productKubes + $kubes;
-
-                if($_POST) {
-                    CL_Csrf::check();
-
-                    foreach($_POST['id'] as $k=>$id) {
-                        $kubePrice = $_POST['kube_price'][$k];
-                        $kube = \KuberDock_Addon_Kube::model()->loadById($id);
-
-                        if($kube->kube_price != $kubePrice) {
-                            $kube->setAttributes(array(
-                                'kube_price' => $kubePrice,
-                                'product_id' => $addonProduct->product_id,
-                                'kuber_product_id' => $addonProduct->kuber_product_id,
-                            ));
-                            $kube->save();
-                        }
-                    }
-
-                    echo json_encode(array(
-                        'error' => false,
-                        'redirect' => $base->baseUrl.'&product_id='.$productId.'#price',
-                    ));
-                    exit();
-                }
-
-                $this->renderPartial('price_form', array(
-                    'productId' => $productId,
-                    'products' => $products,
-                    'priceKubes' => $productId ? $kubes : array(),
-                    'paymentType' => $product ? $product->getReadablePaymentType() : '',
-                ));
-            } catch(Exception $e) {
-                echo json_encode(array(
-                    'error' => true,
-                    'message' => $e->getMessage(),
-                ));
-            }
+        if(!CL_Tools::getIsAjaxRequest() || !$_POST) {
+            exit();
         }
+
+        try {
+            CL_Csrf::check();
+
+            $kubePrice = CL_Base::model()->getPost('kube_price');
+            $id = (int) CL_Base::model()->getPost('id');
+
+            if (!$id) {
+//                $product_id = (int) CL_Base::model()->getPost('product_id');
+//                $kuber_kube_id = (int) CL_Base::model()->getPost('kuber_kube_id');
+//                $patternKube = \KuberDock_Addon_Kube::model()->loadByAttributes(
+//                    array('kuber_kube_id' => $kuber_kube_id),
+//                    'product_id IS NULL',
+//                    array('order' => 'kuber_kube_id')
+//                );
+//                $patternKube = reset($patternKube);
+//                unset($patternKube['id']);
+//
+//                $kube = \KuberDock_Addon_Kube::model();
+//                $addonProduct = \KuberDock_Addon_Product::model()->loadById($product_id);
+//                $kube->setAttributes(
+//                    array_merge(
+//                        $patternKube,
+//                        array(
+//                            'kube_price' => $kubePrice,
+//                            'product_id' => $product_id,
+//                            'kuber_product_id' => $addonProduct->kuber_product_id,
+//                        )
+//                    )
+//                );
+//                $kube->save();
+            }
+
+            $kube = \KuberDock_Addon_Kube::model()->loadById($id);
+            if($kube->kube_price != $kubePrice) {
+                if ($kubePrice==='') {
+//                    $kube->delete();
+                } else {
+                    $kube->setAttributes(array(
+                        'kube_price' => (float) $kubePrice,
+                    ));
+                    $kube->save();
+                }
+            }
+
+            echo json_encode(array('error' => false));
+
+        } catch(Exception $e) {
+            echo json_encode(array(
+                'error' => true,
+                'message' => $e->getMessage(),
+            ));
+        }
+
         exit();
     }
 
@@ -188,5 +215,28 @@ class KuberDock_AddonController extends CL_Controller {
         }
 
         exit();
+    }
+
+    /**
+     * @return array
+     */
+    public function getSortedActiveProducts()
+    {
+        $products = \KuberDock_Product::model()->getActive();
+
+        foreach ($products as &$product) {
+            $product['payment_type'] = \KuberDock_Product::model()->loadByParams($products[$product['id']])->getPaymentType();
+        }
+        unset($product);
+
+        $payment_types = array_flip(\KuberDock_Product::getPaymentTypes());
+        uasort($products, function ($a, $b) use ($payment_types) {
+            if ($a['payment_type'] == $b['payment_type']) {
+                return ($a['id'] > $b['id']) ? 1 : -1;
+            }
+            return ($payment_types[$a['payment_type']] < $payment_types[$b['payment_type']]) ? 1 : -1;
+        });
+
+        return $products;
     }
 } 
