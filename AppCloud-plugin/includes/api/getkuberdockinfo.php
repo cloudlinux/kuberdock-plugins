@@ -27,15 +27,15 @@ try {
     $userData['currency'] = \base\models\CL_Currency::model()->getDefaultCurrency()->getAttributes();
 
     if(!isset($kdServer)) {
-        throw new CException("Field 'kdServer' must be setted");
+        throw new \exceptions\CException("Field 'kdServer' must be setted");
     }
 
     if(!isset($cpanelUser)) {
-        throw new CException("Field 'user' must be setted");
+        throw new \exceptions\CException("Field 'user' must be setted");
     }
 
     if(!isset($cpanelUserDomains)) {
-        throw new CException("Field 'userDomains' must be setted");
+        throw new \exceptions\CException("Field 'userDomains' must be setted");
     }
 
     $userData['userDetails'] = \base\models\CL_Client::model()->getClientByCpanelUser($cpanelUser, $cpanelUserDomains);
@@ -64,17 +64,18 @@ try {
     }
 
     $services = KuberDock_Hosting::model()->getByUser($userData['userDetails']['userid']);
-    $userServices = array_filter($services, function(&$e) use ($serverIds) {
-        if(in_array($e['server'], $serverIds)) {
-            $model = KuberDock_Hosting::model()->loadByParams($e);
-            $e['password'] = $model->decryptPassword();
-            $e['token'] = $model->getToken();
+    $userServices = array();
+    foreach($services as &$row) {
+        if(in_array($row['server'], $serverIds)) {
+            $model = KuberDock_Hosting::model()->loadByParams($row);
+            $row['password'] = $model->decryptPassword();
+            $row['token'] = $model->getToken();
             if($addonProduct = KuberDock_Addon_Product::model()->loadById($e['packageid'])) {
                 $e['kuber_product_id'] = $addonProduct->kuber_product_id;
             }
-            return $e;
+            $userServices[$row['product_id']] = $row;
         }
-    });
+    }
 
     // If user has product, remove others
     if($userServices) {
