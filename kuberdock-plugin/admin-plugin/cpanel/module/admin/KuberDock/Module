@@ -26,7 +26,6 @@ if($function eq 'getConfig') {
         my $resellers = KuberDock::Resellers->new;
         my $json = KuberDock::JSON->new;
         my $config = $resellers->loadData();
-        $config->{defaults} = $resellers->loadDefaults;
         print $json->encode($config);
         exit(0);
     } else {

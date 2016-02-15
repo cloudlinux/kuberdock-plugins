@@ -362,12 +362,15 @@ class WHMCSApi extends Base {
      * @throws CException
      */
     public function getDefaults() {
-        $ownerData = $this->getConfigData();
+        $kuberDockInfo = $this->getKuberDockInfo();
 
         if(isset($ownerData['defaults'])) {
-            return $ownerData['defaults'];
+            return array(
+                'packageId' => $kuberDockInfo['default']['packageId']['id'],
+                'kubeType' => $kuberDockInfo['default']['kubeType']['id'],
+            );
         } else {
-            throw new CException('Config file is broken or empty. Please fill in defaults via administrator area.');
+            throw new CException('Cannot get default values. Please fill in defaults via administrator area.');
         }
     }
 

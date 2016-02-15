@@ -60,13 +60,29 @@ sub getPackagesKubes {
     return [@data];
 }
 
+sub getDefaults {
+    my ($self) = @_;
+
+    return {
+        kubeType => $self->request('/api/pricing/kubes/default', 'GET')->{id},
+        packageId => $self->request('/api/pricing/packages/default', 'GET')->{id},
+    };
+}
+
+sub setDefaults {
+    my ($self, $data) = @_;
+
+    $self->request('/api/pricing/kubes/' . $data->{kubeType}, 'PUT', '{"is_default":"1"}');
+    $self->request('/api/pricing/packages/' . $data->{packageId}, 'PUT', '{"is_default":"1"}');
+}
+
 sub request {
     my ($self, $url, $requestType, $data) = @_;
     my $agent = LWP::UserAgent->new(ssl_opts => { verify_hostname => 0 },);
 
     my $endpoint = $self->{_server} . $url;
 
-    if(!grep {$_ eq $requestType} ('GET', 'POST')) {
+    if(!grep {$_ eq $requestType} ('GET', 'POST', 'PUT')) {
         die 'Unknown request type';
     }
 
@@ -74,7 +90,7 @@ sub request {
     $req->header('content-type' => 'application/json');
     $req->authorization_basic($self->{_username}, $self->{_password});
 
-    if($requestType eq 'POST') {
+    if($requestType eq 'POST' || $requestType eq 'PUT') {
         $req->content($data);
     }
 

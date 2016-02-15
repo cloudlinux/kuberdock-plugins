@@ -96,6 +96,16 @@ class KuberDock_Api {
     }
 
     /**
+     * @param \KuberDock_Server $server
+     * @return KuberDock_Api
+     */
+    public static function constructByServer($server)
+    {
+        $serverAttr = $server->getAttributes();
+        return new self($serverAttr['username'], $server->decryptPassword(), $server->getApiServerUrl());
+    }
+
+    /**
      * Get Token
      * @return string
      * @throws Exception
@@ -323,6 +333,40 @@ class KuberDock_Api {
     {
         $this->url = $this->serverUrl . '/api/users/all/' . $user;
         $response = $this->call($values, 'PUT');
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    /**
+     * @return \api\KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function getDefaultKubeType()
+    {
+        $this->url = $this->serverUrl . '/api/pricing/kubes/default';
+        $response = $this->call();
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    /**
+     * @return \api\KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function getDefaultPackageId()
+    {
+        $this->url = $this->serverUrl . '/api/pricing/packages/default';
+        $response = $this->call();
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());

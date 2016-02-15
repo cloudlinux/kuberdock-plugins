@@ -91,6 +91,16 @@ try {
     $userData['userServices'] = $userServices;
     $userData['products'] = $products;
 
+    try {
+        $api = \api\KuberDock_Api::constructByServer($server);
+        $kubeType = $api->getDefaultKubeType();
+        $PackageId = $api->getDefaultPackageId();
+        $userData['default']['kubeType'] = $kubeType->parsed['data'];
+        $userData['default']['packageId'] = $PackageId->parsed['data'];
+    } catch (Exception $e) {
+        $userData['default'] = null;
+    }
+
     $apiresults = array('result' => 'success', 'results' => $userData);
 } catch (Exception $e) {
     $apiresults = array('result' => 'error', 'message' => 'Billing API error: ' . $e->getMessage());

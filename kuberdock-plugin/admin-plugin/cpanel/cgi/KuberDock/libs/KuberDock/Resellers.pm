@@ -89,17 +89,6 @@ sub loadData() {
     return $data;
 }
 
-sub loadDefaults() {
-    my ($self) = @_;
-    my $data = $self->loadFile();
-
-    if(defined $data->{defaults}) {
-        return $data->{defaults};
-    } else {
-        return {};
-    }
-}
-
 sub loadFile() {
     my ($self) = @_;
 

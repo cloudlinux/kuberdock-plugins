@@ -96,7 +96,8 @@ sub indexAction() {
         });
         return;
     }
-    my $defaults = $resellers->loadDefaults();
+
+    my $defaults = $api->getDefaults();
 
     if(defined $resellersData->{ALL}) {
         $resellersData->{ALL}->{password} =~ s/./\*/g;
@@ -201,8 +202,8 @@ sub createAppAction() {
     my $app = KuberDock::PreApps->new($self->{_cgi});
     my $uploadYaml = $self->{_cgi}->param('yaml_file');
     my $code = $self->{_cgi}->param('code');
-    my $resellers = KuberDock::Resellers->new;
-    my $defaults = $resellers->loadData()->{defaults} || {};
+    my $api = KuberDock::API->new;
+    my $defaults = $api->getDefaults() || {};
     my $json = KuberDock::JSON->new;
     my $vars = {
         yaml => $code || '# Please input your yaml here',
@@ -315,8 +316,9 @@ sub updateAppAction() {
     my $uploadYaml = $self->{_cgi}->param('yaml_file');
     my $code = $self->{_cgi}->param('code');
     my $template = KuberDock::KCLI::getTemplate($app->{'_templateId'});
-    my $resellers = KuberDock::Resellers->new;
-    my $defaults = $resellers->loadData()->{defaults} || {};
+    my $api = KuberDock::API->new;
+    my $defaults = $api->getDefaults() || {};
+
     my $json = KuberDock::JSON->new;
 
     #if(!%{$template}) {
@@ -459,7 +461,6 @@ sub getPackageKubesAction {
 
 sub setDefaultsAction {
     my ($self) = @_;
-    my $reseller = KuberDock::Resellers->new();
     my $api = KuberDock::API->new;
     my $packageId = $self->{_cgi}->param('packageId');
     my $kubeType = $self->{_cgi}->param('kubeType');
@@ -472,12 +473,13 @@ sub setDefaultsAction {
         exit;
     }
 
-    my $data->{defaults} = {
+    my $data = {
         packageId => $packageId,
         kubeType => $kubeType,
     };
 
-    $reseller->save(%{$data});
+    $api->setDefaults($data);
+
     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#defaults');
 }
 
