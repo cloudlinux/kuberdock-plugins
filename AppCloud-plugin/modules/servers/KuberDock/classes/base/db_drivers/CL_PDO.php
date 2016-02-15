@@ -28,6 +28,10 @@ class CL_PDO implements CL_iDBDriver {
     {
         global $db_host, $db_name, $db_username, $db_password, $mysql_charset;
 
+        if(!isset($mysql_charset) || !$mysql_charset) {
+            $mysql_charset = 'utf8';
+        }
+
         $dsn = "mysql:host=$db_host;dbname=$db_name;charset=$mysql_charset";
         $opt = array(
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
