@@ -1,0 +1,28 @@
+#!/usr/bin/python
+
+import argparse
+
+from kd_common.panel import parser as panel_parser
+from kd_common.user import parser as user_parser
+
+
+def process_args():
+    parser = argparse.ArgumentParser("KuberDock common command line utility")
+    parser.add_argument(
+        '-j', '--json', action="store_true", help="Output data as JSON")
+
+    subs = parser.add_subparsers(
+        help="Commands",
+        title="Commands",
+        description="Valid commands",
+        dest="target")
+
+    panel_parser(subs)
+    user_parser(subs)
+
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = process_args()
+    args.call(args)

@@ -26,6 +26,10 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/kuberdock-plugin
 cp -r * %{buildroot}/usr/share/kuberdock-plugin
 
+%{__install} -D -d -m 755 %{buildroot}%{python_sitelib}/kd_common
+%{__install} -D -m 755 kuberdock-common/kdcommon %{buildroot}%{_bindir}/kdcommon
+cp -r kuberdock-common/kd_common/* %{buildroot}%{python_sitelib}/kd_common
+
 %clean
 rm -rf %{buildroot}
 
@@ -49,10 +53,13 @@ fi
 %files
 %defattr(-,root,root,-)
 %{_datadir}/kuberdock-plugin/*
+%{_bindir}/kdcommon
+%{python_sitelib}/kd_common/*
 
 %changelog
 
-* Tue Feb 16 2016 Prokhor Sednev <psednev@cloudlinux.com> 1.0-0.rc.4.1
+* Tue Feb 16 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.0-0.rc.4.1
+- AC-2085 kuberdock-plugin. Add kdcommon cli utility
 - AC-2233 - cPanel. Get and save defaults in KuberDock
 - AC-2200 - part 2 - Cpanel plugin : start, stop, pod details  should work correct if predef apps yaml was deleted
 - AC-2320 : fix defign PA page in cPanel v. 54.0;
@@ -163,7 +170,7 @@ fi
 - Fixed missed product id for custom field
 - AC-1318: Add style to applist table in kuberdock plugin AC-1308 cPanel. Click on back button logic AC-1306 cPanel. Different pages for list of apps cre
 
-* Tue Oct 21 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-8
+* Wed Oct 21 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-8
 - cPanel. Fixed api connect to ssl host. Cgi empty values in methods.
 
 * Tue Oct 20 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-7
@@ -202,7 +209,7 @@ fi
 - AC-615 cPanel Calculate kube limits
 - Some WHMCS and cPanel fixes
 
-* Fri Jun 21 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-2
+* Sun Jun 21 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-2
 - Add ports interface
 
 * Tue Jun 09 2015 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 0.1-1
