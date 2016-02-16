@@ -47,7 +47,7 @@ class CL_Invoice extends CL_Model {
     public function createInvoice($userId, $items, $gateway, $autoApply = true, DateTime $dueDate = null, $sendInvoice = true)
     {
         $template = \base\models\CL_Configuration::model()->get()->Template;
-
+        $currency = CL_Currency::model()->getDefaultCurrency();
         $admin = KuberDock_User::model()->getCurrentAdmin();
 
         $values['userid'] = $userId;
@@ -75,8 +75,8 @@ class CL_Invoice extends CL_Model {
                         <td align="left">'   . $title . '</td>
                         <td align="center">' . $item['qty'] . '</td>
                         <td align="center">' . $item['units'] . '</td>
-                        <td align="center">' . $item['price'] . '</td>
-                        <td align="center">' . $item['total'] . '</td>
+                        <td align="center">' . $currency->getFullPrice($item['price']) . '</td>
+                        <td align="center">' . $currency->getFullPrice($item['total']) . '</td>
                     </tr>
                 ';
             }

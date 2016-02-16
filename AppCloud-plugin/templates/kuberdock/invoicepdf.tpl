@@ -89,11 +89,11 @@ $pdf->Ln(10);
 $tblhtml = '<table width="100%" bgcolor="#ccc" cellspacing="1" cellpadding="2" border="0">
     <tr height="30" bgcolor="#efefef" style="font-weight:bold;text-align:center;">
         <td width="5%">#</td>
-        <td width="55%">'.$_LANG['invoicesdescription'].'</td>
-        <td width="10%">Qty</td>
+        <td width="45%">'.$_LANG['invoicesdescription'].'</td>
+        <td width="10%">Quantity</td>
         <td width="10%">Units</td>
-        <td width="10%">Price</td>
-        <td width="10%">'.$_LANG['quotelinetotal'].'</td>
+        <td width="15%">Price</td>
+        <td width="15%">'.$_LANG['quotelinetotal'].'</td>
     </tr>';
 
     $tblhtml .= $notes;
@@ -168,13 +168,6 @@ $tblhtml .= '
 </table>';
 
 $pdf->writeHTML($tblhtml, true, false, false, false, '');
-
-# Notes
-#if ($notes) {
-#    $pdf->Ln(5);
-#    $pdf->SetFont($pdfFont,'',8);
-#    $pdf->MultiCell(170,5,$_LANG["invoicesnotes"].": $notes");
-#}
 
 # Generation Date
 $pdf->SetFont($pdfFont,'',8);

@@ -295,7 +295,7 @@ class KuberDock_Hosting extends CL_Hosting {
                     'type' => 'Pod',
                     'title' => $title,
                     'qty' => $pod['kubes'],
-                    'units' => 'pcs',
+                    'units' => 'pod',
                     'price' => $kubes[$pod['kube_id']]['kube_price'],
                     'total' => $kubes[$pod['kube_id']]['kube_price'] * $pod['kubes'],
                 );
@@ -308,10 +308,10 @@ class KuberDock_Hosting extends CL_Hosting {
                 $totalIPs[] = $data['ip_address'];
                 $price = (float) $product->getConfigOption('priceIP');
                 $items[] = array(
-                    'type' => 'Ip',
+                    'type' => 'IP',
                     'title' => $data['ip_address'],
                     'qty' => 1,
-                    'units' => 'pcs',
+                    'units' => '',
                     'price' => $price,
                     'total' => $price,
                 );
@@ -324,7 +324,7 @@ class KuberDock_Hosting extends CL_Hosting {
             $price = (float) $product->getConfigOption('pricePersistentStorage');
 
             $items[] = array(
-                'type' => 'Pd',
+                'type' => 'Storage',
                 'title' => $data['pd_name'],
                 'qty' => $data['size'],
                 'units' => KuberDock_Units::getPSUnits(),
