@@ -37,3 +37,105 @@ table.tablesorter thead tr .headerSortUp {
 table.tablesorter thead tr .headerSortDown {
     background-image: url(../images/desc.gif);
 }
+#packages_of_kube{
+    margin-top: 20px;
+}
+#packages_of_kube tr th:nth-child(1){
+    position: relative;
+}
+#packages_of_kube tr th:nth-child(1):before{
+    width: 0;
+    height: 0;
+    top: -11px;
+    right: 11%;
+    content: '';
+    position: absolute;
+    border-style: solid;
+    border-width: 0 12px 12px 12px;
+    border-color: transparent transparent #2262A4 transparent;
+}
+#packages_of_kube tr th.left,
+#packages_of_kube tr th.middle,
+#packages_of_kube tr th.right{
+    color: #fff;
+    text-align: left;
+    vertical-align: middle;
+    background-color: #2262A4;
+}
+
+#packages_of_kube.table>tbody>tr>td,
+#packages_of_kube.table>tbody>tr>th,
+#packages_of_kube.table>tfoot>tr>td,
+#packages_of_kube.table>tfoot>tr>th,
+#packages_of_kube.table>thead>tr>td,
+#packages_of_kube.table>thead>tr>th{
+    border-top: none;
+}
+#packages_of_kube.table>thead>tr>th{
+    border-bottom: 0px solid transparent;
+}
+#packages_of_kube tr th.middle,
+#packages_of_kube tbody tr td.middle{
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+}
+#packages_of_kube tbody tr td.left{
+    border-left: 1px solid #ddd;
+}
+#packages_of_kube tbody tr td.right{
+    text-align: left;
+    border-right: 1px solid #ddd;
+}
+#packages_of_kube tbody tr td.left,
+#packages_of_kube tbody tr td.middle,
+#packages_of_kube tbody tr td.right{
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+.table tbody tr td span.pricing{
+    font-size: 12px;
+    padding: 2px 5px;
+    line-height: 12px;
+    border: 1px solid #ddd;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+.table tbody tr td span.pricing:hover{
+    cursor: pointer;
+}
+#kubes_table.table {
+    margin-bottom: 0;
+}
+#kubes_table.table tbody tr td.active{
+    color: #2262A4;
+    background-color: transparent;
+}
+#kubes_table.table tbody tr td.packages_of_kube_col{
+    padding: 0;
+    border-color: transparent transparent #ddd transparent;
+}
+#kubes_table.table tbody tr:last-child td.packages_of_kube_col{
+    border-color: transparent;
+}
+#kubes_table.table tbody tr td span.pricing{
+    color: #333;
+}
+#kubes_table.table>thead>tr>td,
+#kubes_table.table>thead>tr>th,
+#kubes_table.table>tbody>tr>th{
+    line-height: 30px;
+}
+#packages_of_kube .price_package_form input[name="kube_price"]{
+    outline: none;
+    color: #a7b5ce;
+    padding: 0 10px;
+    max-width: 80px;
+    border: 1px solid #ddd;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+#packages_of_kube .price_package_form input[name="kube_price"]:focus{
+    border-color: #2262A4;
+}

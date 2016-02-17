@@ -16,7 +16,7 @@ $(function() {
         else
             $('h3.section').after(msg);
     };
-    
+
     var getParam = function(variable) {
         var query = window.location.search.substring(1);
         var vars = query.split('&');
@@ -27,8 +27,12 @@ $(function() {
         return(false);
     };
 
-    $('td.pricing').on('click', function (e){
-        $('#package_' + $(this).data('id')).slideToggle();
+    var pricing = $('span.pricing');
+    pricing.on('click', function (e){
+        var text = $(e.target).text();
+        $('#package_' + $(this).parent().data('id')).toggle();
+        $(this).parent().toggleClass('active');
+        $(e.target).text(text == "$ Pricing settings" ? "∧ Hide settings" : "$ Pricing settings");
     });
 
     $(document).on('submit', '.price_package_form', function(e) {
