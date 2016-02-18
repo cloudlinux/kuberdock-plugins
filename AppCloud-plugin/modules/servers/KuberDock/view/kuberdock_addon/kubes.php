@@ -43,8 +43,7 @@
                                 <tr>
                                     <th class="left col-md-3">Billing type</th>
                                     <th class="middle col-md-2">Package name (id)</th>
-                                    <th class="right col-md-3">Price</th>
-                                    <th class="col-md-2"></th>
+                                    <th class="right col-md-5">Price</th>
                                     <th class="col-md-2"></th>
                                 </tr>
                             </thead>
@@ -52,21 +51,25 @@
                             <?php foreach($kube['packages'] as $package):?>
                                 <tr>
                                     <td class="left col-md-3"><strong><?php echo $package['payment_type']; ?></strong></td>
-                                    <td class="middle col-md-2"><?php echo $package['name']; ?> (<?php echo $package['id']; ?>)</td>
-                                    <td class="right col-md-3">
+                                    <td class="middle col-md-2">
+                                        <?php echo $package['name']; ?>
+                                        <?php if (isset($package['id'])):?>
+                                            (<?php echo $package['id']; ?>)
+                                        <?php endif;?>
+                                    </td>
+                                    <td class="right col-md-5">
                                         <form class="price_package_form" data-id="<?php echo $package['id']; ?>" method="post">
                                             <?php echo \base\CL_Csrf::render(); ?>
                                             <input data-prev="<?php echo $package['kube_price']; ?>" name="kube_price" type="text" value="<?php echo $package['kube_price']; ?>">
                                             <input type="hidden" name="id" value="<?php echo $package['id']; ?>">
                                             <input type="hidden" name="product_id" value="<?php echo $package['product_id']; ?>">
                                             <input type="hidden" name="kuber_kube_id" value="<?php echo $kube['kuber_kube_id'];?>">
-                                            <span id="form_buttons_<?php echo $package['id']; ?>">
+                                            <span id="form_buttons_<?php echo $package['id']; ?>" class="hidden">
                                                 <button type="submit" class="btn btn-success btn-xs">Save</button>
                                                 <button type="cancel" class="btn btn-danger btn-xs cancel_button">Cancel</button>
                                             </span>
                                         </form>
                                     </td>
-                                    <td class="col-md-2"></td>
                                     <td class="col-md-2"></td>
                                 </tr>
                             <?php endforeach; ?>

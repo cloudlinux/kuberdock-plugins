@@ -31,15 +31,14 @@ class KuberDock_AddonController extends CL_Controller {
     {
         $this->assets->registerScriptFiles(array('jquery.tablesorter.min'));
 
-        /** @var $currency CL_Currency */
-        $currency = CL_Currency::model()->getDefaultCurrency();
-        $products = $this->getSortedActiveProducts();
+        $tab = CL_Base::model()->getParam('tab', 'kubes');
+        $paginator = $this->getLogsPaginator();
+        $logs = \KuberDock_Addon_PriceChange::getLogs($paginator->limit(), $paginator->offset());
 
+        $products = $this->getSortedActiveProducts();
         $kubes = \KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NULL',
             array('order' => 'kuber_kube_id'));
-
         $productKubes = \KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NOT NULL');
-
         $brokenPackages = \KuberDock_Addon_Product::model()->getBrokenPackages();
 
         foreach ($kubes as &$kube) {
@@ -61,7 +60,9 @@ class KuberDock_AddonController extends CL_Controller {
             'kubes' => $kubes,
             'products' => $products,
             'brokenPackages' => $brokenPackages,
-            'currency' => $currency,
+            'logs' => $logs,
+            'tab' => $tab,
+            'paginator' => $paginator,
         ));
     }
 
@@ -139,46 +140,35 @@ class KuberDock_AddonController extends CL_Controller {
 
             $kubePrice = CL_Base::model()->getPost('kube_price');
             $id = (int) CL_Base::model()->getPost('id');
+            $product_id = (int) CL_Base::model()->getPost('product_id');
+            $kuber_kube_id = (int)CL_Base::model()->getPost('kuber_kube_id');
+            $currency = \base\models\CL_Currency::model()->getDefaultCurrency();
 
-            if (!$id) {
-//                $product_id = (int) CL_Base::model()->getPost('product_id');
-//                $kuber_kube_id = (int) CL_Base::model()->getPost('kuber_kube_id');
-//                $patternKube = \KuberDock_Addon_Kube::model()->loadByAttributes(
-//                    array('kuber_kube_id' => $kuber_kube_id),
-//                    'product_id IS NULL',
-//                    array('order' => 'kuber_kube_id')
-//                );
-//                $patternKube = reset($patternKube);
-//                unset($patternKube['id']);
-//
-//                $kube = \KuberDock_Addon_Kube::model();
-//                $addonProduct = \KuberDock_Addon_Product::model()->loadById($product_id);
-//                $kube->setAttributes(
-//                    array_merge(
-//                        $patternKube,
-//                        array(
-//                            'kube_price' => $kubePrice,
-//                            'product_id' => $product_id,
-//                            'kuber_product_id' => $addonProduct->kuber_product_id,
-//                        )
-//                    )
-//                );
-//                $kube->save();
+            $kube = $id
+                ? \KuberDock_Addon_Kube::model()->loadById($id)
+                : \KuberDock_Addon_Kube::createKubeForPackage($product_id, $kuber_kube_id);
+
+            $old_price = $kube->kube_price;
+
+            if($old_price != $kubePrice) {
+                $kube->setAttributes(array(
+                    'kube_price' => $kubePrice,
+                ));
             }
 
-            $kube = \KuberDock_Addon_Kube::model()->loadById($id);
-            if($kube->kube_price != $kubePrice) {
-                if ($kubePrice==='') {
-//                    $kube->delete();
-                } else {
-                    $kube->setAttributes(array(
-                        'kube_price' => (float) $kubePrice,
-                    ));
-                    $kube->save();
-                }
-            }
+            $kube->save();
 
-            echo json_encode(array('error' => false));
+            \KuberDock_Addon_PriceChange::saveLog($kuber_kube_id, $product_id, $old_price, $kubePrice);
+
+            echo json_encode(array('error' => false, 'values' => array(
+                'id' => ($kubePrice=='')
+                    ? ''
+                    : $kube->id,
+                'name' => \KuberDock_Product::model()->loadById($product_id)->name,
+                'kube_price' => ($kubePrice=='')
+                    ? ''
+                    : $currency->getFormatted($kubePrice),
+            )));
 
         } catch(Exception $e) {
             echo json_encode(array(
@@ -238,5 +228,35 @@ class KuberDock_AddonController extends CL_Controller {
         });
 
         return $products;
+    }
+
+    /**
+     * @return \KuberDock_Paginator
+     */
+    public function getLogsPaginator()
+    {
+        $per_page = 10;
+        $count = \KuberDock_Addon_PriceChange::model()->count();
+
+        $page = min(
+            ceil($count / $per_page),
+            filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT, array(
+                'options' => array(
+                    'default' => 1,
+                    'min_range' => 1,
+                ),
+            ))
+        );
+
+        $paginator = \KuberDock_Paginator::create(array(
+            'total_count' => $count,
+            'requested_page' => $page,
+            'per_page' => $per_page,
+        ))->append_params(array(
+            'module' => 'KuberDock',
+            'tab' => 'log',
+        ));
+
+        return $paginator;
     }
 } 

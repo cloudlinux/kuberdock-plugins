@@ -117,6 +117,17 @@ class KuberDock_Addon extends CL_Component {
                     ON UPDATE CASCADE ON DELETE CASCADE
             ) ENGINE=INNODB');
 
+            $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_price_changes` (
+                `id` int(11) NOT NULL AUTO_INCREMENT,
+                `login` varchar(255) NOT NULL,
+                `change_time` datetime NOT NULL,
+                `type_id` int(11) NOT NULL,
+                `package_id` int(11) NOT NULL,
+                `old_value` float DEFAULT NULL,
+                `new_value` float DEFAULT NULL,
+                PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB');
+
             // Create email templates
             $mailTemplate = CL_MailTemplate::model();
             $mailTemplate->createTemplate($mailTemplate::TRIAL_NOTICE_NAME, 'KuberDock Trial Notice',
@@ -254,6 +265,7 @@ class KuberDock_Addon extends CL_Component {
         $db->query('DROP TABLE IF EXISTS `KuberDock_kubes`');
         $db->query('DROP TABLE IF EXISTS `KuberDock_trial`');
         $db->query('DROP TABLE IF EXISTS `KuberDock_products`');
+        $db->query('DROP TABLE IF EXISTS `KuberDock_price_changes`');
 
         // Delete email templates
         $mailTemplate = CL_MailTemplate::model();

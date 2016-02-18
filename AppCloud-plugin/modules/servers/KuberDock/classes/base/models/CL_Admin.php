@@ -41,6 +41,11 @@ class CL_Admin extends CL_Model {
         return current($admin);
     }
 
+    public static function getCurrentAdmin()
+    {
+        return current(self::model()->loadByAttributes(array('id' => $_SESSION['adminid'])));
+    }
+
     /**
      * Class loader
      *

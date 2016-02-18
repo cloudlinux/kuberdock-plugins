@@ -177,6 +177,9 @@ class CL_Model {
                 case 'limit':
                     $sql .= sprintf(' LIMIT %s', $value);
                     break;
+                case 'offset':
+                    $sql .= sprintf(' OFFSET %s', $value);
+                    break;
                 case 'order':
                     if(is_array($value)) {
                         $order = array();
@@ -212,6 +215,14 @@ class CL_Model {
         $rows = $this->_db->query($sql, $values)->getRows();
 
         return $rows;
+    }
+
+    public function count()
+    {
+        $sql = sprintf('SELECT count(*) as count FROM `%s`', $this->tableName);
+        $row = $this->_db->query($sql)->getRow();
+
+        return (int) $row['count'];
     }
 
     /**

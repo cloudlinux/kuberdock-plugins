@@ -78,7 +78,7 @@ class KuberDock_Addon_Kube extends CL_Model {
             }
 
             if(!$kube) {
-                throw new CException(sprintf('Kube "%s" not founded in KuberDock', $this->kube_name));
+                throw new CException(sprintf('Kube "%s" not found in KuberDock', $this->kube_name));
             }
 
             $this->kube_name = $kube['name'];
@@ -86,6 +86,30 @@ class KuberDock_Addon_Kube extends CL_Model {
         }
 
         return true;
+    }
+
+    /**
+     * @param $product_id
+     * @param $kuber_kube_id
+     * @return \KuberDock_Addon_Kube
+     */
+    public static function createKubeForPackage($product_id, $kuber_kube_id)
+    {
+        $addonProduct = \KuberDock_Addon_Product::model()->loadById($product_id);
+        $patternKube = self::model()->loadByAttributes(
+            array('kuber_kube_id' => $kuber_kube_id),
+            'product_id IS NULL'
+        );
+        $patternKube = reset($patternKube);
+
+        $patternKube['id'] = null;
+        $patternKube['product_id'] = $product_id;
+        $patternKube['kuber_product_id'] = $addonProduct->kuber_product_id;
+
+        $kube = new self();
+        $kube = $kube->loadByParams($patternKube);
+
+        return $kube;
     }
 
     /**
