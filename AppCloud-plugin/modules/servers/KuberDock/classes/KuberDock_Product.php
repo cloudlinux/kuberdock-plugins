@@ -6,11 +6,14 @@
 
 use base\CL_View;
 use base\CL_Query;
+use base\CL_Tools;
 use base\models\CL_Currency;
 use base\models\CL_Product;
 use base\models\CL_Hosting;
 use base\models\CL_Client;
 use base\models\CL_MailTemplate;
+use base\models\CL_BillableItems;
+use base\models\CL_Invoice;
 use components\KuberDock_Units;
 use exceptions\CException;
 use exceptions\UserNotFoundException;
@@ -20,8 +23,14 @@ use exceptions\UserNotFoundException;
  */
 class KuberDock_Product extends CL_Product {
 
+    /**
+     *
+     */
     const UNKNOWN_PAYMENT_PERIOD = 'unknown';
 
+    /**
+     * @var array
+     */
     public static $payment_periods = array(
         'annual' => 'annually',
         'quarter' => 'quarterly',
@@ -110,6 +119,13 @@ class KuberDock_Product extends CL_Product {
                 'Default' => '0',
                 'Description' => '',
             ),
+            'billingType' => array(
+                'FriendlyName' => 'Billing type',
+                'Type' => 'radio',
+                'Options' => 'PAYG,Fixed price',
+                'default' => 'Fixed price',
+                'Description' => '',
+            ),
         );
 
         return $config;
@@ -132,19 +148,7 @@ class KuberDock_Product extends CL_Product {
             ));
         }
 
-        $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-        $service = \KuberDock_Hosting::model()->loadById($serviceId);
-        if($service->isActive() && $predefinedApp) {
-            try {
-                if(!($pod = $predefinedApp->isPodExists($service->id))) {
-                    $pod = $predefinedApp->create($service->id);
-                    $predefinedApp->start($pod['id'], $service->id);
-                }
-                header('Location: ' . sprintf('cart.php?a=complete&sid=%s&podId=%s', $service->id, $pod['id']));
-            } catch(Exception $e) {
-                CException::displayError($e);
-            }
-        }
+        $this->createPodAndRedirect($serviceId);
     }
 
     /**
@@ -473,7 +477,7 @@ class KuberDock_Product extends CL_Product {
 
         foreach($sessionProducts as $row) {
             if($row['pid'] == $this->id) {
-                throw new CException('Product already in cart.');
+                return;
             }
         }
 
@@ -486,6 +490,51 @@ class KuberDock_Product extends CL_Product {
             'addons' => null,
             'server' => null,
         );
+    }
+
+    /**
+     * @param $userId
+     * @return KuberDock_Addon_Items
+     * @throws Exception
+     */
+    public function addBillableApp($userId)
+    {
+        $app = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+        if(!$this->isFixedPrice() || !$app->id) return;
+
+        list($recur, $recurCycle) = $this->getRecurType();
+        $model = CL_BillableItems::model();
+        $description = $this->getName() . ' - Pod ' . $app->getName();
+        $model->setAttributes(array(
+            'userid' => $userId,
+            'description' => $description,
+            'amount' => $app->getTotalPrice(),
+            'recur' => $recur,
+            'recurfor' => 0,
+            'recurcycle' => $recurCycle,
+            'invoiceaction' => CL_BillableItems::CREATE_RECUR_ID,
+            'duedate' => CL_Tools::getMySQLFormattedDate(new DateTime()),
+        ));
+        $model->save();
+
+        \base\models\CL_Invoice::model()->generateInvoices($userId);
+        $invoiceItem = $model->getLastInvoice();
+        $data = KuberDock_Hosting::model()->getByUser($userId);
+        $service = KuberDock_Hosting::model()->loadByParams(current($data));
+        $status = $invoiceItem->invoice->isPayed() ? CL_Invoice::STATUS_PAID : CL_Invoice::STATUS_UNPAID;
+        $item = new KuberDock_Addon_Items();
+        $item->setAttributes(array(
+            'user_id' => $userId,
+            'service_id' => $service->id,
+            'app_id' => $app->id,
+            'pod_id' => $app->getPodId(),
+            'billable_item_id' => $model->id,
+            'invoice_id' => $invoiceItem->invoice->id,
+            'status' => $status,
+        ));
+        $item->save();
+
+        return $item;
     }
 
     /**
@@ -515,12 +564,39 @@ class KuberDock_Product extends CL_Product {
     }
 
     /**
+     * @return array (recur, recurCycle)
+     * @throws Exception
+     */
+    public function getRecurType()
+    {
+        switch($this->getPaymentType()) {
+            case 'hourly':
+                throw new Exception('Hourly payment type has no recur type');
+            case 'monthly':
+                return array(1, CL_BillableItems::CYCLE_MONTH);
+            case 'quarterly':
+                return array(3, CL_BillableItems::CYCLE_MONTH);
+            case 'annually':
+                return array(1, CL_BillableItems::CYCLE_YEAR);
+        }
+    }
+
+    /**
      * @return bool
      * @throws Exception
      */
     public function isTrial()
     {
         return (bool) $this->getConfigOption('enableTrial');
+    }
+
+    /**
+     * @return bool
+     * @throws Exception
+     */
+    public function isFixedPrice()
+    {
+        return $this->getConfigOption('billingType') == 'Fixed price';
     }
 
     /**
@@ -549,9 +625,51 @@ class KuberDock_Product extends CL_Product {
         );
     }
 
+    /**
+     * @return mixed
+     * @throws Exception
+     */
     public function getPaymentType()
     {
         return $this->getConfigOption('paymentType');
+    }
+
+    /**
+     * @param int $serviceId
+     */
+    public function createPodAndRedirect($serviceId)
+    {
+        $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+        $service = \KuberDock_Hosting::model()->loadById($serviceId);
+        if($service->isActive() && $predefinedApp) {
+            try {
+                if(!($pod = $predefinedApp->isPodExists($service->id))) {
+                    $pod = $predefinedApp->create($service->id);
+                    $predefinedApp->start($pod['id'], $service->id);
+                }
+                header('Location: ' . sprintf('kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $pod['id']));
+            } catch(Exception $e) {
+                CException::displayError($e);
+            }
+        }
+    }
+
+    /**
+     * @param int $serviceId
+     * @param string $podId
+     */
+    public function startPodAndRedirect($serviceId, $podId)
+    {
+        $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
+        $service = \KuberDock_Hosting::model()->loadById($serviceId);
+        if($service->isActive()) {
+            try {
+                $predefinedApp->payAndStart($podId, $service->id);
+                header('Location: ' . sprintf('kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $podId));
+            } catch(Exception $e) {
+                CException::displayError($e);
+            }
+        }
     }
 
     /**

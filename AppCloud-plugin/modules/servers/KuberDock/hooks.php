@@ -66,6 +66,10 @@ function KuberDock_ProductEdit($params)
             $product->hidden = 1;
         }
 
+        if($product->isFixedPrice()) {
+            $product->setConfigOption('firstDeposit', 0);
+        }
+
         $product->save();
 
         try {
@@ -143,6 +147,7 @@ add_hook('ServiceDelete', 1, 'KuberDock_ServiceDelete');
 function KuberDock_ShoppingCartValidateCheckout($params)
 {
     $errors = array();
+
     if(isset($_SESSION['cart']) && $params['userid']) {
         foreach($_SESSION['cart']['products'] as $product) {
             $product = KuberDock_Product::model()->loadById($product['pid']);
@@ -173,7 +178,7 @@ function KuberDock_ShoppingCartValidateCheckout($params)
                                     $pod = $predefinedApp->create($row['id']);
                                     $predefinedApp->start($pod['id'], $row['id']);
                                 }
-                                header('Location: ' . sprintf('cart.php?a=view&sid=%s&podId=%s', $row['id'], $pod['id']));
+                                header('Location: ' . sprintf('kdorder.php?a=redirect&sid=%s&podId=%s', $row['id'], $pod['id']));
                             } catch(Exception $e) {
                                 CException::displayError($e);
                             }
@@ -244,8 +249,9 @@ add_hook('AfterConfigOptionsUpgrade', 1, 'KuberDock_AfterConfigOptionsUpgrade');
  */
 function KuberDock_ShoppingCartCheckoutCompletePage($params)
 {
+    //echo 111;
 }
-//add_hook('ShoppingCartCheckoutCompletePage', 1, 'KuberDock_ShoppingCartCheckoutCompletePage');
+add_hook('ShoppingCartCheckoutCompletePage', 1, 'KuberDock_ShoppingCartCheckoutCompletePage');
 
 function KuberDock_AfterShoppingCartCheckout($params)
 {
@@ -267,7 +273,7 @@ function KuberDock_AfterShoppingCartCheckout($params)
 
     $product->createUser($service);
 }
-add_hook('AfterShoppingCartCheckout', 1, 'KuberDock_AfterShoppingCartCheckout');
+//add_hook('AfterShoppingCartCheckout', 1, 'KuberDock_AfterShoppingCartCheckout');
 
 /**
  * Run: As the cart page is being displayed, this hook is run separately for each product added to the cart.
@@ -364,57 +370,6 @@ function KuberDock_ClientAreaPage($params)
             'servertype' => KUBERDOCK_MODULE_NAME,
         )), 'id');
 
-        // Buy predefined app by link
-        $predefinedApp = KuberDock_Addon_PredefinedApp::model();
-        if(isset($_GET[$predefinedApp::KUBERDOCK_YAML_FIELD])) {
-            $kdProductId = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_PRODUCT_ID_FIELD);
-            $yaml = html_entity_decode(urldecode(CL_Base::model()->getParam($predefinedApp::KUBERDOCK_YAML_FIELD)), ENT_QUOTES);
-            $referer = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_REFERER_FIELD);
-            $parsedYaml = Spyc::YAMLLoadString($yaml);
-
-            try {
-                if(isset($parsedYaml['kuberdock']['packageID'])) {
-                    $kdProductId = $parsedYaml['kuberdock']['packageID'];
-                }
-
-                if(!$referer) {
-                    if(isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER']) {
-                        $referer = $_SERVER['HTTP_REFERER'];
-                    } elseif(isset($parsedYaml['kuberdock']['server'])) {
-                        $referer = $parsedYaml['kuberdock']['server'];
-                    } elseif($server = KuberDock_Server::model()->getActive()) {
-                        $referer = $server->getApiServerUrl();
-                    } else {
-                        throw new CException('Cannot get KuberDock server url');
-                    }
-                }
-
-                $kdProduct = KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $referer);
-                $product = KuberDock_Product::model()->loadById($kdProduct->product_id);
-
-                $predefinedApp = $predefinedApp->loadBySessionId();
-                if(!$predefinedApp) {
-                    $predefinedApp = new KuberDock_Addon_PredefinedApp();
-                }
-
-                $predefinedApp->setAttributes(array(
-                    'session_id' => session_id(),
-                    'kuber_product_id' => $kdProductId,
-                    'product_id' => $product->id,
-                    'data' => $yaml,
-                ));
-
-                $predefinedApp->save();
-                $product->addToCart();
-            } catch(Exception $e) {
-                // product not founded
-                CException::log($e);
-                CException::displayError($e);
-            }
-
-            header('Location: cart.php?a=view');
-        }
-
         if(isset($values['products'])) {
             foreach($values['products'] as $k => &$product) {
                 if(!isset($products[$product['pid']])) {
@@ -486,31 +441,6 @@ function KuberDock_ClientAreaPage($params)
                 );
             }
         }
-
-        // Complete page
-        if(in_array(CL_Base::model()->getParam('a'), array('complete', 'view'))) {
-            $serviceId = CL_Base::model()->getParam('sid');
-            $podId = CL_Base::model()->getParam('podId');
-
-            if($serviceId && $podId) {
-                $service = KuberDock_Hosting::model()->loadById($serviceId);
-                $view = new \base\CL_View();
-                $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-                try {
-                    $pod = $service->getApi()->getPod($podId);
-                    $view->renderPartial('client/preapp_complete', array(
-                        'serverLink' => $service->getServer()->getLoginPageLink(),
-                        'token' => $service->getToken(),
-                        'podId' => $podId,
-                        'postDescription' => htmlentities($predefinedApp->getPostDescription($pod), ENT_QUOTES),
-                    ));
-                    exit;
-                } catch (Exception $e) {
-                    CException::log($e);
-                    CException::displayError($e);
-                }
-            }
-        }
     }
 
     // Upgrade area
@@ -564,6 +494,30 @@ function KuberDock_ClientAreaHomepage()
 }
 //add_hook('ClientAreaHomepage', 1, 'KuberDock_ClientAreaHomepage');
 
+function KuberDock_InvoiceCreated($params)
+{
+    $billableItem = \base\models\CL_BillableItems::model()->getByInvoice($params['invoiceid']);
+
+    if($billableItem) {
+        $data = KuberDock_Addon_Items::model()->loadByAttributes(array(
+            'billable_item_id' => $billableItem->id,
+        ), '', array(
+            'order' => 'ID DESC',
+        ));
+
+        if($data) {
+            $item = KuberDock_Addon_Items::model()->loadByParams(current($data));
+            $model = new KuberDock_Addon_Items();
+            $model->setAttributes($item->getAttributes());
+            unset($model->id);
+            $model->invoice_id = $params['invoiceid'];
+            $model->status = $billableItem->invoice->status;
+            $model->save();
+        }
+    }
+}
+add_hook('InvoiceCreated', 1, 'KuberDock_InvoiceCreated');
+
 /**
  * Run: This hook runs as an invoice status is changing from Unpaid to Paid after all automation associated
  * with the invoice has run.
@@ -583,6 +537,14 @@ function KuberDock_InvoicePaid($params)
 
         if($invoice->isSetupInvoice()) {
             $model->addCredit($invoice->userid, $invoice->subtotal, 'Adding funds for setup fee '.$invoice->id);
+        }
+
+        if($item = KuberDock_Addon_Items::model()->loadByInvoice($invoiceId)) {
+            $item->status = CL_Invoice::STATUS_PAID;
+            $item->save();
+
+            $product = KuberDock_Product::model();
+            $product->startPodAndRedirect($item->service_id, $item->pod_id);
         }
     } catch(Exception $e) {
         CException::log($e);
@@ -648,6 +610,25 @@ function KuberDock_InvoiceUnpaid($params)
 add_hook('InvoiceUnpaid', 1, 'KuberDock_InvoiceUnpaid');
 
 /**
+ * This hook runs after the Invoice Payment Reminder or Invoice Overdue Notices are sent to the client for an invoice.
+ * @param $params
+ */
+function KuberDock_InvoicePaymentReminder($params)
+{
+    $invoiceId = $params['invoiceid'];
+    $type = $params['type'];
+    $model = CL_Invoice::model();
+    $invoice = $model->loadById($invoiceId);
+
+    try {
+        //
+    } catch(Exception $e) {
+        CException::log($e);
+    }
+}
+//add_hook('InvoicePaymentReminder', 1, 'KuberDock_InvoicePaymentReminder');
+
+/**
  * Run: When a product is being edited in Setup -> Products/Services -> Products/Services
  *
  * @param $params
@@ -679,7 +660,7 @@ function KuberDock_PreModuleChangePackage($params)
 {
     //
 }
-add_hook('PreModuleChangePackage', 1, 'KuberDock_PreModuleChangePackage');
+//add_hook('PreModuleChangePackage', 1, 'KuberDock_PreModuleChangePackage');
 
 /**
  * Runs after the ChangePackage function has been successfully run
@@ -689,7 +670,7 @@ function KuberDock_AfterModuleChangePackage($params)
 {
     //
 }
-add_hook('AfterModuleChangePackage', 1, 'KuberDock_AfterModuleChangePackage');
+//add_hook('AfterModuleChangePackage', 1, 'KuberDock_AfterModuleChangePackage');
 
 
 /**

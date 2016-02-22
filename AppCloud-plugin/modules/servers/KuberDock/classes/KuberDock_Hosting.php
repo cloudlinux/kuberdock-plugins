@@ -44,9 +44,10 @@ class KuberDock_Hosting extends CL_Hosting {
      * Get user KuberDock services
      *
      * @param int $userId
+     * @param string|null $serverUrl
      * @return array
      */
-    public function getByUser($userId)
+    public function getByUser($userId, $serverUrl = null)
     {
         $db = CL_Query::model();
 
@@ -55,8 +56,18 @@ class KuberDock_Hosting extends CL_Hosting {
         $sql = "SELECT hosting.*, client.id AS client_id, product.id AS product_id
             FROM `".$this->tableName."` hosting
                 LEFT JOIN `".KuberDock_Product::model()->tableName."` product ON hosting.packageid = product.id
-                LEFT JOIN `".CL_Client::model()->tableName."` client ON hosting.userid = client.id
-            WHERE client.id = ? AND product.serverType = ?";
+                LEFT JOIN `".CL_Client::model()->tableName."` client ON hosting.userid = client.id";
+
+        if($serverUrl) {
+            $url = parse_url($serverUrl);
+            $host = $url['host'];
+            $host .= $url['port'] ? ':'.$url['port'] : '';
+            $sql .= " LEFT JOIN tblservers s ON hosting.server=s.id
+                WHERE client.id = ? AND product.serverType = ? AND (s.ipaddress = ? OR s.hostname = ?)";
+            array_push($values, $host, $host);
+        } else {
+            $sql .= " WHERE client.id = ? AND product.serverType = ?";
+        }
 
         $rows = $db->query($sql, $values)->getRows();
 
@@ -99,24 +110,41 @@ class KuberDock_Hosting extends CL_Hosting {
             return true;
         }
 
-        $paymentType = $product->getConfigOption('paymentType');
+        if($product->isFixedPrice()) {
+            $this->calculateFixed();
+        } else {
+            $paymentType = $product->getConfigOption('paymentType');
 
-        $kubes = KuberDock_Product::model()->loadById($this->packageid)->getKubes();
-        $kubes = CL_Tools::getKeyAsField($kubes, 'kuber_kube_id');
-        $items = $this->calculateUsageByDate($date, $kubes, $paymentType);
+            $kubes = KuberDock_Product::model()->loadById($this->packageid)->getKubes();
+            $kubes = CL_Tools::getKeyAsField($kubes, 'kuber_kube_id');
+            $items = $this->calculateUsageByDate($date, $kubes, $paymentType);
 
-        $totalPrice = $this->getItemsTotalPrice($items);
+            $totalPrice = $this->getItemsTotalPrice($items);
 
-        if($totalPrice) {
-            if($clientDetails['client']['credit'] < $totalPrice) {
-                $this->addInvoice($this->userid, $date, $items, false);
-                $this->suspendModule('Not enough funds');
-                return false;
+            if($totalPrice) {
+                if($clientDetails['client']['credit'] < $totalPrice) {
+                    $this->addInvoice($this->userid, $date, $items, false);
+                    $this->suspendModule('Not enough funds');
+                    return false;
+                }
+                $this->addInvoice($this->userid, $date, $items);
             }
-            $this->addInvoice($this->userid, $date, $items);
         }
 
         return true;
+    }
+
+    public function calculateFixed()
+    {
+        $items = KuberDock_Addon_Items::model()->loadByAttributes(array(
+            'status' => \base\models\CL_Invoice::STATUS_UNPAID,
+            'user_id' => $this->userid,
+        ));
+
+        foreach($items as $row) {
+            $item = KuberDock_Addon_Items::model()->loadByParams($row);
+            $item->checkStatus();
+        }
     }
 
     /**

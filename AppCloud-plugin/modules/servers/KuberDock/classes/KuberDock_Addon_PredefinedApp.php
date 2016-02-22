@@ -5,9 +5,12 @@
  */
 
 use base\CL_Model;
-
 use base\CL_Tools;
+use base\models\CL_Invoice;
 
+/**
+ * Class KuberDock_Addon_PredefinedApp
+ */
 class KuberDock_Addon_PredefinedApp extends CL_Model {
     /**
      *
@@ -21,6 +24,14 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
      *
      */
     const KUBERDOCK_YAML_FIELD = 'yaml';
+    /**
+     *
+     */
+    const KUBERDOCK_POD_FIELD = 'pod';
+    /**
+     *
+     */
+    const KUBERDOCK_USER_FIELD = 'user';
     /**
      *
      */
@@ -56,13 +67,20 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
 
     /**
      * @param int $serviceId
+     * @param string $status
      * @return array
      * @throws Exception
      */
-    public function create($serviceId)
+    public function create($serviceId, $status = null)
     {
         $api = KuberDock_Hosting::model()->loadById($serviceId)->getApi();
         $response = $api->createPodFromYaml($this->data);
+
+        if($status) {
+            $api->updatePod($response->getData()['id'], array(
+                'status' => $status,
+            ));
+        }
 
         return $response->getData();
     }
@@ -75,6 +93,20 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     public function start($podId, $serviceId)
     {
         $api = KuberDock_Hosting::model()->loadById($serviceId)->getApi();
+        $api->startPod($podId);
+    }
+
+    /**
+     * @param string $podId
+     * @param int $serviceId
+     * @throws Exception
+     */
+    public function payAndStart($podId, $serviceId)
+    {
+        $api = KuberDock_Hosting::model()->loadById($serviceId)->getApi();
+        $api->updatePod($podId, array(
+            'status' => 'stopped',
+        ));
         $api->startPod($podId);
     }
 
@@ -105,7 +137,99 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
      */
     public function getTotalPrice()
     {
+        $pod= $this->getPod();
+
+        if($pod) {
+            return $this->getTotalPricePod($pod);
+        } else {
+            return $this->getTotalPriceYAML(Spyc::YAMLLoadString($this->data));
+        }
+
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        if($pod = $this->getPod()) {
+            return $pod->name;
+        } else {
+            $yaml = Spyc::YAMLLoadString($this->data);
+            return isset($yaml['metadata']['name']) ? $yaml['metadata']['name'] : 'Undefined';
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getPodId()
+    {
+        $pod = $this->getPod();
+
+        return $pod ? $pod->id : '';
+    }
+
+    /**
+     * @return mixed|null
+     */
+    public function getPod()
+    {
+        $data = json_decode($this->data);
+
+        if($data) {
+            return $data;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param int $serviceId
+     * @param array $pod
+     * @return string
+     */
+    public function getPodLink($serviceId, $pod)
+    {
+        $service = KuberDock_Hosting::model()->loadById($serviceId);
+        $variables = $this->getVariables($pod);
+
+        return $service->getLoginByTokenLink(false) . '&postDescription=' . $this->getPostDescription($variables)
+            . '&next=#pods/' . $pod['id'];
+
+    }
+
+    /**
+     * @return string
+     */
+    public function getPostDescription()
+    {
         $data = Spyc::YAMLLoadString($this->data);
+        $postDescription = isset($data['kuberdock'][self::KUBERDOCK_YAML_POST_DESCRIPTION_FIELD]) ?
+            $data['kuberdock'][self::KUBERDOCK_YAML_POST_DESCRIPTION_FIELD] : '';
+
+        return $postDescription;
+    }
+
+    /**
+     * @param array $pod
+     * @return array
+     */
+    private function getVariables($pod)
+    {
+        $publicIp = isset($pod['public_ip']) ? $pod['public_ip'] : '{Public IP address not set}';
+        $variables['%PUBLIC_ADDRESS%'] = $publicIp;
+
+        return $variables;
+    }
+
+    /**
+     * @param $data
+     * @return int
+     * @throws Exception
+     */
+    private function getTotalPriceYAML($data)
+    {
         $total = 0;
         $product = KuberDock_Product::model()->loadById($this->product_id) ;
         $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
@@ -148,45 +272,44 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     }
 
     /**
-     * @param int $serviceId
-     * @param array $pod
-     * @return string
+     * @param $data
+     * @return int
+     * @throws Exception
      */
-    public function getPodLink($serviceId, $pod)
+    private function getTotalPricePod($data)
     {
-        $service = KuberDock_Hosting::model()->loadById($serviceId);
-        $variables = $this->getVariables($pod);
+        $total = 0;
+        $product = KuberDock_Product::model()->loadById($this->product_id) ;
+        $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
+        $kubeType = isset($data->kube_type) ? $data->kube_type : 0;
+        $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
+        $publicIp = 0;
 
-        return $service->getLoginByTokenLink(false) . '&postDescription=' . $this->getPostDescription($variables)
-            . '&next=#pods/' . $pod['id'];
+        foreach($data->containers as $row) {
+            if(isset($row->kubes)) {
+                $total += $row->kubes * $kubePrice;
+            }
 
-    }
+            if(isset($row->ports)) {
+                foreach($row->ports as $port) {
+                    if(isset($port->isPublic) && $port->isPublic) {
+                        $publicIp = 1;
+                    }
+                }
+            }
+        }
 
-    /**
-     * @param array $variables
-     * @return string
-     */
-    public function getPostDescription($variables = array())
-    {
-        $data = Spyc::YAMLLoadString($this->data);
-        $postDescription = isset($data['kuberdock'][self::KUBERDOCK_YAML_POST_DESCRIPTION_FIELD]) ?
-            $data['kuberdock'][self::KUBERDOCK_YAML_POST_DESCRIPTION_FIELD] : '';
+        $total += $publicIp * (float) $product->getConfigOption('priceIP');
 
-        //$postDescription = str_replace(array_keys($variables), array_values($variables), $postDescription);
+        if(isset($data->volumes)) {
+            foreach($data->volumes as $row) {
+                if(isset($row->persistentDisk->pdSize)) {
+                    $total += $row->persistentDisk->pdSize * (float) $product->getConfigOption('pricePersistentStorage');
+                }
+            }
+        }
 
-        return $postDescription;
-    }
-
-    /**
-     * @param array $pod
-     * @return array
-     */
-    private function getVariables($pod)
-    {
-        $publicIp = isset($pod['public_ip']) ? $pod['public_ip'] : '{Public IP address not set}';
-        $variables['%PUBLIC_ADDRESS%'] = $publicIp;
-
-        return $variables;
+        return $total;
     }
 
     /**

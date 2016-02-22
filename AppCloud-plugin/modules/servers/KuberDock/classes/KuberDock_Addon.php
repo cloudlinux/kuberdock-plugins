@@ -128,6 +128,19 @@ class KuberDock_Addon extends CL_Component {
                 PRIMARY KEY (`id`)
             ) ENGINE=InnoDB');
 
+            $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_items` (
+                id INT AUTO_INCREMENT,
+                user_id INT NOT NULL,
+                app_id INT NOT NULL,
+                service_id INT NOT NULL,
+                pod_id varchar(64) NOT NULL,
+                billable_item_id INT NOT NULL,
+                invoice_id INT NOT NULL,
+                status VARCHAR(16),
+                INDEX (pod_id, app_id),
+                PRIMARY KEY (id)
+            ) ENGINE=INNODB');
+
             // Create email templates
             $mailTemplate = CL_MailTemplate::model();
             $mailTemplate->createTemplate($mailTemplate::TRIAL_NOTICE_NAME, 'KuberDock Trial Notice',
@@ -169,6 +182,7 @@ class KuberDock_Addon extends CL_Component {
                 $product->setConfigOption('pricePersistentStorage', $package['price_pstorage']);
                 $product->setConfigOption('priceIP', $package['price_ip']);
                 $product->setConfigOption('paymentType', KuberDock_Product::$payment_periods[$package['period']]);
+                $product->setConfigOption('billingType', 'Fixed price');
 
                 $product->setConfigOption('debug', 0);
 
@@ -205,6 +219,8 @@ class KuberDock_Addon extends CL_Component {
             $db->query('DROP TABLE IF EXISTS `KuberDock_kubes`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_trial`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_products`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_price_changes`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_items`');
             throw $e;
         }
     }
@@ -266,6 +282,7 @@ class KuberDock_Addon extends CL_Component {
         $db->query('DROP TABLE IF EXISTS `KuberDock_trial`');
         $db->query('DROP TABLE IF EXISTS `KuberDock_products`');
         $db->query('DROP TABLE IF EXISTS `KuberDock_price_changes`');
+        $db->query('DROP TABLE IF EXISTS `KuberDock_items`');
 
         // Delete email templates
         $mailTemplate = CL_MailTemplate::model();

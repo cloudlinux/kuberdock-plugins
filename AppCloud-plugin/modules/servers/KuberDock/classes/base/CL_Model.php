@@ -227,10 +227,14 @@ class CL_Model {
 
     /**
      * @param array $params
-     * @return $this
+     * @return $this|bool
      */
     public function loadByParams($params = array())
     {
+        if(!$params) {
+            return false;
+        }
+
         $this->action = self::ACTION_UPDATE;
         $this->_values = $params;
 
@@ -279,6 +283,7 @@ class CL_Model {
             $fields[] = "`$field`=?";
         }
 
+        $this->setAttributes($values);
         $sql = "UPDATE `".$this->tableName."` SET ".implode(',', $fields)." WHERE `".$this->_pk."` = ?";
         $values = array_merge(array_values($values), array($id));
 

@@ -10,6 +10,7 @@ use api\KuberDock_ApiResponse;
 use api\KuberDock_ApiStatusCode;
 use base\CL_Tools;
 use exceptions\CException;
+use exceptions\UserNotFoundException;
 use Exception;
 
 class KuberDock_Api {
@@ -433,10 +434,14 @@ class KuberDock_Api {
     /**
      * @param $user
      * @return KuberDock_ApiResponse
-     * @throws Exception
+     * @throws Exception, UserNotFoundException
      */
     public function getUser($user)
     {
+        if(!$user) {
+            throw new UserNotFoundException();
+        }
+
         $this->url = $this->serverUrl . '/api/users/all/' . $user;
         $response = $this->call();
 
@@ -937,6 +942,26 @@ class KuberDock_Api {
         $response = $this->call(array(
             'command' => 'start',
         ), 'PUT');
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param string $podId
+     * @param array $attributes
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function updatePod($podId, $attributes)
+    {
+        $attributes['command'] = 'change_config';
+        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
+        $response = $this->call($attributes, 'PUT');
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());

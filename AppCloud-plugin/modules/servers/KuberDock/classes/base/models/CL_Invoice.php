@@ -15,6 +15,7 @@ class CL_Invoice extends CL_Model {
     const CUSTOM_INVOICE_DESCRIPTION = 'Custom invoice';
 
     const STATUS_PAID = 'Paid';
+    const STATUS_UNPAID = 'Unpaid';
 
     /**
      *
@@ -186,6 +187,34 @@ class CL_Invoice extends CL_Model {
         }
 
         return $results;
+    }
+
+    /**
+     * @param int $userId
+     * @return mixed
+     * @throws Exception
+     */
+    public function generateInvoices($userId)
+    {
+        $admin = KuberDock_User::model()->getCurrentAdmin();
+
+        $values['clientid'] = $userId;
+
+        $results = localAPI('geninvoices', $values, $admin['username']);
+
+        if($results['result'] != 'success') {
+            throw new Exception($results['message']);
+        }
+
+        return $results;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPayed()
+    {
+        return ($this->status == self::STATUS_PAID || $this->subtotal == $this->credit);
     }
 
     /**

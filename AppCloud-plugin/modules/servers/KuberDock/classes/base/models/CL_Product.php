@@ -79,14 +79,6 @@ abstract class CL_Product extends CL_Model {
     }
 
     /**
-     * @param array $values
-     */
-    public function apiUpdate($values = array())
-    {
-
-    }
-    
-    /**
      * Create custom field
      *
      * @param int $id
