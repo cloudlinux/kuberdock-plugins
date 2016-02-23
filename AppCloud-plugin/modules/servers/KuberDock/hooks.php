@@ -135,6 +135,10 @@ add_hook('ServiceDelete', 1, 'KuberDock_ServiceDelete');
 
 /**
  * Run: As the final checkout button is pressed, this hook is run and an error can be returned to stop the process.
+ *
+ * @param $params
+ * @return array
+ * @throws Exception
  */
 function KuberDock_ShoppingCartValidateCheckout($params)
 {
@@ -234,7 +238,7 @@ function KuberDock_AfterConfigOptionsUpgrade($upgradeId)
 add_hook('AfterConfigOptionsUpgrade', 1, 'KuberDock_AfterConfigOptionsUpgrade');
 
 /**
- * Run: As the order is being accepted via the admin area of API, before any updates are completed.
+ * Run: As the cart complete page is displayed to the client
  *
  * @param array $params
  */
@@ -242,6 +246,28 @@ function KuberDock_ShoppingCartCheckoutCompletePage($params)
 {
 }
 //add_hook('ShoppingCartCheckoutCompletePage', 1, 'KuberDock_ShoppingCartCheckoutCompletePage');
+
+function KuberDock_AfterShoppingCartCheckout($params)
+{
+    $order = \base\models\CL_Order::model()->loadById($params['OrderID']);
+
+    $client = \base\models\CL_Client::model()->loadById($order->userid);
+    $client->filterValues();
+
+    $service_id = reset($params['ServiceIDs']);
+    $service = \KuberDock_Hosting::model()->loadById($service_id);
+
+    $service->username = $client->email;
+
+    $product = \KuberDock_Product::model()->loadById($service->packageid);
+    if ($product->servertype != 'KuberDock') {
+        return;
+    }
+    $product->setClient($client);
+
+    $product->createUser($service);
+}
+add_hook('AfterShoppingCartCheckout', 1, 'KuberDock_AfterShoppingCartCheckout');
 
 /**
  * Run: As the cart page is being displayed, this hook is run separately for each product added to the cart.
@@ -541,6 +567,8 @@ function KuberDock_ClientAreaHomepage()
 /**
  * Run: This hook runs as an invoice status is changing from Unpaid to Paid after all automation associated
  * with the invoice has run.
+ *
+ * @param $params
  */
 function KuberDock_InvoicePaid($params)
 {
@@ -566,6 +594,8 @@ add_hook('InvoicePaid', 1, 'KuberDock_InvoicePaid');
  * Run: This hook runs as an invoice status is changing to Cancelled. This can be from the invoice in the admin area,
  * a mass update action, cancelling an order, a submitted cancellation request or a client disabling the auto
  * renewal of a domain.
+ *
+ * @param $params
  */
 function KuberDock_InvoiceCancelled($params)
 {
@@ -594,6 +624,8 @@ add_hook('InvoiceCancelled', 1, 'KuberDock_InvoiceCancelled');
 /**
  * Run: This hook runs as an invoice status is changing to Unpaid via the Admin area. This can be from a single invoice,
  * or a mass action. The hook runs for each invoice being processed.
+ *
+ * @param $params
  */
 function KuberDock_InvoiceUnpaid($params)
 {
@@ -617,6 +649,8 @@ add_hook('InvoiceUnpaid', 1, 'KuberDock_InvoiceUnpaid');
 
 /**
  * Run: When a product is being edited in Setup -> Products/Services -> Products/Services
+ *
+ * @param $params
  */
 function KuberDock_AdminProductConfigFields($params)
 {
@@ -627,6 +661,8 @@ function KuberDock_AdminProductConfigFields($params)
 /**
  * Run: After the module Create function has run successfully.
  * The $_REQUEST array can be accessed in order to save the fields output by the AdminProductConfigFields hook.
+ *
+ * @param $pid
  */
 function KuberDock_AdminProductConfigFieldsSave($pid)
 {
@@ -636,6 +672,7 @@ function KuberDock_AdminProductConfigFieldsSave($pid)
 
 /**
  * Runs when the ChangePackage function is being run, before any command is sent, but after the variables are loaded.
+ *
  * @param $params
  */
 function KuberDock_PreModuleChangePackage($params)

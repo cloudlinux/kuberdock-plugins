@@ -122,43 +122,8 @@ class KuberDock_Product extends CL_Product {
     public function create($serviceId)
     {
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
-        $api = $service->getAdminApi();
-        $productName = $this->getName();
-        $service->username = $this->client->email;
-        $password = $service->decryptPassword();
-        $role = $this->isTrial() ? \KuberDock_User::ROLE_TRIAL : \KuberDock_User::ROLE_USER;
 
-        try {
-            $response = $api->getUser($service->username);
-            $api->unDeleteUser($service->username);
-            $this->update($serviceId, true);
-        } catch(UserNotFoundException $e) {
-            $response = $api->createUser(array(
-                'first_name' => $this->client->firstname,
-                'last_name' => $this->client->lastname,
-                'username' => $service->username,
-                'password' => $password,
-                'active' => 1,
-                'suspended' => 0,
-                'email' => $this->client->email,
-                'rolename' => $role,
-                'package' => $productName,
-                'timezone' => 'UTC (+0000)',
-            ));
-
-            $token = $service->setAttributes(array(
-                'username' => $service->username,
-                'password' => $service->encryptPassword($password),
-            ))->getApi()->getToken();
-            $service->updateToken($token);
-            $created = true;
-        }
-
-        $service->updateById($serviceId, array(
-            'username' => $service->username,
-            'password' => $service->encryptPassword($password),
-            'domainstatus' => 'Active',
-        ));
+        $created = $this->createUser($service);
 
         if(isset($created) && $created) {
             // Send module create email
@@ -180,6 +145,49 @@ class KuberDock_Product extends CL_Product {
                 CException::displayError($e);
             }
         }
+    }
+
+    /**
+     * @param \KuberDock_Hosting $service
+     * @return bool true id user created, false if existed
+     *
+     * @throws Exception
+     */
+    public function createUser($service)
+    {
+        $service->updateById($service->id, array(
+            'username' => $this->client->email,
+            'password' => $service->encryptPassword(substr($this->client->password, 0, 25)),
+            'domainstatus' => 'Active',
+        ));
+
+        $api = $service->getAdminApi();
+
+        try {
+            $api->getUser($service->username);
+            $api->unDeleteUser($service->username);
+            $this->update($service->id, true);
+        } catch(UserNotFoundException $e) {
+            $api->createUser(array(
+                'first_name' => $this->client->firstname,
+                'last_name' => $this->client->lastname,
+                'username' => $service->username,
+                'password' => $service->decryptPassword(),
+                'active' => 1,
+                'suspended' => 0,
+                'email' => $this->client->email,
+                'rolename' => $this->isTrial() ? \KuberDock_User::ROLE_TRIAL : \KuberDock_User::ROLE_USER,
+                'package' => $this->getName(),
+                'timezone' => 'UTC (+0000)',
+            ));
+
+            $token = $service->getApi()->getToken();
+            $service->updateToken($token);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -213,7 +221,6 @@ class KuberDock_Product extends CL_Product {
             'suspended' => $service->isSuspended() ? 1 : 0,
             //'email' => $this->client->email,
             'rolename' => $role,
-            'package' => $productName,
             'timezone' => $data['timezone'],
             'deleted' => 0,
         ), $data['id']);
