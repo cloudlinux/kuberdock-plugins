@@ -126,6 +126,12 @@ class KuberDock_Product extends CL_Product {
                 'default' => 'Fixed price',
                 'Description' => '',
             ),
+            'restrictedUser' => array(
+                'FriendlyName' => 'Restricted users',
+                'Type' => 'yesno',
+                'default' => 'no',
+                'Description' => '',
+            ),
         );
 
         return $config;
@@ -166,7 +172,6 @@ class KuberDock_Product extends CL_Product {
         ));
 
         $api = $service->getAdminApi();
-
         try {
             $api->getUser($service->username);
             $api->unDeleteUser($service->username);
@@ -180,7 +185,7 @@ class KuberDock_Product extends CL_Product {
                 'active' => 1,
                 'suspended' => 0,
                 'email' => $this->client->email,
-                'rolename' => $this->isTrial() ? \KuberDock_User::ROLE_TRIAL : \KuberDock_User::ROLE_USER,
+                'rolename' => $this->getRole(),
                 'package' => $this->getName(),
                 'timezone' => 'UTC (+0000)',
             ));
@@ -207,7 +212,6 @@ class KuberDock_Product extends CL_Product {
         $productName = $this->getName();
         $service->username = $this->client->email;
         $password = $service->decryptPassword();
-        $role = $this->isTrial() ? KuberDock_User::ROLE_TRIAL : KuberDock_User::ROLE_USER;
 
         $response = $api->getUser($service->username);
 
@@ -223,8 +227,7 @@ class KuberDock_Product extends CL_Product {
             'password' => $password,
             'active' => $service->isTerminated() && !$activate ? 0 : 1,
             'suspended' => $service->isSuspended() ? 1 : 0,
-            //'email' => $this->client->email,
-            'rolename' => $role,
+            'rolename' => $this->getRole(),
             'timezone' => $data['timezone'],
             'deleted' => 0,
         ), $data['id']);
@@ -600,6 +603,15 @@ class KuberDock_Product extends CL_Product {
     }
 
     /**
+     * @return bool
+     * @throws Exception
+     */
+    public function isRestirctedUser()
+    {
+        return (bool) $this->getConfigOption('restrictedUser');
+    }
+
+    /**
      *
      */
     public function hide()
@@ -669,6 +681,20 @@ class KuberDock_Product extends CL_Product {
             } catch(Exception $e) {
                 CException::displayError($e);
             }
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getRole()
+    {
+        if($this->isTrial()) {
+            return \KuberDock_User::ROLE_TRIAL;
+        } elseif($this->isRestirctedUser()) {
+            return \KuberDock_User::ROLE_RESTRICTED_USER;
+        } else {
+            return \KuberDock_User::ROLE_USER;
         }
     }
 

@@ -23,6 +23,10 @@ class KuberDock_User extends CL_User {
      *
      */
     const ROLE_USER = 'User';
+    /**
+     *
+     */
+    const ROLE_RESTRICTED_USER = 'LimitedUser';
 
     /**
      * @return bool

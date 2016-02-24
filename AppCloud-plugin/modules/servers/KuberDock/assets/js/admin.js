@@ -116,6 +116,10 @@ $(document).ready(function() {
         'https://helpdesk.cloudlinux.com</a>';
     // Displayed everywhere
     //$('.btn-container').append('<div class="col-md-12 support">' + support + '</div>');
+
+    // Edit product, radio buttons position
+    $('td:contains("Billing type")').next('td').find('br').remove();
+    $('td:contains("Restricted users")').next('td').find('input[type=checkbox]').css('position', 'relative');
 });
 
 $(function() {
