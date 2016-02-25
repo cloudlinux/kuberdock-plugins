@@ -9,23 +9,23 @@
 <div class="container-fluid">
     <div role="tabpanel">
         <ul class="nav nav-tabs" role="tablist" id="kuber_tab">
-            <li role="presentation"<?php if($tab=='kubes') { echo ' class="active"';}?>>
-                <a href="#kubes" aria-controls="kubes" role="tab" data-toggle="tab">Kube types</a>
+            <li role="presentation">
+                <a href="#kubes" aria-controls="kubes" role="tab">Kube types</a>
             </li>
-            <li role="presentation"<?php if($tab=='log') { echo ' class="active"';}?>>
-                <a href="#log" aria-controls="log" role="tab" data-toggle="tab">Changes log</a>
+            <li role="presentation">
+                <a href="#log" aria-controls="log" role="tab">Changes log</a>
             </li>
         </ul>
 
         <div class="tab-content">
-            <div role="tabpanel" class="tab-pane<?php if($tab=='kubes') { echo ' active';}?>" id="kubes">
+            <div role="tabpanel" class="tab-pane" id="kubes">
                 <?php $this->renderPartial('kubes', array(
                     'kubes' => $kubes,
                     'products' => $products,
                     'brokenPackages' => $brokenPackages,
                 ))?>
             </div>
-            <div role="tabpanel" class="tab-pane<?php if($tab=='log') { echo ' active';}?>" id="log">
+            <div role="tabpanel" class="tab-pane" id="log">
                 <?php $this->renderPartial('log', array(
                     'logs' => $logs,
                     'paginator' => $paginator,

@@ -3,19 +3,16 @@ var $$ = jQuery.noConflict();
 
 $(function() {
 
-    var showMessage = function(text, type) {
-        var cl = 'alert alert-',
-            msg;
+    var hash = window.location.hash || '#kubes';
+    $('ul.nav a[href="' + hash + '"]').tab('show');
 
-        type = typeof type === 'undefined' ? 'success' : 'error';
-        cl += type == 'error' ? 'danger' : type;
-
-        msg = $('<div>', { class: cl, role: 'alert', text: text });
-        if($('div.alert').length)
-            $('div.alert').replaceWith(msg);
-        else
-            $('h3.section').after(msg);
-    };
+    $('.nav-tabs a').click(function (e) {
+        e.preventDefault();
+        $(this).tab('show');
+        var curPos=$(document).scrollTop();
+        window.location.hash = this.hash;
+        $(document).scrollTop(curPos);
+    });
 
     var getParam = function(variable) {
         var query = window.location.search.substring(1);
@@ -52,15 +49,17 @@ $(function() {
             data: _this.serialize(),
             dataType: 'json'
         }).success(function(data) {
-            _this.find('span').addClass('hidden');
+            var span = _this.find('span');
+            span.addClass('hidden');
             if (data.error) {
+                cancelPriceChange(span);
                 _this.append('<span class="error">' + data.message + '</span>');
             } else {
                 var values = data.values;
                 var name = (values.id) ? (values.name + ' (' + values.id + ')') : values.name;
                 _this.find('input[name="kube_price"]').data('prev', values.kube_price).val(values.kube_price);
                 _this.find('input[name="id"]').val(values.id);
-                _this.parents('tr').find('td.middle').text(name);
+                _this.closest('tr').find('td.middle').text(name);
             }
         });
     });
@@ -75,7 +74,6 @@ $(function() {
         span.removeClass('hidden');
         var error = $('span.error');
         if (error.length) {
-            cancelPriceChange(span);
             error.remove();
         }
     });

@@ -29,9 +29,6 @@ class KuberDock_AddonController extends CL_Controller {
 
     public function indexAction()
     {
-        $this->assets->registerScriptFiles(array('jquery.tablesorter.min'));
-
-        $tab = CL_Base::model()->getParam('tab', 'kubes');
         $paginator = $this->getLogsPaginator();
         $logs = \KuberDock_Addon_PriceChange::getLogs($paginator->limit(), $paginator->offset());
 
@@ -61,7 +58,6 @@ class KuberDock_AddonController extends CL_Controller {
             'products' => $products,
             'brokenPackages' => $brokenPackages,
             'logs' => $logs,
-            'tab' => $tab,
             'paginator' => $paginator,
         ));
     }
@@ -254,8 +250,7 @@ class KuberDock_AddonController extends CL_Controller {
             'per_page' => $per_page,
         ))->append_params(array(
             'module' => 'KuberDock',
-            'tab' => 'log',
-        ));
+        ))->append_anchor('log');
 
         return $paginator;
     }

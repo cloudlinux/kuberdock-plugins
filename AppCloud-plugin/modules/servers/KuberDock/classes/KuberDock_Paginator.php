@@ -15,6 +15,7 @@ class KuberDock_Paginator
     protected $window;
     protected $records;
     protected $params;
+    protected $anchor;
     public static function create($setting)
     {
         return new static($setting);
@@ -200,6 +201,13 @@ class KuberDock_Paginator
         $this->params = $params;
         return $this;
     }
+
+    public function append_anchor($anchor)
+    {
+        $this->anchor = $anchor;
+        return $this;
+    }
+
     /**
      * generate html link
      */
@@ -210,6 +218,9 @@ class KuberDock_Paginator
         $html .= "?page=" . $page;
         if($this->params) {
             $html .= "&".http_build_query($this->params);
+        }
+        if ($this->anchor) {
+            $html .= '#' . $this->anchor;
         }
         $html .= '">';
         $html .= $content;
