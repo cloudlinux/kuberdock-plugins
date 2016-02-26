@@ -87,10 +87,14 @@ sub request {
     }
 
     my $req = HTTP::Request->new($requestType => $endpoint);
-    $req->header('content-type' => 'application/json');
+
+    if(!grep {$_ eq $requestType} ('GET')) {
+        $req->header('content-type' => 'application/json');
+    }
+
     $req->authorization_basic($self->{_username}, $self->{_password});
 
-    if($requestType eq 'POST' || $requestType eq 'PUT') {
+    if(grep {$_ eq $requestType} ('POST', 'PUT')) {
         $req->content($data);
     }
 
