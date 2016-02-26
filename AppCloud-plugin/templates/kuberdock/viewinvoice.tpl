@@ -176,9 +176,6 @@
                         <td class="textright total" colspan="4">{$LANG.invoicesbalance}: {$balance}</td>
                     </tr>
                 </table>
-                {if $notes}
-                    <p>{$LANG.invoicesnotes}: {$notes}</p>
-                {/if}
             {/if}
         </div>
         <p class="check-buttons textcenter">

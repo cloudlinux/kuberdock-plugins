@@ -502,8 +502,21 @@ class KuberDock_Product extends CL_Product {
      */
     public function addBillableApp($userId)
     {
+        if(!$this->isFixedPrice()) {
+            throw new Exception('Fixed price - billable items not needed.');
+        }
+
         $app = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-        if(!$this->isFixedPrice() || !$app->id) return;
+        if(!$app->id) {
+            throw new Exception('Cannot find PredefinedApp');
+        }
+
+        $items = $app->getTotalPrice();
+
+        $totalPrice = array_reduce($items, function ($carry, $item) {
+            $carry += $item['total'];
+            return $carry;
+        });
 
         list($recur, $recurCycle) = $this->getRecurType();
         $model = CL_BillableItems::model();
@@ -511,20 +524,36 @@ class KuberDock_Product extends CL_Product {
         $model->setAttributes(array(
             'userid' => $userId,
             'description' => $description,
-            'amount' => $app->getTotalPrice(),
+            'amount' => $totalPrice,
             'recur' => $recur,
             'recurfor' => 0,
             'recurcycle' => $recurCycle,
             'invoiceaction' => CL_BillableItems::CREATE_RECUR_ID,
             'duedate' => CL_Tools::getMySQLFormattedDate(new DateTime()),
         ));
-        $model->save();
 
-        \base\models\CL_Invoice::model()->generateInvoices($userId);
-        $invoiceItem = $model->getLastInvoice();
         $data = KuberDock_Hosting::model()->getByUser($userId);
         $service = KuberDock_Hosting::model()->loadByParams(current($data));
-        $status = $invoiceItem->invoice->isPayed() ? CL_Invoice::STATUS_PAID : CL_Invoice::STATUS_UNPAID;
+
+        $client = KuberDock_User::model()->getClientDetails($userId);
+        $gateway = $client['client']['defaultgateway']
+            ? $client['client']['defaultgateway']
+            : $service->paymentmethod;
+        $invoice = CL_Invoice::model();
+
+        $invoice_id = $invoice->createInvoice($userId, $items, $gateway);
+        $invoiceItem = \base\models\CL_Invoice::model()->loadById($invoice_id);
+        $model->invoicecount = 1;
+        $model->save();
+
+        $invoiceItems = \base\models\CL_InvoiceItems::model()->loadById($invoiceItem->invoiceitems['id']);
+        $invoiceItems->setAttributes(array(
+            'type' => $model::TYPE,
+            'relid' => $model->id,
+        ));
+        $invoiceItems->save();
+
+        $status = $invoiceItem->isPayed() ? CL_Invoice::STATUS_PAID : CL_Invoice::STATUS_UNPAID;
         $item = new KuberDock_Addon_Items();
         $item->setAttributes(array(
             'user_id' => $userId,
@@ -532,7 +561,7 @@ class KuberDock_Product extends CL_Product {
             'app_id' => $app->id,
             'pod_id' => $app->getPodId(),
             'billable_item_id' => $model->id,
-            'invoice_id' => $invoiceItem->invoice->id,
+            'invoice_id' => $invoiceItem->id,
             'status' => $status,
         ));
         $item->save();

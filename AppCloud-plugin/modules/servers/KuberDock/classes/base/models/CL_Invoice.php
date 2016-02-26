@@ -61,8 +61,10 @@ class CL_Invoice extends CL_Model {
         $values['notes'] = '';
         foreach ($items as $item) {
             $count++;
-            if(isset($item['description'])) {
+            if (isset($item['description'])) {
                 $title = $item['description'];
+            } elseif ($item['type']=='IP' && $item['title']=='') {
+                $title = 'Public IP';
             } else {
                 $title = $item['type'] . ': ' . $item['title'];
             }

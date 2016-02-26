@@ -133,7 +133,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     }
 
     /**
-     * @return float
+     * @return array
      */
     public function getTotalPrice()
     {
@@ -230,12 +230,9 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
      */
     private function getTotalPriceYAML($data)
     {
-        $total = 0;
+        $items = array();
         $product = KuberDock_Product::model()->loadById($this->product_id) ;
-        $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
-        $kubeType = isset($data['kuberdock']['kube_type']) ? $data['kuberdock']['kube_type'] : 0;
-        $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
-        $publicIp = 0;
+        $kubePrice = $this->getKubePrice($data->kube_type, $product);
 
         if(isset($data['spec']['template']['spec'])) {
             $spec = $data['spec']['template']['spec'];
@@ -246,29 +243,50 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
         $containers = $spec['containers'] ? $spec['containers'] : $spec;
         foreach($containers as $row) {
             if(isset($row['kubes'])) {
-                $total += $row['kubes'] * $kubePrice;
+                $items[] = array(
+                    'type' => 'Pod',
+                    'title' => $row['name'],
+                    'qty' => $row['kubes'],
+                    'units' => 'pod',
+                    'price' => $kubePrice,
+                    'total' => $row['kubes'] * $kubePrice,
+                );
             }
 
             if(isset($row['ports'])) {
                 foreach($row['ports'] as $port) {
                     if(isset($port['isPublic']) && $port['isPublic']) {
-                        $publicIp = 1;
+                        $ipPrice = (float) $product->getConfigOption('priceIP');
+                        $items[] = array(
+                            'type' => 'IP',
+                            'title' => '',
+                            'qty' => 1,
+                            'units' => 'IP',
+                            'price' => $ipPrice,
+                            'total' => $ipPrice,
+                        );
                     }
                 }
             }
         }
 
-        $total += $publicIp * (float) $product->getConfigOption('priceIP');
-
         if(isset($spec['volumes'])) {
             foreach($spec['volumes'] as $row) {
                 if(isset($row['persistentDisk']['pdSize'])) {
-                    $total += $row['persistentDisk']['pdSize'] * (float) $product->getConfigOption('pricePersistentStorage');
+                    $psPrice = (float)$product->getConfigOption('pricePersistentStorage');
+                    $items[] = array(
+                        'type' => 'Storage',
+                        'title' => $row['persistentDisk']['pdName'],
+                        'qty' => $row['persistentDisk']['pdSize'],
+                        'units' => \components\KuberDock_Units::getPSUnits(),
+                        'price' => $psPrice,
+                        'total' => $row['persistentDisk']['pdSize'] * $psPrice,
+                    );
                 }
             }
         }
 
-        return $total;
+        return $items;
     }
 
     /**
@@ -278,38 +296,70 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
      */
     private function getTotalPricePod($data)
     {
-        $total = 0;
+        $items = array();
         $product = KuberDock_Product::model()->loadById($this->product_id) ;
-        $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
-        $kubeType = isset($data->kube_type) ? $data->kube_type : 0;
-        $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
-        $publicIp = 0;
+        $kubePrice = $this->getKubePrice($data->kube_type, $product);
 
         foreach($data->containers as $row) {
             if(isset($row->kubes)) {
-                $total += $row->kubes * $kubePrice;
+                $items[] = array(
+                    'type' => 'Pod',
+                    'title' => $data->name,
+                    'qty' => $row->kubes,
+                    'units' => 'pod',
+                    'price' => $kubePrice,
+                    'total' => $row->kubes * $kubePrice,
+                );
             }
 
             if(isset($row->ports)) {
                 foreach($row->ports as $port) {
                     if(isset($port->isPublic) && $port->isPublic) {
-                        $publicIp = 1;
+                        $ipPrice = (float) $product->getConfigOption('priceIP');
+                        $items[] = array(
+                            'type' => 'IP',
+                            'title' => $data->public_ip,
+                            'qty' => 1,
+                            'units' => 'IP',
+                            'price' => $ipPrice,
+                            'total' => $ipPrice,
+                        );
                     }
                 }
             }
         }
 
-        $total += $publicIp * (float) $product->getConfigOption('priceIP');
-
         if(isset($data->volumes)) {
             foreach($data->volumes as $row) {
                 if(isset($row->persistentDisk->pdSize)) {
-                    $total += $row->persistentDisk->pdSize * (float) $product->getConfigOption('pricePersistentStorage');
+                    $psPrice = (float)$product->getConfigOption('pricePersistentStorage');
+                    $items[] = array(
+                        'type' => 'Storage',
+                        'title' => $row->persistentDisk->pdName,
+                        'qty' => $row->persistentDisk->pdSize,
+                        'units' => \components\KuberDock_Units::getPSUnits(),
+                        'price' => $psPrice,
+                        'total' => $row->persistentDisk->pdSize * $psPrice,
+                    );
                 }
             }
         }
 
-        return $total;
+        return $items;
+    }
+
+    /**
+     * @param int $kube_type
+     * @param \KuberDock_Product $product
+     * @return int
+     */
+    private function getKubePrice($kube_type, $product)
+    {
+        $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
+        $kubeType = isset($kube_type) ? $kube_type : 0;
+        $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
+
+        return $kubePrice;
     }
 
     /**
