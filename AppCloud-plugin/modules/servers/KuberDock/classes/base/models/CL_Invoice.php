@@ -71,6 +71,10 @@ class CL_Invoice extends CL_Model {
             $values['itemdescription' . $count] = $title;
             $values['itemamount' . $count] = $item['total'];
 
+            if(isset($item['notes'])) {
+                $values['itemnotes' . $count] = $item['notes'];
+            }
+
             if ($template == 'kuberdock') {
                 $values['notes'] .= '
                     <tr bgcolor="#fff">
@@ -233,6 +237,14 @@ class CL_Invoice extends CL_Model {
     public function isSetupInvoice()
     {
         return stripos($this->invoiceitems['description'], 'setup fee') !== false || $this->invoiceitems['type'] == 'Upgrade';
+    }
+
+    /**
+     * @return bool
+     */
+    public function isUpdateKubesInvoice()
+    {
+        return stripos($this->invoiceitems['description'], \KuberDock_Pod::UPDATE_KUBES_DESCRIPTION) !== false;
     }
 
     /**

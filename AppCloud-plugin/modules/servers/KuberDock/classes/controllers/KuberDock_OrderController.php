@@ -4,6 +4,7 @@ namespace controllers;
 
 use base\CL_Controller;
 use base\CL_Base;
+use base\CL_View;
 use base\CL_Csrf;
 use base\CL_Tools;
 use base\models\CL_Currency;
@@ -20,6 +21,18 @@ class KuberDock_OrderController extends CL_Controller {
 
     public function init()
     {
+        global $whmcs;
+
+        $this->assets = new \KuberDock_Assets();
+
+        $this->clientArea = new \WHMCS_ClientArea();
+        $this->clientArea->setPageTitle('KuberDock order page');
+
+        $this->clientArea->addToBreadCrumb('index.php', $whmcs->get_lang('globalsystemname'));
+        $this->clientArea->addToBreadCrumb('kdorder.php', 'KuberDock order');
+
+        $this->clientArea->initPage();
+        $this->clientArea->requireLogin();
     }
 
     public function orderAppAction()
@@ -177,5 +190,59 @@ class KuberDock_OrderController extends CL_Controller {
                 CException::displayError($e);
             }
         }
+    }
+
+    public function addKubesAction()
+    {
+        $this->assets->registerScriptFiles(array('jquery.nouislider.all.min'));
+        $this->assets->registerStyleFiles(array('jquery.nouislider.min'));
+
+        $podId = CL_Base::model()->getParam('podId');
+        $serviceId = CL_Base::model()->getParam('serviceId');
+        $errorMessage = '';
+        $templatePath = '../../modules/servers/KuberDock/view/smarty/add_kubes';
+        $currency = CL_Currency::model()->loadById($this->clientArea->getClient()->currency);
+
+        $service = \KuberDock_Hosting::model()->loadById($serviceId);
+        $pod = new \KuberDock_Pod($service);
+        $pod->loadById($podId);
+        $kube = $pod->getKube();
+
+        if($_POST) {
+            try {
+                CL_Csrf::check();
+                $newKubes = CL_Base::model()->getPost('new_container_kubes', array());
+                $values = array();
+                foreach($_POST['container_name'] as $k=>$name) {
+                    $values[] = array(
+                        'name' => $name,
+                        'kubes' => $newKubes[$k],
+                    );
+                }
+                $response = $pod->updateKubes($values);
+                if(is_numeric($response)) {
+                    header('Location: viewinvoice.php?id=' . $response);
+                }
+                $pod->loadById($podId);
+            } catch(Exception $e) {
+                $errorMessage = $e->getMessage();
+            }
+        }
+
+        $this->clientArea->setPageTitle('Add additional kubes');
+        $this->clientArea->assign(array(
+            'controller' => $this,
+            'pod' => $pod,
+            'kube' => json_encode($kube),
+            'currency' => json_encode($currency->getAttributes()),
+            'kubePrice' => $currency->getFullPrice($kube['kube_price']),
+            'totalPrice' => $pod->totalPrice(),
+            'paymentType' => $pod->getProduct()->getReadablePaymentType(),
+            'csrf' => CL_Csrf::render(),
+            'errorMessage' => $errorMessage,
+        ), '');
+        $this->clientArea->setTemplate($templatePath);
+
+        $this->clientArea->output();
     }
 } 

@@ -9,6 +9,7 @@ use base\CL_Tools;
 use base\models\CL_Currency;
 use base\models\CL_Invoice;
 use base\models\CL_User;
+use base\models\CL_BillableItems;
 use components\KuberDock_Units;
 use exceptions\CException;
 
@@ -545,6 +546,25 @@ function KuberDock_InvoicePaid($params)
 
             $product = KuberDock_Product::model();
             $product->startPodAndRedirect($item->service_id, $item->pod_id);
+        }
+
+        // Additional kubes
+        if($invoice->isUpdateKubesInvoice()) {
+            if($data = KuberDock_Hosting::model()->getByUser($invoice->userid)) {
+                $invoiceItem = \base\models\CL_InvoiceItems::model()->loadByAttributes(array(
+                    'type' => CL_BillableItems::TYPE,
+                    'invoiceid' => $invoice->id,
+                ), 'relid > 0');
+                if($invoiceItem) {
+                    $invoiceItem = current($invoiceItem);
+                    $billableItem = CL_BillableItems::model()->loadById($invoiceItem['relid']);
+                    $billableItem->amount += $invoice->subtotal;
+                    $billableItem->save();
+                }
+                $service = KuberDock_Hosting::model()->loadByParams(current($data));
+                $params = json_decode($invoice->invoiceitems['notes'], true);
+                $service->getApi()->redeployPod($params['id'], $params);
+            }
         }
     } catch(Exception $e) {
         CException::log($e);

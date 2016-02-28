@@ -139,3 +139,7 @@ table.tablesorter thead tr .headerSortDown {
 #packages_of_kube .price_package_form input[name="kube_price"]:focus{
     border-color: #2262A4;
 }
+
+.resources span {
+    margin-right: 10px;
+}

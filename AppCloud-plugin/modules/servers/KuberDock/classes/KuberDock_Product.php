@@ -529,8 +529,9 @@ class KuberDock_Product extends CL_Product {
             'recurfor' => 0,
             'recurcycle' => $recurCycle,
             'invoiceaction' => CL_BillableItems::CREATE_RECUR_ID,
-            'duedate' => CL_Tools::getMySQLFormattedDate(new DateTime()),
         ));
+
+        $model->duedate = CL_Tools::getMySQLFormattedDate($model->getNextDueDate());
 
         $data = KuberDock_Hosting::model()->getByUser($userId);
         $service = KuberDock_Hosting::model()->loadByParams(current($data));

@@ -2,6 +2,7 @@
 
 namespace base\models;
 
+use base\CL_Tools;
 use Exception;
 use base\CL_Model;
 use base\models\CL_Invoice;
@@ -103,6 +104,44 @@ class CL_BillableItems extends CL_Model {
         } else {
             return false;
         }
+    }
+
+    public function getProRate()
+    {
+        $dueDate = CL_Tools::sqlDateToDateTime($this->duedate);
+        $now = new \DateTime();
+        $daysRemain = $dueDate->diff($now)->format('%a');
+        $totalDays = $this->getRecurDays();
+
+        return $daysRemain / $totalDays;
+    }
+
+    public function getNextDueDate()
+    {
+        $current = $this->duedate ? CL_Tools::sqlDateToDateTime($this->duedate) : new \DateTime();
+        $nextDate = clone($current);
+        $days = $this->getRecurDays();
+        $nextDate->modify(sprintf('+%s days', $days));
+        $nextDate->setDate($nextDate->format('Y'), $nextDate->format('m'), $current->format('d'));
+
+        return $nextDate;
+    }
+
+    public function getRecurDays()
+    {
+        switch($this->recurcycle) {
+            case self::CYCLE_MONTH:
+                $totalDays = $this->recur * 30;
+                break;
+            case self::CYCLE_YEAR:
+                $totalDays = $this->recur * 365;
+                break;
+            default:
+                $totalDays = $this->recur * 30;
+                break;
+        }
+
+        return $totalDays;
     }
 
     /**

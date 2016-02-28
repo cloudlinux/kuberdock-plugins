@@ -46,6 +46,11 @@ class CL_Controller {
     public $assets;
 
     /**
+     * @var WHMCS_ClientArea
+     */
+    public $clientArea;
+
+    /**
      * View object
      *
      * @var CL_View

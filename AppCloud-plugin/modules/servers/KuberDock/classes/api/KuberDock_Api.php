@@ -961,6 +961,27 @@ class KuberDock_Api {
     {
         $attributes['command'] = 'change_config';
         $this->url = $this->serverUrl . '/api/podapi/' . $podId;
+        $attributes['command'] = 'set';
+        $response = $this->call($attributes, 'PUT');
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param string $podId
+     * @param array $attributes
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function redeployPod($podId, $attributes)
+    {
+        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
+        $attributes['command'] = 'redeploy';
         $response = $this->call($attributes, 'PUT');
 
         if(!$response->getStatus()) {

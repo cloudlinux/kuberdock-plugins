@@ -152,18 +152,6 @@ class CL_Model {
 
         $sql = sprintf('SELECT `%s`.* FROM `%s`', $this->tableName, $this->tableName);
 
-        foreach($this->relations() as $attribute => $row) {
-            $model = $this->model($row[0]);
-            $attributes = array($row[1] => $id);
-            if(isset($row[2]) && is_array($row[2])) {
-                $attributes = array_merge($attributes, $row[2]);
-            }
-            $rows = $model->loadByAttributes($attributes);
-            if($rows) {
-                $this->setAttribute($attribute, current($rows));
-            }
-        }
-
         $sql .= ($where || $condition) ? ' WHERE' : '';
         $sql .= $where ? implode(' AND ', $where) : '';
 

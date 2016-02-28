@@ -34,6 +34,28 @@ class CL_User extends CL_Model {
     }
 
     /**
+     * @return $this
+     * @throws Exception
+     */
+    public function getCurrent()
+    {
+        return $this->loadById($this->getCurrentUserId());
+    }
+
+    /**
+     * @return mixed
+     * @throws Exception
+     */
+    public function getCurrentUserId()
+    {
+        if(!isset($_SESSION['uid'])) {
+            throw new Exception('User not authorized');
+        }
+
+        return  $_SESSION['uid'];
+    }
+
+    /**
      * @param int $userId
      * @throws Exception
      */
@@ -50,6 +72,20 @@ class CL_User extends CL_Model {
         }
 
         return $results;
+    }
+
+    /**
+     * @return string
+     * @throws Exception
+     */
+    public function getGateway()
+    {
+        if($this->defaultgateway) {
+            return $this->defaultgateway;
+        } else {
+            $gateways = CL_Currency::model()->getPaymentGateways();
+            return current($gateways)['module'];
+        }
     }
 
     /**

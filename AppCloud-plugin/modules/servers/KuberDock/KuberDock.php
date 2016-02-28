@@ -179,6 +179,10 @@ function KuberDock_ClientArea($params) {
     $server = KuberDock_Server::model()->loadById($service->server);
     $trialTime = (int) $product->getConfigOption('trialTime');
     $enableTrial = $product->getConfigOption('enableTrial');
+    $items = KuberDock_Addon_Items::model()->loadByAttributes(array(
+        'user_id' => $params['userid'],
+    ));
+    $items = \base\CL_Tools::model()->getKeyAsField($items, 'pod_id');
     $regDate = new DateTime($service->regdate);
     $trialExpired = '';
 
@@ -195,6 +199,10 @@ function KuberDock_ClientArea($params) {
         $productStatistic = $view->renderPartial('client/product_statistic', array(
             'pods' => $pods,
             'kubes' => \base\CL_Tools::getKeyAsField($kubes, 'kuber_kube_id'),
+            'service' => $service,
+            'items' => $items,
+            'product' => $product,
+            'currency' => $currency,
             'service' => $service,
         ), false);
     } catch(Exception $e) {
