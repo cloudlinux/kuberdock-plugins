@@ -355,7 +355,7 @@ class KuberDock_Hosting extends CL_Hosting {
                 $checkInDate = CL_Tools::sqlDateToDateTime($lastState->checkin_date);
 
                 // $checkInDate сегодня, оплачивать ничего не надо
-                if ($checkInDate == $date) return [];
+                if ($checkInDate == $date) return array();
 
                 // оплачиваем только остаток периода
                 $period = CL_Tools::model()->getIntervalDiff($dateStart, $dateEnd);
@@ -537,7 +537,7 @@ class KuberDock_Hosting extends CL_Hosting {
         }
 
         if($timeStart > $periodStart && $periodEnd < $timeEnd) {
-            return [];
+            return array();
         }
 
         for($i = $timeStart; $i <= $timeEnd; $i += 3600) {
