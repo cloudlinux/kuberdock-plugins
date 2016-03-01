@@ -11,6 +11,11 @@ use ReflectionMethod;
 
 class CL_Base extends CL_Component {
     /**
+     *
+     */
+    const SESSION_FIELD = '_KD';
+
+    /**
      * @var string
      */
     public $defaultController = 'KuberDock_Default';
@@ -18,6 +23,11 @@ class CL_Base extends CL_Component {
      * @var string
      */
     public $baseUrl;
+
+    /**
+     * @var \WHMCS_ClientArea
+     */
+    private $clientArea;
 
     /**
      * Getter
@@ -101,6 +111,42 @@ class CL_Base extends CL_Component {
     public function redirect($url)
     {
         header('Location: ' . $url);
+    }
+
+    /**
+     * @param $ca \WHMCS_ClientArea
+     */
+    public function setClientArea($ca)
+    {
+        $this->clientArea = $ca;
+    }
+
+    /**
+     * @return \WHMCS_ClientArea
+     */
+    public function getClientArea()
+    {
+        return $this->clientArea;
+    }
+
+    /**
+     *
+     */
+    public function setSession()
+    {
+        $_SESSION[self::SESSION_FIELD] = session_id();
+    }
+
+    /**
+     * @return string
+     */
+    public function getSession()
+    {
+        if(!isset($_SESSION[self::SESSION_FIELD])) {
+            $this->setSession();
+        }
+
+        return $_SESSION[self::SESSION_FIELD];
     }
 
     /**

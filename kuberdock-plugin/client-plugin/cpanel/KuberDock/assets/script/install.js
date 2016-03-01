@@ -153,6 +153,12 @@
         }));
         $('#product_id').val(productId);
         $('#priceBlock').html(price);
+
+        if(kubes[productId]['billingType'] == 'Fixed price') {
+            $('.start-button').text('Pay and Start your app');
+        } else {
+            $('.start-button').text('Start your app');
+        }
     };
 
     var initISelect = function() {

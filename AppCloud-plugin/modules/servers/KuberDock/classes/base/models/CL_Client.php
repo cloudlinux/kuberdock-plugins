@@ -58,7 +58,7 @@ class CL_Client extends CL_Model {
 
     private function prepareName($name)
     {
-        $name = preg_replace ('/[\W]+/iu', '', $name);
+        $name = preg_replace ('/[^[:alpha:]?!]/iu', '', $name);
         $name = substr_replace($name, '', 25);
 
         if ($name == '') {
@@ -107,13 +107,13 @@ class CL_Client extends CL_Model {
         }
 
         if(!isset($clientId)) {
-            throw new CException('User has no cPanel service in WHMCS. Cannot find user by login');
+            throw new CException('User not found');
         }
 
         $details = $this->getClientDetails($clientId);
 
         if($details['result'] != 'success') {
-            throw new CException('User ' . $username . ' not founded');
+            throw new CException('User not found');
         }
 
         return $details['client'];

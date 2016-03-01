@@ -21,17 +21,8 @@ class Proxy {
      */
     const ROOT_DIR = 'root';
 
-    /**
-     * @var WHMCSApi
-     */
-    private $api;
-
-    /**
-     * @param WHMCSApi|null $api
-     */
-    public function __construct(WHMCSApi $api = null)
+    public function __construct()
     {
-        $this->api = $api;
     }
 
     /**
@@ -213,25 +204,11 @@ class Proxy {
      */
     private function getDocRootByDomain($domain)
     {
-        if(!$this->api) {
-            throw new CException('Cannot be used from cli');
-        }
+        $panel = Base::model()->getPanel();
+        $docRoot = $panel->getCommonCommand()->getUserDomainDocroot($domain);
 
-        $domains = $this->api->getUserDomains();
-
-        if($domains['main_domain']['domain'] == $domain) {
-            return $domains['main_domain']['documentroot'];
-        } else {
-            foreach($domains['sub_domains'] as $row) {
-                if($row['domain'] == $domain) {
-                    return $row['documentroot'];
-                }
-            }
-        }
-
-        $home = getenv('HOME') . DS . 'public_html';
-        if(file_exists($home)) {
-            return $home;
+        if(file_exists($docRoot)) {
+            return $docRoot;
         }
 
         throw new CException(sprintf('Can not find document root by domain %s', $domain));

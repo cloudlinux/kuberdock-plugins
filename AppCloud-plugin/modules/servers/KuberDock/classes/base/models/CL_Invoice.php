@@ -248,6 +248,14 @@ class CL_Invoice extends CL_Model {
     }
 
     /**
+     * @return bool
+     */
+    public function isBillableItemInvoice()
+    {
+        return ($this->invoiceitems['type'] == CL_BillableItems::TYPE && $this->invoiceitems['relid'] > 0);
+    }
+
+    /**
      * Class loader
      *
      * @param string $className

@@ -18,13 +18,8 @@ use exceptions\CException;
  * @throws Exception
  */
 function KuberDock_ConfigOptions() {
-    $view = new CL_View();
     $id = CL_Base::model()->getParam('id');
     $product = KuberDock_Product::model()->loadById($id);
-
-    /*$view->renderPartial('admin/module_settings', array(
-        'product' => $product,
-    ), false);*/
 
     return $product->getConfig();
 }
@@ -61,14 +56,17 @@ function KuberDock_CreateAccount($params) {
 
         CException::log($e);
 
+        // TODO: Don't work properly for admin, if admin logged as user
         // to distinguish a common user from admin
-        if (isset($_SESSION['uid'])) {
+        /*if (isset($_SESSION['uid'])) {
             // sending user to error page
             CException::displayError($e);
         } else {
             // show error to admin
             return 'ERROR: ' . $e->getMessage();
-        }
+        }*/
+
+        return 'ERROR: ' . $e->getMessage();
     }
 }
 

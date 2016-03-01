@@ -161,14 +161,41 @@ var _$ = $.noConflict();
         });
     };
 
+    var restartPod = function(pod, wipe) {
+        var el = $('button.pod-restart[data-app="' + pod + '"]'),
+            loaderParent = el.parents('tr:eq(0)').length ? el.parents('tr:eq(0)') : el.parents('div:eq(1)'),
+            loader = loaderParent.find('.pod.ajax-loader');
+
+        $.ajax({
+            type: 'POST',
+            url: '?a=restartPod',
+            data: { pod: el.data('app'), wipeOut: wipe },
+            dataType: 'json',
+            beforeSend: function() {
+                $('.restart-modal').modal('hide');
+                loader.removeClass('hidden');
+            },
+            complete: function() {
+                loader.addClass('hidden');
+            }
+        }).done(function(data) {
+            displayMessage(data.message);
+        }).error(function(data) {
+            displayMessage(data.responseJSON.message);
+        });
+    };
+
     // Popups
-    $(document).on('click', '.confirm-modal .btn-action', function(e) {
+    $(document).on('click', '.confirm-modal .btn-action, .restart-modal button.btn', function(e) {
         switch($(this).data('action')) {
             case 'delete':
                 deletePod($(this).data('app'));
                 break;
             case 'stop':
                 stopPod($(this).data('app'));
+                break;
+            case 'restart':
+                restartPod($(this).data('app'), $(this).data('wipe'));
                 break;
         }
     });
@@ -191,10 +218,21 @@ var _$ = $.noConflict();
         $($(this).data('target')).modal('show');
     });
 
-    $(document).on('click', '.container-start', function(e) {
+    $(document).on('click', '.pod-restart', function(e) {
+        $($(this).data('target')).find('.modal-header').html('Confirm restarting of application ' + $(this).data('app') +
+            '<br><br>You can wipe out all the data and redeploy the application or you can just restart application.'
+        );
+        $($(this).data('target')).find('button.btn')
+            .data('action', 'restart')
+            .data('app', $(this).data('app'));
+        $($(this).data('target')).modal('show');
+    });
+
+    $(document).on('click', '.container-start,.container-pay', function(e) {
         var el = $(this),
             loaderParent = el.parents('tr:eq(0)').length ? el.parents('tr:eq(0)') : el.parents('div:eq(1)'),
             loader = loaderParent.find('.pod.ajax-loader');
+        var _class = el.hasClass('container-start') ? 'container-start' : 'container-pay';
 
         $.ajax({
             type: 'POST',
@@ -208,8 +246,11 @@ var _$ = $.noConflict();
                 loader.addClass('hidden');
             }
         }).done(function(data) {
+            if(data.redirect) {
+                window.location.href = data.redirect;
+            }
             displayMessage(data.message);
-            el.toggleClass('container-start').addClass('container-stop').attr('title', 'Stop')
+            el.toggleClass(_class).addClass('container-stop').attr('title', 'Stop')
                 .removeClass('btn-success').addClass('btn-danger');
             el.find('span:eq(0)').removeClass('glyphicon-play').addClass('glyphicon-stop');
             el.find('span:eq(1)').text('Stop');

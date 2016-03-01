@@ -50,13 +50,30 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     }
 
     /**
+     * @param string $podId | LAST
      * @return $this
      */
-    public function loadBySessionId()
+    public function loadBySessionId($podId = '')
     {
-        $data = $this->loadByAttributes(array(
-            'session_id' => session_id(),
-        ));
+        if($podId) {
+            if($podId == 'LAST') {
+                $data = $this->loadByAttributes(array(
+                    'session_id' => \base\CL_Base::model()->getSession(),
+                ), '', array(
+                    'order' => 'id DESC',
+                    'limit' => 1,
+                ));
+            } else {
+                $data = $this->loadByAttributes(array(
+                    'session_id' => \base\CL_Base::model()->getSession(),
+                    'pod_id' => $podId,
+                ));
+            }
+        } else {
+            $data = $this->loadByAttributes(array(
+                'session_id' => \base\CL_Base::model()->getSession(),
+            ), 'pod_id IS NULL');
+        }
 
         if(!$data) {
             return false;
@@ -133,18 +150,27 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     }
 
     /**
+     * @param bool $total
      * @return array
      */
-    public function getTotalPrice()
+    public function getTotalPrice($total = false)
     {
         $pod= $this->getPod();
 
         if($pod) {
-            return $this->getTotalPricePod($pod);
+            $items = $this->getTotalPricePod($pod);
         } else {
-            return $this->getTotalPriceYAML(Spyc::YAMLLoadString($this->data));
+            $items = $this->getTotalPriceYAML(Spyc::YAMLLoadString($this->data));
         }
 
+        if($total) {
+            return array_reduce($items, function ($carry, $item) {
+                $carry += $item['total'];
+                return $carry;
+            });
+        } else {
+            return $items;
+        }
     }
 
     /**

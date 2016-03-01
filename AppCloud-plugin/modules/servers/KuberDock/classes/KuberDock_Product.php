@@ -153,8 +153,6 @@ class KuberDock_Product extends CL_Product {
                 'kuberdock_link' => $service->getServer()->getLoginPageLink(),
             ));
         }
-
-        $this->createPodAndRedirect($serviceId);
     }
 
     /**
@@ -178,12 +176,13 @@ class KuberDock_Product extends CL_Product {
             $this->update($service->id, true);
         } catch(UserNotFoundException $e) {
             $api->createUser(array(
+                'clientid' => (int) $this->client->id,
                 'first_name' => $this->client->firstname,
                 'last_name' => $this->client->lastname,
                 'username' => $service->username,
                 'password' => $service->decryptPassword(),
-                'active' => 1,
-                'suspended' => 0,
+                'active' => true,
+                'suspended' => false,
                 'email' => $this->client->email,
                 'rolename' => $this->getRole(),
                 'package' => $this->getName(),
@@ -221,12 +220,13 @@ class KuberDock_Product extends CL_Product {
 
         $api->updateUser(array(
             'package' => $productName,
+            'clientid' => (int) $this->client->id,
             'first_name' => $this->client->firstname,
             'last_name' => $this->client->lastname,
             'username' => $service->username,
             'password' => $password,
-            'active' => $service->isTerminated() && !$activate ? 0 : 1,
-            'suspended' => $service->isSuspended() ? 1 : 0,
+            'active' => !($service->isTerminated() && !$activate),
+            'suspended' => $service->isSuspended(),
             'rolename' => $this->getRole(),
             'timezone' => $data['timezone'],
             'deleted' => 0,
@@ -496,19 +496,15 @@ class KuberDock_Product extends CL_Product {
     }
 
     /**
-     * @param $userId
+     * @param int $userId
+     * @param KuberDock_Addon_PredefinedApp $app
      * @return KuberDock_Addon_Items
      * @throws Exception
      */
-    public function addBillableApp($userId)
+    public function addBillableApp($userId, KuberDock_Addon_PredefinedApp $app)
     {
         if(!$this->isFixedPrice()) {
             throw new Exception('Fixed price - billable items not needed.');
-        }
-
-        $app = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-        if(!$app->id) {
-            throw new Exception('Cannot find PredefinedApp');
         }
 
         $items = $app->getTotalPrice();
@@ -678,8 +674,9 @@ class KuberDock_Product extends CL_Product {
 
     /**
      * @param int $serviceId
+     * @param bool $jsRedirect
      */
-    public function createPodAndRedirect($serviceId)
+    public function createPodAndRedirect($serviceId, $jsRedirect = false)
     {
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
@@ -687,9 +684,17 @@ class KuberDock_Product extends CL_Product {
             try {
                 if(!($pod = $predefinedApp->isPodExists($service->id))) {
                     $pod = $predefinedApp->create($service->id);
+                    $predefinedApp->pod_id = $pod['id'];
+                    $predefinedApp->save();
                     $predefinedApp->start($pod['id'], $service->id);
                 }
-                header('Location: ' . sprintf('kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $pod['id']));
+                $url = sprintf('kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $pod['id']);
+
+                if($jsRedirect) {
+                    $this->jsRedirect($url);
+                } else {
+                    header('Location: ' . $url);
+                }
             } catch(Exception $e) {
                 CException::displayError($e);
             }
@@ -699,19 +704,38 @@ class KuberDock_Product extends CL_Product {
     /**
      * @param int $serviceId
      * @param string $podId
+     * @param bool $jsRedirect
      */
-    public function startPodAndRedirect($serviceId, $podId)
+    public function startPodAndRedirect($serviceId, $podId, $jsRedirect = false)
     {
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
         if($service->isActive()) {
             try {
                 $predefinedApp->payAndStart($podId, $service->id);
-                header('Location: ' . sprintf('kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $podId));
+                $url = sprintf('kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $podId);
+                if($jsRedirect) {
+                    $this->jsRedirect($url);
+                } else {
+                    header('Location: ' . $url);
+                }
             } catch(Exception $e) {
                 CException::displayError($e);
             }
         }
+    }
+
+    /**
+     * @param string $url
+     */
+    public function jsRedirect($url)
+    {
+        echo <<<SCRIPT
+<script>
+    window.location.href = '{$url}';
+</script>
+SCRIPT;
+        exit();
     }
 
     /**

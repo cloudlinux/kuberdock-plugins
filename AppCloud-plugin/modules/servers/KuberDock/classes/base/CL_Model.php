@@ -215,7 +215,7 @@ class CL_Model {
 
     /**
      * @param array $params
-     * @return $this|bool
+     * @return $this
      */
     public function loadByParams($params = array())
     {

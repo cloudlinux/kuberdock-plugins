@@ -51,7 +51,7 @@
                     </a>
                 <?php endif;?>
 
-                <button type="submit" class="btn btn-primary">Start your App</button>
+                <button type="submit" class="btn btn-primary start-button">Start your App</button>
                 <div class="ajax-loader buttons hidden"></div>
             </div>
         </div>
@@ -59,6 +59,6 @@
 </div>
 
 <script>
-    var kubes = <?php echo json_encode($app->getApi()->getKubes())?>,
+    var kubes = <?php echo json_encode($app->getPanel()->billing->getKubes())?>,
         units = <?php echo json_encode($app->pod->units)?>;
 </script>

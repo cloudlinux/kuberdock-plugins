@@ -33,9 +33,9 @@ class PredefinedApp {
     private $variables = array();
 
     /**
-     * @var WHMCSApi
+     * @var KuberDock_CPanel
      */
-    private $api;
+    private $panel;
     /**
      * @var KcliCommand
      */
@@ -112,11 +112,10 @@ class PredefinedApp {
     public function init()
     {
         $this->pod = new Pod();
-        $this->api = $this->pod->getApi();
-        $this->command = $this->api->getCommand();
-
+        $this->panel = $this->pod->getPanel();
+        $this->command = $this->panel->getCommand();
         if($this->templateId) {
-            $this->template = new Template($this->api);
+            $this->template = new Template($this->panel);
             try {
                 $this->template->getById($this->templateId);
             } catch (Exception $e) {
@@ -128,11 +127,11 @@ class PredefinedApp {
     }
 
     /**
-     * @return WHMCSApi
+     * @return KuberDock_CPanel
      */
-    public function getApi()
+    public function getPanel()
     {
-        return $this->api;
+        return $this->panel;
     }
 
     /**
@@ -158,7 +157,7 @@ class PredefinedApp {
      */
     public function setPackageId($packageId)
     {
-        if(!isset($this->api->getKubes()[$packageId])) {
+        if(!isset($this->panel->billing->getKubes()[$packageId])) {
             throw new CException('Unknown package');
         }
 
@@ -276,13 +275,13 @@ class PredefinedApp {
      */
     public function getPackageId($fromBilling = false)
     {
-        $userProduct = $this->api->getProduct();
+        $userProduct = $this->panel->billing->getProduct();
 
         if($userProduct) {
             return $userProduct['id'];
         }
 
-        $defaults = $this->api->getDefaults();
+        $defaults = $this->panel->billing->getDefaults();
         $defaultPackageId = isset($defaults['packageId']) ? $defaults['packageId'] : 0;
 
         $templatePackageId = $this->template->getPackageId();
@@ -292,7 +291,7 @@ class PredefinedApp {
             return $packageId;
         }
 
-        foreach($this->api->getProducts() as  $row) {
+        foreach($this->panel->billing->getProducts() as  $row) {
             if(!$row['kubes']) continue;
 
             if($row['kubes'][0]['kuber_product_id'] == $packageId) return $row['id'];
@@ -306,7 +305,7 @@ class PredefinedApp {
      */
     public function getExistingPods()
     {
-        if(!$this->api->getService()) {
+        if(!$this->panel->billing->getService()) {
             return array();
         }
 
@@ -406,7 +405,7 @@ class PredefinedApp {
             case 'kube_type':
                 return $this->getKubeTypes();
             case 'user_domain_list':
-                return $this->api->getUserDomains();
+                return $this->panel->getUserDomains();
             default:
                 return '';
                 break;
@@ -435,9 +434,9 @@ class PredefinedApp {
     private function getKubeTypes()
     {
         $data = array();
-        $userService = $this->api->getService();
+        $userService = $this->panel->billing->getService();
 
-        foreach($this->api->getProducts() as $product) {
+        foreach($this->panel->billing->getProducts() as $product) {
             foreach($product['kubes'] as $kube) {
                 if(($userService && $userService['packageid'] == $product['id']) || !$userService) {
                     $data[] = array(
@@ -566,7 +565,7 @@ class PredefinedApp {
 
         // TODO: Add few pod support
         if(isset($data['plan'])) {
-            $defaults = $this->api->getDefaults();
+            $defaults = $this->panel->billing->getDefaults();
             $plan = $this->template->getPlan($data['plan']);
             $containers = $this->template->getContainers();
             $volumes = $this->template->getVolumes();
@@ -636,7 +635,7 @@ class PredefinedApp {
         $this->variables['USER_DOMAIN'] = array(
             'replace' => '%USER_DOMAIN%',
             'type' => 'autogen',
-            'value' => 'http://' . current($this->api->getUserDomain()),
+            'value' => 'http://' . $this->panel->getUserMainDomain(),
         );
 
         return $this;

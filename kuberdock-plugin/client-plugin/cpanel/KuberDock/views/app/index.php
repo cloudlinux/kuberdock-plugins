@@ -41,6 +41,7 @@
         </div>
     </div>
 </div>
+
 <div class="modal fade bs-example-modal-sm confirm-modal" tabindex="-1" role="dialog" aria-labelledby="Confirm">
     <div class="modal-dialog">
         <div class="modal-content">

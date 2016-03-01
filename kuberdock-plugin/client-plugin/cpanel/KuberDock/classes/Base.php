@@ -6,9 +6,9 @@
 
 class Base {
     /**
-     * @var object
+     * @var KuberDock_CPanel
      */
-    public $panel;
+    protected $panel;
     /**
      * @var array
      */
@@ -20,6 +20,19 @@ class Base {
     public function setPanel($object)
     {
         $this->panel = $object;
+    }
+
+    /**
+     * @return KuberDock_CPanel
+     */
+    public function getPanel()
+    {
+        // TODO: difference panels
+        if(!$this->panel) {
+            $this->panel = new KuberDock_CPanel();
+        }
+
+        return $this->panel;
     }
 
     /**

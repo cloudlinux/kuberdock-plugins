@@ -16,8 +16,9 @@
 
                 <div id="owl_carousel" class="owl-carousel">
                 <?php foreach($templates as $row):
-                    $imageSrc = isset($row['template']['kuberdock']['icon'])
-                        ? $row['template']['kuberdock']['icon'] : 'assets/images/default.png';
+                    $template = Spyc::YAMLLoadString($row['template']);
+                    $imageSrc = isset($template['kuberdock']['icon'])
+                        ? $template['kuberdock']['icon'] : 'assets/images/default.png';
                 ?>
                     <div class="text-center">
                         <a href="?c=app&a=installPredefined&template=<?php echo $row['id']?>">
@@ -25,7 +26,7 @@
                         </a>
                         <p>
                             <a href="?c=app&a=installPredefined&template=<?php echo $row['id']?>">
-                                <?php echo $row['template']['kuberdock']['name']?>
+                                <?php echo $template['kuberdock']['name']?>
                             </a>
                         </p>
                     </div>

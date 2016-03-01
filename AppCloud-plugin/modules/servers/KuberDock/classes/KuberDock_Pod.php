@@ -154,8 +154,11 @@ class KuberDock_Pod {
      */
     public function updateKubes($values)
     {
+        //Not implemented
+        return;
         $newKubes = 0;
         $params = array();
+        $attributes['id'] = $this->id;
 
         foreach($values as $row) {
             $c = $this->getContainerByName($row['name']);
@@ -178,23 +181,28 @@ class KuberDock_Pod {
                     'description' => self::UPDATE_KUBES_DESCRIPTION . ' (Add ' . $newKubes . ' kubes)',
                     'total' => $totalPrice,
                 );
-                $invoice = \base\models\CL_Invoice::model()->createInvoice($user->id, $items, $user->getGateway());
+                $invoice = \base\models\CL_Invoice::model()->createInvoice($user->id, $items, $user->getGateway(), false);
                 $invoice = \base\models\CL_Invoice::model()->loadById($invoice);
                 $invoiceItem = \base\models\CL_InvoiceItems::model()->loadByParams($invoice->invoiceitems);
-                $params['id'] = $this->id;
+                $attributes['container'] = $params;
+                //$attributes['commandOptions']['wipeOut'] = true;
                 $invoiceItem->setAttributes(array(
                     'type' => $billableItem::TYPE,
                     'relid' => $billableItem->id,
-                    'notes' => json_encode($params),
+                    'notes' => json_encode($attributes),
                 ))->save();
+                $invoice->applyCredit($invoice->id, $invoice->subtotal);
+                $invoice = \base\models\CL_Invoice::model()->loadById($invoice->id);
+
                 if($invoice->isPayed()) {
-                    return $this->api->redeployPod($this->id, $params);
+                    return 'Paid';
                 } else {
                     return $invoice->id;
                 }
             }
         } else {
-            return $this->api->redeployPod($this->id, $params);
+            $attributes['container'] = $params;
+            return $this->api->redeployPod($this->id, $attributes);
         }
     }
 

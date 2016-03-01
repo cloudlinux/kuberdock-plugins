@@ -14,20 +14,20 @@ class Template
      */
     public $data = array();
     /**
-     * @var WHMCSApi
+     * @var KuberDock_CPanel
      */
-    private $api;
+    private $panel;
     /**
      * @var int
      */
     private $id;
 
     /**
-     * @param WHMCSApi $api
+     * @param KuberDock_CPanel $panel
      */
-    public function __construct(WHMCSApi $api)
+    public function __construct(KuberDock_CPanel $panel)
     {
-        $this->api = $api;
+        $this->panel = $panel;
     }
 
     /**
@@ -38,7 +38,7 @@ class Template
     public function getById($id)
     {
         $this->id = $id;
-        $template = $this->api->getGlobalTemplate($id);
+        $template = $this->panel->getCommand()->getYAMLTemplate($id);
 
         if(!$template) {
             throw new CException('Template not exists');
@@ -88,7 +88,7 @@ class Template
     public function getAll()
     {
         $data = array();
-        $templates = $this->api->getGlobalTemplates();
+        $templates = $this->panel->getCommand()->getYAMLTemplates();
 
         foreach($templates as &$row) {
             $row['template'] = Spyc::YAMLLoadString($row['template']);
@@ -120,7 +120,7 @@ class Template
      */
     public function getPackageId()
     {
-        $defaults = $this->api->getDefaults();
+        $defaults = $this->panel->billing->getDefaults();
         $defaultPackageId = isset($defaults['packageId']) ? $defaults['packageId'] : 0;
 
         return isset($this->data['kuberdock']['packageID']) ?
@@ -199,7 +199,7 @@ class Template
      */
     public function getKubeTypeId($planId)
     {
-        $defaults = $this->api->getDefaults();
+        $defaults = $this->panel->billing->getDefaults();
         $plan = $this->getPlan($planId);
         // TODO: Add few pod support
         $pod = $plan['pods'][0];
@@ -321,7 +321,7 @@ class Template
         $totalHDD = 0;
         $totalCPU = 0;
         $publicIp = (bool) isset($plan['publicIP']) ? $plan['publicIP'] : false;
-        $defaults = $this->api->getDefaults();
+        $defaults = $this->panel->billing->getDefaults();
 
         foreach($plan['pods'] as $pod) {
             $totalKubes = 0;
@@ -334,7 +334,7 @@ class Template
                         return $row;
                     }
                 }
-            }, $this->api->getKubes());
+            }, $this->panel->billing->getKubes());
 
             if(!$kube) {
                 throw new CException(sprintf('KubeType %s is not available for your current package', $kubeType));
@@ -355,8 +355,8 @@ class Template
         }
 
         if($sum) {
-            $product = $this->api->getProductByKuberId($this->getPackageId());
-            $currency = $this->api->getCurrency();
+            $product = $this->panel->billing->getProductByKuberId($this->getPackageId());
+            $currency = $this->panel->billing->getCurrency();
             $price = $totalKubes * $kube['kube_price']
                 + $publicIp * (float) $product['priceIP']
                 + $totalPDSize * (float) $product['pricePersistentStorage'];
@@ -388,7 +388,7 @@ class Template
             return true;
         }
 
-        $service = $this->api->getService();
+        $service = $this->panel->billing->getService();
 
         return !($service && $templatePackageId != $service['kuber_product_id']);
     }
@@ -437,7 +437,7 @@ class Template
      */
     public function setPackageId($id = null)
     {
-        $defaults = $this->api->getDefaults();
+        $defaults = $this->panel->billing->getDefaults();
 
         if($id) {
             $this->data['kuberdock']['packageID'] = $id;

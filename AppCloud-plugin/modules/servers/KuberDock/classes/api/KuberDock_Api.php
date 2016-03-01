@@ -197,7 +197,7 @@ class KuberDock_Api {
      */
     public function call($params = array(), $type = 'GET')
     {
-        if(!in_array($type, array('GET', 'POST', 'PUT', 'DELETE'))) {
+        if(!in_array($type, array('GET', 'POST', 'PUT', 'PATCH', 'DELETE'))) {
             throw new CException('Undefined request type: '.$type);
         }
 
@@ -208,12 +208,18 @@ class KuberDock_Api {
         switch($type) {
             case 'POST':
             case 'PUT':
+            case 'PATCH':
                 $this->requestUrl = $this->url;
                 if($this->token) {
                     $this->requestUrl .= '?token=' . $this->token;
                 }
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
-                break;
+                $strData = json_encode($params);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $strData);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                    'Content-Type: application/json',
+                    'Content-Length: ' . strlen($strData)
+                ));
+            break;
             default:
                 if($this->token) {
                     $this->requestUrl = $params ? $this->url .'?token='. $this->token .'&' . http_build_query($params)
@@ -952,6 +958,26 @@ class KuberDock_Api {
     }
 
     /**
+     * @param $podId
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function stopPod($podId)
+    {
+        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
+        $response = $this->call(array(
+            'command' => 'stop',
+        ), 'PUT');
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    /**
      * @param string $podId
      * @param array $attributes
      * @return KuberDock_ApiResponse
@@ -959,10 +985,10 @@ class KuberDock_Api {
      */
     public function updatePod($podId, $attributes)
     {
-        $attributes['command'] = 'change_config';
+        $data['command'] = 'set';
+        $data['commandOptions'] = $attributes;
         $this->url = $this->serverUrl . '/api/podapi/' . $podId;
-        $attributes['command'] = 'set';
-        $response = $this->call($attributes, 'PUT');
+        $response = $this->call($data, 'PUT');
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());

@@ -7,6 +7,7 @@ use base\CL_Base;
 use base\CL_View;
 use base\CL_Csrf;
 use base\CL_Tools;
+use base\models\CL_BillableItems;
 use base\models\CL_Currency;
 use base\models\CL_Order;
 use Exception;
@@ -21,18 +22,8 @@ class KuberDock_OrderController extends CL_Controller {
 
     public function init()
     {
-        global $whmcs;
-
         $this->assets = new \KuberDock_Assets();
-
-        $this->clientArea = new \WHMCS_ClientArea();
-        $this->clientArea->setPageTitle('KuberDock order page');
-
-        $this->clientArea->addToBreadCrumb('index.php', $whmcs->get_lang('globalsystemname'));
-        $this->clientArea->addToBreadCrumb('kdorder.php', 'KuberDock order');
-
-        $this->clientArea->initPage();
-        $this->clientArea->requireLogin();
+        $this->clientArea = CL_Base::model()->getClientArea();
     }
 
     public function orderAppAction()
@@ -70,13 +61,15 @@ class KuberDock_OrderController extends CL_Controller {
             }
 
             $predefinedApp->setAttributes(array(
-                'session_id' => session_id(),
+                'session_id' => \base\CL_Base::model()->getSession(),
                 'kuber_product_id' => $kdProductId,
                 'product_id' => $product->id,
                 'data' => $yaml,
             ));
 
             $predefinedApp->save();
+
+            $this->clientArea->requireLogin();
 
             $data = \KuberDock_Hosting::model()->getByUser($userId, $referer);
             $service = \KuberDock_Hosting::model()->loadByParams(current($data));
@@ -87,28 +80,32 @@ class KuberDock_OrderController extends CL_Controller {
                     CL_Order::model()->acceptOrder($result['orderid']);
                     $service = \KuberDock_Hosting::model()->loadById($result['productids']);
                 }
-                $item = $product->addBillableApp($userId);
+                $item = $product->addBillableApp($userId, $predefinedApp);
                 if(!($pod = $predefinedApp->isPodExists($service->id))) {
                     $pod = $predefinedApp->create($service->id, 'unpaid');
                 }
+                $predefinedApp->pod_id = $pod['id'];
+                $predefinedApp->save();
                 $item->pod_id = $pod['id'];
                 $item->save();
 
-                if($item->isPayed() && $service->isActive()) {
+                if($item->isPayed()) {
                     $product->startPodAndRedirect($item->service_id, $item->pod_id);
                 } else {
                     header('Location: viewinvoice.php?id=' . $item->invoice_id);
                 }
             } else {
-                if($service) {
+                if(!$service) {
+                    $result = CL_Order::model()->createOrder($userId, $product->id);
+                    CL_Order::model()->acceptOrder($result['orderid']);
+                    \KuberDock_Hosting::model()->loadById($result['productids']);
                     $product->createPodAndRedirect($service->id);
                 } else {
-                    $product->addToCart();
-                    header('Location: cart.php?a=view');
+                    $product->createPodAndRedirect($service->id);
                 }
             }
         } catch(Exception $e) {
-            // product not founded
+            // product not found
             CException::log($e);
             CException::displayError($e);
         }
@@ -119,48 +116,56 @@ class KuberDock_OrderController extends CL_Controller {
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
         $pod = json_decode(html_entity_decode(urldecode(CL_Base::model()->getParam($predefinedApp::KUBERDOCK_POD_FIELD)), ENT_QUOTES));
         $user = json_decode(html_entity_decode(urldecode(CL_Base::model()->getParam('user')), ENT_QUOTES));
-
-        $predefinedApp = $predefinedApp->loadBySessionId();
-        if(!$predefinedApp) {
-            $predefinedApp = new \KuberDock_Addon_PredefinedApp();
-        }
+        $referer = CL_Base::model()->getParam('referer', '');
+        $userId = isset($_SESSION['uid']) ? $_SESSION['uid'] : null;
 
         try {
-            $userId = $_SESSION['uid'];
+            $predefinedApp = $predefinedApp->loadBySessionId($pod->id);
+            if(!$predefinedApp) {
+                $predefinedApp = new \KuberDock_Addon_PredefinedApp();
+            }
+            $predefinedApp->referer = htmlspecialchars_decode($referer);
 
-            if(isset($user->package_id)) {
-                $data = \KuberDock_Addon_Product::model()->loadByAttributes(array(
-                    'kuber_product_id' => $user->package_id,
-                ));
-                $addonProduct = \KuberDock_Addon_Product::model()->loadByParams(current($data));
-                $product = \KuberDock_Product::model()->loadById($addonProduct->product_id);
-            } else {
-                $data = \KuberDock_Product::model()->getByUser($userId);
-                $product = \KuberDock_Product::model()->loadByParams(current($data));
-                $addonProduct = \KuberDock_Addon_Product::model()->loadById($product->id);
+            if(!isset($user->package_id)) {
+                throw new Exception('User has no package');
             }
 
-            if(!$product->id) {
-                throw new Exception('Product not founded');
-            }
-
+            $data = \KuberDock_Addon_Product::model()->loadByAttributes(array(
+                'kuber_product_id' => $user->package_id,
+            ));
+            $addonProduct = \KuberDock_Addon_Product::model()->loadByParams(current($data));
+            $product = \KuberDock_Product::model()->loadById($addonProduct->product_id);
             $predefinedApp->setAttributes(array(
-                'session_id' => session_id(),
+                'session_id' => \base\CL_Base::model()->getSession(),
+                'data' => json_encode($pod),
+                'pod_id' => $pod->id,
                 'kuber_product_id' => $addonProduct->kuber_product_id,
                 'product_id' => $product->id,
-                'data' => json_encode($pod),
             ));
-
             $predefinedApp->save();
 
-            $item = $product->addBillableApp($userId);
+            if(!isset($product->id)) {
+                throw new Exception('Product not found');
+            }
+
+            $this->clientArea->requireLogin();
+
+            $data = \KuberDock_Addon_Items::model()->loadByAttributes(array(
+                'pod_id' => $pod->id,
+            ));
+
+            if(!$data) {
+                $item = $product->addBillableApp($userId, $predefinedApp);
+            } else {
+                $item = \KuberDock_Addon_Items::model()->loadByParams(current($data));
+            }
+
             if($item->isPayed()) {
                 $product->startPodAndRedirect($item->service_id, $item->pod_id);
             } else {
                 header('Location: viewinvoice.php?id=' . $item->invoice_id);
             }
         } catch(Exception $e) {
-            // product not founded
             CException::log($e);
             CException::displayError($e);
         }
@@ -168,22 +173,28 @@ class KuberDock_OrderController extends CL_Controller {
 
     public function redirectAction()
     {
+        $this->clientArea->requireLogin();
+
         $serviceId = \base\CL_Base::model()->getParam('sid');
         $podId = \base\CL_Base::model()->getParam('podId');
 
         if($serviceId && $podId) {
             $service = \KuberDock_Hosting::model()->loadById($serviceId);
             $view = new \base\CL_View();
-            $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+            $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId($podId);
             $postDescription = htmlentities($predefinedApp->getPostDescription(), ENT_QUOTES);
             try {
                 $pod = $service->getApi()->getPod($podId);
-                $view->renderPartial('client/preapp_complete', array(
-                    'serverLink' => $service->getServer()->getLoginPageLink(),
-                    'token' => $service->getToken(),
-                    'podId' => $podId,
-                    'postDescription' => $postDescription ? $postDescription : 'You successfully make payment for application',
-                ));
+                if($predefinedApp->referer) {
+                    header('Location: '. htmlspecialchars_decode($predefinedApp->referer));
+                } else {
+                    $view->renderPartial('client/preapp_complete', array(
+                        'serverLink' => $service->getServer()->getLoginPageLink(),
+                        'token' => $service->getToken(),
+                        'podId' => $podId,
+                        'postDescription' => $postDescription ? $postDescription : 'You successfully make payment for application',
+                    ));
+                }
                 exit;
             } catch (Exception $e) {
                 CException::log($e);
@@ -194,6 +205,7 @@ class KuberDock_OrderController extends CL_Controller {
 
     public function addKubesAction()
     {
+        $this->clientArea->requireLogin();
         $this->assets->registerScriptFiles(array('jquery.nouislider.all.min'));
         $this->assets->registerStyleFiles(array('jquery.nouislider.min'));
 
@@ -222,6 +234,8 @@ class KuberDock_OrderController extends CL_Controller {
                 $response = $pod->updateKubes($values);
                 if(is_numeric($response)) {
                     header('Location: viewinvoice.php?id=' . $response);
+                } elseif($response == 'Paid') {
+                    header('Location: clientarea.php?action=productdetails&id=' . $serviceId);
                 }
                 $pod->loadById($podId);
             } catch(Exception $e) {
@@ -242,7 +256,34 @@ class KuberDock_OrderController extends CL_Controller {
             'errorMessage' => $errorMessage,
         ), '');
         $this->clientArea->setTemplate($templatePath);
-
         $this->clientArea->output();
+    }
+
+    public function restartAction()
+    {
+        $this->clientArea->requireLogin();
+        $podId = CL_Base::model()->getParam('podId');
+        $serviceId = CL_Base::model()->getParam('serviceId');
+        $wipeOut = CL_Base::model()->getParam('wipeOut', 0);
+
+        if($wipeOut) {
+            $values = array(
+                'commandOptions' => array(
+                    'wipeOut' => true),
+            );
+        }
+
+        $service = \KuberDock_Hosting::model()->loadById($serviceId);
+        try {
+            $service->getApi()->redeployPod($podId, $values);
+
+            $templatePath = '../../modules/servers/KuberDock/view/smarty/restart';
+            $this->clientArea->setPageTitle('Add additional kubes');
+            $this->clientArea->assign('message', 'Pod restarted');
+            $this->clientArea->setTemplate($templatePath);
+            $this->clientArea->output();
+        } catch(Exception $e) {
+            echo $e->getMessage();
+        }
     }
 } 

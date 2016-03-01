@@ -157,7 +157,7 @@ class KuberDock_Server extends CL_Server {
         ))->getRow();
 
         if(!$server) {
-            throw new Exception('KuberDock server group not founded');
+            throw new Exception('KuberDock server group not found');
         }
 
         return $server['id'];

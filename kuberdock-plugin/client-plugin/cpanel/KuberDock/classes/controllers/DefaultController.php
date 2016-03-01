@@ -76,8 +76,7 @@ class DefaultController extends KuberDock_Controller {
 
         try {
             $pod = new Pod();
-            $template = new Template($pod->getApi());
-            $templates = $template->getAll();
+            $templates = $pod->command->getYAMLTemplates();
             $images = $pod->searchImages($search, $page);
             $registryUrl = $pod->command->getRegistryUrl();
         } catch(CException $e) {
@@ -118,7 +117,7 @@ class DefaultController extends KuberDock_Controller {
             $pod->name = Tools::getPost('containerName', str_replace('/', '-', $image)).'-'.rand(1, 100);
             $pod->restartPolicy = 'Always';
             $pod->replicationController = true;
-            $pod->packageId = Tools::getPost('product_id');
+            $pod->packageId = $packageId = Tools::getPost('product_id');
             $pod->kube_type = Tools::getPost('kuber_kube_id');
 
             $pod->containers = array(
@@ -132,11 +131,21 @@ class DefaultController extends KuberDock_Controller {
             try {
                 $pod->create();
                 $pod->save();
-                $pod->start();
+
+                $pod = $pod->loadByName($pod->name);
+
+                if(Base::model()->getPanel()->billing->isFixedPrice($packageId)) {
+                    $redirect = urlencode($pod->panel->getURL() . '?a=podDetails&podName=' . $pod->name);
+                    $link = sprintf('%s/kdorder.php?a=orderPod&pod=%s&referer=%s',
+                        $pod->panel->billing->getBillingLink(), $pod->asJSON(), $redirect);
+                } else {
+                    $link = $pod->panel->getURL();
+                    $pod->start();
+                }
 
                 echo json_encode(array(
                     'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
-                    'redirect' => $_SERVER['SCRIPT_URI'],
+                    'redirect' => $link,
                 ));
             } catch(CException $e) {
                 echo $e->getJSON();
@@ -162,7 +171,13 @@ class DefaultController extends KuberDock_Controller {
             $pod = new Pod();
             $pod = $pod->loadByName($container);
 
-            if (in_array($pod->status, array('stopped', 'terminated', 'failed', 'succeeded'))) {
+            if($pod->isUnPaid()) {
+                $redirect = urlencode($pod->getPanel()->getURL() . '?a=podDetails&podName=' . $pod->name);
+                $link = sprintf('%s/kdorder.php?a=orderPod&pod=%s&referer=%s',
+                    $pod->getPanel()->getBillingLink(), $pod->asJSON(), $redirect);
+                echo json_encode(array('redirect' => $link));
+                exit();
+            } elseif(in_array($pod->status, array('stopped', 'terminated', 'failed', 'succeeded'))) {
                 $pod->start();
                 $message = 'Application started';
             } else {
@@ -229,8 +244,30 @@ class DefaultController extends KuberDock_Controller {
                 'message' => 'Deleted',
                 'redirect' => $_SERVER['SCRIPT_URI'],
             ));
-            /*header('HTTP/1.1 500 Internal Server Error');
-            echo $e->getJSON();*/
+        }
+    }
+
+    public function restartPodAction()
+    {
+        if(!Tools::getIsAjaxRequest()) {
+            return;
+        }
+
+        $podName = Tools::getPost('pod');
+        $wipeOut = Tools::getPost('wipeOut', 0);
+
+        try {
+            $pod = new Pod();
+            $pod = $pod->loadByName($podName);
+
+            Base::model()->getPanel()->getApi()->redeployPod($pod->id, $wipeOut);
+
+            echo json_encode(array(
+                'message' => $this->renderPartial('success', array('message' => 'Application restarted'), false),
+            ));
+        } catch(CException $e) {
+            header('HTTP/1.1 500 Internal Server Error');
+            echo $e->getJSON();
         }
     }
 

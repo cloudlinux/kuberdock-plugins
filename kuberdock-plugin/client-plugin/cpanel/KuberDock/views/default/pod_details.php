@@ -1,13 +1,23 @@
 <div class="row pod-details">
     <div class="col-md-12">
-        <?php if($pod->status == 'stopped') {
+    <?php
+        if($pod->status == 'stopped') {
             $statusClass = 'container-start';
             $statusText = 'Start';
+            $buttonClass = 'success';
+            $iconClass = 'play';
+        } elseif($pod->status == 'unpaid') {
+            $statusClass = 'container-pay';
+            $statusText = 'Pay and Start';
+            $buttonClass = 'success';
+            $iconClass = 'play';
         } else {
             $statusClass = 'container-stop';
             $statusText = 'Stop';
+            $buttonClass = 'danger';
+            $iconClass = 'stop';
         }
-        ?>
+    ?>
         <div class="splitter">
             <table class="table apps-list app-table">
                 <thead>
@@ -32,16 +42,23 @@
                         <?php echo (isset($pod->public_ip) && $pod->public_ip ? $pod->public_ip :
                             (isset($pod->labels['kuberdock-public-ip']) ? $pod->labels['kuberdock-public-ip'] : 'none'))?>
                     </td>
-                    <td class="col-md-3"><?php echo ucfirst($pod->status) ?></td>
+                    <td><?php echo ucfirst($pod->status) ?></td>
                     <td>
-                        <button type="button" class="btn btn-<?php echo $statusText == 'Start' ? 'success' : 'danger' ?> btn-xs <?php echo $statusClass?>" data-target=".confirm-modal" data-app="<?php echo $pod->name?>" title="<?php echo $statusText?>">
-                            <span class="glyphicon glyphicon-<?php echo $statusText == 'Start' ? 'play' : 'stop' ?>" aria-hidden="true"></span>
+                        <button type="button" class="btn btn-<?php echo $buttonClass ?> btn-xs <?php echo $statusClass?>" data-target=".confirm-modal" data-app="<?php echo $pod->name?>" title="<?php echo $statusText?>">
+                            <span class="glyphicon glyphicon-<?php echo $iconClass ?>" aria-hidden="true"></span>
                             <span><?php echo $statusText?></span>
                         </button>
+
                         <button type="button" class="btn btn-primary btn-xs container-edit" data-app="<?php echo $pod->name?>" title="Edit">
                             <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                             <span>Edit</span>
                         </button>
+
+                        <button type="button" class="btn btn-primary btn-xs pod-restart" data-target=".restart-modal" data-app="<?php echo $pod->name?>" title="Restart">
+                            <span class="glyphicon glyphicon-eject" aria-hidden="true"></span>
+                            <span>Restart</span>
+                        </button>
+
                         <button type="button" class="btn btn-danger btn-xs container-delete" data-target=".confirm-modal" data-app="<?php echo $pod->name?>" title="Delete">
                             <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                             <span>Delete</span>

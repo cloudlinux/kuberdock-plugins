@@ -111,7 +111,7 @@ class KuberDock_Addon_Product extends CL_Model {
     {
         $product = KuberDock_Product::model()->loadById($this->product_id);
         if(!$product) {
-            throw new Exception('Product not founded');
+            throw new Exception('Product not found');
         }
         $product->getApi()->deletePackage($this->kuber_product_id);
     }
@@ -188,7 +188,7 @@ class KuberDock_Addon_Product extends CL_Model {
         }
 
         if(!$rows) {
-            throw new CException(sprintf('Product for KuberDock server: %s not founded ', $serverUrl));
+            throw new CException(sprintf('Product for KuberDock server: %s not found ', $serverUrl));
         }
 
         return $this->loadByParams(current($rows));

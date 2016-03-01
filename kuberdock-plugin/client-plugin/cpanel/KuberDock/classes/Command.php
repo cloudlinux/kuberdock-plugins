@@ -134,7 +134,7 @@ abstract class Command {
                 break;
         }
 
-        if(isset($response['data']) && is_array($response['data'])) {
+        if(isset($response['data'])) {
             $data = $response['data'];
         } elseif($response) {
             $data = $response;

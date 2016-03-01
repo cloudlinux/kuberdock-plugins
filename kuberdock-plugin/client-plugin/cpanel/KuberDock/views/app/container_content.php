@@ -1,11 +1,21 @@
-<?php foreach($pods as $pod): if($pod['status'] == 'stopped') {
+<?php foreach($pods as $pod):
+    if($pod['status'] == 'stopped') {
         $statusClass = 'container-start';
         $statusText = 'Start';
+        $buttonClass = 'success';
+        $iconClass = 'play';
+    } elseif($pod['status'] == 'unpaid') {
+        $statusClass = 'container-pay';
+        $statusText = 'Pay and Start';
+        $buttonClass = 'success';
+        $iconClass = 'play';
     } else {
         $statusClass = 'container-stop';
         $statusText = 'Stop';
+        $buttonClass = 'danger';
+        $iconClass = 'stop';
     }
-    ?>
+?>
     <tr>
         <td class="col-md-3"><a href="?c=app&a=installPredefined&podName=<?php echo $pod['name']?>&template=<?php echo $pod['template_id']?>"><?php echo $pod['name']?></a></td>
         <td class="col-md-3">
@@ -14,8 +24,8 @@
         </td>
         <td class="col-md-3"><?php echo $statusText == 'Start' ? 'Stopped' : 'Running' ?></td>
         <td class="col-md-3">
-            <button type="button" class="btn btn-<?php echo $statusText == 'Start' ? 'success' : 'danger' ?> btn-xs <?php echo $statusClass?>" data-target=".confirm-modal" data-app="<?php echo $pod['name']?>" title="<?php echo $statusText?>">
-                <span class="glyphicon glyphicon-<?php echo $statusText == 'Start' ? 'play' : 'stop' ?>" aria-hidden="true"></span>
+            <button type="button" class="btn btn-<?php echo $buttonClass ?> btn-xs <?php echo $statusClass?>" data-target=".confirm-modal" data-app="<?php echo $pod['name']?>" title="<?php echo $statusText?>">
+                <span class="glyphicon glyphicon-<?php echo $iconClass ?>" aria-hidden="true"></span>
                 <span><?php echo $statusText?></span>
             </button>
             <button type="button" class="btn btn-primary btn-xs container-edit" data-app="<?php echo $pod['name']?>" title="Edit">

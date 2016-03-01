@@ -55,9 +55,6 @@ try {
 
         $serverGroup = KuberDock_ServerGroup::model()->loadById($product->servergroup);
         $server = $serverGroup->getActiveServer();
-        $row['server'] = $server->getAttributes();
-        $row['serverFullUrl'] = $server->getApiServerUrl();
-        $row['server']['password'] = $server->decryptPassword();
         if(!in_array($server->id, $serverIds)) {
             $serverIds[] = $server->id;
         }
@@ -101,7 +98,11 @@ try {
         $userData['default'] = null;
     }
 
+    global $CONFIG;
+    $userData['billing'] = 'WHMCS';
+    $userData['billingLink'] = $CONFIG['SystemURL'];
+
     $apiresults = array('result' => 'success', 'results' => $userData);
 } catch (Exception $e) {
-    $apiresults = array('result' => 'error', 'message' => 'Billing API error: ' . $e->getMessage());
+    $apiresults = array('result' => 'error', 'message' => $e->getMessage());
 }

@@ -474,6 +474,7 @@ class KcliCommand extends Command {
             'kubectl',
             'get',
             'templates',
+            '--origin' => 'cpanel',
         ));
     }
 

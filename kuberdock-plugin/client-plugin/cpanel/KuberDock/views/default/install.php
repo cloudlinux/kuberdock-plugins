@@ -29,7 +29,7 @@
 
                     <div class="col-sm-4">
                         <select class="form-control" name="kuber_kube_id" id="kuber_kube_id">
-                        <?php foreach($pod->getApi()->getProducts() as $product):?>
+                        <?php foreach($pod->getPanel()->billing->getProducts() as $product):?>
                             <?php foreach($product['kubes'] as $kube):?>
                             <option value="<?php echo $kube['kuber_kube_id']?>" data-pid="<?php echo $product['id']?>">
                                 <?php echo $kube['kube_name'] . ' ('.$product['name'].')'?>
@@ -196,7 +196,9 @@
 
                 <div class="row">
                     <div class="col-sm-12 text-center">
-                        <button type="submit" class="btn btn-primary">Start your App</button>
+                        <button type="submit" class="btn btn-primary start-button">
+                            Start your App
+                        </button>
                         <div class="ajax-loader buttons hidden"></div>
                     </div>
                 </div>
@@ -206,6 +208,6 @@
 </div>
 
 <script>
-    var kubes = <?php echo json_encode($pod->getApi()->getKubes())?>,
+    var kubes = <?php echo json_encode($pod->getPanel()->billing->getKubes())?>,
         units = <?php echo json_encode($pod->units)?>;
 </script>

@@ -1,4 +1,4 @@
-<div class="center" style="margin-top: 10px"><h3>Statistic</h3></div>
+<div class="center" style="margin-top: 10px"><h3>Pods</h3></div>
 
 <?php if($pods): ?>
     <table class="client product-info">
@@ -41,9 +41,12 @@
                 </td>
                 <td><?php echo $pod['status']?></td>
                 <td>
-                    <a href="<?php printf('kdorder.php?a=addKubes&podId=%s&serviceId=%s', $pod['id'], $service->id)?>">
-                        <button class="btn btn-default">Upgrade</button>
+                    <a href="#login-modal" data-toggle="modal" data-target="#restartModal">
+                        <button class="btn btn-success pod-restart">Restart</button>
                     </a>
+                    <!--<a href="<?php /*printf('kdorder.php?a=addKubes&podId=%s&serviceId=%s', $pod['id'], $service->id)*/?>">
+                        <button class="btn btn-default">Upgrade</button>
+                    </a>-->
                 </td>
             </tr>
         <?php endforeach;?>
@@ -51,3 +54,31 @@
 <?php else:?>
     <div>No pods yet</div>
 <?php endif; ?>
+
+<div class="modal fade" id="restartModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">
+                    Confirm restarting of application <?php echo $pod['name']?>
+                </h4>
+            </div>
+            <div class="modal-body">
+                You can wipe out all the data and redeploy the application or you can just restart and save data in Persistent storages of your application.
+            </div>
+            <div class="modal-footer">
+                <a href="<?php printf('kdorder.php?a=restart&podId=%s&serviceId=%s&wipeOut=1', $pod['id'], $service->id)?>">
+                    <button type="button" class="btn btn-danger">Wipe out</button>
+                </a>
+                <a href="<?php printf('kdorder.php?a=restart&podId=%s&serviceId=%s', $pod['id'], $service->id)?>">
+                    <button type="button" class="btn btn-primary">Just restart</button>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+</script>

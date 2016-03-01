@@ -34,7 +34,7 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade {
         ));
 
         if(!$data) {
-            throw new CException('Upgrade package info not founded');
+            throw new CException('Upgrade package info not found');
         }
 
         return $this->loadByParams(current($data));

@@ -59,7 +59,7 @@ class CL_BillableItems extends CL_Model {
 
     /**
      * @param int $invoiceId
-     * @return $this|null
+     * @return array
      */
     public function getByInvoice($invoiceId)
     {
@@ -68,17 +68,7 @@ class CL_BillableItems extends CL_Model {
             'type' => self::TYPE,
         ), 'relid > 0');
 
-        $invoice = current($data);
-
-        $model = $this->loadById($invoice['relid']);
-
-        if(!$data) {
-            return null;
-        }
-
-        $model->invoice = CL_Invoice::model()->loadById($invoiceId);
-
-        return $model;
+        return $data;
     }
 
     /**
@@ -106,6 +96,9 @@ class CL_BillableItems extends CL_Model {
         }
     }
 
+    /**
+     * @return float
+     */
     public function getProRate()
     {
         $dueDate = CL_Tools::sqlDateToDateTime($this->duedate);
@@ -116,32 +109,36 @@ class CL_BillableItems extends CL_Model {
         return $daysRemain / $totalDays;
     }
 
+    /**
+     * @return \DateTime
+     */
     public function getNextDueDate()
     {
         $current = $this->duedate ? CL_Tools::sqlDateToDateTime($this->duedate) : new \DateTime();
         $nextDate = clone($current);
-        $days = $this->getRecurDays();
-        $nextDate->modify(sprintf('+%s days', $days));
-        $nextDate->setDate($nextDate->format('Y'), $nextDate->format('m'), $current->format('d'));
+        $nextDate->modify($this->getRecurPeriod());
 
         return $nextDate;
     }
 
-    public function getRecurDays()
+    /**
+     * @return string
+     */
+    public function getRecurPeriod()
     {
         switch($this->recurcycle) {
             case self::CYCLE_MONTH:
-                $totalDays = $this->recur * 30;
+                $period = '+'.($this->recur * 1). ' month';
                 break;
             case self::CYCLE_YEAR:
-                $totalDays = $this->recur * 365;
+                $period = '+'.($this->recur * 1). ' year';;
                 break;
             default:
-                $totalDays = $this->recur * 30;
+                $period = '+'.($this->recur * 1). ' month';
                 break;
         }
 
-        return $totalDays;
+        return $period;
     }
 
     /**

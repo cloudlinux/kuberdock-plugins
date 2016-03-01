@@ -7,13 +7,9 @@
 
 class Pod {
     /**
-     * @var WHMCSApi
+     * @var KuberDock_CPanel
      */
-    private $api;
-    /**
-     * @var KcliCommand
-     */
-    private $command;
+    private $panel;
     /**
      * @var array
      */
@@ -80,8 +76,15 @@ class Pod {
      */
     public function init()
     {
-        $this->api = WHMCSApi::model();
-        $this->command = $this->api->getCommand();
+        $this->panel = Base::model()->getPanel();
+    }
+
+    /**
+     * @return string
+     */
+    public function asJSON()
+    {
+        return json_encode($this->_data);
     }
 
     /**
@@ -203,12 +206,7 @@ class Pod {
      */
     public function setContainers($values)
     {
-        /*if(isset($values['image'])) {
-            $ci = $this->getContainerIndexByImage($values['image']);
-            $this->addContainer($ci, $values);
-        } else {*/
-            $this->addContainer(0, $values);
-        /*}*/
+        $this->addContainer(0, $values);
 
         return $this;
     }
@@ -222,7 +220,7 @@ class Pod {
     {
         if(is_numeric($value)) {
             $this->kubeTypeId = $value;
-            foreach($this->api->getKubes() as $row) {
+            foreach($this->panel->billing->getKubes() as $row) {
                 foreach($row['kubes'] as $kube) {
                     if($kube['kuber_kube_id'] == $value && $this->packageId == $kube['product_id']) {
                         $this->kube_type = $kube['kube_name'];
@@ -242,11 +240,11 @@ class Pod {
     }
 
     /**
-     * @return WHMCSApi
+     * @return KuberDock_CPanel
      */
-    public function getApi()
+    public function getPanel()
     {
-        return $this->api;
+        return $this->panel;
     }
 
     /**
@@ -254,7 +252,7 @@ class Pod {
      */
     public function getCommand()
     {
-        return $this->command;
+        return $this->panel->getCommand();
     }
 
     /**
@@ -310,7 +308,7 @@ class Pod {
     {
         $data = array();
 
-        if(!$this->api->getService()) {
+        if(!$this->panel->billing->getService()) {
             return $data;
         }
 
@@ -346,8 +344,8 @@ class Pod {
      */
     public function getKubeType()
     {
-        $product = $this->api->getProduct();
-        return $this->api->getKubes()[$product['id']]['kubes'][$this->kube_type];
+        $product = $this->panel->billing->getProduct();
+        return $this->panel->billing->getKubes()[$product['id']]['kubes'][$this->kube_type];
     }
 
     /**
@@ -355,8 +353,8 @@ class Pod {
      */
     public function getTotalPrice()
     {
-        $currency = $this->api->getCurrency();
-        $product = $this->api->getProduct();
+        $currency = $this->panel->billing->getCurrency();
+        $product = $this->panel->billing->getProduct();
         $kube = $this->getKubeType();
         $publicIp = 0;
         $pdSize = 0;
@@ -403,7 +401,7 @@ class Pod {
      */
     public function getKuberDockUrl()
     {
-        $product = $this->api->getProduct();
+        $product = $this->panel->billing->getProduct();
 
         return isset($product['server']['serverip']) ?
             'https://'. $product['server']['serverip'] : $product['serverFullUrl'];
@@ -457,37 +455,11 @@ class Pod {
      */
     public function create()
     {
-        $ownerData = $this->api->getOwnerData();
-        $billingLink = sprintf('<a href="%s" target="_blank">%s</a>', $ownerData['server'], $ownerData['server']);
-
         // Create order with kuberdock product
-        $product = $this->api->getProductById($this->packageId);
-        $service = $this->api->getService();
-        if(!$service) {
-            if($this->api->getUserCredit() < $product['firstDeposit']) {
-                $currency = $this->api->getCurrency();
-                $rest = abs($this->api->getUserCredit() - $product['firstDeposit']);
-                throw new CException(sprintf('You have not enough funds for first deposit.
-                    You need to make payment %.2f %s at %s', $rest, $currency['suffix'], $billingLink));
-            }
-
-            $data = $this->api->addOrder($this->api->getUserId(), $this->packageId);
-            if($data['invoiceid'] > 0) {
-                $invoice = $this->api->getInvoice($data['invoiceid']);
-                if($invoice['status'] == 'Unpaid') {
-                    throw new CException('You have no enough funds.
-                                Please make payment in billing system at ' . $billingLink);
-                }
-            }
-            $this->api->acceptOrder($data['orderid'], false);
-            $this->api->moduleCreate($data['productids']);
-
-            $this->api = $this->api->setKuberDockInfo();
-            $this->command = $this->api->getCommand();
-        } elseif($service['domainstatus'] == 'Pending') {
-            $this->api->moduleCreate($service['id']);
-            $this->api = $this->api->setKuberDockInfo();
-            $this->command = $this->api->getCommand();
+        $product = $this->panel->billing->getProductById($this->packageId);
+        if(!$this->panel->isNoBilling()) {
+            $service = $this->panel->getApi()->order($this->panel->user, $this->panel->domain, $this->packageId);
+            $this->panel->billing->setService($service);
         }
 
         return $this;
@@ -524,7 +496,7 @@ class Pod {
         $this->command->startContainer($this->name);
 
         if($this->template_id) {
-            $proxy = new Proxy($this->api);
+            $proxy = new Proxy($this->panel);
             $proxy->addRuleToPod($this);
         }
     }
@@ -537,7 +509,7 @@ class Pod {
         $this->command->stopContainer($this->name);
 
         if($this->template_id) {
-            $proxy = new Proxy($this->api);
+            $proxy = new Proxy($this->panel);
             $proxy->removeRuleFromPod($this);
         }
     }
@@ -548,7 +520,7 @@ class Pod {
     public function delete()
     {
         if($this->template_id) {
-            $proxy = new Proxy($this->api);
+            $proxy = new Proxy($this->panel);
             $proxy->removeRuleFromPod($this);
         }
 
@@ -609,6 +581,14 @@ class Pod {
     }
 
     /**
+     * @return bool
+     */
+    public function isUnPaid()
+    {
+        return $this->status == 'unpaid';
+    }
+
+    /**
      * @param int $index
      * @param array $values
      */
@@ -616,21 +596,4 @@ class Pod {
     {
         $this->_data['containers'][$index] = $values;
     }
-
-    /**
-     * @param $image
-     * @return int|string
-     */
-    private function getContainerIndexByImage($image)
-    {
-        foreach($this->containers as $k => $container) {
-            if(!isset($container['image'])) continue;
-
-            if($container['image'] == $image) {
-                return $k;
-            }
-        }
-
-        return -1;
-    }
-} 
+}

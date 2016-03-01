@@ -107,14 +107,12 @@ class KuberDock_Addon extends CL_Component {
             $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_preapps` (
                 id INT AUTO_INCREMENT,
                 session_id varchar(64) NOT NULL,
-                product_id INT NOT NULL,
-                kuber_product_id INT NOT NULL,
+                product_id INT NULL,
+                kuber_product_id INT NULL,
+                pod_id VARCHAR(64) DEFAULT NULL,
                 data TEXT,
                 PRIMARY KEY (id),
-                UNIQUE KEY (session_id),
-                FOREIGN KEY (product_id)
-                    REFERENCES KuberDock_products(product_id)
-                    ON UPDATE CASCADE ON DELETE CASCADE
+                INDEX (session_id)
             ) ENGINE=INNODB');
 
             $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_price_changes` (

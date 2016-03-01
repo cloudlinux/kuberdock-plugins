@@ -21,4 +21,20 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade bs-example-modal-sm restart-modal" tabindex="-1" role="dialog" aria-labelledby="Confirm">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">Some text</div>
+                <div class="modal-footer">
+                    <div class="pull-left">
+                        <button type="button" class="btn btn-danger" data-action="restart" data-wipe="1">Wipe Out</button>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary btn-action" data-action="restart">Just Restart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

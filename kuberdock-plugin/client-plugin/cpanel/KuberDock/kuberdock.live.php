@@ -7,7 +7,6 @@ include_once $dirName . '/init.php';
 
 try {
     $cPanel = &new CPANEL();
-    Base::model()->setPanel($cPanel);
 } catch (Exception $e) {
     echo $e->getMessage();
 }

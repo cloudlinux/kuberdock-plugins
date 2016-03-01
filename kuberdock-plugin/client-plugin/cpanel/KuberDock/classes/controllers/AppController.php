@@ -50,12 +50,22 @@ class AppController extends KuberDock_Controller
 
                     $app->setPackageId(Tools::getPost('product_id'));
                     $app->createApp($_POST);
-                    $app->getPod()->loadByName($app->template->getPodName())->start();
+
+                    $pod = $app->getPod()->loadByName($app->template->getPodName());
+                    $link = sprintf('%s?c=app&a=installPredefined&template=%s&podName=%s&postDescription=%s',
+                        $pod->panel->getURL(), $templateId, $app->template->getPodName(), 1);
+
+                    if(Base::model()->getPanel()->billing->isFixedPrice($app->getPackageId())) {
+                        $redirect = urlencode($pod->panel->getURL() . '?a=podDetails&podName=' . $pod->name);
+                        $link = sprintf('%s/kdorder.php?a=orderPod&pod=%s&referer=%s',
+                            $pod->panel->billing->getBillingLink(), $pod->asJSON(), $redirect);
+                    } else {
+                        $pod->start();
+                    }
 
                     echo json_encode(array(
                         'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
-                        'redirect' => sprintf('%s?c=app&a=installPredefined&template=%s&podName=%s&postDescription=%s',
-                            $_SERVER['SCRIPT_URI'], $templateId, $app->template->getPodName(), 1),
+                        'redirect' => $link,
                     ));
                 } catch (CException $e) {
                     echo $e->getJSON();
