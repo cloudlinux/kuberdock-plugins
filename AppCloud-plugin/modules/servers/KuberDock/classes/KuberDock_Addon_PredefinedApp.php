@@ -258,7 +258,11 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     {
         $items = array();
         $product = KuberDock_Product::model()->loadById($this->product_id) ;
-        $kubePrice = $this->getKubePrice($data->kube_type, $product);
+
+        $kubeType = isset($data[kuberdock][kube_type]) ? $data[kuberdock][kube_type] : 0;
+
+        $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
+        $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
 
         if(isset($data['spec']['template']['spec'])) {
             $spec = $data['spec']['template']['spec'];
@@ -324,7 +328,9 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     {
         $items = array();
         $product = KuberDock_Product::model()->loadById($this->product_id) ;
-        $kubePrice = $this->getKubePrice($data->kube_type, $product);
+        $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
+        $kubeType = isset($data->kube_type) ? $data->kube_type : 0;
+        $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
 
         foreach($data->containers as $row) {
             if(isset($row->kubes)) {
@@ -372,20 +378,6 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
         }
 
         return $items;
-    }
-
-    /**
-     * @param int $kube_type
-     * @param \KuberDock_Product $product
-     * @return int
-     */
-    private function getKubePrice($kube_type, $product)
-    {
-        $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
-        $kubeType = isset($kube_type) ? $kube_type : 0;
-        $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
-
-        return $kubePrice;
     }
 
     /**
