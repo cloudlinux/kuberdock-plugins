@@ -111,6 +111,7 @@ class KuberDock_Addon extends CL_Component {
                 kuber_product_id INT NULL,
                 pod_id VARCHAR(64) DEFAULT NULL,
                 data TEXT,
+                referer text NULL,
                 PRIMARY KEY (id),
                 INDEX (session_id)
             ) ENGINE=INNODB');
