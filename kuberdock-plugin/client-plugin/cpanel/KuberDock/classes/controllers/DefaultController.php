@@ -136,8 +136,8 @@ class DefaultController extends KuberDock_Controller {
 
                 if(Base::model()->getPanel()->billing->isFixedPrice($packageId)) {
                     $redirect = urlencode($pod->panel->getURL() . '?a=podDetails&podName=' . $pod->name);
-                    $link = sprintf('%s/kdorder.php?a=orderPod&pod=%s&referer=%s',
-                        $pod->panel->billing->getBillingLink(), $pod->asJSON(), $redirect);
+                    $link = sprintf('%s/kdorder.php?a=orderPod&pod=%s&user=%s&referer=%s',
+                        $pod->panel->billing->getBillingLink(), $pod->asJSON(), json_encode(array('product_id' => $packageId)), $redirect);
                 } else {
                     $link = $pod->panel->getURL();
                     $pod->start();
@@ -172,9 +172,11 @@ class DefaultController extends KuberDock_Controller {
             $pod = $pod->loadByName($container);
 
             if($pod->isUnPaid()) {
+                $productId = $pod->getApi()->getService()['packageid'];
                 $redirect = urlencode($pod->getPanel()->getURL() . '?a=podDetails&podName=' . $pod->name);
-                $link = sprintf('%s/kdorder.php?a=orderPod&pod=%s&referer=%s',
-                    $pod->getPanel()->getBillingLink(), $pod->asJSON(), $redirect);
+                $link = sprintf('%s/kdorder.php?a=orderPod&pod=%s&user=%s&referer=%s',
+                    $pod->getPanel()->getBillingLink(), $pod->asJSON(),
+                    json_encode(array('product_id' => $productId)), $redirect);
                 echo json_encode(array('redirect' => $link));
                 exit();
             } elseif(in_array($pod->status, array('stopped', 'terminated', 'failed', 'succeeded'))) {

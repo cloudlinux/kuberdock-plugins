@@ -126,13 +126,17 @@ class KuberDock_OrderController extends CL_Controller {
             }
             $predefinedApp->referer = htmlspecialchars_decode($referer);
 
-            if(!isset($user->package_id)) {
+            if(isset($user->package_id)) {
+                $attributes = array('kuber_product_id' => $user->package_id);
+            } // KD
+            elseif(isset($user->product_id)) {
+                $attributes = array('product_id' => $user->product_id);
+            } // hosting panel
+            else {
                 throw new Exception('User has no package');
             }
 
-            $data = \KuberDock_Addon_Product::model()->loadByAttributes(array(
-                'kuber_product_id' => $user->package_id,
-            ));
+            $data = \KuberDock_Addon_Product::model()->loadByAttributes($attributes);
             $addonProduct = \KuberDock_Addon_Product::model()->loadByParams(current($data));
             $product = \KuberDock_Product::model()->loadById($addonProduct->product_id);
             $predefinedApp->setAttributes(array(

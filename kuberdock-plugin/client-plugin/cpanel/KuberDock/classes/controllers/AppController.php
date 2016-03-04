@@ -57,8 +57,9 @@ class AppController extends KuberDock_Controller
 
                     if(Base::model()->getPanel()->billing->isFixedPrice($app->getPackageId())) {
                         $redirect = urlencode($pod->panel->getURL() . '?a=podDetails&podName=' . $pod->name);
-                        $link = sprintf('%s/kdorder.php?a=orderPod&pod=%s&referer=%s',
-                            $pod->panel->billing->getBillingLink(), $pod->asJSON(), $redirect);
+                        $link = sprintf('%s/kdorder.php?a=orderPod&pod=%s&user=%s&referer=%s',
+                            $pod->panel->billing->getBillingLink(), $pod->asJSON(),
+                            json_encode(array('product_id' => $app->getPackageId())), $redirect);
                     } else {
                         $pod->start();
                     }
