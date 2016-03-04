@@ -212,6 +212,9 @@ class KuberDock_Addon extends CL_Component {
                     );
                 }
             }
+
+            \base\models\CL_Configuration::appendAPIAllowedIPs('KuberDock', $server->ipaddress);
+
         } catch(Exception $e) {
             $db->query('DROP TABLE IF EXISTS `KuberDock_preapps`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_states`');
@@ -290,6 +293,8 @@ class KuberDock_Addon extends CL_Component {
         $mailTemplate->deleteTemplate($mailTemplate::MODULE_CREATE_NAME, $mailTemplate::TYPE_PRODUCT);
 
         KuberDock_Product::model()->deleteByAttributes(array('name' => self::STANDARD_PRODUCT, 'servertype' => KUBERDOCK_MODULE_NAME));
+
+        \base\models\CL_Configuration::appendAPIAllowedIPs('KuberDock');
     }
 
     /**
@@ -307,6 +312,4 @@ class KuberDock_Addon extends CL_Component {
             return self::$_models[$className];
         }
     }
-
-
-} 
+}
