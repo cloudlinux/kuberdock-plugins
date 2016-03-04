@@ -460,6 +460,7 @@ class Pod {
         if(!$this->panel->isNoBilling()) {
             $service = $this->panel->getApi()->order($this->panel->user, $this->panel->domain, $this->packageId);
             $this->panel->billing->setService($service);
+            Base::model()->setPanel(new KuberDock_CPanel());
         }
 
         return $this;

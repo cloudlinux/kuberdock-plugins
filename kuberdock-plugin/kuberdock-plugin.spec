@@ -1,7 +1,7 @@
 Version: 1.0
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 0%{?dist}.rc.4.1.cloudlinux
+Release: 0%{?dist}.rc.5.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -57,6 +57,13 @@ fi
 %{python_sitelib}/kd_common/*
 
 %changelog
+
+* Fri Mar 04 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.0-0.rc.5
+- cPanel. Get auth data for new product
+- cPanel. Fixed pay process
+- cPanel. Add payAndstart logic, restart pod AC 2507.
+- AC-2512 - cPanel. Cannot connect KD API via admin interface
+- AC-2085 kuberdock-plugin. Add kdcommon cli utility
 
 * Tue Feb 16 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.0-0.rc.4.1
 - AC-2085 kuberdock-plugin. Add kdcommon cli utility
