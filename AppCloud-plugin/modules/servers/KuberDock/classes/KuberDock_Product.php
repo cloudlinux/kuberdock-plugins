@@ -144,15 +144,12 @@ class KuberDock_Product extends CL_Product {
     public function create($serviceId)
     {
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
-
         $created = $this->createUser($service);
 
-        if(isset($created) && $created) {
-            // Send module create email
-            CL_MailTemplate::model()->sendPreDefinedEmail($serviceId, CL_MailTemplate::MODULE_CREATE_NAME, array(
-                'kuberdock_link' => $service->getServer()->getLoginPageLink(),
-            ));
-        }
+        // Send module create email
+        CL_MailTemplate::model()->sendPreDefinedEmail($serviceId, CL_MailTemplate::MODULE_CREATE_NAME, array(
+            'kuberdock_link' => $service->getServer()->getLoginPageLink(),
+        ));
     }
 
     /**
@@ -164,7 +161,7 @@ class KuberDock_Product extends CL_Product {
     public function createUser($service)
     {
         $service->updateById($service->id, array(
-            'username' => $this->client->email,
+            'username' => $service->username ? $service->username : $this->client->email,
             'password' => $service->encryptPassword(substr($this->client->password, 0, 25)),
             'domainstatus' => 'Active',
         ));
@@ -209,7 +206,6 @@ class KuberDock_Product extends CL_Product {
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
         $api = $service->getAdminApi();
         $productName = $this->getName();
-        $service->username = $this->client->email;
         $password = $service->decryptPassword();
 
         $response = $api->getUser($service->username);
@@ -218,7 +214,7 @@ class KuberDock_Product extends CL_Product {
             throw new Exception('User not found');
         }
 
-        $api->updateUser(array(
+        $attributes = array(
             'package' => $productName,
             'clientid' => (int) $this->client->id,
             'first_name' => $this->client->firstname,
@@ -230,7 +226,9 @@ class KuberDock_Product extends CL_Product {
             'rolename' => $this->getRole(),
             'timezone' => $data['timezone'],
             'deleted' => 0,
-        ), $data['id']);
+        );
+
+        $api->updateUser($attributes, $data['id']);
 
         $service->updateById($serviceId, array(
             'username' => $service->username,

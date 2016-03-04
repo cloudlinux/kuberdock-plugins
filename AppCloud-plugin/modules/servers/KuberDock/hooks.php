@@ -235,6 +235,9 @@ function KuberDock_ShoppingCartCheckoutCompletePage($params)
 }
 add_hook('ShoppingCartCheckoutCompletePage', 1, 'KuberDock_ShoppingCartCheckoutCompletePage');
 
+/**
+ * @param $params
+ */
 function KuberDock_AfterShoppingCartCheckout($params)
 {
     $order = \base\models\CL_Order::model()->loadById($params['OrderID']);
@@ -477,6 +480,9 @@ function KuberDock_ClientAreaHomepage()
 }
 //add_hook('ClientAreaHomepage', 1, 'KuberDock_ClientAreaHomepage');
 
+/**
+ * @param $params
+ */
 function KuberDock_InvoiceCreated($params)
 {
     $invoiceItems = \base\models\CL_BillableItems::model()->getByInvoice($params['invoiceid']);
@@ -749,6 +755,9 @@ function KuberDock_AdminServiceEdit($params)
 }
 add_hook('AdminServiceEdit', 1, 'KuberDock_AdminServiceEdit');
 
+/**
+ * @param $params
+ */
 function KuberDock_ClientAreaRegister($params)
 {
     // Create app
@@ -795,3 +804,55 @@ function KuberDock_ClientAreaRegister($params)
     }
 }
 add_hook('ClientAreaRegister', 1, 'KuberDock_ClientAreaRegister');
+
+/**
+ * @param $params
+ */
+function KuberDock_ClientAdd($params)
+{
+    // Add service for user created from KD
+    $packageId = CL_Base::model()->getPost('package_id');
+    try {
+        $data = KuberDock_Addon_Product::model()->loadByAttributes(array(
+            'kuber_product_id' => $packageId,
+        ));
+
+        if(!$data) {
+            throw new Exception('Product not found');
+        }
+
+        $data = current($data);
+        $result = \base\models\CL_Order::model()->createOrder($params['userid'], $data['product_id']);
+        $user = KuberDock_User::model()->loadById($params['userid']);
+        $user->notes = json_encode(array(
+            'KDOrder' => $result['orderid'],
+            'KDService' => $result['productids'],
+            'KDUser' => isset($_POST['kduser']) ? $_POST['kduser'] : 'kduser',
+        ));
+        $user->save();
+    } catch(Exception $e) {
+        CException::log($e);
+    }
+}
+add_hook('ClientAdd', 1, 'KuberDock_ClientAdd');
+
+
+/**
+ * As the Client Login is being completed, either from the client area, or an admin user utilising "Login as Client"
+ * @param $params
+ * @throws Exception
+ */
+function KuberDock_ClientLogin($params)
+{
+    // Create service if user created from KD
+    $user = KuberDock_User::model()->loadById($params['userid']);
+    if($user->notes && ($notes = json_decode($user->notes))) {
+        $service = KuberDock_Hosting::model()->loadById($notes->KDService);
+        $service->username = $notes->KDUser;
+        $service->save();
+        \base\models\CL_Order::model()->acceptOrder($notes->KDOrder);
+        $user->notes = '';
+        $user->save();
+    }
+}
+add_hook('ClientLogin', 1, 'KuberDock_ClientLogin');
