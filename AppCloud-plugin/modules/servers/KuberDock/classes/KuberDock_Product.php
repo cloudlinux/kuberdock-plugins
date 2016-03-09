@@ -383,7 +383,7 @@ class KuberDock_Product extends CL_Product {
                 array(
                     $currency->getFullPrice($kube['kube_price']),
                     $this->getReadablePaymentType(),
-                    $kube['cpu_limit'].' '.KuberDock_Units::getCPUUnits(),
+                    number_format($kube['cpu_limit'], 2) . ' '.KuberDock_Units::getCPUUnits(),
                     $kube['memory_limit'].' '.KuberDock_Units::getMemoryUnits(),
                     $kube['hdd_limit'].' '.KuberDock_Units::getHDDUnits(),
                     $kube['traffic_limit'].' '.KuberDock_Units::getTrafficUnits()
