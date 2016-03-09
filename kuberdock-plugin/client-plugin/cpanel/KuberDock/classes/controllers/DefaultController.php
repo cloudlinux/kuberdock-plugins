@@ -105,6 +105,10 @@ class DefaultController extends KuberDock_Controller {
     {
         $image = Tools::getParam('image', Tools::getPost('image'));
 
+        $api = new KuberDock_Api();
+        $sysapi = $api->getSysApi('name');
+        $maxKubes = $sysapi['max_kubes_per_container']['value'];
+
         try {
             $pod = new Pod();
             $pod = $pod->loadByImage($image);
@@ -120,15 +124,20 @@ class DefaultController extends KuberDock_Controller {
             $pod->packageId = $packageId = Tools::getPost('product_id');
             $pod->kube_type = Tools::getPost('kuber_kube_id');
 
-            $pod->containers = array(
-                'image' => $image,
-                'kubes' => Tools::getPost('kube_count'),
-                'ports' => Tools::getPost('Ports'),
-                'env' => Tools::getPost('Env'),
-                'volumeMounts' => Tools::getPost('Volume'),
-            );
-
             try {
+                $kubeCount = Tools::getPost('kube_count');
+                if ($kubeCount > $maxKubes) {
+                    throw new CException('Only ' . $maxKubes . ' kubes allowed');
+                }
+
+                $pod->containers = array(
+                    'image' => $image,
+                    'kubes' => $kubeCount,
+                    'ports' => Tools::getPost('Ports'),
+                    'env' => Tools::getPost('Env'),
+                    'volumeMounts' => Tools::getPost('Volume'),
+                );
+
                 $pod->create();
                 $pod->save();
 
@@ -156,6 +165,7 @@ class DefaultController extends KuberDock_Controller {
         $this->render('install', array(
             'image' => $image,
             'pod' => $pod,
+            'maxKubes' => $maxKubes,
         ));
     }
 
