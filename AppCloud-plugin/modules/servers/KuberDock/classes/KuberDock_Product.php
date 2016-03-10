@@ -167,6 +167,7 @@ class KuberDock_Product extends CL_Product {
         ));
 
         $api = $service->getAdminApi();
+
         try {
             $api->getUser($service->username);
             $api->unDeleteUser($service->username);
@@ -185,14 +186,11 @@ class KuberDock_Product extends CL_Product {
                 'package' => $this->getName(),
                 'timezone' => 'UTC (+0000)',
             ));
-
-            $token = $service->getApi()->getToken();
-            $service->updateToken($token);
-
-            return true;
         }
 
-        return false;
+        $service = KuberDock_Hosting::model()->loadById($service->id);
+        $token = $service->getApi(true)->getToken();
+        $service->updateToken($token);
     }
 
     /**
@@ -234,9 +232,6 @@ class KuberDock_Product extends CL_Product {
             'username' => $service->username,
             'password' => $service->encryptPassword($password),
         ));
-
-        $token = $service->getApi(true)->getToken();
-        $service->updateToken($token);
 
         if(!$service->isTerminated() && !$service->isSuspended()) {
             $service->updateById($serviceId, array(

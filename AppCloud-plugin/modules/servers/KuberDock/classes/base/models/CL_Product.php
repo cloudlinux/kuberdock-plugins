@@ -113,13 +113,16 @@ abstract class CL_Product extends CL_Model {
      *
      * @param int $productId
      * @param int $serviceId
-     * @param string $userName
      * @param string $fieldName
      * @param string $value
      * @return bool
+     * @throws Exception
      */
-    public function updateCustomField($productId, $serviceId, $userName, $fieldName, $value)
+    public function updateCustomField($productId, $serviceId, $fieldName, $value)
     {
+        $admin = CL_User::model()->getCurrentAdmin();
+        $adminuser = $admin['username'];
+
         $customField = $this->getCustomField($productId, $fieldName);
 
         if(!$customField) {
@@ -131,9 +134,13 @@ abstract class CL_Product extends CL_Model {
             array($customField['id'] => $value
         )));
 
-        $result = localAPI('updateclientproduct', $values, $userName);
+        $result = localAPI('updateclientproduct', $values, $adminuser);
 
-        return ($result['result'] == 'success');
+        if($result['result'] != 'success') {
+            throw new Exception($result['message']);
+        }
+
+        return true;
     }
 
     /**

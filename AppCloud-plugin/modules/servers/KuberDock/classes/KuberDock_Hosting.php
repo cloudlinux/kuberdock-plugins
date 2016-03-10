@@ -511,7 +511,7 @@ class KuberDock_Hosting extends CL_Hosting {
      */
     public function updateToken($token)
     {
-        KuberDock_Product::model()->updateCustomField($this->packageid, $this->id, 'admin', 'Token', $token);
+        KuberDock_Product::model()->updateCustomField($this->packageid, $this->id, 'Token', $token);
         return $this;
     }
 
