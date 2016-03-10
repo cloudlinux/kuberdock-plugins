@@ -10,6 +10,7 @@ class DefaultController extends KuberDock_Controller {
 
     public function indexAction()
     {
+
         try {
             $pod = new Pod();
             $pods = $pod->getPods();

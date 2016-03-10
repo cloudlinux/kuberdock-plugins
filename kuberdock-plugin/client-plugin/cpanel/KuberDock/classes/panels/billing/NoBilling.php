@@ -58,7 +58,7 @@ class NoBilling implements BillingInterface
      */
     public function getCurrency()
     {
-        return $this->_data['package'];
+        return isset($this->_data['packages']) ? $this->_data['packages'][0] : $this->_data['package'];
     }
 
     /**
@@ -66,10 +66,6 @@ class NoBilling implements BillingInterface
      */
     public function getProducts()
     {
-        $package = $this->getProduct();
-        $package['kuber_kube_id'] = $package['id'];
-        $kubes = array();
-
         $_map = array(
             'kube_name' => 'name',
             'kube_price' => 'price',
@@ -79,21 +75,58 @@ class NoBilling implements BillingInterface
             'hdd_limit' => 'disk_space',
         );
 
-        foreach($package['kubes'] as $row) {
-            if(!$row['available']) continue;
+        if(isset($this->_data['packages'])) {
+            $packages = array();
+            $_productMap = array(
+                'paymentType' => 'period',
+                'pricePersistentStorage' => 'price_pstorage',
+                'priceIP' => 'price_ip',
+            );
 
-            foreach($_map as $k => $v) {
-                $row[$k] = $row[$v];
+            foreach($this->_data['packages'] as &$row) {
+                $row['kuber_kube_id'] = $row['id'];
+                $kubes = array();
+
+                foreach($_productMap as $pm => $m) {
+                    $row[$pm] = $row[$m];
+                }
+
+                foreach($row['kubes'] as $kube) {
+                    if(!$kube['available']) continue;
+                    foreach($_map as $k => $v) {
+                        $kube[$k] = $kube[$v];
+                    }
+
+                    $kube['kuber_kube_id'] = $kube['id'];
+                    $kube['product_id'] = $row['id'];
+                    $kubes[$kube['id']] = $kube;
+                }
+                $row['kubes'] = $kubes;
+                $packages[$row['id']] = $row;
             }
-            $row['kuber_kube_id'] = $row['id'];
-            $row['product_id'] = $package['id'];
-            $kubes[$row['id']] = $row;
-        }
-        $package['kubes'] = $kubes;
 
-        return array(
-            $package['id'] => $package,
-        );
+            return $packages;
+        } else {
+            $package = $this->getProduct();
+            $package['kuber_kube_id'] = $package['id'];
+            $kubes = array();
+
+            foreach($package['kubes'] as $row) {
+                if(!$row['available']) continue;
+
+                foreach($_map as $k => $v) {
+                    $row[$k] = $row[$v];
+                }
+                $row['kuber_kube_id'] = $row['id'];
+                $row['product_id'] = $package['id'];
+                $kubes[$row['id']] = $row;
+            }
+            $package['kubes'] = $kubes;
+
+            return array(
+                $package['id'] => $package,
+            );
+        }
     }
 
     /**
@@ -101,6 +134,10 @@ class NoBilling implements BillingInterface
      */
     public function getProduct()
     {
+        if(isset($this->_data['packages'])) {
+            return array();
+        }
+
         $_map = array(
             'paymentType' => 'period',
             'pricePersistentStorage' => 'price_pstorage',

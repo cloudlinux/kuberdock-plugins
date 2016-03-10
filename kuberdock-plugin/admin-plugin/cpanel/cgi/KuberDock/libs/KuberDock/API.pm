@@ -76,6 +76,31 @@ sub setDefaults {
     $self->request('/api/pricing/packages/' . $data->{packageId}, 'PUT', '{"is_default":"1"}');
 }
 
+sub createUser() {
+    my ($self, $data) = @_;
+    my $json = KuberDock::JSON->new;
+
+    return $self->request('/api/users/all', 'POST', $data);
+}
+
+sub updateUser() {
+    my ($self, $username) = @_;
+
+    return $self->request('/api/users/all/' . $username, 'PUT');
+}
+
+sub getUser() {
+    my ($self, $username) = @_;
+
+    return $self->request('/api/users/all/' . $username, 'GET');
+}
+
+sub undeleteUser() {
+    my ($self, $username) = @_;
+
+    return $self->request('/api/users/undelete/' . $username, 'POST');
+}
+
 sub request {
     my ($self, $url, $requestType, $data) = @_;
     my $agent = LWP::UserAgent->new(ssl_opts => { verify_hostname => 0 },);
@@ -102,6 +127,10 @@ sub request {
 
     if($resp->is_success) {
         return $self->getData($resp->decoded_content);
+    } elsif($resp->{_rc} eq '400') {
+        my $response->{status} = 'ERROR';
+        $response->{message} = $resp->decoded_content;
+        return $response;
     } else {
         die 'Cannot connect to KuberDock server';
     }
@@ -112,7 +141,9 @@ sub getData {
     my $json = KuberDock::JSON->new;
     my $decoded = $json->decode($data);
 
-    if($decoded->{'status'} eq 'OK' && defined $decoded->{data}) {
+    if($decoded->{status} eq 'OK' && defined $decoded->{data}) {
+        return $decoded->{data};
+    } elsif($decoded->{status} eq 'error' && defined $decoded->{data}) {
         return $decoded->{data};
     } else {
         die $decoded->{message};

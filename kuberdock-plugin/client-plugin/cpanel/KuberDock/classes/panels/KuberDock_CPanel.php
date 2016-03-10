@@ -61,11 +61,6 @@ class KuberDock_CPanel
 
         $this->command = new KcliCommand($username, $password, $token);
         $this->kdCommon = new KDCommonCommand();
-
-        // TODO: save only after create user (buy product)
-        if(!$this->isNoBilling()) {
-            $this->command->setConfig();
-        }
     }
 
     /**
@@ -111,6 +106,9 @@ class KuberDock_CPanel
         return new $billingClasses[$data['billing']]($data);
     }
 
+    /**
+     * @return bool
+     */
     public function isNoBilling()
     {
         return $this->billing instanceof NoBilling;
@@ -145,5 +143,80 @@ class KuberDock_CPanel
         list($domain, $directory) = $this->kdCommon->getUserMainDomain();
 
         return $domain;
+    }
+
+    /**
+     * @param $response
+     * @return mixed
+     * @throws CException
+     */
+    private function  getResponseData($response)
+    {
+        if(!isset($response['cpanelresult']['result'])) {
+            throw new CException(sprintf('Undefined response from %s:%s',
+                $response['cpanelresult']['module'], $response['cpanelresult']['func']));
+        }
+
+        $result = $response['cpanelresult']['result'];
+
+        if($result['errors']) {
+            throw new CException(implode("\n", $result['errors']));
+        }
+
+        return $result['data'];
+    }
+
+    /**
+     * @param $response
+     * @return mixed
+     * @throws CException
+     */
+    private function parseModuleResponse($response)
+    {
+        $data = $this->getResponseData($response);
+        $json = json_decode($data, true);
+
+        if(isset($json['status']) && $json['status'] == 'ERROR') {
+            throw new CException(sprintf('%s', $json['message']));
+        }
+
+        return $json;
+    }
+
+    /**
+     * @param string $package
+     * @return mixed
+     * @throws CException
+     */
+    public function createUser($package)
+    {
+        $password = Tools::generatePassword();
+
+        $data = array(
+            'username' => $this->user,
+            'password' => $password,
+            'active' => true,
+            'rolename' => 'User',
+            'package' => $package,
+            'email' => $this->user . '@' . $this->domain,
+        );
+
+        $data = Base::model()->nativePanel->uapi('KuberDock', 'createUser', array('data' => json_encode($data)));
+        $data = $this->parseModuleResponse($data);
+
+        $token = $this->api->getUserToken($this->user, $password);
+
+        $this->command = new KcliCommand('', '', $token);
+        $this->command->setConfig();
+
+        return $data;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDefaultUser()
+    {
+        return $this->command->getUsername() == KcliCommand::DEFAULT_USER;
     }
 }

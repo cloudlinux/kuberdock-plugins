@@ -10,6 +10,10 @@ class Base {
      */
     protected $panel;
     /**
+     * @var Native hosting panel class
+     */
+    public $nativePanel;
+    /**
      * @var array
      */
     protected static $_models;
@@ -33,6 +37,23 @@ class Base {
         }
 
         return $this->panel;
+    }
+
+    /**
+     * @param object $panel
+     */
+    public function setNativePanel($panel)
+    {
+        $this->nativePanel =$panel;
+    }
+
+    /**
+     * @param $panel
+     * @return object
+     */
+    public function getNativePanel($panel)
+    {
+        return $this->nativePanel;
     }
 
     /**

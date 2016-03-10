@@ -7,6 +7,7 @@ include_once $dirName . '/init.php';
 
 try {
     $cPanel = &new CPANEL();
+    Base::model()->setNativePanel($cPanel);
 } catch (Exception $e) {
     echo $e->getMessage();
 }

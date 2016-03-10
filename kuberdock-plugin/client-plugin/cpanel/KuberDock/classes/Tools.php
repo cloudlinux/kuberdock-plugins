@@ -80,4 +80,19 @@ class Tools {
 
         return $values;
     }
+
+    /**
+     * @return string
+     */
+    public static function  generatePassword() {
+        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+        $pass = array();
+
+        for($i=0; $i<8; $i++) {
+            $n = $i == 0 ? rand(0, 25) : rand(0, strlen($alphabet)-1);
+            $pass[] = $alphabet[$n];
+        }
+
+        return strtolower(implode($pass));
+    }
 } 

@@ -76,6 +76,14 @@ class KcliCommand extends Command {
     /**
      * @return string
      */
+    public function getUsername()
+    {
+        return $this->username;
+    }
+
+    /**
+     * @return string
+     */
     public function getToken()
     {
         return $this->token;

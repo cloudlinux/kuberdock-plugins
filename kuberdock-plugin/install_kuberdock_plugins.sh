@@ -48,6 +48,11 @@ function install
         /bin/cp -f /etc/kubecli.conf /root/.kubecli.conf
     fi
 
+    # install API
+    /bin/cp -Rf $ADMIN_SOURCE_PATH/module/admin /usr/local/cpanel/bin
+    /bin/cp -Rf $ADMIN_SOURCE_PATH/module/API /usr/local/cpanel/Cpanel
+    /bin/chmod -R 700 /usr/local/cpanel/bin/admin/KuberDock/Module
+
     /bin/touch /var/log/kuberdock-plugin.log
     /bin/chmod 666 /var/log/kuberdock-plugin.log
 
@@ -173,6 +178,11 @@ function upgrade
     if [ -e $CONFIG_FILE ]; then
         /bin/chmod 600 $CONFIG_FILE
     fi
+
+    # install API
+    /bin/cp -Rf $ADMIN_SOURCE_PATH/module/admin /usr/local/cpanel/bin
+    /bin/cp -Rf $ADMIN_SOURCE_PATH/module/API /usr/local/cpanel/Cpanel
+    /bin/chmod -R 700 /usr/local/cpanel/bin/admin/KuberDock/Module
 
     /bin/touch /var/log/kuberdock-plugin.log
     /bin/chmod 666 /var/log/kuberdock-plugin.log

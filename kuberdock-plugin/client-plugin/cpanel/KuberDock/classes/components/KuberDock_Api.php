@@ -400,4 +400,26 @@ class KuberDock_Api {
 
         return $response->getData();
     }
+
+    /**
+     * @param string $username
+     * @param string $password
+     * @return array
+     * @throws CException
+     * @throws WithoutBillingException
+     */
+    public function getUserToken($username, $password)
+    {
+        $this->username = $username;
+        $this->password = $password;
+
+        $this->url = $this->serverUrl . '/api/auth/token';
+        $response = $this->call();
+
+        if(!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->parsed['token'];
+    }
 }

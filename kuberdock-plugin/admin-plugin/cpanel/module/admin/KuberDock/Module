@@ -1,0 +1,42 @@
+#!/usr/local/cpanel/3rdparty/bin/perl
+use strict;
+
+use lib '/usr/local/cpanel/whostmgr/docroot/cgi/KuberDock/libs';
+
+use Cpanel::Logger ();
+use Cpanel::PwCache ();
+use KuberDock::JSON;
+use KuberDock::API;
+use Data::Dumper;
+
+use constant KUBERDOCK_CONFIG_PATH => '/var/cpanel/apps/kuberdock_whmcs.json';
+ 
+my $stdin = <STDIN>;
+chomp $stdin;
+my ($uid, $function, $data) = split (/ /,$stdin,3);
+
+my $user = (Cpanel::PwCache::getpwuid($uid))[0];
+my $logger = Cpanel::Logger->new();
+$logger->warn("KuberDock::Module called by user $user with function: $function");
+
+if($function eq 'createUser') {
+    my $api = KuberDock::API->new;
+    my $json = KuberDock::JSON->new;
+
+    eval {
+        my $response = $api->createUser($data);
+        print $json->encode($response);
+        exit(0);
+    };
+
+    if($@) {
+        print $@;
+        exit(1);
+    }
+}
+else {
+    print "Invalid function specified to KuberDock::Module adminbin function";
+    exit(1);
+}
+
+1;

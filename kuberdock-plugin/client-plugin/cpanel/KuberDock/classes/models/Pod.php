@@ -461,6 +461,10 @@ class Pod {
             $service = $this->panel->getApi()->order($this->panel->user, $this->panel->domain, $this->packageId);
             $this->panel->billing->setService($service);
             Base::model()->setPanel(new KuberDock_CPanel());
+        } elseif($this->panel->isDefaultUser()) {
+            $product = $this->panel->billing->getProductByKuberId($this->packageId);
+            $data = $this->panel->createUser($product['name']);
+            Base::model()->setPanel(new KuberDock_CPanel());
         }
 
         return $this;

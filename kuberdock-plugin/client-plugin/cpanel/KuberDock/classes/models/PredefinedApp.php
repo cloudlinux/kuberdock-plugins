@@ -294,7 +294,9 @@ class PredefinedApp {
         foreach($this->panel->billing->getProducts() as  $row) {
             if(!$row['kubes']) continue;
 
-            if($row['kubes'][0]['kuber_product_id'] == $packageId) return $row['id'];
+            foreach($row['kubes'] as $kube) {
+                if($kube['kuber_product_id'] == $packageId) return $row['id'];
+            }
         }
 
         throw new CException('Cannot get KuberDock package or template has package that is different from user package');
@@ -417,15 +419,7 @@ class PredefinedApp {
      */
     private function generatePassword()
     {
-        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-        $pass = array();
-
-        for($i=0; $i<8; $i++) {
-            $n = $i == 0 ? rand(0, 25) : rand(0, strlen($alphabet)-1);
-            $pass[] = $alphabet[$n];
-        }
-
-        return strtolower(implode($pass));
+        return Tools::generatePassword();
     }
 
     /**
