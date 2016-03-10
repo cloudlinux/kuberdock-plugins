@@ -459,7 +459,9 @@ class Pod {
         $product = $this->panel->billing->getProductById($this->packageId);
         if(!$this->panel->isNoBilling()) {
             $service = $this->panel->getApi()->order($this->panel->user, $this->panel->domain, $this->packageId);
-            $this->panel->billing->setService($service);
+            $data = current($service);
+            $this->command = new KcliCommand('', '', $data['token']);
+            $this->command->setConfig();
             Base::model()->setPanel(new KuberDock_CPanel());
         } elseif($this->panel->isDefaultUser()) {
             $product = $this->panel->billing->getProductByKuberId($this->packageId);
@@ -468,6 +470,11 @@ class Pod {
         }
 
         return $this;
+    }
+
+    public function order()
+    {
+        return $this->getPanel()->getApi()->orderPod($this->_data);
     }
 
     /**

@@ -10,10 +10,6 @@
             </li>
 
             <li role="presentation">
-                <a href="#billing" aria-controls="billing" role="tab" data-toggle="tab">Billing Integration</a>
-            </li>
-
-            <li role="presentation">
                 <a href="#defaults" aria-controls="defaults" role="tab" data-toggle="tab">Application defaults</a>
             </li>
 
@@ -31,10 +27,6 @@
 
         <div role="tabpanel" class="tab-pane" id="create">
             [% INCLUDE 'pre-apps/form.tmpl' %]
-        </div>
-
-        <div role="tabpanel" class="tab-pane" id="billing">
-            [% INCLUDE 'resellers/index.tmpl' data=data resellers=resellers %]
         </div>
 
         <div role="tabpanel" class="tab-pane" id="defaults">

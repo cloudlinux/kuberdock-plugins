@@ -83,6 +83,23 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     }
 
     /**
+     * @param string $podId
+     * @return $this
+     */
+    public function loadByPodId($podId)
+    {
+        $data = $this->loadByAttributes(array(
+            'pod_id' => $podId,
+        ));
+
+        if(!$data) {
+            return false;
+        }
+
+        return $this->setAttributes(current($data));
+    }
+
+    /**
      * @param int $serviceId
      * @param string $status
      * @return array

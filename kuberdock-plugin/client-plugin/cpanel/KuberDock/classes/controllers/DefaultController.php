@@ -145,17 +145,21 @@ class DefaultController extends KuberDock_Controller {
                 $pod = $pod->loadByName($pod->name);
 
                 if(Base::model()->getPanel()->billing->isFixedPrice($packageId)) {
-                    $redirect = urlencode($pod->panel->getURL() . '?a=podDetails&podName=' . $pod->name);
-                    $link = sprintf('%s/kdorder.php?a=orderPod&pod=%s&user=%s&referer=%s',
-                        $pod->panel->billing->getBillingLink(), $pod->asJSON(), json_encode(array('product_id' => $packageId)), $redirect);
+                    Base::model()->getPanel()->getApi()->updatePod($pod->id, array(
+                        'status' => 'unpaid',
+                    ));
+                    $response = $pod->order();
+                    if($response['status'] == 'Unpaid') {
+                        echo json_encode(array('redirect' => $response['redirect']));
+                        exit();
+                    }
                 } else {
-                    $link = $pod->panel->getURL();
                     $pod->start();
                 }
 
                 echo json_encode(array(
                     'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
-                    'redirect' => $link,
+                    'redirect' => $pod->panel->getURL(),
                 ));
             } catch(CException $e) {
                 echo $e->getJSON();
@@ -183,13 +187,14 @@ class DefaultController extends KuberDock_Controller {
             $pod = $pod->loadByName($container);
 
             if($pod->isUnPaid()) {
-                $productId = $pod->getApi()->getService()['packageid'];
-                $redirect = urlencode($pod->getPanel()->getURL() . '?a=podDetails&podName=' . $pod->name);
-                $link = sprintf('%s/kdorder.php?a=orderPod&pod=%s&user=%s&referer=%s',
-                    $pod->getPanel()->getBillingLink(), $pod->asJSON(),
-                    json_encode(array('product_id' => $productId)), $redirect);
-                echo json_encode(array('redirect' => $link));
-                exit();
+                $response = $pod->order();
+                if($response['status'] == 'Unpaid') {
+                    echo json_encode(array('redirect' => $response['redirect']));
+                    exit();
+                } else {
+                    $pod->start();
+                    $message = 'Application started';
+                }
             } elseif(in_array($pod->status, array('stopped', 'terminated', 'failed', 'succeeded'))) {
                 $pod->start();
                 $message = 'Application started';

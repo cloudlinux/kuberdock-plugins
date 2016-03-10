@@ -32,7 +32,7 @@ try {
     $pod = json_decode(html_entity_decode(urldecode($pod), ENT_QUOTES));
 
     $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
-    $predefinedApp = $predefinedApp->loadBySessionId($pod->id);
+    $predefinedApp = $predefinedApp->loadByPodId($pod->id);
 
     if(!$predefinedApp) {
         $predefinedApp = new \KuberDock_Addon_PredefinedApp();
@@ -41,7 +41,7 @@ try {
     $data = KuberDock_Hosting::model()->getByUser($clientId);
 
     if(!$data) {
-        throw new Exception('User has no product');
+        throw new Exception('User has no active KuberDock product');
     }
 
     $service = KuberDock_Hosting::model()->loadByParams(current($data));
@@ -55,6 +55,10 @@ try {
         throw new Exception('Product is not fixed price type');
     }
 
+    if(!isset($product->id)) {
+        throw new Exception('Product not found');
+    }
+
     $predefinedApp->setAttributes(array(
         'session_id' => \base\CL_Base::model()->getSession(),
         'data' => json_encode($pod),
@@ -63,10 +67,6 @@ try {
         'product_id' => $product->id,
     ));
     $predefinedApp->save();
-
-    if(!isset($product->id)) {
-        throw new Exception('Product not found');
-    }
 
     $data = \KuberDock_Addon_Items::model()->loadByAttributes(array(
         'pod_id' => $pod->id,
@@ -85,18 +85,19 @@ try {
     if(!$data) {
         $item = $product->addBillableApp($clientId, $predefinedApp);
     } else {
-        $item = \KuberDock_Addon_Items::model()->loadByParams(current($data));
+        $item = \KuberDock_Addon_Items::model()->loadByParams($data);
     }
 
     if($item->isPayed()) {
         $results = array(
-            'status' => \base\models\CL_Invoice::STATUS_PAID,
+            'status' => $item->status,
             'invoice_id' => $item->invoice_id,
         );
+        // Start pod
+        $predefinedApp->payAndStart($item->pod_id, $item->service_id);
     } else {
-        \base\models\CL_Invoice::model()->applyCredit();
         $results = array(
-            'status' => \base\models\CL_Invoice::STATUS_UNPAID,
+            'status' => $item->status,
             'invoice_id' => $item->invoice_id,
         );
     }

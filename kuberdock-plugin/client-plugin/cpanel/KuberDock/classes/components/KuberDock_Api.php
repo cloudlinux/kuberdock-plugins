@@ -401,6 +401,41 @@ class KuberDock_Api {
         return $response->getData();
     }
 
+    public function orderPod($pod)
+    {
+        $this->url = $this->serverUrl . '/api/billing/order';
+        $response = $this->call(array(
+            'pod' => json_encode($pod),
+        ), 'POST');
+
+        if(!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->getData();
+    }
+
+    /**
+     * @param string $podId
+     * @param array $attributes
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function updatePod($podId, $attributes)
+    {
+        $data['command'] = 'set';
+        $data['commandOptions'] = $attributes;
+        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
+        $response = $this->call($data, 'PUT');
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
     /**
      * @param string $username
      * @param string $password

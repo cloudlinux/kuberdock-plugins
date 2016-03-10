@@ -48,7 +48,7 @@ class KuberDock_Addon_Product extends CL_Model {
                     'price_ip' => $product->getConfigOption('priceIP'),
                     'price_pstorage' => $product->getConfigOption('pricePersistentStorage'),
                     'price_over_traffic' => $product->getConfigOption('priceOverTraffic'),
-                    'billing_type' => ($product->getConfigOption('billingType')=='PAYG') ? 'payg' : 'fixed',
+                    'count_type' => ($product->getConfigOption('billingType')=='PAYG') ? 'payg' : 'fixed',
                 ));
                 $data = $response->getData();
                 $this->insert(array(
@@ -84,7 +84,7 @@ class KuberDock_Addon_Product extends CL_Model {
             'price_ip' => $product->getConfigOption('priceIP'),
             'price_pstorage' => $product->getConfigOption('pricePersistentStorage'),
             'price_over_traffic' => $product->getConfigOption('priceOverTraffic'),
-            'billing_type' => ($product->getConfigOption('billingType')=='PAYG') ? 'payg' : 'fixed',
+            'count_type' => ($product->getConfigOption('billingType')=='PAYG') ? 'payg' : 'fixed',
         ));
     }
 
