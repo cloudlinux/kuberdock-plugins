@@ -97,7 +97,15 @@ class KuberDock_AddonController extends CL_Controller {
                 $kube->save();
                 $base->redirect($base->baseUrl);
             } catch(Exception $e) {
-                $this->error = $e->getMessage();
+                $replace = array(
+                    'server_id' => 'Server',
+                    'name' => 'Kube type name',
+                    'cpu' => 'CPU limit',
+                    'memory' => 'Memory limit',
+                    'disk_space' => 'HDD limit',
+                    'traffic_limit' => 'Traffic limit',
+                );
+                $this->error = str_replace(array_keys($replace), array_values($replace), $e->getMessage());
             }
         }
 
