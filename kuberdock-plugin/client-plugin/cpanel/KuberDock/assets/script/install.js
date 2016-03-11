@@ -172,7 +172,7 @@
             start: [ 1 ],
             range: {
                 min: [ 1 ],
-                max: [ 10 ]
+                max: [ $('.kube-slider').data('max') ]
             },
             format: wNumb({
                 decimals: 0,

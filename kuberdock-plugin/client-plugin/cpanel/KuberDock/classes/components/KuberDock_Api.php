@@ -304,6 +304,23 @@ class KuberDock_Api {
         return $response->getData();
     }
 
+    public function getSysApi($key = null)
+    {
+        $this->url = $this->serverUrl . '/api/settings/sysapi';
+
+        $response = $this->call();
+
+        if(!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        $data = $response->getData();
+
+        return $key
+            ? Tools::getKeyAsField($data, $key)
+            : $data;
+    }
+
     /**
      * @return array
      */

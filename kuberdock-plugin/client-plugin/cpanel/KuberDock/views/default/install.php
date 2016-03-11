@@ -48,7 +48,8 @@
                     <label for="kube_count" class="col-sm-3 control-label">Size</label>
 
                     <div class="col-sm-4">
-                        <div class="kube-slider"></div><span class="kube-slider-value"></span>
+                        <div class="kube-slider" data-max="<?php echo $maxKubes;?>"></div>
+                        <span class="kube-slider-value"></span>
                     </div>
                 </div>
 
