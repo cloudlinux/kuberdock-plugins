@@ -47,8 +47,6 @@ class KuberDock_CPanel
         $data = $this->api->getInfo($this->user, $this->domain);
         $this->billing = $this->getBilling($data);
 
-        //echo '<pre>'; print_r($data);
-
         if($service = $this->billing->getService()) {
             $username = isset($service['username']) ? $service['username'] : '';
             $password = isset($service['password']) ? $service['password'] : '';
@@ -210,6 +208,12 @@ class KuberDock_CPanel
         $this->command->setConfig();
 
         return $data;
+    }
+
+    public function updatePod($attributes)
+    {
+        $data = Base::model()->nativePanel->uapi('KuberDock', 'updatePod', array('data' => json_encode($attributes)));
+        return $this->parseModuleResponse($data);
     }
 
     /**

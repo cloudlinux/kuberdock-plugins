@@ -26,6 +26,23 @@ sub createUser {
     }
 }
 
+sub updatePod {
+    my ($args, $result) = @_;
+
+    my $data = Cpanel::Wrap::send_cpwrapd_request(
+        'namespace' => 'KuberDock',
+        'module' => 'Module',
+        'function' => 'updatePod',
+        'data' => $args->get('data'),
+    );
+
+    if($data->{error}) {
+        $result->error($data->{data});
+    } elsif(defined $data->{data}) {
+        $result->data($data->{data});
+    }
+}
+
 1;
 
 __END__

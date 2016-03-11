@@ -535,7 +535,7 @@ function KuberDock_InvoicePaid($params)
             $item->save();
 
             $product = KuberDock_Product::model();
-            $product->startPodAndRedirect($item->service_id, $item->pod_id);
+            $product->startPodAndRedirect($item->service_id, $item->pod_id, true);
         }
 
         // Add additional kubes
@@ -553,7 +553,7 @@ function KuberDock_InvoicePaid($params)
                 }
                 $service = KuberDock_Hosting::model()->loadByParams(current($data));
                 $params = json_decode($invoice->invoiceitems['notes'], true);
-                $service->getApi()->redeployPod($params['id'], $params);
+                $service->getAdminApi()->redeployPod($params['id'], $params);
             }
         }
     } catch(Exception $e) {

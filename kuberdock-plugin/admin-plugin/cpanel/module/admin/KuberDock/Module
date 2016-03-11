@@ -34,6 +34,21 @@ if($function eq 'createUser') {
         exit(1);
     }
 }
+elsif($function eq 'updatePod') {
+    my $api = KuberDock::API->new;
+    my $json = KuberDock::JSON->new;
+
+    eval {
+        my $response = $api->updatePod($data);
+        print $json->encode($response);
+        exit(0);
+    };
+
+    if($@) {
+        print $@;
+        exit(1);
+    }
+}
 else {
     print "Invalid function specified to KuberDock::Module adminbin function";
     exit(1);

@@ -113,6 +113,8 @@ class KuberDock_OrderController extends CL_Controller {
 
     public function orderPodAction()
     {
+        return;
+
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
         $pod = json_decode(html_entity_decode(urldecode(CL_Base::model()->getParam($predefinedApp::KUBERDOCK_POD_FIELD)), ENT_QUOTES));
         $user = json_decode(html_entity_decode(urldecode(CL_Base::model()->getParam('user')), ENT_QUOTES));
@@ -209,6 +211,8 @@ class KuberDock_OrderController extends CL_Controller {
 
     public function addKubesAction()
     {
+        return;
+
         $this->clientArea->requireLogin();
         $this->assets->registerScriptFiles(array('jquery.nouislider.all.min'));
         $this->assets->registerStyleFiles(array('jquery.nouislider.min'));
@@ -279,7 +283,7 @@ class KuberDock_OrderController extends CL_Controller {
 
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
         try {
-            $service->getApi()->redeployPod($podId, $values);
+            $service->getAdminApi()->redeployPod($podId, $values);
 
             $templatePath = '../../modules/servers/KuberDock/view/smarty/restart';
             $this->clientArea->setPageTitle('Add additional kubes');

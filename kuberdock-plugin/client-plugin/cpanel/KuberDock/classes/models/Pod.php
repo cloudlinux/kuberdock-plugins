@@ -349,9 +349,33 @@ class Pod {
     }
 
     /**
+     * @return mixed
+     */
+    public function getPaymentType()
+    {
+        $product = $this->panel->billing->getProduct();
+
+        return str_replace('ly', '', $product['paymentType']);
+    }
+
+    /**
      * @return string
      */
-    public function getTotalPrice()
+    public function getKubePrice()
+    {
+        $currency = $this->panel->billing->getCurrency();
+        $product = $this->panel->billing->getProduct();
+        $kube = $this->getKubeType();
+
+        return $currency['prefix'] . number_format($kube['kube_price'], 2)
+        . $currency['suffix'] . ' / ' . str_replace('ly', '', $product['paymentType']);
+    }
+
+    /**
+     * @param bool|false $numeric
+     * @return string|float
+     */
+    public function getTotalPrice($numeric = false)
     {
         $currency = $this->panel->billing->getCurrency();
         $product = $this->panel->billing->getProduct();
@@ -378,6 +402,10 @@ class Pod {
         $total = $kube['kube_price'] * $this->getKubeCount() + $publicIp * $product['priceIP']
             + $pdSize * $product['pricePersistentStorage'];
 
+        if($numeric) {
+            return number_format($total, 2);
+        }
+
         return $currency['prefix'] . number_format($total, 2)
             . $currency['suffix'] . ' / ' . str_replace('ly', '', $product['paymentType']);
     }
@@ -401,10 +429,7 @@ class Pod {
      */
     public function getKuberDockUrl()
     {
-        $product = $this->panel->billing->getProduct();
-
-        return isset($product['server']['serverip']) ?
-            'https://'. $product['server']['serverip'] : $product['serverFullUrl'];
+        return Base::model()->getPanel()->getCommand()->getKuberDockUrl();
     }
 
     /**
@@ -456,25 +481,42 @@ class Pod {
     public function create()
     {
         // Create order with kuberdock product
-        $product = $this->panel->billing->getProductById($this->packageId);
+        if(!Base::model()->getPanel()->isDefaultUser()) {
+            return $this;
+        }
+
         if(!$this->panel->isNoBilling()) {
             $service = $this->panel->getApi()->order($this->panel->user, $this->panel->domain, $this->packageId);
             $data = current($service);
-            $this->command = new KcliCommand('', '', $data['token']);
-            $this->command->setConfig();
-            Base::model()->setPanel(new KuberDock_CPanel());
-        } elseif($this->panel->isDefaultUser()) {
+            $command = new KcliCommand('', '', $data['token']);
+            $command->setConfig();
+        } else {
             $product = $this->panel->billing->getProductByKuberId($this->packageId);
-            $data = $this->panel->createUser($product['name']);
-            Base::model()->setPanel(new KuberDock_CPanel());
+            $this->panel->createUser($product['name']);
         }
+
+        Base::model()->setPanel(new KuberDock_CPanel());
 
         return $this;
     }
 
+    /**
+     * @return array
+     * @throws CException
+     */
     public function order()
     {
-        return $this->getPanel()->getApi()->orderPod($this->_data);
+        return Base::model()->getPanel()->getApi()->orderPod($this->_data);
+    }
+
+    /**
+     * @param array $params
+     * @return array
+     * @throws CException
+     */
+    public function orderKubes($params)
+    {
+        return Base::model()->getPanel()->getApi()->orderKubes($params);
     }
 
     /**

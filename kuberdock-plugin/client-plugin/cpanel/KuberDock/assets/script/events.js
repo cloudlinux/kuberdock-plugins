@@ -260,6 +260,32 @@ var _$ = $.noConflict();
         });
     });
 
+    $(document).on('click', 'button.pod-upgrade', function(e) {
+        var el = $(this),
+            loaderParent = el.parents('div:eq(0)'),
+            loader = loaderParent.find('.ajax-loader');
+
+        $.ajax({
+            type: 'POST',
+            url: '?a=upgradePod',
+            data: $('form.upgrade-form').serialize(),
+            dataType: 'json',
+            beforeSend: function() {
+                loader.removeClass('hidden');
+            },
+            complete: function() {
+                loader.addClass('hidden');
+            }
+        }).done(function(data) {
+            if(data.redirect) {
+                window.location.href = data.redirect;
+            }
+            displayMessage(data.message);
+        }).error(function(data) {
+            displayMessage(data.responseJSON.message);
+        });
+    });
+
     $(document).on('click', '.container-edit', function(e) {
         e.preventDefault();
         var el = $(this),

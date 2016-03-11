@@ -43,6 +43,15 @@
                             <a href="http://<?php echo $domain?>" target="_blank"><?php echo $domain?></a><br>
                         <?php endforeach;?>
                     <?php endif;?>
+
+                        <div class="top-offset">
+                            <a href="?a=upgradePod&podName=<?php echo $pod->name?>">
+                                <button title="Upgrade" class="btn btn-primary btn-xs" type="button">
+                                    <span aria-hidden="true" class="glyphicon glyphicon-refresh"></span>
+                                    <span>Upgrade</span>
+                                </button>
+                            </a>
+                        </div>
                     </td>
                     <td>
                         <?php if($ip = $pod->getPublicIp()):

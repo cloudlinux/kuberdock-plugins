@@ -151,6 +151,14 @@ class KuberDock_Api {
     }
 
     /**
+     * @param $token
+     */
+    public function setToken($token)
+    {
+        $this->token = $token;
+    }
+
+    /**
      * @return array
      */
     public function getRequestArguments()
@@ -304,6 +312,12 @@ class KuberDock_Api {
         return $response->getData();
     }
 
+    /**
+     * @param null $key
+     * @return array
+     * @throws CException
+     * @throws WithoutBillingException
+     */
     public function getSysApi($key = null)
     {
         $this->url = $this->serverUrl . '/api/settings/sysapi';
@@ -401,41 +415,6 @@ class KuberDock_Api {
         return $response->getData();
     }
 
-    public function orderPod($pod)
-    {
-        $this->url = $this->serverUrl . '/api/billing/order';
-        $response = $this->call(array(
-            'pod' => json_encode($pod),
-        ), 'POST');
-
-        if(!$response->getStatus()) {
-            throw new CException($response->getMessage());
-        }
-
-        return $response->getData();
-    }
-
-    /**
-     * @param string $podId
-     * @param array $attributes
-     * @return KuberDock_ApiResponse
-     * @throws Exception
-     */
-    public function updatePod($podId, $attributes)
-    {
-        $data['command'] = 'set';
-        $data['commandOptions'] = $attributes;
-        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
-        $response = $this->call($data, 'PUT');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
-    }
-
     /**
      * @param string $username
      * @param string $password
@@ -456,5 +435,73 @@ class KuberDock_Api {
         }
 
         return $response->parsed['token'];
+    }
+
+    /**
+     * @param $pod
+     * @return array
+     * @throws CException
+     * @throws WithoutBillingException
+     */
+    public function orderPod($pod)
+    {
+        $this->url = $this->serverUrl . '/api/billing/order';
+        $response = $this->call(array(
+            'pod' => json_encode($pod),
+        ), 'POST');
+
+        if(!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->getData();
+    }
+
+    /**
+     * @param $params
+     * @return array
+     * @throws CException
+     * @throws WithoutBillingException
+     */
+    public function orderKubes($params)
+    {
+        $this->url = $this->serverUrl . '/api/billing/orderKubes';
+        $response = $this->call(array(
+            'pod' => json_encode($params),
+        ), 'POST');
+
+        if(!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->getData();
+    }
+
+    /**
+     * @param string $podId
+     * @param array $attributes
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function updatePod($podId, $attributes)
+    {
+        $data['id'] = $podId;
+        $data['command'] = 'set';
+        $data['commandOptions'] = $attributes;
+
+        Base::model()->getPanel()->updatePod($data);
+    }
+
+    /**
+     * @param string $podId
+     * @param array $containers
+     */
+    public function addKubes($podId, $containers)
+    {
+        $data['id'] = $podId;
+        $data['command'] = 'redeploy';
+        $data['containers'] = $containers;
+
+        Base::model()->getPanel()->updatePod($data);
     }
 }

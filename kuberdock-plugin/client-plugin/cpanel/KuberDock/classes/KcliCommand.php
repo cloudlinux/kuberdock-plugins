@@ -410,6 +410,17 @@ class KcliCommand extends Command {
     }
 
     /**
+     * @return string
+     */
+    public function getKuberDockUrl()
+    {
+        $conf = self::getConfig();
+
+        return strpos($conf['url'], 'http') !== false ?
+            $conf['url'] : sprintf('http://%s', $conf['url']);
+    }
+
+    /**
      * @param string $name
      * @param float $size
      * @return array

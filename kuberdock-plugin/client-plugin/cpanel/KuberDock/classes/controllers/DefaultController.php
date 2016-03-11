@@ -106,7 +106,7 @@ class DefaultController extends KuberDock_Controller {
     {
         $image = Tools::getParam('image', Tools::getPost('image'));
 
-        $api = new KuberDock_Api();
+        $api = Base::model()->getPanel()->getApi();
         $sysapi = $api->getSysApi('name');
         $maxKubes = $sysapi['max_kubes_per_container']['value'];
 
@@ -192,7 +192,6 @@ class DefaultController extends KuberDock_Controller {
                     echo json_encode(array('redirect' => $response['redirect']));
                     exit();
                 } else {
-                    $pod->start();
                     $message = 'Application started';
                 }
             } elseif(in_array($pod->status, array('stopped', 'terminated', 'failed', 'succeeded'))) {
@@ -287,6 +286,60 @@ class DefaultController extends KuberDock_Controller {
             header('HTTP/1.1 500 Internal Server Error');
             echo $e->getJSON();
         }
+    }
+
+    public function upgradePodAction()
+    {
+        $podName = Tools::getParam('podName', Tools::getPost('podName'));
+
+        try {
+            $pod = new Pod();
+            $pod = $pod->loadByName($podName);
+        } catch(CException $e) {
+            $pod = new stdClass();
+            $this->error = $e;
+        }
+
+        if($_POST && Tools::getIsAjaxRequest()) {
+            $newKubes = Tools::getPost('new_container_kubes', array());
+            $values = array();
+
+            foreach($_POST['container_name'] as $k=>$name) {
+                $values[] = array(
+                    'name' => $name,
+                    'kubes' => (int) $newKubes[$k],
+                );
+            }
+
+            try {
+                $params['id'] = $pod->id;
+                $params['containers'] = $values;
+                $params['kube_type'] = $pod->kube_type;
+                $product = Base::model()->getPanel()->billing->getProduct();
+
+                if(Base::model()->getPanel()->billing->isFixedPrice($product['id'])) {
+                    $response = $pod->orderKubes($params);
+                    if($response['status'] == 'Unpaid') {
+                        echo json_encode(array('redirect' => $response['redirect']));
+                        exit();
+                    }
+                } else {
+                    Base::model()->getPanel()->getApi()->addKubes($pod->id, $params['containers']);
+                }
+
+                echo json_encode(array(
+                    'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
+                    'redirect' => $pod->panel->getURL(),
+                ));
+            } catch(CException $e) {
+                echo $e->getJSON();
+            }
+            exit();
+        }
+
+        $this->render('upgrade', array(
+            'pod' => $pod,
+        ));
     }
 
     public function redirectAction()

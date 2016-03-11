@@ -90,6 +90,9 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     {
         $data = $this->loadByAttributes(array(
             'pod_id' => $podId,
+        ), '', array(
+            'order' => 'id DESC',
+            'limit' => 1,
         ));
 
         if(!$data) {
@@ -111,7 +114,8 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
         $response = $api->createPodFromYaml($this->data);
 
         if($status) {
-            $api->updatePod($response->getData()['id'], array(
+            $adminApi = KuberDock_Hosting::model()->loadById($serviceId)->getAdminApi();
+            $adminApi->updatePod($response->getData()['id'], array(
                 'status' => $status,
             ));
         }
@@ -137,8 +141,10 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
      */
     public function payAndStart($podId, $serviceId)
     {
-        $api = KuberDock_Hosting::model()->loadById($serviceId)->getApi();
-        $api->updatePod($podId, array(
+        $service = KuberDock_Hosting::model()->loadById($serviceId);
+        $api = $service->getApi();
+        $adminApi = $service->getAdminApi();
+        $adminApi->updatePod($podId, array(
             'status' => 'stopped',
         ));
         $api->startPod($podId);

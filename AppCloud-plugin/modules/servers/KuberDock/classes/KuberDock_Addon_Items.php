@@ -53,7 +53,7 @@ class KuberDock_Addon_Items extends CL_Model {
             if($this->pod_id && $service) {
                 try {
                     $service->getApi()->stopPod($this->pod_id);
-                    $service->getApi()->updatePod($this->pod_id, array(
+                    $service->getAdminApi()->updatePod($this->pod_id, array(
                         'status' => 'unpaid',
                     ));
                 } catch(\Exception $e) {
