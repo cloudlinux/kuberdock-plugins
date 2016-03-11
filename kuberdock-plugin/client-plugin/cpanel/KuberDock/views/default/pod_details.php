@@ -37,6 +37,15 @@
                         Traffic: <?php echo $pod->kubeType['traffic_limit'] * $pod->kubeCount.' '.$pod->units['traffic']?><br>
                         Kube Type: <?php echo $pod->kubeType['kube_name']?> <br>
                         Number of Kubes: <?php echo $pod->kubeCount ?>
+
+                        <div class="top-offset">
+                            <a href="?a=upgradePod&podName=<?php echo $pod->name?>">
+                                <button title="Upgrade" class="btn btn-primary btn-xs" type="button">
+                                    <span aria-hidden="true" class="glyphicon glyphicon-refresh"></span>
+                                    <span>Upgrade</span>
+                                </button>
+                            </a>
+                        </div>
                     </td>
                     <td>
                         <?php echo (isset($pod->public_ip) && $pod->public_ip ? $pod->public_ip :

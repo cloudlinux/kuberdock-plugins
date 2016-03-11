@@ -45,23 +45,19 @@ class KuberDock_Server extends CL_Server {
             throw new Exception('Cannot get api');
         }
 
-        if(isset(self::$_api[$serverId])) {
-            return self::$_api[$serverId];
-        } else {
-            if(!isset($this->id)) {
-                $this->setAttributes($this->loadById($serverId));
-            }
-
-            $url = $this->getApiServerUrl();
-            $password = $this->password;
-            $password = CL_Hosting::model()->decryptPassword($password);
-            self::$_api[$serverId] = new KuberDock_Api($this->username, $password, $url);
-            if($this->accesshash && $this->username) {
-                self::$_api[$serverId]->setToken($this->accesshash);
-            }
-
-            return self::$_api[$serverId];
+        if(!isset($this->id)) {
+            $this->setAttributes($this->loadById($serverId));
         }
+
+        $url = $this->getApiServerUrl();
+        $password = $this->password;
+        $password = CL_Hosting::model()->decryptPassword($password);
+        self::$_api[$serverId] = new KuberDock_Api($this->username, $password, $url);
+        if($this->accesshash && $this->username) {
+            self::$_api[$serverId]->setToken($this->accesshash);
+        }
+
+        return self::$_api[$serverId];
     }
 
     /**

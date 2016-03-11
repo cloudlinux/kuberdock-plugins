@@ -121,6 +121,23 @@ class CL_BillableItems extends CL_Model {
         return $nextDate;
     }
 
+    public function getRecurDays()
+    {
+        switch($this->recurcycle) {
+            case self::CYCLE_MONTH:
+                $totalDays = $this->recur * 30;
+                break;
+            case self::CYCLE_YEAR:
+                $totalDays = $this->recur * 365;
+                break;
+            default:
+                $totalDays = $this->recur * 30;
+                break;
+        }
+
+        return $totalDays;
+    }
+
     /**
      * @return string
      */

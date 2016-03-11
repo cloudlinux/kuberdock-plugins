@@ -509,3 +509,11 @@ p {
     position: absolute;
     background: url(../images/lamp-icon.png) center no-repeat;
 }
+
+/* Upgrade page */
+.slider-value {
+    margin-top: 10px;
+}
+.resources span {
+    margin-right: 10px;
+}

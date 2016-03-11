@@ -78,7 +78,6 @@ sub setDefaults {
 
 sub createUser() {
     my ($self, $data) = @_;
-    my $json = KuberDock::JSON->new;
 
     return $self->request('/api/users/all', 'POST', $data);
 }
@@ -99,6 +98,14 @@ sub undeleteUser() {
     my ($self, $username) = @_;
 
     return $self->request('/api/users/undelete/' . $username, 'POST');
+}
+
+sub updatePod() {
+    my ($self, $data) = @_;
+    my $json = KuberDock::JSON->new;
+    my $decoded = $json->decode($data);
+
+    return $self->request('/api/podapi/' . $decoded->{id}, 'PUT', $data);
 }
 
 sub request {
@@ -145,7 +152,7 @@ sub getData {
         return $decoded->{data};
     } elsif($decoded->{status} eq 'error' && defined $decoded->{data}) {
         return $decoded->{data};
-    } else {
+    } elsif(defined $decoded->{message}) {
         die $decoded->{message};
     }
 }

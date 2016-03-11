@@ -148,23 +148,24 @@ class KuberDock_Pod {
     }
 
     /**
-     * @param $values
-     * @return \api\KuberDock_ApiResponse|mixed|void
+     * @param $oldPod stdClass
+     * @return \base\models\CL_Invoice
      * @throws Exception
      */
-    public function updateKubes($values)
+    public function updateKubes($oldPod, KuberDock_User $user)
     {
-        //Not implemented
-        return;
         $newKubes = 0;
         $params = array();
         $attributes['id'] = $this->id;
 
-        foreach($values as $row) {
-            $c = $this->getContainerByName($row['name']);
-            if($c && $c['kubes'] < $row['kubes']) {
-                $params[] = $row;
-                $newKubes += $row['kubes'] - $c['kubes'];
+        foreach($oldPod->containers as $oldContainer) {
+            $c = $this->getContainerByName($oldContainer->name);
+            if($c && $c['kubes'] > $oldContainer->kubes) {
+                $params[] = array(
+                    'name' => $c['name'],
+                    'kubes' => $c['kubes'],
+                );
+                $newKubes += $c['kubes'] - $oldContainer->kubes;
             }
         }
 
@@ -176,7 +177,6 @@ class KuberDock_Pod {
                 $item = KuberDock_Addon_Items::model()->loadByParams(current($data));
                 $billableItem = \base\models\CL_BillableItems::model()->loadById($item->billable_item_id);
                 $totalPrice = $newKubes * $this->kube['kube_price'] * $billableItem->getProRate();
-                $user = KuberDock_User::model()->getCurrent();
                 $items[] = array(
                     'description' => self::UPDATE_KUBES_DESCRIPTION . ' (Add ' . $newKubes . ' kubes)',
                     'total' => $totalPrice,
@@ -185,24 +185,23 @@ class KuberDock_Pod {
                 $invoice = \base\models\CL_Invoice::model()->loadById($invoice);
                 $invoiceItem = \base\models\CL_InvoiceItems::model()->loadByParams($invoice->invoiceitems);
                 $attributes['container'] = $params;
-                //$attributes['commandOptions']['wipeOut'] = true;
                 $invoiceItem->setAttributes(array(
                     'type' => $billableItem::TYPE,
                     'relid' => $billableItem->id,
                     'notes' => json_encode($attributes),
                 ))->save();
-                $invoice->applyCredit($invoice->id, $invoice->subtotal);
-                $invoice = \base\models\CL_Invoice::model()->loadById($invoice->id);
-
-                if($invoice->isPayed()) {
-                    return 'Paid';
-                } else {
-                    return $invoice->id;
+                try {
+                    $invoice->applyCredit($invoice->id, $invoice->subtotal);
+                } catch(Exception $e) {
+                    if($e->getMessage() == 'Amount exceeds customer credit balance') {
+                        return $invoice;
+                    } else {
+                        throw $e;
+                    }
                 }
+
+                return \base\models\CL_Invoice::model()->loadById($invoice->id);
             }
-        } else {
-            $attributes['container'] = $params;
-            return $this->api->redeployPod($this->id, $attributes);
         }
     }
 
@@ -213,6 +212,18 @@ class KuberDock_Pod {
     public function loadById($id)
     {
         $this->_values = $this->api->getPod($id);
+        $this->kube = \base\CL_Tools::getKeyAsField($this->kubes, 'kuber_kube_id')[$this->kube_type];
+
+        return $this;
+    }
+
+    /**
+     * @param array $data
+     * @return $this
+     */
+    public function loadByParams($data)
+    {
+        $this->_values = $data;
         $this->kube = \base\CL_Tools::getKeyAsField($this->kubes, 'kuber_kube_id')[$this->kube_type];
 
         return $this;
