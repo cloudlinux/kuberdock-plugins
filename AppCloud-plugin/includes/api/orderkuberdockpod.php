@@ -65,6 +65,8 @@ try {
         'pod_id' => $pod->id,
         'kuber_product_id' => $addonProduct->kuber_product_id,
         'product_id' => $product->id,
+        'referer' => isset($postFields->params->referer) ?
+            html_entity_decode(urldecode($postFields->params->referer), ENT_QUOTES) : '',
     ));
     $predefinedApp->save();
 

@@ -48,7 +48,7 @@
                     <label for="kube_count" class="col-sm-3 control-label">Size</label>
 
                     <div class="col-sm-4">
-                        <div class="kube-slider" data-max="<?php echo $maxKubes;?>"></div>
+                        <div class="kube-slider"></div>
                         <span class="kube-slider-value"></span>
                     </div>
                 </div>
@@ -210,5 +210,6 @@
 
 <script>
     var kubes = <?php echo json_encode($pod->getPanel()->billing->getKubes())?>,
+        maxKubes = <?php echo $maxKubes?>;
         units = <?php echo json_encode($pod->units)?>;
 </script>

@@ -501,22 +501,24 @@ class Pod {
     }
 
     /**
+     * @param string $referer
      * @return array
      * @throws CException
      */
-    public function order()
+    public function order($referer = '')
     {
-        return Base::model()->getPanel()->getApi()->orderPod($this->_data);
+        return Base::model()->getPanel()->getApi()->orderPod($this->_data, $referer);
     }
 
     /**
      * @param array $params
+     * @param string $referer
      * @return array
      * @throws CException
      */
-    public function orderKubes($params)
+    public function orderKubes($params, $referer = '')
     {
-        return Base::model()->getPanel()->getApi()->orderKubes($params);
+        return Base::model()->getPanel()->getApi()->orderKubes($params, $referer);
     }
 
     /**
@@ -640,6 +642,14 @@ class Pod {
     public function isUnPaid()
     {
         return $this->status == 'unpaid';
+    }
+
+    /**
+     * @return string
+     */
+    public function getLink()
+    {
+        return Base::model()->getPanel()->getURL() . '?a=podDetails&podName=' . $this->id;
     }
 
     /**

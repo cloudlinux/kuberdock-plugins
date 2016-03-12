@@ -60,5 +60,6 @@
 
 <script>
     var kubes = <?php echo json_encode($app->getPanel()->billing->getKubes())?>,
+        maxKubes = <?php echo $maxKubes?>;
         units = <?php echo json_encode($app->pod->units)?>;
 </script>

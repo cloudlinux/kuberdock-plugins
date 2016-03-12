@@ -438,16 +438,18 @@ class KuberDock_Api {
     }
 
     /**
-     * @param $pod
+     * @param array $pod
+     * @param string $referer
      * @return array
      * @throws CException
      * @throws WithoutBillingException
      */
-    public function orderPod($pod)
+    public function orderPod($pod, $referer = '')
     {
         $this->url = $this->serverUrl . '/api/billing/order';
         $response = $this->call(array(
             'pod' => json_encode($pod),
+            'referer' => urldecode($referer),
         ), 'POST');
 
         if(!$response->getStatus()) {
@@ -458,16 +460,18 @@ class KuberDock_Api {
     }
 
     /**
-     * @param $params
+     * @param array $params
+     * @param string $referer
      * @return array
      * @throws CException
      * @throws WithoutBillingException
      */
-    public function orderKubes($params)
+    public function orderKubes($params, $referer = '')
     {
         $this->url = $this->serverUrl . '/api/billing/orderKubes';
         $response = $this->call(array(
             'pod' => json_encode($params),
+            'referer' => urldecode($referer),
         ), 'POST');
 
         if(!$response->getStatus()) {

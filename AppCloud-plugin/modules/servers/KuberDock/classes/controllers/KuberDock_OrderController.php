@@ -187,10 +187,9 @@ class KuberDock_OrderController extends CL_Controller {
         if($serviceId && $podId) {
             $service = \KuberDock_Hosting::model()->loadById($serviceId);
             $view = new \base\CL_View();
-            $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId($podId);
+            $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadByPodId($podId);
             $postDescription = htmlentities($predefinedApp->getPostDescription(), ENT_QUOTES);
             try {
-                $pod = $service->getApi()->getPod($podId);
                 if($predefinedApp->referer) {
                     header('Location: '. htmlspecialchars_decode($predefinedApp->referer));
                 } else {

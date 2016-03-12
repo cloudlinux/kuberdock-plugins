@@ -17,6 +17,10 @@ class AppController extends KuberDock_Controller
         $planDetails = Tools::getParam('planDetails', '');
 
         try {
+            $api = Base::model()->getPanel()->getApi();
+            $sysapi = $api->getSysApi('name');
+            $maxKubes = $sysapi['max_kubes_per_container']['value'];
+
             $app = new PredefinedApp($templateId);
             $parsedTemplate = $app->getTemplateByPodName($podName);
             $variables = $app->getVariables();
@@ -59,7 +63,7 @@ class AppController extends KuberDock_Controller
                         Base::model()->getPanel()->getApi()->updatePod($pod->id, array(
                             'status' => 'unpaid',
                         ));
-                        $response = $pod->order();
+                        $response = $pod->order($link);
                         if($response['status'] == 'Unpaid') {
                             echo json_encode(array('redirect' => $response['redirect']));
                             exit();
@@ -93,6 +97,7 @@ class AppController extends KuberDock_Controller
                         'variables' => $variables,
                         'podsCount' => $podsCount,
                         'plan' => $plan,
+                        'maxKubes' => $maxKubes,
                     ));
                     break;
                 case 1:

@@ -88,21 +88,22 @@
 <script>
     var kube = <?php echo json_encode($pod->getKubeType())?>;
     var currency = <?php echo json_encode($pod->getPanel()->billing->getCurrency())?>;
+    var maxKubes = <?php echo $maxKubes ?>;
 
     var setResources = function() {
         var kubes = 0;
         var newKubes = 0;
-        var totalPrice = parseFloat($('.total-price').val());
+        var totalPrice = parseFloat(_$('.total-price').val());
         var template = '<span>CPU: %C</span>' +
             '<span>HDD: %H</span>' +
             '<span>RAM: %M</span>';
 
-        $('input[name^="container_kubes"]').each(function() {
-            kubes += parseInt($(this).val());
+        _$('input[name^="container_kubes"]').each(function() {
+            kubes += parseInt(_$(this).val());
         });
 
-        $('input.new-kubes').each(function() {
-            newKubes += parseInt($(this).val());
+        _$('input.new-kubes').each(function() {
+            newKubes += parseInt(_$(this).val());
         });
 
         var data = {
@@ -121,17 +122,17 @@
 
         };
 
-        $('.resources').html(template.replace(/%C|%H|%M/gi, function(e) {
+        _$('.resources').html(template.replace(/%C|%H|%M/gi, function(e) {
             return data[e];
         }));
-        $('.new-price').text(wNumb({
+        _$('.new-price').text(wNumb({
             decimals: 2,
             prefix: currency.prefix,
             postfix: currency.suffix
         }).to(totalPrice + Math.abs(newKubes - kubes) * parseFloat(kube.kube_price)));
     }
 
-    $(document).ready(function() {
+    _$(document).ready(function() {
         _$('.slider').each(function() {
             var kubes = parseInt(_$(this).parents('th').find('input[name^="container_kubes"]').val());
 
@@ -140,8 +141,8 @@
                 start: kubes,
                 step: 1,
                 range: {
-                    min: kubes,
-                    max: 20
+                    min: 1,
+                    max: maxKubes,
                 },
                 format: wNumb({
                     decimals: 0

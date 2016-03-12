@@ -148,7 +148,7 @@ class DefaultController extends KuberDock_Controller {
                     Base::model()->getPanel()->getApi()->updatePod($pod->id, array(
                         'status' => 'unpaid',
                     ));
-                    $response = $pod->order();
+                    $response = $pod->order($pod->getLink());
                     if($response['status'] == 'Unpaid') {
                         echo json_encode(array('redirect' => $response['redirect']));
                         exit();
@@ -295,6 +295,10 @@ class DefaultController extends KuberDock_Controller {
         try {
             $pod = new Pod();
             $pod = $pod->loadByName($podName);
+
+            $api = Base::model()->getPanel()->getApi();
+            $sysapi = $api->getSysApi('name');
+            $maxKubes = $sysapi['max_kubes_per_container']['value'];
         } catch(CException $e) {
             $pod = new stdClass();
             $this->error = $e;
@@ -318,7 +322,7 @@ class DefaultController extends KuberDock_Controller {
                 $product = Base::model()->getPanel()->billing->getProduct();
 
                 if(Base::model()->getPanel()->billing->isFixedPrice($product['id'])) {
-                    $response = $pod->orderKubes($params);
+                    $response = $pod->orderKubes($params, $pod->getLink());
                     if($response['status'] == 'Unpaid') {
                         echo json_encode(array('redirect' => $response['redirect']));
                         exit();
@@ -339,6 +343,7 @@ class DefaultController extends KuberDock_Controller {
 
         $this->render('upgrade', array(
             'pod' => $pod,
+            'maxKubes' => $maxKubes,
         ));
     }
 
