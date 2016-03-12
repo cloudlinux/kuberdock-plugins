@@ -184,7 +184,7 @@ class KuberDock_Pod {
                 $invoice = \base\models\CL_Invoice::model()->createInvoice($user->id, $items, $user->getGateway(), false);
                 $invoice = \base\models\CL_Invoice::model()->loadById($invoice);
                 $invoiceItem = \base\models\CL_InvoiceItems::model()->loadByParams($invoice->invoiceitems);
-                $attributes['container'] = $params;
+                $attributes['containers'] = $params;
                 $invoiceItem->setAttributes(array(
                     'type' => $billableItem::TYPE,
                     'relid' => $billableItem->id,

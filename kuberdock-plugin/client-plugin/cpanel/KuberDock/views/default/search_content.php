@@ -35,7 +35,7 @@
                                 <a href="<?php echo $url?>" target="_blank" class="image-more-details">More details</a>
                             </p>
                         </td>
-                        <td>
+                        <td align="center">
                             <a href="?a=install&image=<?php echo $image['name']?>" class="btn btn-default install-app" app="<?php echo $image['name']?>">Install</a>
                         </td>
                     </tr>

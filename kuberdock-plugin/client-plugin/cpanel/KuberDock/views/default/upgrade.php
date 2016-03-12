@@ -76,7 +76,7 @@
                 </div>
 
                 <div class="pull-right">
-                    <div class="ajax-loader buttons hidden"></div>
+                    <div class="ajax-loader buttons hidden" style="margin-right: -20px; margin-top: 5px;"></div>
                     <button class="btn btn-primary pod-upgrade">Confirm upgrade</button>
                 </div>
             </div>

@@ -328,8 +328,8 @@ class DefaultController extends KuberDock_Controller {
                 }
 
                 echo json_encode(array(
-                    'message' => $this->renderPartial('success', array('message' => 'Application created'), false),
-                    'redirect' => $pod->panel->getURL(),
+                    'message' => $this->renderPartial('success', array('message' => 'Application upgraded'), false),
+                    'redirect' => $pod->panel->getURL() . '?a=podDetails&podName=' . $pod->name,
                 ));
             } catch(CException $e) {
                 echo $e->getJSON();

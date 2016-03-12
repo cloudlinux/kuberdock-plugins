@@ -674,6 +674,7 @@ class KuberDock_Product extends CL_Product {
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
         if($service->isActive() && $predefinedApp) {
+            $configuration = \base\models\CL_Configuration::model()->get();
             try {
                 if(!($pod = $predefinedApp->isPodExists($service->id))) {
                     $pod = $predefinedApp->create($service->id);
@@ -681,7 +682,8 @@ class KuberDock_Product extends CL_Product {
                     $predefinedApp->save();
                     $predefinedApp->start($pod['id'], $service->id);
                 }
-                $url = sprintf('kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $pod['id']);
+                $url = sprintf($configuration->SystemURL .
+                    'kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $pod['id']);
 
                 if($jsRedirect) {
                     $this->jsRedirect($url);
@@ -704,9 +706,16 @@ class KuberDock_Product extends CL_Product {
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
         if($service->isActive()) {
+            $configuration = \base\models\CL_Configuration::model()->get();
             try {
                 $predefinedApp->payAndStart($podId, $service->id);
-                $url = sprintf('kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $podId);
+                // Mark paid by admin, redirect only user.
+                if(isset($_POST['markpaid'])) {
+                    return;
+                }
+
+                $url = sprintf($configuration->SystemURL .
+                    'kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $podId);
                 if($jsRedirect) {
                     $this->jsRedirect($url);
                 } else {

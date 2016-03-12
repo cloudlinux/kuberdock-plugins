@@ -545,15 +545,25 @@ function KuberDock_InvoicePaid($params)
                     'type' => CL_BillableItems::TYPE,
                     'invoiceid' => $invoice->id,
                 ), 'relid > 0');
-                if($invoiceItem) {
-                    $invoiceItem = current($invoiceItem);
-                    $billableItem = CL_BillableItems::model()->loadById($invoiceItem['relid']);
-                    $billableItem->amount += $invoice->subtotal;
-                    $billableItem->save();
-                }
+
+                $invoiceItem = current($invoiceItem);
+                $billableItem = CL_BillableItems::model()->loadById($invoiceItem['relid']);
+                $billableItem->amount += $invoice->subtotal;
+                $billableItem->save();
+
                 $service = KuberDock_Hosting::model()->loadByParams(current($data));
                 $params = json_decode($invoice->invoiceitems['notes'], true);
                 $service->getAdminApi()->redeployPod($params['id'], $params);
+                // Update app
+                $data = KuberDock_Addon_Items::model()->loadByAttributes(array(
+                    'billable_item_id' => $billableItem->id
+                ));
+                if($addonItem = current($data)) {
+                    $pod = $service->getApi()->getPod($params['id']);
+                    $app = KuberDock_Addon_PredefinedApp::model()->loadById($addonItem['app_id']);
+                    $app->data = json_encode($pod);
+                    $app->save();
+                }
             }
         }
     } catch(Exception $e) {
