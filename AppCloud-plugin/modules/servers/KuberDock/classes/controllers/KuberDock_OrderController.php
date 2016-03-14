@@ -98,7 +98,7 @@ class KuberDock_OrderController extends CL_Controller {
                 if(!$service) {
                     $result = CL_Order::model()->createOrder($userId, $product->id);
                     CL_Order::model()->acceptOrder($result['orderid']);
-                    \KuberDock_Hosting::model()->loadById($result['productids']);
+                    $service = \KuberDock_Hosting::model()->loadById($result['productids']);
                     $product->createPodAndRedirect($service->id);
                 } else {
                     $product->createPodAndRedirect($service->id);
