@@ -131,6 +131,24 @@ class CL_Hosting extends CL_Model {
     }
 
     /**
+     * @return bool
+     * @throws Exception
+     */
+    public function createModule()
+    {
+        $admin = CL_User::model()->getCurrentAdmin();
+        $values['accountid'] = $this->id;
+
+        $results = localAPI('modulecreate', $values, $admin['username']);
+
+        if($results['result'] != 'success') {
+            throw new Exception($results['message']);
+        }
+
+        return true;
+    }
+
+    /**
      * @param string $reason
      * @return bool
      * @throws Exception

@@ -248,7 +248,7 @@ class KuberDock_Product extends CL_Product {
     {
         $service = KuberDock_Hosting::model()->loadById($serviceId);
         $api = $service->getAdminApi();
-        $api->updateUser(array('active' => 0, 'suspended' => 0), $service->username);
+        $api->updateUser(array('active' => false, 'suspended' => false), $service->username);
     }
 
     /**
@@ -259,7 +259,7 @@ class KuberDock_Product extends CL_Product {
     {
         $service = KuberDock_Hosting::model()->loadById($serviceId);
         $api = $service->getAdminApi();
-        $api->updateUser(array('suspended' => 1), $service->username);
+        $api->updateUser(array('suspended' => true), $service->username);
     }
 
     /**
@@ -270,7 +270,7 @@ class KuberDock_Product extends CL_Product {
     {
         $service = KuberDock_Hosting::model()->loadById($serviceId);
         $api = $service->getAdminApi();
-        $api->updateUser(array('suspended' => 0), $service->username);
+        $api->updateUser(array('suspended' => false), $service->username);
     }
 
     /**
