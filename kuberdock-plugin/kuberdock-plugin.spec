@@ -1,7 +1,7 @@
 Version: 1.0
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 0%{?dist}.cloudlinux
+Release: 1%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -58,7 +58,7 @@ fi
 
 %changelog
 
-* Mon Mar 14 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.0-0
+* Mon Mar 14 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.0-1
 - Added referer cPanel. jquery issue for 11.54 WHMCS & cPanel. Decrease kubes
 - AC-2507 cPanel & WHMCS. Upgrade kubes without redirect. cPanel & WHMCS fixed for AC-2538
 - AC-2387 Pay and start without redirect to billing
