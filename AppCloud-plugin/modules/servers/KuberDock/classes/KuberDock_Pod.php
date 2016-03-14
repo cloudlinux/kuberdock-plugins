@@ -1,7 +1,5 @@
 <?php
 
-
-
 class KuberDock_Pod {
     /**
      *
@@ -89,6 +87,14 @@ class KuberDock_Pod {
     }
 
     /**
+     * @return array
+     */
+    public function getPod()
+    {
+        return $this->_values;
+    }
+
+    /**
      * @return number
      */
     public function totalPrice()
@@ -148,28 +154,29 @@ class KuberDock_Pod {
     }
 
     /**
-     * @param $oldPod stdClass
+     * @param array $newPod
+     * @param KuberDock_User $user
      * @return \base\models\CL_Invoice
      * @throws Exception
      */
-    public function updateKubes($oldPod, KuberDock_User $user)
+    public function updateKubes($newPod, KuberDock_User $user)
     {
         $newKubes = 0;
         $params = array();
         $attributes['id'] = $this->id;
 
-        foreach($oldPod->containers as $oldContainer) {
-            $c = $this->getContainerByName($oldContainer->name);
+        foreach($newPod['containers'] as $newContainer) {
+            $c = $this->getContainerByName($newContainer['name']);
             if($c) {
                 $params[] = array(
-                    'name' => $c['name'],
-                    'kubes' => $c['kubes'],
+                    'name' => $newContainer['name'],
+                    'kubes' => $newContainer['kubes'],
                 );
-                $newKubes += $c['kubes'] - $oldContainer->kubes;
+                $newKubes += $newContainer['kubes'] - $c['kubes'];
             }
         }
 
-        if($newKubes == 0) {
+        if($newKubes == 0 || !$this->product->isFixedPrice()) {
             $invoice = new \base\models\CL_Invoice();
             return $invoice->setAttributes(array(
                 'invoice_id' => 0,
@@ -178,52 +185,50 @@ class KuberDock_Pod {
         }
         $attributes['containers'] = $params;
 
-        if($this->product->isFixedPrice()) {
-            $data = KuberDock_Addon_Items::model()->loadByAttributes(array('pod_id' => $this->id));
-            if($data) {
-                $item = KuberDock_Addon_Items::model()->loadByParams(current($data));
-                $billableItem = \base\models\CL_BillableItems::model()->loadById($item->billable_item_id);
+        $data = KuberDock_Addon_Items::model()->loadByAttributes(array('pod_id' => $this->id));
+        if($data) {
+            $item = KuberDock_Addon_Items::model()->loadByParams(current($data));
+            $billableItem = \base\models\CL_BillableItems::model()->loadById($item->billable_item_id);
 
-                if($newKubes > 0) {
-                    $totalPrice = $newKubes * $this->kube['kube_price'] * $billableItem->getProRate();
-                    $items[] = array(
-                        'description' => self::UPDATE_KUBES_DESCRIPTION . ' (Add ' . $newKubes . ' kubes)',
-                        'total' => $totalPrice,
-                    );
+            if($newKubes > 0) {
+                $totalPrice = $newKubes * $this->kube['kube_price'] * $billableItem->getProRate();
+                $items[] = array(
+                    'description' => self::UPDATE_KUBES_DESCRIPTION . ' (Add ' . $newKubes . ' kubes)',
+                    'total' => $totalPrice,
+                );
 
-                    $invoice = \base\models\CL_Invoice::model()->createInvoice($user->id, $items, $user->getGateway(), false);
-                    $invoice = \base\models\CL_Invoice::model()->loadById($invoice);
-                    $invoiceItem = \base\models\CL_InvoiceItems::model()->loadByParams($invoice->invoiceitems);
-                    $invoiceItem->setAttributes(array(
-                        'type' => $billableItem::TYPE,
-                        'relid' => $billableItem->id,
-                        'notes' => json_encode($attributes),
-                    ))->save();
+                $invoice = \base\models\CL_Invoice::model()->createInvoice($user->id, $items, $user->getGateway(), false);
+                $invoice = \base\models\CL_Invoice::model()->loadById($invoice);
+                $invoiceItem = \base\models\CL_InvoiceItems::model()->loadByParams($invoice->invoiceitems);
+                $invoiceItem->setAttributes(array(
+                    'type' => $billableItem::TYPE,
+                    'relid' => $billableItem->id,
+                    'notes' => json_encode($attributes),
+                ))->save();
 
-                    try {
-                        $invoice->applyCredit($invoice->id, $invoice->subtotal);
-                    } catch (Exception $e) {
-                        if ($e->getMessage() == 'Amount exceeds customer credit balance') {
-                            return $invoice;
-                        } else {
-                            throw $e;
-                        }
+                try {
+                    $invoice->applyCredit($invoice->id, $invoice->subtotal);
+                } catch (Exception $e) {
+                    if ($e->getMessage() == 'Amount exceeds customer credit balance') {
+                        return $invoice;
+                    } else {
+                        throw $e;
                     }
-
-                    return \base\models\CL_Invoice::model()->loadById($invoice->id);
-                } else {
-                    $service = KuberDock_Hosting::model()->loadById($item->service_id);
-                    $service->getAdminApi()->redeployPod($this->id, $attributes);
-                    $billableItem->amount -= abs($newKubes * $this->kube['kube_price']);
-                    $billableItem->save();
-                    // Update app
-                    $pod = $service->getApi()->getPod($this->id);
-                    $app = KuberDock_Addon_PredefinedApp::model()->loadById($item->app_id);
-                    $app->data = json_encode($pod);
-                    $app->save();
-
-                    return \base\models\CL_Invoice::model()->loadById($item->invoice_id);
                 }
+
+                return \base\models\CL_Invoice::model()->loadById($invoice->id);
+            } else {
+                $service = KuberDock_Hosting::model()->loadById($item->service_id);
+                $service->getAdminApi()->redeployPod($this->id, $attributes);
+                $billableItem->amount -= abs($newKubes * $this->kube['kube_price']);
+                $billableItem->save();
+                // Update app
+                $pod = $service->getApi()->getPod($this->id);
+                $app = KuberDock_Addon_PredefinedApp::model()->loadById($item->app_id);
+                $app->data = json_encode($pod);
+                $app->save();
+
+                return \base\models\CL_Invoice::model()->loadById($item->invoice_id);
             }
         }
     }

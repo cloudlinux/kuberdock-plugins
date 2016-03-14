@@ -1,7 +1,7 @@
 Version: 1.0
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 0%{?dist}.rc.5.cloudlinux
+Release: 0%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -57,6 +57,13 @@ fi
 %{python_sitelib}/kd_common/*
 
 %changelog
+
+* Mon Mar 14 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.0-0
+- Added referer cPanel. jquery issue for 11.54 WHMCS & cPanel. Decrease kubes
+- AC-2507 cPanel & WHMCS. Upgrade kubes without redirect. cPanel & WHMCS fixed for AC-2538
+- AC-2387 Pay and start without redirect to billing
+- AC-2577 cPanel. Create user in KD for no billing case
+- AC-2550 - cPanel check max kubes count
 
 * Fri Mar 04 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.0-0.rc.5
 - cPanel. Get auth data for new product

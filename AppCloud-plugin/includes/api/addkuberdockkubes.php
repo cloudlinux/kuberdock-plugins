@@ -58,9 +58,9 @@ try {
     $service = \KuberDock_Hosting::model()->loadById($item->service_id);
 
     $kdPod = new \KuberDock_Pod($service);
-    $kdPod->loadByParams($pod);
+    $kdPod->loadById($pod['id']);
 
-    $invoice = $kdPod->updateKubes($predefinedApp->getPod(), $user);
+    $invoice = $kdPod->updateKubes($pod, $user);
 
     $results = array(
         'status' => $invoice->status,
