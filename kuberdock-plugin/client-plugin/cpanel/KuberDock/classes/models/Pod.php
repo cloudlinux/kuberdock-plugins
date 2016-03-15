@@ -4,6 +4,14 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace Kuberdock\classes\models;
+
+use Kuberdock\classes\panels\KuberDock_CPanel;
+use Kuberdock\classes\Base;
+use Kuberdock\classes\exceptions\CException;
+use Kuberdock\classes\KcliCommand;
+use Kuberdock\classes\components\Units;
+use Kuberdock\classes\components\Proxy;
 
 class Pod {
     /**
@@ -27,18 +35,18 @@ class Pod {
 
     /**
      * @param $name
-     * @return ArrayObject|mixed
+     * @return \ArrayObject|mixed
      */
     public function __get($name)
     {
         $methodName = 'get'.ucfirst($name);
 
         if(method_exists($this, $methodName)) {
-            $rm = new ReflectionMethod($this, $methodName);
+            $rm = new \ReflectionMethod($this, $methodName);
             return $rm->invoke($this);
         } elseif(isset($this->_data[$name])) {
             if(is_array($this->_data[$name])) {
-                return new ArrayObject($this->_data[$name]);
+                return new \ArrayObject($this->_data[$name]);
             } else {
                 return $this->_data[$name];
             }
@@ -48,14 +56,14 @@ class Pod {
     /**
      * @param $name
      * @param $value
-     * @return mixed
+     * @return void|mixed
      */
     public function __set($name, $value)
     {
         $methodName = 'set'.ucfirst($name);
 
         if(method_exists($this, $methodName)) {
-            $rm = new ReflectionMethod($this, $methodName);
+            $rm = new \ReflectionMethod($this, $methodName);
             return $rm->invoke($this, $value);
         } else {
             $this->_data[$name] = $value;
@@ -85,6 +93,11 @@ class Pod {
     public function asJSON()
     {
         return json_encode($this->_data);
+    }
+
+    public function asArray()
+    {
+        return $this->_data;
     }
 
     /**
@@ -275,11 +288,12 @@ class Pod {
     public function getImageInfo($image)
     {
         $imageInfo = $this->command->getImage($image);
+        $imageData = array();
 
         foreach($imageInfo as $k => $row) {
             $methodName = 'parse'.ucfirst($k);
             if(method_exists($this, $methodName)) {
-                $rm = new ReflectionMethod($this, $methodName);
+                $rm = new \ReflectionMethod($this, $methodName);
                 $imageData[$k] = $rm->invokeArgs($this, array($row));
             } else {
                 $imageData[$k] = $row;
@@ -302,7 +316,7 @@ class Pod {
     }
 
     /**
-     * @return array Pods
+     * @return Pod[] Pods
      */
     public function getPods()
     {
@@ -326,7 +340,7 @@ class Pod {
     }
 
     /**
-     * @return ArrayObject|mixed|string
+     * @return \ArrayObject|mixed|string
      */
     public function getPublicIp()
     {

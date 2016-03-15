@@ -1,5 +1,8 @@
 <?php
 
+namespace Kuberdock\classes;
+
+use Kuberdock\classes\exceptions\CException;
 
 class KuberDock_View {
     /**
@@ -73,7 +76,7 @@ class KuberDock_View {
      * @param array $values
      * @param bool $output
      * @return string
-     * @throws Exception
+     * @throws \Exception
      */
     public function render($view, $values = array(), $output = true)
     {
@@ -111,7 +114,7 @@ class KuberDock_View {
      * @param array $values
      * @param bool $output
      * @return string
-     * @throws Exception
+     * @throws \Exception
      */
     public function renderPartial($view, $values = array(), $output = true)
     {

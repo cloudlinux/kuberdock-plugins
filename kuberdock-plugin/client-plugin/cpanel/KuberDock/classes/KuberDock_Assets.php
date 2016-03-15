@@ -1,5 +1,6 @@
 <?php
 
+namespace Kuberdock\classes;
 
 class KuberDock_Assets {
     /**

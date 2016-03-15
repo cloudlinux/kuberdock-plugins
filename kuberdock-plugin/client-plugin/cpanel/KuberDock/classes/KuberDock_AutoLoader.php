@@ -7,121 +7,134 @@
  * @author: Ruslan Rakhmanberdiev
  */
 class KuberDock_AutoLoader {
-    /**
-     * @var string
-     */
-    public $defaultController = 'default';
-    /**
-     * @var string
-     */
-    public $defaultAction = 'index';
 
-    /**
-     * @var array
-     */
-    private static $_dirMapping = array();
+    protected $prefixes = array();
 
     /**
      *
      */
     public function __construct()
     {
-        spl_autoload_register(array($this, 'loader'));
+        spl_autoload_register(array($this, 'loadClass'));
     }
 
     /**
-     * Default class loader
+     * Adds a base directory for a namespace prefix.
      *
-     * @param $className
+     * @param string $prefix The namespace prefix.
+     * @param string $base_dir A base directory for class files in the
+     * namespace.
+     * @param bool $prepend If true, prepend the base directory to the stack
+     * instead of appending it; this causes it to be searched first rather
+     * than last.
+     * @return void
      */
-    private function loader($className)
+    public function addNamespace($prefix, $base_dir, $prepend = false)
     {
-        $className = ltrim($className, '\\');
+        // normalize namespace prefix
+        $prefix = trim($prefix, '\\') . '\\';
 
-        if($pos = strrpos($className, '\\')) {
-            $nameSpace = str_replace('\\', DS, substr($className, 0, $pos));
-            $className = substr($className, $pos+1);
+        // normalize the base directory with a trailing separator
+        $base_dir = rtrim($base_dir, DIRECTORY_SEPARATOR) . '/';
 
-            $filePath = KUBERDOCK_CLASS_DIR . DS . $nameSpace . DS . $className . '.php';
-        } elseif($dirs = self::loadDirList()) {
-            foreach($dirs as $dir) {
-                $filePath = $dir. DS . $className . '.php';
-                if(file_exists($filePath)) {
-                    break;
-                }
-            }
-        } else {
-            $filePath = KUBERDOCK_CLASS_DIR . DS . $className . '.php';
+        // initialize the namespace prefix array
+        if (isset($this->prefixes[$prefix]) === false) {
+            $this->prefixes[$prefix] = array();
         }
 
-        if(file_exists($filePath)) {
-            include_once $filePath;
+        // retain the base directory for the namespace prefix
+        if ($prepend) {
+            array_unshift($this->prefixes[$prefix], $base_dir);
+        } else {
+            array_push($this->prefixes[$prefix], $base_dir);
         }
     }
 
     /**
-     * Try to resolve current controller and run it
+     * Loads the class file for a given class name.
      *
-     * @throws Exception
+     * @param string $class The fully-qualified class name.
+     * @return mixed The mapped file name on success, or boolean false on
+     * failure.
      */
-    public function run()
+    public function loadClass($class)
     {
-        $controller = isset($_GET[KuberDock_Controller::CONTROLLER_PARAM]) ?
-            $_GET[KuberDock_Controller::CONTROLLER_PARAM] : $this->defaultController;
-        $action = isset($_GET[KuberDock_Controller::CONTROLLER_ACTION_PARAM]) ?
-            $_GET[KuberDock_Controller::CONTROLLER_ACTION_PARAM] : $this->defaultAction;
+        // the current namespace prefix
+        $prefix = $class;
 
-        try {
-            $className = ucfirst($controller) . 'Controller';
-            $model = new $className;
-            $model->controller = strtolower($controller);
-            $model->action = $action;
-            $model->setView();
+        // work backwards through the namespace names of the fully-qualified
+        // class name to find a mapped file name
+        while (false !== $pos = strrpos($prefix, '\\')) {
 
-            $actionMethod = lcfirst($action) . 'Action';
+            // retain the trailing namespace separator in the prefix
+            $prefix = substr($class, 0, $pos + 1);
 
-            if(!method_exists($model, $actionMethod)) {
-                throw new CException('Undefined controller action "'.$action.'"');
+            // the rest is the relative class name
+            $relative_class = substr($class, $pos + 1);
+
+            // try to load a mapped file for the prefix and relative class
+            $mapped_file = $this->loadMappedFile($prefix, $relative_class);
+            if ($mapped_file) {
+                return $mapped_file;
             }
 
-            $method = new ReflectionMethod($model, $actionMethod);
-            $method->invoke($model);
-        } catch(CException $e) {
-            echo $e;
+            // remove the trailing namespace separator for the next iteration
+            // of strrpos()
+            $prefix = rtrim($prefix, '\\');
         }
+
+        // never found a mapped file
+        return false;
     }
 
     /**
-     * @param null $dir
-     * @return array
+     * Load the mapped file for a namespace prefix and relative class.
+     *
+     * @param string $prefix The namespace prefix.
+     * @param string $relative_class The relative class name.
+     * @return mixed Boolean false if no mapped file can be loaded, or the
+     * name of the mapped file that was loaded.
      */
-    public static function getDirList($dir = null)
+    protected function loadMappedFile($prefix, $relative_class)
     {
-        if(empty($dir)) {
-            $result[] = KUBERDOCK_CLASS_DIR;
-        } else {
-            $result = glob($dir . DS . '*', GLOB_ONLYDIR);
+        // are there any base directories for this namespace prefix?
+        if (isset($this->prefixes[$prefix]) === false) {
+            return false;
         }
 
-        foreach($result as $v) {
-            if($dir = self::getDirList($v)) {
-                $result = array_merge($result, $dir);
+        // look through base directories for this namespace prefix
+        foreach ($this->prefixes[$prefix] as $base_dir) {
+
+            // replace the namespace prefix with the base directory,
+            // replace namespace separators with directory separators
+            // in the relative class name, append with .php
+            $file = $base_dir
+                . str_replace('\\', '/', $relative_class)
+                . '.php';
+
+            // if the mapped file exists, require it
+            if ($this->requireFile($file)) {
+                // yes, we're done
+                return $file;
             }
         }
 
-        return $result;
+        // never found it
+        return false;
     }
 
     /**
-     * @return array
+     * If a file exists, require it from the file system.
+     *
+     * @param string $file The file to require.
+     * @return bool True if the file exists, false if not.
      */
-    public static function loadDirList()
+    protected function requireFile($file)
     {
-        if(empty(self::$_dirMapping)) {
-            self::$_dirMapping = self::getDirList();
-            return self::$_dirMapping;
-        } else {
-            return self::$_dirMapping;
+        if (file_exists($file)) {
+            require $file;
+            return true;
         }
+        return false;
     }
 } 

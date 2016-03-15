@@ -4,8 +4,17 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace Kuberdock\classes\controllers;
 
-class DefaultController extends KuberDock_Controller {
+use Kuberdock\classes\models\Pod;
+use Kuberdock\classes\KcliCommand;
+use Kuberdock\classes\Tools;
+use Kuberdock\classes\Base;
+use Kuberdock\classes\exceptions\CException;
+use Kuberdock\classes\extensions\paginator\Pagination;
+
+class DefaultController extends \Kuberdock\classes\KuberDock_Controller
+{
     const DEFAULT_SEARCH_IMAGE = 'nginx';
 
     public function indexAction()
@@ -114,7 +123,7 @@ class DefaultController extends KuberDock_Controller {
             $pod = new Pod();
             $pod = $pod->loadByImage($image);
         } catch(CException $e) {
-            $pod = new stdClass();
+            $pod = new \stdClass();
             $this->error = $e;
         }
 
@@ -300,7 +309,7 @@ class DefaultController extends KuberDock_Controller {
             $sysapi = $api->getSysApi('name');
             $maxKubes = $sysapi['max_kubes_per_container']['value'];
         } catch(CException $e) {
-            $pod = new stdClass();
+            $pod = new \stdClass();
             $this->error = $e;
         }
 

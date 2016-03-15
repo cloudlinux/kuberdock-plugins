@@ -1,5 +1,18 @@
 <?php
 
+namespace Kuberdock\classes\panels;
+
+use Kuberdock\classes\components\KuberDock_Api;
+
+use Kuberdock\classes\KcliCommand;
+use Kuberdock\classes\KDCommonCommand;
+use Kuberdock\classes\Tools;
+use Kuberdock\classes\Base;
+use Kuberdock\classes\exceptions\CException;
+use Kuberdock\classes\components\KuberDock_ApiResponse;
+use Kuberdock\classes\panels\billing\WHMCS;
+use Kuberdock\classes\panels\billing\BillingInterface;
+use Kuberdock\classes\panels\billing\NoBilling;
 
 class KuberDock_CPanel
 {
@@ -12,7 +25,7 @@ class KuberDock_CPanel
      */
     public $domain;
     /**
-     * @var WHMCS | BillingInterface
+     * @var billing\BillingInterface
      */
     public $billing;
 
@@ -43,7 +56,7 @@ class KuberDock_CPanel
         $this->user = $_ENV['REMOTE_USER'];
         $this->domain = $_ENV['DOMAIN'];
 
-        $this->api = new KuberDock_Api();
+        $this->api = new \Kuberdock\classes\components\KuberDock_Api();
         $data = $this->api->getInfo($this->user, $this->domain);
         $this->billing = $this->getBilling($data);
 
@@ -101,7 +114,8 @@ class KuberDock_CPanel
             throw new CException('Billing class not exist');
         }
 
-        return new $billingClasses[$data['billing']]($data);
+        $className = '\Kuberdock\classes\panels\billing\\' . $billingClasses[$data['billing']];
+        return new $className($data);
     }
 
     /**

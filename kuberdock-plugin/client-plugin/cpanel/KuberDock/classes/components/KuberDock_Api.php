@@ -1,5 +1,12 @@
 <?php
 
+namespace Kuberdock\classes\components;
+
+use Kuberdock\classes\KcliCommand;
+use Kuberdock\classes\exceptions\CException;
+use Kuberdock\classes\exceptions\WithoutBillingException;
+use Kuberdock\classes\Tools;
+use Kuberdock\classes\Base;
 
 /**
  * Class KuberDock_Api
@@ -262,7 +269,7 @@ class KuberDock_Api {
     /**
      * @param $response
      * @return KuberDock_ApiResponse
-     * @throws Exception
+     * @throws \Exception
      */
     private function parseResponse($response)
     {
@@ -293,7 +300,7 @@ class KuberDock_Api {
      * @param string $user
      * @param string $domain
      * @return KuberDock_ApiResponse
-     * @throws Exception
+     * @throws \Exception
      * @throws WithoutBillingException
      */
     public function getInfo($user, $domain)
@@ -333,35 +340,6 @@ class KuberDock_Api {
         return $key
             ? Tools::getKeyAsField($data, $key)
             : $data;
-    }
-
-    /**
-     * @return array
-     */
-    public function getNoBillingInfo()
-    {
-        $data = array(
-            'currency' => array(
-                'prefix' => '$',
-                'suffix' => ' USD',
-            ),
-            'products' => array(
-                0 => array(
-
-                ),
-            ),
-            'userServices' => array(
-                0 => array(
-
-                ),
-            ),
-            'default' => array(
-                'kubeType' => $this->getDefaultKubeType(),
-                'packageId' => $this->getDefaultPackageId(),
-            ),
-        );
-
-        return $data;
     }
 
     /**
@@ -485,7 +463,7 @@ class KuberDock_Api {
      * @param string $podId
      * @param array $attributes
      * @return KuberDock_ApiResponse
-     * @throws Exception
+     * @throws \Exception
      */
     public function updatePod($podId, $attributes)
     {

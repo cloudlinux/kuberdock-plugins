@@ -4,7 +4,18 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
-class AppController extends KuberDock_Controller
+namespace Kuberdock\classes\controllers;
+
+use Kuberdock\classes\extensions\bbCode\BBCode;
+use Kuberdock\classes\Tools;
+use Kuberdock\classes\Base;
+use Kuberdock\classes\models\PredefinedApp;
+use Kuberdock\classes\Validator;
+use Kuberdock\classes\exceptions\CException;
+use Kuberdock\classes\models\Pod;
+use Kuberdock\classes\components\Proxy;
+
+class AppController extends \Kuberdock\classes\KuberDock_Controller
 {
     public function installPredefinedAction()
     {

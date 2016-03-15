@@ -1,5 +1,7 @@
 <?php
 
+namespace Kuberdock\classes;
+
 class Validator
 {
     private $errors = array();
@@ -18,7 +20,7 @@ class Validator
                 foreach ($this->rules[$field]['rules'] as $validator => $mustBe) {
                     try {
                         $this->{$validator . 'Action'}($field_name, $value, $mustBe);
-                    } catch (Exception $e) {
+                    } catch (\Exception $e) {
                         $this->errors[] = $e->getMessage();
                     }
                 }
@@ -36,21 +38,21 @@ class Validator
     private function minAction($field, $value, $mustBe)
     {
         if ((strlen($value) < $mustBe)) {
-            throw new Exception(sprintf('Minimum length of "%s" should be %d symbols', $field, $mustBe));
+            throw new \Exception(sprintf('Minimum length of "%s" should be %d symbols', $field, $mustBe));
         }
     }
 
     private function maxAction($field, $value, $mustBe)
     {
         if ((strlen($value) > $mustBe)) {
-            throw new Exception(sprintf('Maximum length of "%s" should be %d symbols', $field, $mustBe));
+            throw new \Exception(sprintf('Maximum length of "%s" should be %d symbols', $field, $mustBe));
         }
     }
 
     private function requiredAction($field, $value, $mustBe)
     {
         if (strlen($value) == 0) {
-            throw new Exception(sprintf('Empty "%s"', $field));
+            throw new \Exception(sprintf('Empty "%s"', $field));
         }
     }
 
@@ -58,7 +60,7 @@ class Validator
     {
         $validSymbols = array('-', '_');
         if(!ctype_alnum(str_replace($validSymbols, '', $value))) {
-            throw new Exception(sprintf('Only alphanum characters, minus and underscore allowed in "%s"', $field));
+            throw new \Exception(sprintf('Only alphanum characters, minus and underscore allowed in "%s"', $field));
         }
     }
 }

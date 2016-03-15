@@ -6,15 +6,44 @@ $dirName = dirname(__FILE__);
 include_once $dirName . '/init.php';
 
 try {
-    $cPanel = &new CPANEL();
-    Base::model()->setNativePanel($cPanel);
+    $cPanel = &new \CPANEL();
+    \Kuberdock\classes\Base::model()->setNativePanel($cPanel);
 } catch (Exception $e) {
     echo $e->getMessage();
 }
 
+$run = function() {
+    $controller = isset($_GET[\Kuberdock\classes\KuberDock_Controller::CONTROLLER_PARAM])
+        ? $_GET[\Kuberdock\classes\KuberDock_Controller::CONTROLLER_PARAM]
+        : 'default';
+
+    $action = isset($_GET[\Kuberdock\classes\KuberDock_Controller::CONTROLLER_ACTION_PARAM])
+        ? $_GET[\Kuberdock\classes\KuberDock_Controller::CONTROLLER_ACTION_PARAM]
+        : 'index';
+
+    try {
+        $className = '\Kuberdock\classes\controllers\\' . ucfirst($controller) . 'Controller';
+        $model = new $className;
+        $model->controller = strtolower($controller);
+        $model->action = $action;
+        $model->setView();
+
+        $actionMethod = lcfirst($action) . 'Action';
+
+        if(!method_exists($model, $actionMethod)) {
+            throw new \Kuberdock\classes\exceptions\CException('Undefined controller action "'.$action.'"');
+        }
+
+        $method = new \ReflectionMethod($model, $actionMethod);
+        $method->invoke($model);
+    } catch(\Kuberdock\classes\exceptions\CException $e) {
+        echo $e;
+    }
+};
+
 // Catch ajax\stream requests
-if(Tools::getIsAjaxRequest() || Tools::getIsStreamRequest()) {
-    $loader->run();
+if(\Kuberdock\classes\Tools::getIsAjaxRequest() || \Kuberdock\classes\Tools::getIsStreamRequest()) {
+    $run();
     $cPanel->end();
     exit();
 }
@@ -29,7 +58,7 @@ if($res['cpanelresult']['data']['result']) {
     echo $cPanel->header('KuberDock plugin', 'KD_PLUGIN');
 }
 
-$loader->run();
+$run();
 
 // Footer
 $res = $cPanel->api1('Branding', 'include', array('stdfooter.html') );

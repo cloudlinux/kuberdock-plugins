@@ -4,6 +4,14 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace Kuberdock\classes\models;
+
+use Kuberdock\classes\panels\KuberDock_CPanel;
+use Kuberdock\classes\KcliCommand;
+use Kuberdock\classes\exceptions\CException;
+use Kuberdock\classes\extensions\yaml\Spyc;
+use Kuberdock\classes\KuberDock_Controller;
+use Kuberdock\classes\Tools;
 
 class PredefinedApp {
     /**
@@ -62,18 +70,18 @@ class PredefinedApp {
 
     /**
      * @param $name
-     * @return ArrayObject|mixed
+     * @return \ArrayObject|mixed
      */
     public function __get($name)
     {
         $methodName = 'get'.ucfirst($name);
 
         if(method_exists($this, $methodName)) {
-            $rm = new ReflectionMethod($this, $methodName);
+            $rm = new \ReflectionMethod($this, $methodName);
             return $rm->invoke($this);
         } elseif(isset($this->_data[$name])) {
             if(is_array($this->_data[$name])) {
-                return new ArrayObject($this->_data[$name]);
+                return new \ArrayObject($this->_data[$name]);
             } else {
                 return $this->_data[$name];
             }
@@ -90,7 +98,7 @@ class PredefinedApp {
         $methodName = 'set'.ucfirst($name);
 
         if(method_exists($this, $methodName)) {
-            $rm = new ReflectionMethod($this, $methodName);
+            $rm = new \ReflectionMethod($this, $methodName);
             return $rm->invoke($this, $value);
         } else {
             $this->_data[$name] = $value;
@@ -118,7 +126,7 @@ class PredefinedApp {
             $this->template = new Template($this->panel);
             try {
                 $this->template->getById($this->templateId);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 // if global template is deleted, take local (user's)
                 $path = PredefinedApp::getAppPathByTemplateId($this->templateId);
                 $this->template->getByPath($path, $this->templateId);
@@ -169,7 +177,7 @@ class PredefinedApp {
      */
     public function getVariables()
     {
-        $iterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($this->template->data));
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($this->template->data));
 
         foreach($iterator as $row) {
             $path = array();

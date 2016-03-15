@@ -1,5 +1,6 @@
 <?php
 
+namespace Kuberdock\classes;
 
 class KuberDock_Controller {
     /**
@@ -28,14 +29,14 @@ class KuberDock_Controller {
      */
     public $action;
     /**
-     * @var Exception
+     * @var \Exception
      */
     public $error;
 
     /**
      * View object
      *
-     * @var View
+     * @var KuberDock_View
      */
     private $_view;
 
@@ -66,7 +67,7 @@ class KuberDock_Controller {
     /**
      * Get View object
      *
-     * @return View
+     * @return KuberDock_View
      */
     public function getView()
     {

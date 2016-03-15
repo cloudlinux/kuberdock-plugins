@@ -1,5 +1,9 @@
 <?php
 
+namespace Kuberdock\classes;
+
+use Kuberdock\classes\exceptions\CException;
+
 /**
  * Class KcliCommand
  */

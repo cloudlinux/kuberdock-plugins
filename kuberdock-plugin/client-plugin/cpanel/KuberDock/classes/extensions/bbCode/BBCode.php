@@ -7,6 +7,7 @@
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  */
 
+namespace Kuberdock\classes\extensions\bbCode;
 
 class BBCode {
     protected $bbcode_table = array();

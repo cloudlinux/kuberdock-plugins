@@ -2,6 +2,10 @@
 
 <?php
 
+use Kuberdock\classes\exceptions\CException;
+use Kuberdock\classes\components\Proxy;
+use Kuberdock\classes\KcliCommand;
+
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . '../init.php';
 
 $opts = getopt('c:', array(

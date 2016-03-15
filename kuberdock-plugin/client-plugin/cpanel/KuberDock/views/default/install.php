@@ -1,3 +1,7 @@
+<?php
+use Kuberdock\classes\components\Units;
+?>
+
 <link rel="stylesheet" type="text/css" href="assets/script/slider/jquery.nouislider.min.css">
 <script src="assets/script/slider/jquery.nouislider.all.min.js"></script>
 <script src="assets/script/install.js"></script>

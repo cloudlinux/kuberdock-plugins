@@ -1,5 +1,13 @@
 <?php
 
+namespace Kuberdock\classes\models;
+
+use Kuberdock\classes\panels\KuberDock_CPanel;
+use Kuberdock\classes\exceptions\CException;
+use Kuberdock\classes\extensions\bbCode\BBCode;
+use Kuberdock\classes\extensions\yaml\Spyc;
+use Kuberdock\classes\KuberDock_View;
+
 /**
  * Created by PhpStorm.
  * User: user

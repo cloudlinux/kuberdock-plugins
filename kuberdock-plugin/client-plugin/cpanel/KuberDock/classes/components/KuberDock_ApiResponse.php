@@ -1,5 +1,6 @@
 <?php
 
+namespace Kuberdock\classes\components;
 
 class KuberDock_ApiResponse {
     /**

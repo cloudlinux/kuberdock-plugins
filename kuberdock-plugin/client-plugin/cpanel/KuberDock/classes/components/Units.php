@@ -4,6 +4,7 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace Kuberdock\classes\components;
 
 class Units {
     /**

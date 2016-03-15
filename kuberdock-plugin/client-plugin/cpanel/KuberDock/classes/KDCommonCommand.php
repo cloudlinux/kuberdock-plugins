@@ -1,5 +1,7 @@
 <?php
 
+namespace Kuberdock\classes;
+
 /**
  * Class KDCommonCommand
  */

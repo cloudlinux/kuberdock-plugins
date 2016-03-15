@@ -1,5 +1,8 @@
 <?php
 
+namespace Kuberdock\classes\extensions\paginator;
+
+use Kuberdock\classes\KuberDock_View;
 
 class Pagination {
     /**

@@ -1,3 +1,7 @@
+<?php
+use Kuberdock\classes\components\Units;
+?>
+
 <div class="product-description hidden">
     <b>CPU:</b> <?php echo number_format($totalCPU, 2) . ' ' . Units::getCPUUnits(); ?><br>
     <b>Memory:</b> <?php echo $totalMemory . ' ' . Units::getMemoryUnits(); ?><br>

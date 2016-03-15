@@ -4,6 +4,8 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace Kuberdock\classes;
+
 class Tools {
     /**
      * Get param from $_GET variable

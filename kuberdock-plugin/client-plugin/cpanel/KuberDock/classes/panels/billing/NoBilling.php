@@ -1,5 +1,10 @@
 <?php
 
+namespace Kuberdock\classes\panels\billing;
+
+use Kuberdock\classes\exceptions\CException;
+use Kuberdock\classes\components\KuberDock_ApiResponse;
+
 /**
  * Created by PhpStorm.
  * User: user

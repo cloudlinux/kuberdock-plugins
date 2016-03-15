@@ -1,5 +1,12 @@
 <?php
 
+namespace Kuberdock\classes\components;
+
+use Kuberdock\classes\models\Pod;
+use Kuberdock\classes\exceptions\CException;
+use Kuberdock\classes\models\PredefinedApp;
+use Kuberdock\classes\Base;
+
 /**
  * Class Proxy
  */

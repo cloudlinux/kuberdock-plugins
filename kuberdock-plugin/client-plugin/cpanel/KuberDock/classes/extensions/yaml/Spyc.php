@@ -10,6 +10,8 @@
    * @package Spyc
    */
 
+namespace Kuberdock\classes\extensions\yaml;
+
 if (!function_exists('spyc_load')) {
   /**
    * Parses YAML to array.

@@ -4,13 +4,17 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
+namespace Kuberdock\classes;
+
+use Kuberdock\classes\panels\KuberDock_CPanel;
+
 class Base {
     /**
      * @var KuberDock_CPanel
      */
     protected $panel;
     /**
-     * @var Native hosting panel class
+     * @var object Native hosting panel class
      */
     public $nativePanel;
     /**

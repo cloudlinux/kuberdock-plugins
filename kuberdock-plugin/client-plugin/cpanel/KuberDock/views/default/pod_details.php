@@ -1,3 +1,7 @@
+<?php
+use Kuberdock\classes\components\Units;
+?>
+
 <div class="row pod-details">
     <div class="col-md-12">
     <?php
