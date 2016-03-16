@@ -18,9 +18,16 @@ if (!file_exists($dev) && !\Kuberdock\classes\Tools::getIsAjaxRequest()) {
     die;
 }
 
+if (!isset($_REQUEST['request'])) {
+    echo json_encode(array('error' => 'request not found'));
+    die;
+}
+
 try {
     $API = new \Kuberdock\classes\api\KuberDock($_REQUEST['request']);
     echo $API->processAPI();
+} catch (\Kuberdock\classes\exceptions\PaymentRequiredException $e) {
+    echo $e->getJSON();
 } catch (\Exception $e) {
     echo json_encode(array('error' => $e->getMessage()));
 }

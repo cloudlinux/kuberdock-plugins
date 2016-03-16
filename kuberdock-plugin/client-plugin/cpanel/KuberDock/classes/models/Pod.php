@@ -12,6 +12,7 @@ use Kuberdock\classes\exceptions\CException;
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\components\Units;
 use Kuberdock\classes\components\Proxy;
+use Kuberdock\classes\exceptions\PaymentRequiredException;
 
 class Pod {
     /**
@@ -517,22 +518,34 @@ class Pod {
     /**
      * @param string $referer
      * @return array
-     * @throws CException
+     * @throws PaymentRequiredException
      */
     public function order($referer = '')
     {
-        return Base::model()->getPanel()->getApi()->orderPod($this->_data, $referer);
+        $response = Base::model()->getPanel()->getApi()->orderPod($this->_data, $referer);
+
+        if($response['status'] == 'Unpaid') {
+            throw new PaymentRequiredException($response);
+        }
+
+        return $response;
     }
 
     /**
      * @param array $params
      * @param string $referer
      * @return array
-     * @throws CException
+     * @throws PaymentRequiredException
      */
     public function orderKubes($params, $referer = '')
     {
-        return Base::model()->getPanel()->getApi()->orderKubes($params, $referer);
+        $response = Base::model()->getPanel()->getApi()->orderKubes($params, $referer);
+
+        if($response['status'] == 'Unpaid') {
+            throw new PaymentRequiredException($response);
+        }
+
+        return $response;
     }
 
     /**
@@ -604,7 +617,7 @@ class Pod {
      */
     public function searchImages($image, $page = 1)
     {
-        return $this->command->searchImages($image, $page-1);
+        return $this->command->searchImages($image, $page);
     }
 
     /**

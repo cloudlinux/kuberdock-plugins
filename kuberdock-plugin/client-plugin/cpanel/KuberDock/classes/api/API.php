@@ -2,6 +2,8 @@
 
 namespace Kuberdock\classes\api;
 
+use Kuberdock\classes\exceptions\CException;
+
 abstract class API
 {
     /**
@@ -32,8 +34,11 @@ abstract class API
     /**
      * Constructor: __construct
      * Allow for CORS, assemble and pre-process the data
+     * @param $request string
+     * @throws \Exception
      */
-    public function __construct($request) {
+    public function __construct($request)
+    {
         header("Content-Type: application/json");
 
         $this->args = explode('/', rtrim($request, '/'));
@@ -53,47 +58,54 @@ abstract class API
         switch($this->method) {
             case 'DELETE':
             case 'POST':
-                $this->request = $this->_cleanInputs($_POST);
+                $this->request = $this->cleanInputs($_POST);
                 break;
             case 'GET':
-                $this->request = $this->_cleanInputs($_GET);
+                $this->request = $this->cleanInputs($_GET);
                 break;
             case 'PUT':
-                $this->request = $this->_cleanInputs($_GET);
+                $this->request = $this->cleanInputs($_GET);
                 $this->file = file_get_contents("php://input");
                 break;
             default:
-                $this->_response('Invalid Method', 405);
+                $this->response('Invalid Method', 405);
                 break;
         }
     }
 
-    public function processAPI() {
-
+    public function processAPI()
+    {
         $endpoint = strtolower($this->method) . '_' . $this->endpoint;
 
+        // additional parameter, like pods/search/nginx
         if (array_key_exists(0, $this->args) && method_exists($this, $endpoint . '_' . $this->args[0])) {
             $endpoint .= '_' . array_shift($this->args);
         }
 
         if (!method_exists($this, $endpoint)) {
-            return $this->_response("No Endpoint: $endpoint", 404);
+            return $this->response("No Endpoint: $endpoint", 404);
         }
 
-        return $this->_response($this->$endpoint($this->args));
+        set_error_handler(array($this, "warningHandler"), E_WARNING);
+        $result = call_user_func_array(array($this, $endpoint), $this->args);
+        restore_error_handler();
+
+        return $this->response($result);
     }
 
-    private function _response($data, $status = 200) {
-        header("HTTP/1.1 " . $status . " " . $this->_requestStatus($status));
+    private function response($data, $status = 200)
+    {
+        header("HTTP/1.1 " . $status . " " . $this->requestStatus($status));
 
         return json_encode($data);
     }
 
-    private function _cleanInputs($data) {
+    private function cleanInputs($data)
+    {
         $clean_input = array();
         if (is_array($data)) {
             foreach ($data as $k => $v) {
-                $clean_input[$k] = $this->_cleanInputs($v);
+                $clean_input[$k] = $this->cleanInputs($v);
             }
         } else {
             $clean_input = trim(strip_tags($data));
@@ -102,7 +114,8 @@ abstract class API
         return $clean_input;
     }
 
-    private function _requestStatus($code) {
+    private function requestStatus($code)
+    {
         $status = array(
             200 => 'OK',
             403 => 'Forbidden',
@@ -112,5 +125,26 @@ abstract class API
         );
 
         return ($status[$code])?$status[$code]:$status[500];
+    }
+
+    protected function checkNumeric($arg)
+    {
+        if (!is_numeric($arg) && !is_null($arg)) {
+            throw new CException('Argument must be numeric');
+        }
+    }
+
+    /**
+     * To catch 'Missing argument' errors
+     *
+     * @param $errno
+     * @param $errstr
+     * @throws CException
+     */
+    public function warningHandler($errno, $errstr)
+    {
+        if (strpos($errstr, 'Missing argument') == 0) {
+            throw new CException('Missing argument', $errno);
+        }
     }
 }

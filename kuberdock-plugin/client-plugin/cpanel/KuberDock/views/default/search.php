@@ -1,3 +1,17 @@
+<?php
+/**
+ * @var $templates array
+ * @var $registryUrl string
+ * @var $search string
+ * @var $page
+ * @var $pagination
+ * @var $images
+ */
+
+use Kuberdock\classes\extensions\yaml\Spyc;
+
+?>
+
 <link rel="stylesheet" href="assets/script/owl-carousel/owl.carousel.css">
 <link rel="stylesheet" href="assets/script/owl-carousel/owl.theme.css">
 <script src="assets/script/owl-carousel/owl.carousel.min.js"></script>

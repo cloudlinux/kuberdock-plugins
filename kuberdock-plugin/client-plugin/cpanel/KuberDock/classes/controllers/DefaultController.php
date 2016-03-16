@@ -12,6 +12,7 @@ use Kuberdock\classes\Tools;
 use Kuberdock\classes\Base;
 use Kuberdock\classes\exceptions\CException;
 use Kuberdock\classes\extensions\paginator\Pagination;
+use Kuberdock\classes\exceptions\PaymentRequiredException;
 
 class DefaultController extends \Kuberdock\classes\KuberDock_Controller
 {
@@ -157,9 +158,10 @@ class DefaultController extends \Kuberdock\classes\KuberDock_Controller
                     Base::model()->getPanel()->getApi()->updatePod($pod->id, array(
                         'status' => 'unpaid',
                     ));
-                    $response = $pod->order($pod->getLink());
-                    if($response['status'] == 'Unpaid') {
-                        echo json_encode(array('redirect' => $response['redirect']));
+                    try {
+                        $pod->order($pod->getLink());
+                    } catch (PaymentRequiredException $e) {
+                        echo $e->getJSON();
                         exit();
                     }
                 } else {
@@ -196,13 +198,13 @@ class DefaultController extends \Kuberdock\classes\KuberDock_Controller
             $pod = $pod->loadByName($container);
 
             if($pod->isUnPaid()) {
-                $response = $pod->order();
-                if($response['status'] == 'Unpaid') {
-                    echo json_encode(array('redirect' => $response['redirect']));
+                try {
+                    $pod->order();
+                } catch (PaymentRequiredException $e) {
+                    echo $e->getJSON();
                     exit();
-                } else {
-                    $message = 'Application started';
                 }
+                $message = 'Application started';
             } elseif(in_array($pod->status, array('stopped', 'terminated', 'failed', 'succeeded'))) {
                 $pod->start();
                 $message = 'Application started';
@@ -331,9 +333,10 @@ class DefaultController extends \Kuberdock\classes\KuberDock_Controller
                 $product = Base::model()->getPanel()->billing->getProduct();
 
                 if(Base::model()->getPanel()->billing->isFixedPrice($product['id'])) {
-                    $response = $pod->orderKubes($params, $pod->getLink());
-                    if($response['status'] == 'Unpaid') {
-                        echo json_encode(array('redirect' => $response['redirect']));
+                    try {
+                        $pod->orderKubes($params, $pod->getLink());
+                    } catch (PaymentRequiredException $e) {
+                        echo $e->getJSON();
                         exit();
                     }
                 } else {
