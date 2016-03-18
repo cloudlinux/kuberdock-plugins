@@ -33,7 +33,6 @@ class KuberDock_OrderController extends CL_Controller {
         $yaml = html_entity_decode(urldecode(CL_Base::model()->getParam($predefinedApp::KUBERDOCK_YAML_FIELD)), ENT_QUOTES);
         $referer = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_REFERER_FIELD);
         $parsedYaml = \Spyc::YAMLLoadString($yaml);
-        $userId = $_SESSION['uid'];
 
         try {
             if(isset($parsedYaml['kuberdock']['packageID'])) {
@@ -68,42 +67,8 @@ class KuberDock_OrderController extends CL_Controller {
             ));
 
             $predefinedApp->save();
-
-            $this->clientArea->requireLogin();
-
-            $data = \KuberDock_Hosting::model()->getByUser($userId, $referer);
-            $service = \KuberDock_Hosting::model()->loadByParams(current($data));
-
-            if($product->isFixedPrice()) {
-                if(!$service) {
-                    $result = CL_Order::model()->createOrder($userId, $product->id);
-                    CL_Order::model()->acceptOrder($result['orderid']);
-                    $service = \KuberDock_Hosting::model()->loadById($result['productids']);
-                }
-                $item = $product->addBillableApp($userId, $predefinedApp);
-                if(!($pod = $predefinedApp->isPodExists($service->id))) {
-                    $pod = $predefinedApp->create($service->id, 'unpaid');
-                }
-                $predefinedApp->pod_id = $pod['id'];
-                $predefinedApp->save();
-                $item->pod_id = $pod['id'];
-                $item->save();
-
-                if($item->isPayed()) {
-                    $product->startPodAndRedirect($item->service_id, $item->pod_id);
-                } else {
-                    header('Location: viewinvoice.php?id=' . $item->invoice_id);
-                }
-            } else {
-                if(!$service) {
-                    $result = CL_Order::model()->createOrder($userId, $product->id);
-                    CL_Order::model()->acceptOrder($result['orderid']);
-                    $service = \KuberDock_Hosting::model()->loadById($result['productids']);
-                    $product->createPodAndRedirect($service->id);
-                } else {
-                    $product->createPodAndRedirect($service->id);
-                }
-            }
+            $product->addToCart();
+            header('Location: cart.php?a=view');
         } catch(Exception $e) {
             // product not found
             CException::log($e);

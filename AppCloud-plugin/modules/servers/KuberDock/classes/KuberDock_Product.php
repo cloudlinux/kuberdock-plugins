@@ -489,6 +489,18 @@ class KuberDock_Product extends CL_Product {
     }
 
     /**
+     *
+     */
+    public function removeFromCart()
+    {
+        foreach ($_SESSION['cart']['products'] as $k => $row) {
+            if ($row['pid'] == $this->id) {
+                unset($_SESSION['cart']['products'][$k]);
+            }
+        }
+    }
+
+    /**
      * @param int $userId
      * @param KuberDock_Addon_PredefinedApp $app
      * @return KuberDock_Addon_Items

@@ -4,14 +4,14 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
-include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
-
 use base\CL_View;
 use base\CL_Base;
 use base\models\CL_Currency;
 use base\models\CL_Client;
 use api\KuberDock_Api;
 use exceptions\CException;
+
+include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
 
 /**
  * @return array
@@ -233,7 +233,7 @@ function KuberDock_LoginLink($params) {
  * Run create module command while clicking "Save Changes" in admin area
  * @param $params
  */
-function KuberDock_AdminServicesTabFieldsSave($params) {
+/*function KuberDock_AdminServicesTabFieldsSave($params) {
     try {
         $product = KuberDock_Product::model()->loadById($params['pid']);
         $client = CL_Client::model()->loadByParams($params['clientsdetails']);
@@ -243,7 +243,7 @@ function KuberDock_AdminServicesTabFieldsSave($params) {
         CException::log($e);
         // do nothing
     }
-}
+}*/
 
 /**
  * This function is used for upgrading and downgrading of products.
