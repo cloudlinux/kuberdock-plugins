@@ -126,6 +126,7 @@ class KuberDock_Addon_Product extends CL_Model {
         $sql = 'SELECT * FROM `'.KuberDock_Product::model()->tableName.'`
             WHERE servertype = ? AND id NOT IN (SELECT product_id FROM `'.$this->tableName.'`)
             ORDER BY name';
+
         $values = array(KUBERDOCK_MODULE_NAME);
 
         return $this->_db->query($sql, $values)->getRows();
