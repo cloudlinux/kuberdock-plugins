@@ -22,6 +22,7 @@ use exceptions\UserNotFoundException;
  * Class KuberDock_Product
  */
 class KuberDock_Product extends CL_Product {
+    const AUTO_SETUP_PAYMENT = 'payment';
 
     /**
      *
@@ -503,10 +504,11 @@ class KuberDock_Product extends CL_Product {
     /**
      * @param int $userId
      * @param KuberDock_Addon_PredefinedApp $app
+     * @param bool $paid
      * @return KuberDock_Addon_Items
      * @throws Exception
      */
-    public function addBillableApp($userId, KuberDock_Addon_PredefinedApp $app)
+    public function addBillableApp($userId, KuberDock_Addon_PredefinedApp $app, $paid = false)
     {
         if(!$this->isFixedPrice()) {
             throw new Exception('Fixed price - billable items not needed.');
@@ -545,6 +547,10 @@ class KuberDock_Product extends CL_Product {
 
         $invoice_id = $invoice->createInvoice($userId, $items, $gateway);
         $invoiceItem = \base\models\CL_Invoice::model()->loadById($invoice_id);
+        if ($paid) {
+            $invoiceItem->status = CL_Invoice::STATUS_PAID;
+            $invoiceItem->save();
+        }
         $model->invoicecount = 1;
         $model->save();
 
@@ -633,6 +639,11 @@ class KuberDock_Product extends CL_Product {
         return $this->getConfigOption('billingType') == 'Fixed price';
     }
 
+    public function isSetupPayment()
+    {
+        return $this->autosetup == self::AUTO_SETUP_PAYMENT;
+    }
+
     /**
      * @return bool
      * @throws Exception
@@ -715,6 +726,8 @@ class KuberDock_Product extends CL_Product {
      */
     public function startPodAndRedirect($serviceId, $podId, $jsRedirect = false)
     {
+        global $whmcs;
+
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
         if($service->isActive()) {
@@ -722,7 +735,8 @@ class KuberDock_Product extends CL_Product {
             try {
                 $predefinedApp->payAndStart($podId, $service->id);
                 // Mark paid by admin, redirect only user.
-                if(isset($_POST['markpaid'])) {
+
+                if($whmcs && $whmcs->isAdminAreaRequest()) {
                     return;
                 }
 

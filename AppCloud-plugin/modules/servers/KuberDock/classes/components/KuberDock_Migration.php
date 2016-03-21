@@ -31,10 +31,23 @@ class KuberDock_Migration extends CL_Component {
         }
 
         try {
-            $this->addServerIdColumn();
+            //$this->addServerIdColumn();
+            $this->addUserIdColumn();
         } catch(Exception $e) {
             // pass
         }
+    }
+
+    /**
+     * Add user_id column to table `KuberDock_preapps`
+     */
+    public function addUserIdColumn()
+    {
+        if ($this->fieldExist('KuberDock_preapps', 'user_id')) {
+            return;
+        }
+
+        $this->_db->query('ALTER TABLE `KuberDock_preapps` ADD COLUMN user_id INT NULL');
     }
 
     /**

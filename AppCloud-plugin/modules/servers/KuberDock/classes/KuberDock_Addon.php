@@ -107,6 +107,7 @@ class KuberDock_Addon extends CL_Component {
             $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_preapps` (
                 id INT AUTO_INCREMENT,
                 session_id varchar(64) NOT NULL,
+                user_id INT NULL,
                 product_id INT NULL,
                 kuber_product_id INT NULL,
                 pod_id VARCHAR(64) DEFAULT NULL,

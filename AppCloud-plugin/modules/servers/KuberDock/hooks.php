@@ -161,9 +161,14 @@ function KuberDock_ShoppingCartValidateCheckout($params)
                 $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
                 if ($predefinedApp) {
                     $service = \KuberDock_Hosting::model()->loadByParams(current($userProducts));
+                    $predefinedApp->user_id = $userId;
+                    $predefinedApp->save();
 
                     if ($product->isFixedPrice()) {
                         if (!$service) {
+                            if ($product->isSetupPayment()) {
+                                continue;
+                            }
                             $result = \base\models\CL_Order::model()->createOrder($userId, $product->id);
                             \base\models\CL_Order::model()->acceptOrder($result['orderid']);
                             $service = \KuberDock_Hosting::model()->loadById($result['productids']);
@@ -288,8 +293,13 @@ function KuberDock_ShoppingCartCheckoutCompletePage($params)
 function KuberDock_AfterShoppingCartCheckout($params)
 {
     $order = \base\models\CL_Order::model()->loadById($params['OrderID']);
+    $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+    if ($predefinedApp) {
+        $predefinedApp->user_id = $order->userid;
+        $predefinedApp->save();
+    }
 
-    $client = \base\models\CL_Client::model()->loadById($order->userid);
+    /*$client = \base\models\CL_Client::model()->loadById($order->userid);
     $client->filterValues();
 
     $service_id = reset($params['ServiceIDs']);
@@ -303,9 +313,9 @@ function KuberDock_AfterShoppingCartCheckout($params)
     }
     $product->setClient($client);
 
-    $product->createUser($service);
+    $product->createUser($service);*/
 }
-//add_hook('AfterShoppingCartCheckout', 1, 'KuberDock_AfterShoppingCartCheckout');
+add_hook('AfterShoppingCartCheckout', 1, 'KuberDock_AfterShoppingCartCheckout');
 
 /**
  * Run: As the cart page is being displayed, this hook is run separately for each product added to the cart.
@@ -319,10 +329,17 @@ function KuberDock_OrderProductPricingOverride($params)
     if(!$product) return;
 
     $setup = $product->getConfigOption('firstDeposit') ? $product->getConfigOption('firstDeposit') : 0;
+    $recurring = 0;
+
+    $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+    // Price for yaml PA
+    if ($predefinedApp && !$predefinedApp->getPod() && $product->isFixedPrice()) {
+        $recurring = $predefinedApp->getTotalPrice(true);
+    }
 
     $productPrice = array(
         'setup' => $setup,
-        'recurring' => 0,
+        'recurring' => $recurring,
     );
 
     return $productPrice;
@@ -908,6 +925,11 @@ function KuberDock_ClientLogin($params)
         $user->notes = '';
         $user->save();
     }
+
+    if ($predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId()) {
+        $predefinedApp->user_id = $params['userid'];
+        $predefinedApp->save();
+    }
 }
 add_hook('ClientLogin', 1, 'KuberDock_ClientLogin');
 
@@ -915,19 +937,15 @@ function KuberDock_AfterModuleCreate($params) {
     $userId = $params['params']['userid'];
 
     $product = \KuberDock_Product::model()->loadById($params['params']['packageid']);
-    $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+    $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadByUserId($userId);
     if ($predefinedApp) {
         $service = \KuberDock_Hosting::model()->loadById($params['params']['serviceid']);
 
         if ($product->isFixedPrice()) {
-            if (!$service) {
-                $result = \base\models\CL_Order::model()->createOrder($userId, $product->id);
-                \base\models\CL_Order::model()->acceptOrder($result['orderid']);
-                $service = \KuberDock_Hosting::model()->loadById($result['productids']);
-            }
-            $item = $product->addBillableApp($userId, $predefinedApp);
+            $paid = $product->isSetupPayment() ? true : false;
+            $item = $product->addBillableApp($userId, $predefinedApp, $paid);
             if (!($pod = $predefinedApp->isPodExists($service->id))) {
-                $pod = $predefinedApp->create($service->id, 'unpaid');
+                $pod = $predefinedApp->create($service->id);
             }
             $predefinedApp->pod_id = $pod['id'];
             $predefinedApp->save();
@@ -941,16 +959,8 @@ function KuberDock_AfterModuleCreate($params) {
                 $product->jsRedirect('viewinvoice.php?id=' . $item->invoice_id);
             }
         } else {
-            if (!$service) {
-                $result = \base\models\CL_Order::model()->createOrder($userId, $product->id);
-                \base\models\CL_Order::model()->acceptOrder($result['orderid']);
-                $service = \KuberDock_Hosting::model()->loadById($result['productids']);
-                $product->removeFromCart();
-                $product->createPodAndRedirect($service->id, true);
-            } else {
-                $product->removeFromCart();
-                $product->createPodAndRedirect($service->id, true);
-            }
+            $product->removeFromCart();
+            $product->createPodAndRedirect($service->id, true);
         }
     }
 }

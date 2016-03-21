@@ -72,7 +72,10 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
         } else {
             $data = $this->loadByAttributes(array(
                 'session_id' => \base\CL_Base::model()->getSession(),
-            ), 'pod_id IS NULL');
+            ), 'pod_id IS NULL', array(
+                'order' => 'id DESC',
+                'limit' => 1,
+            ));
         }
 
         if(!$data) {
@@ -91,6 +94,26 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
         $data = $this->loadByAttributes(array(
             'pod_id' => $podId,
         ), '', array(
+            'order' => 'id DESC',
+            'limit' => 1,
+        ));
+
+        if(!$data) {
+            return false;
+        }
+
+        return $this->setAttributes(current($data));
+    }
+
+    /**
+     * @param int $userId
+     * @return $this|bool
+     */
+    public function loadByUserId($userId)
+    {
+        $data = $this->loadByAttributes(array(
+            'user_id' => $userId,
+        ), 'pod_id IS NULL', array(
             'order' => 'id DESC',
             'limit' => 1,
         ));
