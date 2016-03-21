@@ -52,10 +52,7 @@
                                 <tr>
                                     <td class="left col-md-3"><strong><?php echo $package['payment_type']; ?></strong></td>
                                     <td class="middle col-md-2">
-                                        <?php echo $package['name']; ?>
-                                        <?php if (isset($package['id'])):?>
-                                            (<?php echo $package['id']; ?>)
-                                        <?php endif;?>
+                                        <?php echo $package['name']; ?> (<?php echo $package['kuber_product_id']; ?>)
                                     </td>
                                     <td class="right col-md-5">
                                         <form class="price_package_form" data-id="<?php echo $package['id']; ?>" method="post">

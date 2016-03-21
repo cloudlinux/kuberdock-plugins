@@ -312,7 +312,8 @@ class KuberDock_Product extends CL_Product {
         $products = array();
         $db = CL_Query::model();
 
-        $sql = "SELECT product.* FROM `".$this->tableName."` product
+        $sql = "SELECT product.*, kd_product.kuber_product_id
+            FROM `".$this->tableName."` product
             INNER JOIN `KuberDock_products` kd_product ON product.id=kd_product.product_id
             WHERE product.`servertype` = ?
             ORDER BY product.name";

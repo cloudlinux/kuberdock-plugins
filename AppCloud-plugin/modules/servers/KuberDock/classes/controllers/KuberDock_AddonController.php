@@ -46,6 +46,7 @@ class KuberDock_AddonController extends CL_Controller {
                     'name' => $product['name'],
                     'payment_type' => $product['payment_type'],
                     'product_id' => $product['id'],
+                    'kuber_product_id' => $product['kuber_product_id'],
                     'id' => $productKube ? $productKube['id'] : null,
                     'kube_price' => $productKube ? $productKube['kube_price'] : null,
                 );
@@ -144,6 +145,7 @@ class KuberDock_AddonController extends CL_Controller {
 
             $kubePrice = CL_Base::model()->getPost('kube_price');
             $id = (int) CL_Base::model()->getPost('id');
+
             $product_id = (int) CL_Base::model()->getPost('product_id');
             $kuber_kube_id = (int)CL_Base::model()->getPost('kuber_kube_id');
             $currency = \base\models\CL_Currency::model()->getDefaultCurrency();

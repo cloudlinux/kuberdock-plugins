@@ -14,16 +14,6 @@ $(function() {
         $(document).scrollTop(curPos);
     });
 
-    var getParam = function(variable) {
-        var query = window.location.search.substring(1);
-        var vars = query.split('&');
-        for (var i=0;i<vars.length;i++) {
-            var pair = vars[i].split('=');
-            if(pair[0] == variable){return pair[1];}
-        }
-        return(false);
-    };
-
     var pricing = $('span.pricing');
     pricing.on('click', function (e){
         var text = $(e.target).text();
@@ -40,8 +30,7 @@ $(function() {
 
     $(document).on('submit', '.price_package_form', function(e) {
         e.preventDefault();
-        var _this = $(this),
-            msg;
+        var _this = $(this);
 
         $.ajax({
             url: 'addonmodules.php?module=KuberDock&a=kubePrice',
@@ -56,10 +45,8 @@ $(function() {
                 _this.append('<span class="error">' + data.message + '</span>');
             } else {
                 var values = data.values;
-                var name = (values.id) ? (values.name + ' (' + values.id + ')') : values.name;
                 _this.find('input[name="kube_price"]').data('prev', values.kube_price).val(values.kube_price);
                 _this.find('input[name="id"]').val(values.id);
-                _this.closest('tr').find('td.middle').text(name);
             }
         });
     });
@@ -82,14 +69,6 @@ $(function() {
         var _this = $(this);
         if (_this.data('prev')==_this.val()) {
             _this.siblings('span').addClass('hidden');
-        }
-    });
-
-    $(document).on('change', '#kuber_kube_id', function(e) {
-        if($(this).val() == 'new') {
-            $('div.new-kube').removeClass('hidden');
-        } else {
-            $('div.new-kube').addClass('hidden');
         }
     });
 });
