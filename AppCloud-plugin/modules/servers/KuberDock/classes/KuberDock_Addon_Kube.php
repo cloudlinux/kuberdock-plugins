@@ -262,6 +262,7 @@ class KuberDock_Addon_Kube extends CL_Model {
     public function beforeSave()
     {
         $this->kube_name = JTransliteration::transliterate($this->kube_name);
+        $this->cpu_limit = number_format($this->cpu_limit, 2, '.', '');
 
         if($this->action == 'update') {
             return $this->updateKube();
