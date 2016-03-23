@@ -10,7 +10,6 @@ use base\CL_Controller;
 use base\CL_Base;
 use base\CL_Csrf;
 use base\CL_Tools;
-use base\models\CL_Currency;
 use Exception;
 
 class KuberDock_AddonController extends CL_Controller {
