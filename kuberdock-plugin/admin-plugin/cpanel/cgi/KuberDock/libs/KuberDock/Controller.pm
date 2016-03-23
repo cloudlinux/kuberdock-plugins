@@ -7,7 +7,6 @@ use Whostmgr::ACLS;
 use Whostmgr::HTMLInterface;
 use Template;
 
-use KuberDock::Resellers;
 use KuberDock::PreApps;
 use KuberDock::KubeCliConf;
 use KuberDock::KCLI;
@@ -44,7 +43,7 @@ sub new {
         Whostmgr::HTMLInterface::defheader('KuberDock', '/cgi/KuberDock/assets/images/kuberdock.png', '/cgi/addon_kuberdock.cgi');
     }
 
-    if(!Whostmgr::ACLS::hasroot() && !Whostmgr::Resellers::is_reseller($self->{_user})) {
+    if(!Whostmgr::ACLS::hasroot()) {
         print qq(<div align="center"><h1>Permission denied</h1></div>);
         exit;
     }
@@ -74,8 +73,6 @@ sub render() {
 
 sub indexAction() {
     my ($self, $activeTab) = @_;
-    my $resellers = KuberDock::Resellers->new();
-    my $resellersData = $resellers->loadData();
     my $apps = KuberDock::PreApps->new($self->{_cgi});
     my $api = KuberDock::API->new;
     my $json = KuberDock::JSON->new;
@@ -99,14 +96,11 @@ sub indexAction() {
 
     my $defaults = $api->getDefaults();
 
-    if(defined $resellersData->{ALL}) {
-        $resellersData->{ALL}->{password} =~ s/./\*/g;
-    }
+    my $version = `rpm -q kuberdock-plugin`;
+    $version =~ s/(kuberdock-plugin-)//;
 
     my $vars = {
-        resellers => [$resellers->get()],
         apps => [$apps->getList()],
-        data => $resellersData,
         packagesKubes => $json->encode(@packagesKubes, 1),
         defaults => $json->encode($defaults, 1),
         kubeCli => $cubeCliConf->read,
@@ -114,86 +108,10 @@ sub indexAction() {
         yaml => $code || '# Please input your yaml here',
         appName => $appName,
         activeTab => $activeTab,
+        version => $version,
     };
 
     $self->render('index.tmpl', $vars);
-}
-
-sub addResellerAction() {
-    my ($self) = @_;
-    my $reseller = KuberDock::Resellers->new();
-    my %data = (
-        $self->{_cgi}->param('owner') => {
-            server => $self->{_cgi}->param('server'),
-            username => $self->{_cgi}->param('username'),
-            password => $self->{_cgi}->param('password'),
-        }
-    );
-
-    my $validator = KuberDock::Validate->new;
-    my %rules = (
-        username => { required => 1, min => 3, max => 64 },
-        password => { required => 1, min => 3, max => 64 },
-        server => { required => 1, url => 1 },
-    );
-    my %vars = $self->{_cgi}->Vars;
-
-    eval {
-        $validator->validate(\%vars, \%rules);
-    };
-
-    if($@) {
-        KuberDock::Exception::throw($@);
-        $self->indexAction('#billing');
-        exit 0;
-    }
-
-    $reseller->save(%data);
-    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#billing');
-}
-
-sub saveResellerAction() {
-    my ($self) = @_;
-    my $resellers = KuberDock::Resellers->new();
-    my $data = $resellers->loadData();
-    my $oldPassword = $data->{ALL}->{password};
-    my $password = $self->{_cgi}->param('password');
-    $oldPassword =~ s/./\*/g;
-
-    my $validator = KuberDock::Validate->new;
-    my %rules = (
-        username => { required => 1, min => 3, max => 64 },
-        password => { required => 1, min => 3, max => 64 },
-        server => { required => 1, url => 1 },
-    );
-    my %vars = $self->{_cgi}->Vars;
-
-    eval {
-        $validator->validate(\%vars, \%rules);
-    };
-
-    if($@) {
-        KuberDock::Exception::throw($@);
-        $self->indexAction('#billing');
-        exit 0;
-    }
-
-    $data->{ALL}->{server} = $self->{_cgi}->param('server');
-    $data->{ALL}->{username} = $self->{_cgi}->param('username');
-    $data->{ALL}->{password} = $self->{_cgi}->param('password') if($oldPassword ne $password);
-
-    $resellers->save(%{$data});
-    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#billing');
-}
-
-sub deleteResellerAction() {
-    my ($self) = @_;
-    my $owner = $self->{_form}->{'o'};
-
-    my $reseller = KuberDock::Resellers->new();
-
-    $reseller->delete($owner);
-    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#billing');
 }
 
 sub createAppAction() {
