@@ -2,22 +2,25 @@
 
 PLUGIN_NAME="KuberDock"
 SOURCE_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+KDCOMMON_PATH=/usr/bin/kdcommon
 
 CPANEL_CGI_PATH=/usr/local/cpanel/whostmgr/cgi
 CPANEL_TEMPLATE_PATH=/usr/local/cpanel/base/frontend
 CONFIG_FILE=/var/cpanel/apps/kuberdock_whmcs.json
 
+CLIENT_COMMON_PATH="$SOURCE_PATH/client-plugin/common"
+CLIENT_SOURCE_PATH="$SOURCE_PATH/client-plugin/cpanel"
+CONF_PATH="$CLIENT_SOURCE_PATH/conf"
+
 function install
 {
      # client
-    CLIENT_SOURCE_PATH="$SOURCE_PATH/client-plugin/cpanel"
-    CONF_PATH="$CLIENT_SOURCE_PATH/conf"
-
     for template in $( /bin/find $CPANEL_TEMPLATE_PATH -mindepth 1 -maxdepth 1 -type d ! -type l ); do
         if [ ! -e $template/dynamicui ]; then
             /bin/mkdir $template/dynamicui
         fi
         /bin/cp $CONF_PATH/dynamicui_kuberdockgroup.conf $template/dynamicui
+        /bin/cp -R $CLIENT_COMMON_PATH/$PLUGIN_NAME $template
         /bin/cp -R $CLIENT_SOURCE_PATH/$PLUGIN_NAME $template
         /bin/chmod 755 $template/$PLUGIN_NAME/bin/*
     done
@@ -62,9 +65,6 @@ function install
 function uninstall
 {
     # client
-    CLIENT_SOURCE_PATH=$SOURCE_PATH/client-plugin/cpanel
-    CONF_PATH=$CLIENT_SOURCE_PATH/conf
-
     for plugin in $( /bin/find $CONF_PATH/*.plugin -type f ); do
         /usr/local/cpanel/bin/unregister_cpanelplugin $plugin
     done
@@ -136,14 +136,12 @@ function uninstall
 function upgrade
 {
      # client
-    CLIENT_SOURCE_PATH="$SOURCE_PATH/client-plugin/cpanel"
-    CONF_PATH="$CLIENT_SOURCE_PATH/conf"
-
     for template in $( /bin/find $CPANEL_TEMPLATE_PATH -mindepth 1 -maxdepth 1 -type d ! -type l ); do
         /bin/cp $CONF_PATH/dynamicui_kuberdockgroup.conf $template/dynamicui
         if [ -e $template/$PLUGIN_NAME ]; then
             /bin/rm -R $template/$PLUGIN_NAME
         fi
+        /bin/cp -R $CLIENT_COMMON_PATH/$PLUGIN_NAME $template
         /bin/cp -R $CLIENT_SOURCE_PATH/$PLUGIN_NAME $template
         /bin/chmod 755 $template/$PLUGIN_NAME/bin/*
     done

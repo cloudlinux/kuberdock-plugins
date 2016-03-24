@@ -209,7 +209,7 @@ sub createInstall() {
         order => 999,
         type => 'link',
         id => 'kuberdock-id',
-        uri => 'KuberDock/kuberdock.live.php?c=app&a=installPredefined&template='.$self->{'_templateId'},
+        uri => 'KuberDock/kuberdock.live.php#predefined/'.$self->{'_templateId'},
     };
 
     if(!-e $self->getFilePath($data->{icon})) {

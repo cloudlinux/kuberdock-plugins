@@ -1,35 +1,30 @@
 <?php
 
-include '/usr/local/cpanel/php/cpanel.php';
+use \Kuberdock\classes\api\Response;
+use \Kuberdock\classes\Tools;
+use \Kuberdock\classes\exceptions\PaymentRequiredException;
+use \Kuberdock\classes\exceptions\ApiException;
+use \Kuberdock\classes\api\KuberDock;
 
-// Initialize
-$dirName = dirname(__FILE__);
-include_once $dirName . '/init.php';
+include '/usr/local/cpanel/php/cpanel.php';
+include_once dirname(__FILE__) . '/init.php';
 
 try {
     $cPanel = &new \CPANEL();
     \Kuberdock\classes\Base::model()->setNativePanel($cPanel);
+
+    if (!isset($_REQUEST['request'])) {
+        throw new ApiException('Request not found', 404);
+    }
+
+    $API = new KuberDock($_REQUEST['request']);
+    $API->run();
+} catch (PaymentRequiredException $e) {
+    Response::error('Payment required', 402, $e->getRedirect());
+} catch (ApiException $e) {
+    Response::error($e->getMessage(), $e->getCode());
 } catch (\Exception $e) {
-    echo $e->getMessage();
-}
-
-if (!file_exists($dev) && !\Kuberdock\classes\Tools::getIsAjaxRequest()) {
-    echo json_encode(array('error' => 'ajax requests only'));
-    die;
-}
-
-if (!isset($_REQUEST['request'])) {
-    echo json_encode(array('error' => 'request not found'));
-    die;
-}
-
-try {
-    $API = new \Kuberdock\classes\api\KuberDock($_REQUEST['request']);
-    echo $API->processAPI();
-} catch (\Kuberdock\classes\exceptions\PaymentRequiredException $e) {
-    echo $e->getJSON();
-} catch (\Exception $e) {
-    echo json_encode(array('error' => $e->getMessage()));
+    Response::error($e->getMessage(), 500);
 }
 
 $cPanel->end();

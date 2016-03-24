@@ -1,0 +1,8 @@
+<link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="assets/css/styles.css">
+<link rel="stylesheet" type="text/css" href="assets/css/xbbcode.css">
+<link rel="stylesheet" type="text/css" href="assets/script/lib/slider/jquery.nouislider.min.css">
+
+<?php echo $content; ?>
+
+<script data-main="assets/script/main.js" src="assets/script/lib/require.min.js"></script>

@@ -18,91 +18,70 @@ function getParams($vars) {
 }
 
 try {
+    global $CONFIG;
+
     $vars = get_defined_vars();
     $postFields = getParams($vars);
     $kdServer = $postFields->params->kdServer;
     $cpanelUser = $postFields->params->user;
     $cpanelUserDomains = explode(',', $postFields->params->userDomains);
 
-    $userData['currency'] = \base\models\CL_Currency::model()->getDefaultCurrency()->getAttributes();
-
     if(!isset($kdServer)) {
-        throw new \exceptions\CException("Field 'kdServer' must be setted");
+        throw new \exceptions\CException("Field 'kdServer' must be set");
     }
 
     if(!isset($cpanelUser)) {
-        throw new \exceptions\CException("Field 'user' must be setted");
+        throw new \exceptions\CException("Field 'user' must be set");
     }
 
     if(!isset($cpanelUserDomains)) {
-        throw new \exceptions\CException("Field 'userDomains' must be setted");
+        throw new \exceptions\CException("Field 'userDomains' must be set");
     }
 
-    $userData['userDetails'] = \base\models\CL_Client::model()->getClientByCpanelUser($cpanelUser, $cpanelUserDomains);
+    $user = \base\models\CL_Client::model()->getClientByCpanelUser($cpanelUser, $cpanelUserDomains);
 
     $serverIds = array();
     $products = KuberDock_Addon_Product::model()->getByServerUrl($kdServer);
 
-    foreach($products as &$row) {
-        $product = KuberDock_Product::model()->loadByParams($row);
-        $row['kubes'] = $product->getKubes();
-
-        $i = 1;
-        foreach($product->getConfig() as $option => $settings) {
-            $row[$option] = $product->{'configoption' . $i};
-            $i++;
-        }
-
-        $serverGroup = KuberDock_ServerGroup::model()->loadById($product->servergroup);
+    foreach($products as $row) {
+        $serverGroup = KuberDock_ServerGroup::model()->loadById($row['servergroup']);
         $server = $serverGroup->getActiveServer();
         if(!in_array($server->id, $serverIds)) {
             $serverIds[] = $server->id;
         }
     }
 
-    $services = KuberDock_Hosting::model()->getByUser($userData['userDetails']['userid']);
-    $userServices = array();
-    foreach($services as &$row) {
-        if(in_array($row['server'], $serverIds)) {
-            $model = KuberDock_Hosting::model()->loadByParams($row);
-            $row['password'] = $model->decryptPassword();
-            $row['token'] = $model->getToken();
-            if($addonProduct = KuberDock_Addon_Product::model()->loadById($e['packageid'])) {
-                $e['kuber_product_id'] = $addonProduct->kuber_product_id;
-            }
-            $userServices[$row['product_id']] = $row;
+    $services = KuberDock_Hosting::model()->getByUser($user['id']);
+    $userService = array();
+
+    foreach($services as $row) {
+        if(!in_array($row['server'], $serverIds)) {
+            continue;
+        }
+
+        $model = KuberDock_Hosting::model()->loadByParams($row);
+        $userService = array(
+            'id' => $model->id,
+            'product_id' => $model->packageid,
+            'token' => $model->getToken(),
+            'domainstatus' => $model->domainstatus,
+            'orderid' => $model->orderid,
+        );
+        if($addonProduct = KuberDock_Addon_Product::model()->loadById($row['packageid'])) {
+            $userService['kuber_product_id'] = $addonProduct->kuber_product_id;
         }
     }
 
-    // If user has product, remove others
-    if($userServices) {
-        $products = array_filter($products, function ($e) use ($services) {
-            foreach ($services as $row) {
-                if ($row['packageid'] == $e['id']) {
-                    return $e;
-                }
-            }
-        });
-    }
+    $data['billingUser'] = array(
+        'id' => $user['id'],
+        'defaultgateway' => $user['defaultgateway'],
+    );
+    $data['service'] = $userService;
+    $data['products'] = KuberDock_Addon_Product::model()->loadByAttributes();
+    $data['billing'] = 'WHMCS';
+    $data['billingLink'] = $CONFIG['SystemURL'];
 
-    $userData['userServices'] = $userServices;
-    $userData['products'] = $products;
-
-    try {
-        $api = \api\KuberDock_Api::constructByServer($server);
-        $kubeType = $api->getDefaultKubeType();
-        $PackageId = $api->getDefaultPackageId();
-        $userData['default']['kubeType'] = $kubeType->parsed['data'];
-        $userData['default']['packageId'] = $PackageId->parsed['data'];
-    } catch (Exception $e) {
-        $userData['default'] = null;
-    }
-
-    global $CONFIG;
-    $userData['billing'] = 'WHMCS';
-    $userData['billingLink'] = $CONFIG['SystemURL'];
-
-    $apiresults = array('result' => 'success', 'results' => $userData);
+    $apiresults = array('result' => 'success', 'results' => $data);
 } catch (Exception $e) {
     $apiresults = array('result' => 'error', 'message' => $e->getMessage());
 }

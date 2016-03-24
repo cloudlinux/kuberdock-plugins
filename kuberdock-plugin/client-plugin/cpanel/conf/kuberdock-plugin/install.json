@@ -6,7 +6,7 @@
         "order" : 999,
         "type" : "link",
         "id" : "kuberdock-more",
-        "uri" : "KuberDock/kuberdock.live.php?a=search"
+        "uri" : "KuberDock/kuberdock.live.php#pod/image/search"
     },
     {
         "name" : "My Apps",

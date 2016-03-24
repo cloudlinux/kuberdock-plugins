@@ -1,0 +1,157 @@
+<div id="app-page" class="container-fluid content">
+    <div class="row">
+        <div class="col-md-12 splitter">
+            <h2>Application "<%- model.get('name') %>"</h2>
+        </div>
+    </div>
+
+    <div class="row pod-details">
+        <div class="col-md-12">
+            <div class="splitter">
+                <table class="table apps-list app-table">
+                    <thead>
+                    <tr>
+                        <th class="col-md-3">Limits</th>
+                        <th class="col-md-3">Public IP</th>
+                        <th class="col-md-2">Status</th>
+                        <th class="col-md-4">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>
+                            CPU: <%- kube.cpu * kubes %> <%- kube.cpu_units %><br>
+                            Local storage: <%- kube.disk_space * kubes %> <%- kube.disk_space_units %><br>
+                            Memory: <%- kube.memory * kubes %> <%- kube.memory_units %><br>
+                            Traffic: <%- kube.included_traffic * kubes %> <%- kube.disk_space_units %><br>
+                            Kube Type: <%- kube.name %> <br>
+                            Number of Kubes: <%- kubes %>
+
+                            <div class="top-offset">
+                                <a class="pod-upgrade">
+                                    <button title="Upgrade" class="btn btn-primary btn-xs" type="button">
+                                        <span aria-hidden="true" class="glyphicon glyphicon-refresh"></span>
+                                        <span>Upgrade</span>
+                                    </button>
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <%- model.get('public_ip') ? model.get('public_ip') : 'none' %>
+                        </td>
+                        <td><%- model.getStatus() %></td>
+                        <td>
+                            <button type="button" class="btn btn-<%- model.getButtonClass() %> btn-xs <%- model.getStatusClass() %>" data-target=".confirm-modal" title="<%- model.getStatusText() %>">
+                                <span class="glyphicon glyphicon-<%- model.getIconClass() %>" aria-hidden="true"></span>
+                                <span><%- model.getStatusText() %></span>
+                            </button>
+
+                            <button type="button" class="btn btn-primary btn-xs pod-edit" title="Edit">
+                                <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                                <span>Edit</span>
+                            </button>
+
+                            <button type="button" class="btn btn-primary btn-xs pod-restart" data-target=".restart-modal" title="Restart">
+                                <span class="glyphicon glyphicon-eject" aria-hidden="true"></span>
+                                <span>Restart</span>
+                            </button>
+
+                            <button type="button" class="btn btn-danger btn-xs pod-delete" data-target=".confirm-modal" title="Delete">
+                                <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                                <span>Delete</span>
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <label class="title">Ports</label>
+                <table class="table apps-list app-table">
+                    <thead>
+                    <tr>
+                        <th class="col-md-3">Container</th>
+                        <th class="col-md-3">Protocol</th>
+                        <th class="col-md-3">Host
+                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="right"
+                                  title="Host port is external port of a container used to access container port from using public_ip:host_port">
+                            </span>
+                        </th>
+                        <th class="col-md-3">Public</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                <% _.each(model.get('containers'), function(container) { %>
+                    <% _.each(container.ports, function(port) { %>
+                    <tr>
+                        <td><small><%- port.containerPort %></small></td>
+                        <td><small><%- port.protocol %></small></td>
+                        <td><small><%- port.hostPort ? port.hostPort : port.containerPort %></small></td>
+                        <td><input type="checkbox" disabled<%- port.isPublic ? ' checked' : '' %>></td>
+                    </tr>
+                    <% }); %>
+                <% }); %>
+                    </tbody>
+                </table>
+            </div>
+
+            <% if(model.get('volumes')) { %>
+            <label class="title">Volumes</label>
+            <table class="table apps-list app-table">
+                <thead>
+                <tr>
+                    <th class="col-md-3">Container path</th>
+                    <th class="col-md-3">Persistent</th>
+                    <th class="col-md-3">Name</th>
+                    <th class="col-md-3">Size (<%- kube.disk_space_units %>)</th>
+                </tr>
+                </thead>
+                <tbody>
+            <% _.each(model.get('containers'), function(container) { %>
+                <% _.each(container.volumeMounts, function(volumeMount) {
+                    var volume = model.getVolume(volumeMount.name);
+                %>
+                <tr>
+                    <td><%- volumeMount.mountPath %></td>
+                    <td><input type="checkbox" disabled<%- volume.persistentDisk ? ' checked' : '' %>></td>
+                    <td><%- volume.persistentDisk ? volume.persistentDisk.pdName : '' %></td>
+                    <td><%- volume.persistentDisk ? volume.persistentDisk.pdSize : '' %></td>
+                </tr>
+                <% }); %>
+            <% }); %>
+                </tbody>
+            </table>
+            <% } %>
+
+            <div class="splitter last">
+                <label class="title">Environment variables</label>
+                <table class="table apps-list app-table">
+                    <thead>
+                    <tr>
+                        <th class="col-md-6">Name</th>
+                        <th class="col-md-6">Value</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                <% _.each(model.get('containers'), function(container) { %>
+                    <% _.each(container.envs, function(env) { %>
+                    <tr>
+                        <td><small><%- env.name %></small></td>
+                        <td><small><%- escapeHTML(env.value) %></small></td>
+                    </tr>
+                    <% }); %>
+                <% }); %>
+                    </tbody>
+                </table>
+
+                <div class="total-price-wrapper">
+                    <p class="total-price"><%- model.getTotalPrice(true) %></p>
+                </div>
+            </div>
+
+            <a class="pull-left btn btn-default back">Back</a>
+            <a class="pull-right btn btn-primary pod-search">Add more apps</a>
+            <div class="clearfix"></div>
+        </div>
+    </div>
+</div>

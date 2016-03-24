@@ -3,7 +3,7 @@ version: 1.0
 name:kuberdock-more
 description:More Apps
 featuremanager:1
-url:KuberDock/kuberdock.live.php?a=search
+url:KuberDock/kuberdock.live.php#pod/image/search
 acontent:More Apps
 onclick:
 if:
