@@ -11,6 +11,7 @@ use base\CL_Base;
 use base\CL_Csrf;
 use base\CL_Tools;
 use Exception;
+use migrations\Migration;
 
 class KuberDock_AddonController extends CL_Controller {
     public $action = 'index';
@@ -59,6 +60,8 @@ class KuberDock_AddonController extends CL_Controller {
             'brokenPackages' => $brokenPackages,
             'logs' => $logs,
             'paginator' => $paginator,
+            'tabs' => $tabs,
+            'updateDb' => Migration::check(),
         ));
     }
 
@@ -71,6 +74,27 @@ class KuberDock_AddonController extends CL_Controller {
         }
 
         return null;
+    }
+
+    public function migrateAction()
+    {
+        if(!CL_Tools::getIsAjaxRequest()) {
+            exit();
+        }
+
+        try{
+            Migration::up();
+        } catch (Exception $e) {
+            echo json_encode(array(
+                'message' => $e->getMessage(),
+            ));
+            exit();
+        }
+
+        echo json_encode(array(
+            'message' => 'Database successully updated',
+        ));
+        exit();
     }
 
     public function addAction()

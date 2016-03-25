@@ -33,9 +33,23 @@ class KuberDock_Migration extends CL_Component {
         try {
             //$this->addServerIdColumn();
             $this->addUserIdColumn();
+            $this->addMigrationTable();
         } catch(Exception $e) {
             // pass
         }
+    }
+
+    private function addMigrationTable()
+    {
+        if ($this->tableExist('KuberDock_migrations')) {
+            return;
+        }
+
+        $this->_db->query("CREATE TABLE IF NOT EXISTS `KuberDock_migrations` (
+            `version` int NOT NULL,
+            `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`version`)
+        ) ENGINE=InnoDB;");
     }
 
     /**
@@ -78,6 +92,13 @@ class KuberDock_Migration extends CL_Component {
                 `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             array(0, null, null, 'Standard', null, 0, 0.01, 64, 1, 0, KuberDock_Server::model()->getActive()->id));
+    }
+
+    public function tableExist($table)
+    {
+        global $db_name;
+
+        return (bool) $this->_db->query("SHOW TABLES FROM `" . $db_name . "` LIKE '" . $table . "'")->getRow();
     }
 
     /**

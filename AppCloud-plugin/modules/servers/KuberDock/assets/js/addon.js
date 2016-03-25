@@ -71,4 +71,19 @@ $(function() {
             _this.siblings('span').addClass('hidden');
         }
     });
+
+    $(document).on('click', 'button.migration', function(e) {
+        var self = $(this);
+
+        $.ajax({
+            url: 'addonmodules.php?module=KuberDock&a=migrate',
+            type: 'POST',
+            dataType: 'json'
+        }).success(function(data) {
+            var modal = $('#myModal');
+            modal.find('.modal-body').html(data.message);
+            modal.modal('show');
+            self.remove();
+        });
+    });
 });
