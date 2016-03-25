@@ -50,11 +50,13 @@ class KuberDock_Addon extends CL_Component {
             throw new CException('Add KuberDock server and server group before activating addon.');
         }
 
-        $group = CL_Query::model()->query('SELECT * FROM `tblproductgroups` WHERE hidden != 1 ORDER BY `order` ASC LIMIT 1')
+        $group = CL_Query::model()->query('SELECT * FROM `tblproductgroups`
+            WHERE name = "KuberDock" ORDER BY `order` ASC LIMIT 1')
             ->getRow();
 
         if(!$group) {
-            throw new CException('Add product group before activating addon.');
+            $result = CL_Query::model()->query('INSERT INTO `tblproductgroups` (name) VALUES ("KuberDock")');
+            $group['id'] = $result->getLastId();
         }
 
         try {
