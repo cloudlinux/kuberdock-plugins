@@ -178,7 +178,7 @@ class KuberDock_AddonController extends CL_Controller {
         } catch(Exception $e) {
             echo json_encode(array(
                 'error' => true,
-                'message' => $e->getMessage(),
+                'message' => str_replace("kube_price - field 'kube_price'", 'Value', $e->getMessage()),
             ));
         }
 
