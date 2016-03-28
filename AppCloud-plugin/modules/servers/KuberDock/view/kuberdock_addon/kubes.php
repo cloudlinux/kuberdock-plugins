@@ -77,9 +77,9 @@
                 </tr>
             <?php endforeach; ?>
         </table>
+    </div>
 
-        <?php if (count($brokenPackages)): ?>
-        </div>
+    <?php if (count($brokenPackages)): ?>
         <div class="row offset-top">
             <table  class="table table-bordered">
                 <tr class="active">
@@ -98,15 +98,16 @@
                         </td>
                         <td class="col-md-7">
                             <span class="glyphicon  glyphicon-exclamation-sign" aria-hidden="true"></span>
-                            Package not added to KuberDock. Please edit
+                            Package not added to KuberDock. Please check
                             <a href="configproducts.php?action=edit&id=<?php echo $row['id']?>">product</a>
+                            settings and click Save Changes
                         </td>
                         <td class="col-md-2">per <?php echo $product->getReadablePaymentType()?></td>
                     </tr>
                 <?php endforeach;?>
             </table>
 
-        <?php endif;?>
+        </div>
+    <?php endif;?>
 
-    </div>
 </div>
