@@ -2,6 +2,7 @@
 
 namespace Kuberdock\classes\api;
 
+use Kuberdock\classes\components\Proxy;
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\models\Pod;
 use Kuberdock\classes\Base;
@@ -15,12 +16,20 @@ class KuberDock extends API
 {
     protected function get_pods($name = null)
     {
-        return $name
-            ? $this->getPod()->loadByName($name)->asArray()
-            : array_map(function($pod) {
+        if ($name) {
+            $pod = $this->getPod()->loadByName($name);
+
+            // Add proxy rule
+            if ($pod->template_id && in_array($pod->status, array('pending', 'running'))) {
+                (new Proxy())->addRuleToPod($pod);
+            }
+            return $pod->asArray();
+        } else {
+            return array_map(function($pod) {
                 /** @var $pod Pod */
                 return $pod->asArray();
             }, $this->getPod()->getPods());
+        }
     }
 
     protected function post_pods()
@@ -119,18 +128,16 @@ class KuberDock extends API
         $app->createApp($data);
 
         $pod = $app->getPod()->loadByName($app->template->getPodName());
-        $link = sprintf('#pod/%s/1', $app->template->getPodName());
 
         if(Base::model()->getPanel()->billing->isFixedPrice($app->getPackageId())) {
             Base::model()->getPanel()->getApi()->updatePod($pod->id, array(
                 'status' => 'unpaid',
             ));
-            $pod->order($link);
+            $link = sprintf('#pod/%s/1', $app->template->getPodName());
+            $pod->order(Base::model()->getPanel()->getURL() . $link);
         } else {
             $pod->start();
         }
-
-        $this->redirect = $link;
 
         return $pod->asArray();
     }
@@ -209,7 +216,7 @@ class KuberDock extends API
             sleep(1);
         }
 
-        echo "retry: 10000\n\n";
+        echo "retry: 50000\n\n";
         fclose($handle);
     }
 

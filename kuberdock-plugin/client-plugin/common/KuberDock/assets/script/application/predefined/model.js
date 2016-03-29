@@ -143,6 +143,10 @@ define(['backbone', 'application/utils', 'application/pods/model'], function (Ba
 
         getPackage: function () {
             return Utils.getPackage(this.getPackageId());
+        },
+
+        getIcon: function () {
+            return this.getKDSection().icon ? this.getKDSection().icon : 'assets/images/default_transparent.png';
         }
     });
 

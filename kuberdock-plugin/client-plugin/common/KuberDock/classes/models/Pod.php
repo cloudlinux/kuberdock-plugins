@@ -430,6 +430,12 @@ class Pod {
 
         if($response['status'] == 'Unpaid') {
             throw new PaymentRequiredException($response);
+        } else {
+            $this->status = 'pending';
+            if ($this->template_id) {
+                $proxy = new Proxy();
+                $proxy->addRuleToPod($this);
+            }
         }
 
         return $response;
@@ -483,7 +489,7 @@ class Pod {
             $this->command->startContainer($this->name);
 
             if($this->template_id) {
-                $proxy = new Proxy($this->panel);
+                $proxy = new Proxy();
                 $proxy->addRuleToPod($this);
             }
             $message = 'Application started';
@@ -503,7 +509,7 @@ class Pod {
             $this->command->stopContainer($this->name);
 
             if($this->template_id) {
-                $proxy = new Proxy($this->panel);
+                $proxy = new Proxy();
                 $proxy->removeRuleFromPod($this);
             }
             $message = 'Application stopped';
@@ -520,7 +526,7 @@ class Pod {
     public function delete()
     {
         if($this->template_id) {
-            $proxy = new Proxy($this->panel);
+            $proxy = new Proxy();
             $proxy->removeRuleFromPod($this);
         }
 

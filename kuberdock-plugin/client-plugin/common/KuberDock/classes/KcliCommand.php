@@ -43,7 +43,7 @@ class KcliCommand extends Command {
      * @param string $password
      * @param string $token
      */
-    public function __construct($username, $password, $token = '')
+    public function __construct($username = '', $password = '', $token = '')
     {
         $this->commandPath = self::COMMAND_PATH;
         $this->username = $username;
@@ -556,8 +556,15 @@ class KcliCommand extends Command {
         return $data;
     }
 
+    /**
+     * @throws CException
+     */
     public function setConfig()
     {
+        if(!$this->username && !$this->token) {
+            return;
+        }
+
         $globalConfig = self::getConfig(true);
         $config = self::getConfig();
 

@@ -1,4 +1,4 @@
-define(['app', 'application/utils', 'application/predefined/model',
+define(['app', 'application/utils', 'application/predefined/model', 'application/pods/model',
     'tpl!application/predefined/view/choose_plan.tpl',
     'tpl!application/predefined/view/plan_description.tpl',
     'tpl!application/predefined/view/setup.tpl',
@@ -8,7 +8,7 @@ define(['app', 'application/utils', 'application/predefined/model',
     'tpl!application/predefined/view/fields/kube_type.tpl',
     'tpl!application/predefined/view/fields/select.tpl',
     'tpl!application/predefined/view/fields/user_domain_list.tpl'
-], function(App, Utils, Predefined, paChoosePlanTpl, paPlanDescriptionTpl, paSetupTpl, autogenFieldTpl, inputFieldTpl,
+], function(App, Utils, Predefined, Pod, paChoosePlanTpl, paPlanDescriptionTpl, paSetupTpl, autogenFieldTpl, inputFieldTpl,
             kubeCountFieldTpl, kubeTypeFieldTpl, selectFieldTpl, userDomainsFieldTpl) {
     'use strict';
 
@@ -97,7 +97,12 @@ define(['app', 'application/utils', 'application/predefined/model',
             });
             model.save({id: this.model.get('id')}, {
                 type: 'POST'
-            }).done(function (data) {
+            }).done(function (response) {
+                App.Controller.pod = new Pod.Model();
+                App.Controller.pod.set(response.data);
+                if (App.Controller.podCollection) {
+                    App.Controller.podCollection.add(App.Controller.pod);
+                }
                 App.navigate('pod/' + model.get('name') + '/1', {trigger: true});
             });
         },

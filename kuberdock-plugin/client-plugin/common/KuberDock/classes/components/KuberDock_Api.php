@@ -71,6 +71,10 @@ class KuberDock_Api {
      */
     protected $token;
     /**
+     * @var string
+     */
+    protected $registryURL;
+    /**
      * @var bool
      */
     protected $debug = false;
@@ -89,6 +93,7 @@ class KuberDock_Api {
         $this->username = isset($config['user']) ? $config['user'] : '';
         $this->password = isset($config['password']) ? $config['password'] : '';
         $this->token = isset($config['token']) ? $config['token'] : '';
+        $this->registryURL = isset($config['registry']) ? $config['registry'] : '';
         $this->debug = $debug;
         $this->serverUrl = $config['url'];
         $this->dataType = self::DATA_TYPE_JSON;
@@ -128,6 +133,15 @@ class KuberDock_Api {
     public function getUrl()
     {
         return $this->url;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRegistryUrl()
+    {
+
+        return strpos('https', $this->registryURL) !== false ? $this->registryURL : 'http://' . $this->registryURL;
     }
 
     /**

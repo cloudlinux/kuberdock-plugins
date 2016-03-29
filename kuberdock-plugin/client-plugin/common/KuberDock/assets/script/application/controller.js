@@ -36,14 +36,14 @@ define([
         podDetails: function (name, description) {
             var view;
 
-            if(this.pod) {
+            if (this.podCollection && this.podCollection.get(name)) {
+                this.pod = this.podCollection.get(name);
                 view = new Views.Details({
                     model: this.pod,
                     description: description
                 });
                 this.layout.showChildView('content', view);
-            } else if (this.podCollection) {
-                this.pod = this.podCollection.get(name);
+            } else if (this.pod) {
                 view = new Views.Details({
                     model: this.pod,
                     description: description
@@ -67,8 +67,14 @@ define([
             var view = new Views.itemSearchView({
                 collection: new Pod.ImageCollection
             });
-
             this.layout.showChildView('content', view);
+
+            var templateCollection = new Predefined.TemplateCollection;
+            var templateView = new Views.TemplatesListView({
+                collection: templateCollection
+            });
+            this.layout.showChildView('templates', templateView);
+            templateCollection.fetch();
         },
 
         podCreate: function(name1, name2) {

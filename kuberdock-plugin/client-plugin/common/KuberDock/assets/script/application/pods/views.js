@@ -12,10 +12,12 @@ define(['app', 'application/utils', 'application/pods/model',
     'tpl!application/pods/view/pod_details.tpl',
     'tpl!application/pods/view/predefined_details.tpl',
     'tpl!application/pods/view/pod_upgrade.tpl',
-    'slider'
+    'tpl!application/pods/view/search/templates_list.tpl',
+    'tpl!application/pods/view/search/templates_list_item.tpl',
+    'slider', 'carousel'
 ], function(App, Utils, Pod, layoutPodTpl, podListTpl, podListItemTpl, podSearchTpl, podSearchItemTpl,
             podCreateTpl, podDescriptionTpl, podPortSectionTpl, podEnvSectionTpl, podVolumeSectionTpl,
-            podDetailsTpl, predefinedDetailsTpl, podUpgradeTpl) {
+            podDetailsTpl, predefinedDetailsTpl, podUpgradeTpl, templatesListTpl, templatesListItemTpl) {
     'use strict';
 
     var PodView = {};
@@ -25,7 +27,8 @@ define(['app', 'application/utils', 'application/pods/model',
         template: layoutPodTpl,
 
         regions: {
-            content: '#main_content'
+            content: '#main_content',
+            templates: '#templates'
         },
 
         ui: {
@@ -121,7 +124,9 @@ define(['app', 'application/utils', 'application/pods/model',
                         class: 'btn btn-primary btn-action',
                         text: 'Delete',
                         event: function() {
-                            self.model.destroy({wait: true});
+                            self.model.destroy({wait: true}).done(function () {
+                                App.navigate('/');
+                            });
                         }
                     }
                 ]
@@ -454,6 +459,7 @@ define(['app', 'application/utils', 'application/pods/model',
 
         create: function (e) {
             e.preventDefault();
+            var self = this;
 
             Backbone.ajax({
                 url: rootURL + '?request=pods',
@@ -461,7 +467,12 @@ define(['app', 'application/utils', 'application/pods/model',
                 data: this.ui.createForm.serialize(),
                 dataType: 'json'
             }).done(function (response) {
-                App.navigate('pod/' + response.data.name, {trigger: true});
+                App.Controller.pod = new Pod.Model();
+                App.Controller.pod.set(response.data);
+                if (App.Controller.podCollection) {
+                    App.Controller.podCollection.add(App.Controller.pod);
+                }
+                App.navigate('pod/' + App.Controller.pod.get('name'), {trigger: true});
             });
         }
     });
@@ -470,7 +481,7 @@ define(['app', 'application/utils', 'application/pods/model',
         description: 0,
 
         getTemplate: function () {
-            if (this.model.get('template_id')) {
+            if (this.model && this.model.get('template_id')) {
                 return predefinedDetailsTpl;
             } else {
                 return podDetailsTpl;
@@ -599,7 +610,9 @@ define(['app', 'application/utils', 'application/pods/model',
                         class: 'btn btn-primary btn-action',
                         text: 'Delete',
                         event: function() {
-                            self.model.destroy({wait: true});
+                            self.model.destroy({wait: true}).done(function () {
+                                App.navigate('/');
+                            });
                         }
                     }
                 ]
@@ -620,13 +633,13 @@ define(['app', 'application/utils', 'application/pods/model',
 
         back: function (e) {
             e.preventDefault();
-            window.history.back();
+            App.navigate('/');
         },
 
         searchImages: function (e) {
             e.preventDefault();
             App.navigate('pod/image/search', {trigger: true});
-        },
+        }
     });
 
     PodView.Upgrade = Backbone.Marionette.ItemView.extend({
@@ -762,6 +775,38 @@ define(['app', 'application/utils', 'application/pods/model',
 
         onBeforeRender: function () {
             this.$el.empty();
+        }
+    });
+
+    PodView.TemplatesItemListView = Backbone.Marionette.ItemView.extend({
+        template: templatesListItemTpl,
+        tagName: 'div',
+        className: 'text-center',
+
+        templateHelpers: function () {
+            return {
+                model: this.model
+            };
+        }
+    });
+
+    PodView.TemplatesListView = Backbone.Marionette.CompositeView.extend({
+        template: templatesListTpl,
+        childView: PodView.TemplatesItemListView,
+        emptyView : '',
+
+        childViewContainer: '#owl_carousel',
+
+        initialize: function () {
+            this.listenTo(this.collection, 'sync', this.init);
+        },
+        
+        ui: {
+            carousel: '#owl_carousel'
+        },
+        
+        init: function () {
+            this.ui.carousel.owlCarousel({items: 5});
         }
     });
 

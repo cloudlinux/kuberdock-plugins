@@ -20,7 +20,6 @@ require_once KUBERDOCK_ROOT_DIR . DS . 'classes' . DS . 'KuberDock_AutoLoader.ph
 try {
     $loader = new KuberDock_AutoLoader();
     $loader->addNamespace('Kuberdock', KUBERDOCK_ROOT_DIR);
-
 } catch(CException $e) {
     echo $e->getMessage();
 }

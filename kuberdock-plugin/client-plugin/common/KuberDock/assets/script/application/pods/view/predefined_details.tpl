@@ -87,7 +87,7 @@
             </div>
 
             <a class="pull-left btn btn-default back">Back</a>
-            <a class="pull-right btn btn-primary predefined-new">Add more apps</a>
+            <a href="#predefined/new/<%- model.get('template_id') %>" class="pull-right btn btn-primary predefined-new">Add more apps</a>
             <div class="clearfix"></div>
         </div>
     </div>

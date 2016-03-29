@@ -39,7 +39,7 @@ if(strpos($path, $userHome) === false) {
 }
 
 $proxy = new Proxy();
-$command = new KcliCommand('', '');
+$command = new KcliCommand();
 try {
     $pod = $command->describePod($podName);
 

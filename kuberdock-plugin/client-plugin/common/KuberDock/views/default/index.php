@@ -5,4 +5,5 @@
     var packages = <?php echo $packages ?>;
     var maxKubes = <?php echo $maxKubes ?>;
     var rootURL = '<?php echo $rootURL ?>';
+    var imageRegistryURL = '<?php echo $imageRegistryURL ?>';
 </script>

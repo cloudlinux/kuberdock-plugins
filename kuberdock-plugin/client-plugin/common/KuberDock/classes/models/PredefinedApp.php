@@ -234,7 +234,7 @@ class PredefinedApp {
     public function createApp($data = array())
     {
         $this->setVariables($data);
-        //print_r($this->template->data);
+
         // Create order with kuberdock product
         $pod = $this->pod->createProduct();
         $this->command = $pod->getCommand();

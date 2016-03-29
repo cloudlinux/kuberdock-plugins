@@ -17,6 +17,7 @@ class DefaultController extends KuberDock_Controller {
             'packages' => json_encode($billing->getPackages()),
             'maxKubes' => 10,
             'rootURL' => 'kuberdock.api.live.php',
+            'imageRegistryURL' => Base::model()->getPanel()->getApi()->getRegistryUrl(),
         ));
     }
 }

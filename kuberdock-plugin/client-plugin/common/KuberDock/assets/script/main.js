@@ -10,7 +10,8 @@ var KDReq = requirejs.config({
         text: 'lib/text',
         tpl: 'lib/underscore-tpl',
         slider: 'lib/slider/jquery.nouislider.all.min',
-        bbcode: 'lib/xbbcode'
+        bbcode: 'lib/xbbcode',
+        carousel: 'lib/owl-carousel/owl.carousel.min'
     },
     shim: {
         jquery: {

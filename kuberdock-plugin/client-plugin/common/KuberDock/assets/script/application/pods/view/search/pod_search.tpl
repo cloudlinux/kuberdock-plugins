@@ -3,13 +3,15 @@
         <div class="col-md-10">
             <div class="page-header">
                 <h2>Search applications</h2>
+
+                <div id="templates"></div>
             </div>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-10">
-            <p>Image registry: <a href="" target="_blank"></a></p>
+            <p>Image registry: <a href="<%- imageRegistryURL %>" target="_blank"><%- imageRegistryURL %></a></p>
         </div>
     </div>
 
