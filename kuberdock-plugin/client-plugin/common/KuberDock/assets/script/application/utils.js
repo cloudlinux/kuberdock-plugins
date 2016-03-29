@@ -10,6 +10,32 @@ define(['app', 'bbcode', 'bootstrap'], function(App) {
             }));
         },
 
+        getKubes: function (sorted) {
+            sorted = sorted || 'id';
+            var kubes = [];
+
+            _.each([userPackage] || packages, function(row){
+                _.each(row.kubes, function(kube){
+                    if (kube.available) {
+                        kubes.push({
+                            'id' : kube.id,
+                            'name' : kube.name,
+                            'package_id' : row.id,
+                            'package_name' : row.name
+                        });
+                    }
+                });
+            });
+
+            if (sorted) {
+                kubes = _.sortBy(kubes, function (kube) {
+                    return kube[sorted];
+                });
+            }
+
+            return kubes;
+        },
+
         getPackage: function(packageId) {
             if (!_.isEmpty(userPackage)) {
                 return userPackage;

@@ -1,4 +1,5 @@
-define(['app', 'application/utils', 'application/pods/model',
+define(['app', 'application/utils',
+    'application/pods/model',
     'tpl!application/pods/view/layout_pod.tpl',
     'tpl!application/pods/view/pod_list.tpl',
     'tpl!application/pods/view/pod_list_item.tpl',
@@ -290,9 +291,10 @@ define(['app', 'application/utils', 'application/pods/model',
         serializeData: function() {
             var self = this;
 
+            this.model.set('kubes', Utils.getKubes());
+
             return {
                 model: this.model,
-                userPackage: packages || [userPackage],
                 renderPort: function (port, i) {
                     return self.getPortSection(port, i);
                 },
