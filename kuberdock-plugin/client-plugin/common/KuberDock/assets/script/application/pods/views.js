@@ -136,7 +136,7 @@ define(['app', 'application/utils',
 
         podDetails: function (e) {
             e.preventDefault();
-            App.navigate('pod/' + this.model.get('name'), {trigger: true});
+            App.navigate('pod/' + encodeURIComponent(this.model.escape('name')), {trigger: true});
         },
 
         processCommand: function (model, value) {
@@ -474,7 +474,7 @@ define(['app', 'application/utils',
                 if (App.Controller.podCollection) {
                     App.Controller.podCollection.add(App.Controller.pod);
                 }
-                App.navigate('pod/' + App.Controller.pod.get('name'), {trigger: true});
+                App.navigate('pod/' + encodeURIComponent(App.Controller.pod.get('name')), {trigger: true});
             });
         }
     });
@@ -738,7 +738,7 @@ define(['app', 'application/utils',
             });
 
             this.model.save({command: 'upgrade', containers: containers}).done(function () {
-                App.navigate('pod/' + self.model.get('name'));
+                App.navigate('pod/' + encodeURIComponent(self.model.get('name')));
             });
         },
 

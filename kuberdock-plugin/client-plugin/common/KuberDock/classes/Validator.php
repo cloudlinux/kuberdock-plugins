@@ -58,7 +58,7 @@ class Validator
 
     private function alphanumAction($field, $value, $mustBe)
     {
-        $validSymbols = array('-', '_');
+        $validSymbols = array('-', '_', ' ');
         if(!ctype_alnum(str_replace($validSymbols, '', $value))) {
             throw new \Exception(sprintf('Only alphanum characters, minus and underscore allowed in "%s"', $field));
         }

@@ -103,7 +103,7 @@ define(['app', 'application/utils', 'application/predefined/model', 'application
                 if (App.Controller.podCollection) {
                     App.Controller.podCollection.add(App.Controller.pod);
                 }
-                App.navigate('pod/' + model.get('name') + '/1', {trigger: true});
+                App.navigate('pod/' + encodeURIComponent(model.get('name')) + '/1', {trigger: true});
             });
         },
 
@@ -122,6 +122,7 @@ define(['app', 'application/utils', 'application/predefined/model', 'application
                 select: selectFieldTpl,
                 user_domain_list: userDomainsFieldTpl
             };
+
             if (!_.isObject(data)) return;
 
             return templates[data.type](_.extend({variable: variable}, data));

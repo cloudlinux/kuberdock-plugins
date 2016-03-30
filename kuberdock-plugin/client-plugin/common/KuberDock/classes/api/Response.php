@@ -8,8 +8,13 @@ class Response
     {
         $array = array(
             'status' => 'OK',
-            'data' => $data,
         );
+
+        if (is_array($data)) {
+            $array['data'] = $data;
+        } else {
+            $array['message'] = $data;
+        }
 
         self::output($array, 200, $redirect);
     }

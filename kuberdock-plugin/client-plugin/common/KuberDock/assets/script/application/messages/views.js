@@ -11,9 +11,11 @@ define(['app', 'application/utils',
             if(this.model.get('status') == 'ERROR') {
                 return errorTpl;
             } else {
-                var data = this.model.get('data');
-                return _.isArray(data) || _.isObject(data) || !data
-                    ? _.template('') : successTpl;
+                if (this.model.has('message')) {
+                    return successTpl;
+                } else {
+                    return _.template('');
+                }
             }
         },
 

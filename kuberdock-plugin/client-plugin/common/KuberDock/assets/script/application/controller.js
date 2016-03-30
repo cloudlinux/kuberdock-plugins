@@ -127,7 +127,7 @@ define([
             if (this.predefinedCollection.length == 0) {
                 App.navigate('predefined/new/' + id, {trigger: true});
             } else if (this.predefinedCollection.length == 1) {
-                App.navigate('pod/' + this.predefinedCollection.at(0).get('name'), {trigger: true});
+                App.navigate('pod/' + encodeURIComponent(this.predefinedCollection.at(0).get('name')), {trigger: true});
             } else {
                 this.podCollection = this.predefinedCollection;
                 App.navigate('/', {trigger: true});
