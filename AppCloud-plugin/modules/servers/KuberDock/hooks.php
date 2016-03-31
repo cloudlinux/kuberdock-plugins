@@ -146,13 +146,20 @@ add_hook('ServiceDelete', 1, 'KuberDock_ServiceDelete');
  */
 function KuberDock_ShoppingCartValidateCheckout($params)
 {
+    global $CONFIG;
+
     $errors = array();
     $userId = $params['userid'];
+
 
     if(isset($_SESSION['cart']) && $userId) {
         foreach($_SESSION['cart']['products'] as $product) {
             $product = KuberDock_Product::model()->loadById($product['pid']);
-            if(!$product->isKuberProduct()) continue;
+            // TOS enabled but not accepted
+            if(!$product->isKuberProduct()
+                || ((bool) $CONFIG['EnableTOSAccept'] && !isset($_POST['accepttos']))) {
+                continue;
+            }
 
             try {
                 $server = $product->getServer();
