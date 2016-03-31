@@ -457,12 +457,14 @@ function KuberDock_ClientAreaPage($params)
                 array(
                     'input' => '',
                     'name' => 'Price for Persistent Storage',
-                    'description' => $product->getReadablePersistentStorage(),
+                    'description' => $currency->getFullPrice($product->getConfigOption('pricePersistentStorage')
+                        . ' / 1 ' . KuberDock_Units::getHDDUnits()),
                 ),
                 array(
                     'input' => '',
                     'name' => 'Price for Additional Traffic',
-                    'description' => $product->getReadableOverTraffic(),
+                    'description' =>  $currency->getFullPrice($product->getConfigOption('priceOverTraffic')
+                        . ' / 1 ' . KuberDock_Units::getTrafficUnits()),
                 ),
             ));
 
