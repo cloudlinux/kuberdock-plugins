@@ -6,5 +6,3 @@
 <link rel="stylesheet" type="text/css" href="assets/script/lib/owl-carousel/owl.theme.css">
 
 <?php echo $content; ?>
-
-<script data-main="assets/script/main.js" src="assets/script/lib/require.min.js"></script>

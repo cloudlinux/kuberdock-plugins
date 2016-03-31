@@ -31,7 +31,7 @@ class CException extends \Exception {
         $view = new KuberDock_View();
 
         return $view->render('errors/default', array(
-            'message' => $this->message,
+            'message' => $this->getParsedMessage(),
         ), false);
     }
 
@@ -46,9 +46,21 @@ class CException extends \Exception {
         return json_encode(array(
             'error' => true,
             'message' => $view->renderPartial('errors/default', array(
-                'message' => $this->message,
+                'message' => $this->getParsedMessage(),
             ), false),
         ));
+    }
+
+    /**
+     * @return string
+     */
+    public function getParsedMessage()
+    {
+        return str_replace(array(
+            'Invalid IP',
+        ), array(
+            'IP is not allowed for WHMCS API connections: '
+        ), $this->message);
     }
 
     /**
