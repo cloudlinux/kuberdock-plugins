@@ -194,6 +194,11 @@ function KuberDock_ClientArea($params) {
 
     try {
         $pods = $service->getApi()->getPods()->getData();
+        $nodes = $service->getAdminApi()->getNodes()->getData();
+        $kubeTypes = array_map(function ($e) {
+            return $e['kube_type'];
+        }, $nodes);
+
         $productStatistic = $view->renderPartial('client/product_statistic', array(
             'pods' => $pods,
             'kubes' => \base\CL_Tools::getKeyAsField($kubes, 'kuber_kube_id'),
@@ -214,6 +219,7 @@ function KuberDock_ClientArea($params) {
         'kubes' => $kubes,
         'server' => $server,
         'trialExpired' => $trialExpired,
+        'kubeTypes' => $kubeTypes,
     ), false);
 
     return $productInfo . $productStatistic;

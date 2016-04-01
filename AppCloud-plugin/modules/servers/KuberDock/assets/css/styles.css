@@ -5,6 +5,7 @@
 .right { text-align: right; }
 
 table.product-info { width: 100%; }
+table.product-info th { text-align: center; }
 table.product-info td { text-align: center; }
 table.client { border: 1px #ccc solid; border-collapse: collapse; }
 table.client th, table.client td { padding: 2px; border: 1px #ccc solid; }

@@ -353,18 +353,19 @@ class KuberDock_Product extends CL_Product {
         }
 
         if (0 != $priceIP = (float) $this->getConfigOption('priceIP')) {
-            $description['Price for IP'] = $this->formatFeature($priceIP, $this->getReadablePaymentType());
+            $description['Public IP'] = $this->formatFeature($priceIP, $this->getReadablePaymentType());
         }
 
         if (0 != $pricePS = (float) $this->getConfigOption('pricePersistentStorage')) {
-            $description['Price for Persistent Storage'] = $this->formatFeature($pricePS, '1 ' . KuberDock_Units::getHDDUnits());
+            $description['Persistent Storage'] = $this->formatFeature($pricePS, '1 ' . KuberDock_Units::getHDDUnits());
         }
 
         if (0 != $priceOT = (float) $this->getConfigOption('priceOverTraffic')) {
-            $description['Price for Additional Traffic'] = $this->formatFeature($priceOT, '1 ' . KuberDock_Units::getTrafficUnits());
+            $description['Additional Traffic'] = $this->formatFeature($priceOT, '1 ' . KuberDock_Units::getTrafficUnits());
         }
 
         foreach($kubes as $kube) {
+            if (!$kube['kube_price']) continue;
             $description['Kube '.$kube['kube_name']] = vsprintf(
                 '<strong>%s / %s</strong><br/><em>CPU %s, Memory %s, <br/>Disk Usage %s, Traffic %s</em>',
                 array(

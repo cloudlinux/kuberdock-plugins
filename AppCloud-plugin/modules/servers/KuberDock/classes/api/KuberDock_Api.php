@@ -239,7 +239,8 @@ class KuberDock_Api {
         }
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         $response = curl_exec($ch);
         $status = curl_getinfo($ch);
 
@@ -1009,6 +1010,23 @@ class KuberDock_Api {
         $this->url = $this->serverUrl . '/api/podapi/' . $podId;
         $attributes['command'] = 'redeploy';
         $response = $this->call($attributes, 'PUT');
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    /**
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function getNodes()
+    {
+        $this->url = $this->serverUrl . '/api/nodes';
+        $response = $this->call(array(), 'GET');
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());

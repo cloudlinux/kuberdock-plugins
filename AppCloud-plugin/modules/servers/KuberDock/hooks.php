@@ -445,44 +445,68 @@ function KuberDock_ClientAreaPage($params)
                     $product['pricing']['totaltodayexcltax'] = $price;
                     $product['pricing']['totalTodayExcludingTaxSetup'] = $price;
                     $product['billingcyclefriendly'] = $p->getReadablePaymentType();
+                    $product['productinfo']['groupname'] = 'Package ' . $predefinedApp->getAppPackageName();
+                    $product['productinfo']['name'] = ucfirst($predefinedApp->getName());
                 }
             }
         }
 
         if(isset($values['productinfo']) && isset($products[$values['productinfo']['pid']])) {
             $product = KuberDock_Product::model()->loadById($values['productinfo']['pid']);
+            $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
             $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(
                 'product_id' => $values['productinfo']['pid'],
             ));
 
-            $values['customfields'] = array_merge($values['customfields'], array(
-                array(
-                    'input' => '',
-                    'name' => 'Price for IP',
-                    'description' => $currency->getFullPrice($product->getConfigOption('priceIP')) .' per day',
-                ),
-                array(
-                    'input' => '',
-                    'name' => 'Price for Persistent Storage',
-                    'description' => $currency->getFullPrice($product->getConfigOption('pricePersistentStorage')
-                        . ' / 1 ' . KuberDock_Units::getHDDUnits()),
-                ),
-                array(
-                    'input' => '',
-                    'name' => 'Price for Additional Traffic',
-                    'description' =>  $currency->getFullPrice($product->getConfigOption('priceOverTraffic')
-                        . ' / 1 ' . KuberDock_Units::getTrafficUnits()),
-                ),
-            ));
+            if ($predefinedApp) {
+                $values['productinfo']['name'] = ucfirst($predefinedApp->getName());
+                $values['productinfo']['description'] = 'Package ' . $predefinedApp->getAppPackageName();
+            }
 
-            $desc = 'Price - %s, CPU - %s, Memory - %s %s, HDD - %s %s, Traffic - %s %s';
+            $customFields = array();
+
+            if ((float) $product->getConfigOption('priceIP')) {
+                $customFields[] = array(
+                    'input' => '',
+                    'name' => 'Public IP',
+                    'description' => $currency->getFullPrice($product->getConfigOption('priceIP'))
+                        . ' / ' . $product->getReadablePaymentType(),
+                );
+            }
+
+            if ((float) $product->getConfigOption('pricePersistentStorage')) {
+                $customFields[] = array(
+                    'input' => '',
+                    'name' => 'Persistent Storage',
+                    'description' => $currency->getFullPrice($product->getConfigOption('pricePersistentStorage'))
+                        . ' / 1 ' . KuberDock_Units::getHDDUnits(),
+                );
+            }
+
+            if ((float) $product->getConfigOption('priceOverTraffic')) {
+                $customFields[] = array(
+                    'input' => '',
+                    'name' => 'Additional Traffic',
+                    'description' => $currency->getFullPrice($product->getConfigOption('priceOverTraffic'))
+                        . ' / 1 ' . KuberDock_Units::getTrafficUnits(),
+                );
+            }
+            $values['customfields'] = array_merge($values['customfields'], $customFields);
+
+            $desc = 'Per Kube - %s, CPU - %s, Memory - %s %s, HDD - %s %s, Traffic - %s %s';
+            $resources = false;
 
             foreach($kubes as $kube) {
+                if ($predefinedApp) {
+                    $kubeType = $predefinedApp->getKubeType();
+                    if ($kubeType != $kube['kuber_kube_id']) continue;
+                    $resources = true;
+                }
                 $values['customfields'][] = array(
                     'input' => '',
-                    'name' => 'Kube ' . $kube['kube_name'],
+                    'name' => $resources ? 'Additional Resources' : 'Kube ' . $kube['kube_name'],
                     'description' => vsprintf($desc, array(
-                        $currency->getFullPrice($kube['kube_price']) .' \ '. $product->getReadablePaymentType(),
+                        $currency->getFullPrice($kube['kube_price']) .' / '. $product->getReadablePaymentType(),
                         (float) $kube['cpu_limit'],
                         $kube['memory_limit'],
                         KuberDock_Units::getMemoryUnits(),

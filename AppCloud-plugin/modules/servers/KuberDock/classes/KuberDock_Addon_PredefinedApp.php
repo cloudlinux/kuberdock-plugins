@@ -284,6 +284,43 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
     }
 
     /**
+     * @return mixed
+     */
+    public function getKubeType()
+    {
+        if ($pod = $this->getPod()) {
+            return $pod->kube_type;
+        } else {
+            $data = Spyc::YAMLLoadString($this->data);
+            return $data['kuberdock']['kube_type'];
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getAppPackageName()
+    {
+        if ($this->getPod())  return '';
+
+        $data = Spyc::YAMLLoadString($this->data);
+        return isset($data['kuberdock']['appPackage']['name'])
+            ? $data['kuberdock']['appPackage']['name']: 'Undefined';
+    }
+
+    /**
+     * @return string
+     */
+    public function getAppPackageGoodFor()
+    {
+        if ($this->getPod())  return '';
+
+        $data = Spyc::YAMLLoadString($this->data);
+        return isset($data['kuberdock']['appPackage']['goodFor'])
+            ? $data['kuberdock']['appPackage']['goodFor']: 'Undefined';
+    }
+
+    /**
      * @param array $pod
      * @return array
      */
@@ -305,14 +342,14 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
         $items = array();
         $product = KuberDock_Product::model()->loadById($this->product_id) ;
 
-        $kubeType = isset($data[kuberdock][kube_type]) ? $data[kuberdock][kube_type] : 0;
+        $kubeType = isset($data['kuberdock']['kube_type']) ? $data['kuberdock']['kube_type'] : 0;
 
         $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
         $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
 
         if(isset($data['spec']['template']['spec'])) {
             $spec = $data['spec']['template']['spec'];
-        } elseif(isset($data['spec'])) {
+        } else {
             $spec = $data['spec'];
         }
 
