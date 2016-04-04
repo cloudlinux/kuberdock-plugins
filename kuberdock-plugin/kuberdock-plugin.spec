@@ -8,7 +8,7 @@ License: CloudLinux Commercial License
 URL: http://www.cloudlinux.com
 Source0: %{name}-%{version}.tar.bz2
 
-Requires: kuberdock-cli >= 0.1-29
+Requires: kuberdock-cli >= 1.0-1
 
 AutoReq: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -35,18 +35,18 @@ rm -rf %{buildroot}
 
 %post
 if [ $1 = 1 ] ; then
-    bash /usr/share/kuberdock-plugin/install_kuberdock_plugins.sh -i
+    python /usr/share/kuberdock-plugin/install_kuberdock_plugins.py -i
     exit 0
 fi
 if [ $1 = 2 ] ; then
-    bash /usr/share/kuberdock-plugin/install_kuberdock_plugins.sh -u
+    python /usr/share/kuberdock-plugin/install_kuberdock_plugins.py -u
     exit 0
 fi
 
 %preun
 # uninstall?
 if [ $1 == 0 ] ; then
-    bash /usr/share/kuberdock-plugin/install_kuberdock_plugins.sh -d
+    python /usr/share/kuberdock-plugin/install_kuberdock_plugins.py -d
     exit 0
 fi
 
