@@ -29,6 +29,8 @@ class KuberDock_AddonController extends CL_Controller {
 
     public function indexAction()
     {
+        $this->assets->registerScriptFiles(array('jquery.tablesorter.min'));
+
         $paginator = $this->getLogsPaginator();
         $logs = \KuberDock_Addon_PriceChange::getLogs($paginator->limit(), $paginator->offset());
 

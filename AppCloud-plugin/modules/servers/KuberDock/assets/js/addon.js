@@ -86,4 +86,24 @@ $(function() {
             self.remove();
         });
     });
+
+    $$.tablesorter.addParser({
+        id: 'kubeTypeParser',
+        is: function(s) {
+            return false;
+        },
+        format: function(s, table, cell, cellIndex) {
+            return $(cell).data('id');
+        },
+        type: 'numeric'
+    });
+
+    $$('#kubes_table').tablesorter({
+        sortList: [[0,0]],
+        selectorHeaders: 'thead tr.sorted th',
+        cssChildRow: 'package_row',
+        headers: {
+            0 : { sorter: 'kubeTypeParser' }
+        }
+    });
 });
