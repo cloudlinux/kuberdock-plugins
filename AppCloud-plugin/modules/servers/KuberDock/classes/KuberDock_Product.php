@@ -487,7 +487,7 @@ class KuberDock_Product extends CL_Product {
         $items = $app->getTotalPrice();
 
         $totalPrice = array_reduce($items, function ($carry, $item) {
-            $carry += $item['total'];
+            $carry += $item->getTotal();
             return $carry;
         });
 
@@ -517,6 +517,7 @@ class KuberDock_Product extends CL_Product {
 
         $invoice_id = $invoice->createInvoice($userId, $items, $gateway);
         $invoiceItem = \base\models\CL_Invoice::model()->loadById($invoice_id);
+
         if ($paid) {
             $invoiceItem->status = CL_Invoice::STATUS_PAID;
             $invoiceItem->save();

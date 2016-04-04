@@ -5,6 +5,7 @@ use base\models\CL_Invoice;
 use base\models\CL_Client;
 use base\CL_Tools;
 use exceptions\CException;
+use components\KuberDock_InvoiceItem;
 
 class KuberDock_ProductUpgrade extends CL_ProductUpgrade {
     /**
@@ -52,10 +53,7 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade {
         if($deposit) {
             $service = KuberDock_Hosting::model()->loadById($this->relid);
             $clientDetails = CL_Client::model()->getClientDetails($service->userid);
-            $items[] = array(
-                'description' => CL_Invoice::CUSTOM_INVOICE_DESCRIPTION,
-                'total' => $deposit,
-            );
+            $items[] = KuberDock_InvoiceItem::create(CL_Invoice::CUSTOM_INVOICE_DESCRIPTION, $deposit);
 
             if($clientDetails['client']['credit'] < $deposit) {
                 $service->addInvoice($service->userid, new \DateTime(), $items, false);

@@ -1,5 +1,7 @@
 <?php
 
+use components\KuberDock_InvoiceItem;
+
 class KuberDock_Pod {
     /**
      *
@@ -202,13 +204,7 @@ class KuberDock_Pod {
                             . ($delta > 0 ? 'added ' : 'removed ') . abs($delta) . (abs($delta) == 1 ? ' kube' : ' kubes')
                             . ')';
 
-                        $items[] = array(
-                            'description' => $description,
-                            'qty' => $delta,
-                            'units' => 'kube',
-                            'price' => $price,
-                            'total' => $delta * $price,
-                        );
+                        $items[] = KuberDock_InvoiceItem::create($description, $price, 'kube', $delta);
                     }
                 }
 
