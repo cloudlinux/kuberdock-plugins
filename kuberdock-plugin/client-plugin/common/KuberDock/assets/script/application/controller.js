@@ -68,12 +68,11 @@ define([
                 collection: new Pod.ImageCollection
             });
             this.layout.showChildView('content', view);
-
             var templateCollection = new Predefined.TemplateCollection;
             var templateView = new Views.TemplatesListView({
                 collection: templateCollection
             });
-            this.layout.showChildView('templates', templateView);
+            templateView.render();
             templateCollection.fetch();
         },
 

@@ -8,7 +8,7 @@
         </select>
     </td>
     <td><input type="text" name="ports[<%- i %>][hostPort]" placeholder="Empty" value="<%- port.hostPort ? port.hostPort : port.number %>"></td>
-    <td class="text-center">
+    <td>
         <input type="checkbox" name="ports[<%- i %>][isPublic]" class="is-public" value="1"<%- port.isPublic ? ' checked' : '' %>>
     </td>
     <td>

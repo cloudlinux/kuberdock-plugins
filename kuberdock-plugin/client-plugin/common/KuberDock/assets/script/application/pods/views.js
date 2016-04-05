@@ -28,8 +28,7 @@ define(['app', 'application/utils',
         template: layoutPodTpl,
 
         regions: {
-            content: '#main_content',
-            templates: '#templates'
+            content: '#main_content'
         },
 
         ui: {
@@ -274,7 +273,8 @@ define(['app', 'application/utils',
             'change @ui.pdCheckbox': 'calculate',
             'change @ui.setPDCheckbox': 'allowPdFields',
             'change @ui.pdVolumeSize': 'calculate',
-            'click @ui.pdVolumeSize': 'renderDrives',
+            'click @ui.pdVolumeSize': 'calculate',
+            'click @ui.setPDCheckbox': 'calculate',
             'click @ui.pdVolumeName': 'renderDrives',
             'click @ui.addPortButton': 'addPortSection',
             'click @ui.deletePortButton': 'deleteSection',
@@ -402,6 +402,7 @@ define(['app', 'application/utils',
         addPortSection: function (e) {
             var i = this.ui.portTable.find('tr').length - 1;
             this.ui.portTable.append(this.getPortSection({i: i}));
+            this.bindUIElements();
         },
 
         deleteSection: function (e) {
@@ -416,6 +417,7 @@ define(['app', 'application/utils',
         addEnvSection: function (e) {
             var i = this.ui.envTable.find('tr').length - 1;
             this.ui.envTable.append(this.getEnvSection({i: i}));
+            this.bindUIElements();
         },
 
         getVolumeSection: function (data, i) {
@@ -426,6 +428,7 @@ define(['app', 'application/utils',
         addVolumeSection: function (e) {
             var i = this.ui.volumeTable.find('tr').length - 1;
             this.ui.volumeTable.append(this.getVolumeSection({i: i}));
+            this.bindUIElements();
         },
 
         allowPdFields: function (e) {
@@ -437,8 +440,14 @@ define(['app', 'application/utils',
             e.preventDefault();
 
             var self = this,
-                view;
-            var pdList = $(e.target).parents('tr').find('.pd-list').show();
+                view,
+                pdList = $(e.target).parents('tr').find('.pd-list');
+
+            if (pdList.is(':hidden')) {
+                pdList.show();
+            } else {
+                pdList.hide();
+            }
 
             if (this.PDCollection) {
                 view = new PodView.PDView({
@@ -528,7 +537,7 @@ define(['app', 'application/utils',
                 model: this.model,
                 kube: this.model.getKube(),
                 kubes: this.model.getKubes(),
-                escapeHTML: Utils.escapeHTML,
+                escape: Utils.escapeHtml,
                 showDescription: function () {
                     return self.description;
                 }
@@ -571,7 +580,9 @@ define(['app', 'application/utils',
             var self = this;
 
             Utils.modal({
-                'text': 'Do you want to restart application?',
+                'text': 'Do you want to restart application?<br><br>' +
+                '<samp>You can wipe out all the data and redeploy the application or you can just ' +
+                    'restart and save data in Persistent storages of your application.</samp>',
                 buttons: [
                     {
                         class: 'btn btn-primary btn-danger',
@@ -653,7 +664,7 @@ define(['app', 'application/utils',
         ui: {
             upgradeButton: '.pod-upgrade',
             slider: '.slider',
-            containerKubes: 'input[name^="container_kubes"]',
+            containerKubes: 'input[name$="_kubes"]',
             resourcesSection: '.resources',
             form: 'form.upgrade-form',
             backButton: '.back'
@@ -724,15 +735,13 @@ define(['app', 'application/utils',
 
         upgradePod: function (e) {
             var formData = this.ui.form.serializeArray(),
-                containerName = formData.slice(0, formData.length/2),
-                containerKubes = _.difference(formData, containerName),
                 containers = this.model.get('containers'),
                 self = this;
 
-            _.each(containers, function (e, k) {
-                _.each(containerName, function (ce) {
-                    if (ce.value == e.name) {
-                        e.kubes = parseInt(containerKubes[k].value);
+            _.each(containers, function (c, i) {
+                _.each(formData, function (e) {
+                    if (e.name.indexOf(c.name) >= 0) {
+                        containers[i].kubes = parseInt(e.value);
                     }
                 });
             });
@@ -744,7 +753,7 @@ define(['app', 'application/utils',
 
         back: function (e) {
             e.preventDefault();
-            window.history.back();
+            App.navigate('pod/' + encodeURIComponent(this.model.get('name')));
         }
     });
 
@@ -771,7 +780,7 @@ define(['app', 'application/utils',
 
         selectDrive: function (e) {
             e.$el.parents('tr').find('input.volume-name').val(e.model.get('name'));
-            e.$el.parents('tr').find('input.volume-size').val(e.model.get('size'));
+            e.$el.parents('tr').find('input.volume-size').val(e.model.get('size')).trigger('change');
             this.$el.empty().hide();
         },
 
@@ -793,6 +802,7 @@ define(['app', 'application/utils',
     });
 
     PodView.TemplatesListView = Backbone.Marionette.CompositeView.extend({
+        el: '#templates',
         template: templatesListTpl,
         childView: PodView.TemplatesItemListView,
         emptyView : '',

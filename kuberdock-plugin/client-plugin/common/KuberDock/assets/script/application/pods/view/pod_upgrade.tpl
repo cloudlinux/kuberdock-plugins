@@ -23,13 +23,12 @@
                     <% _.each(model.get('containers'), function(c) { %>
                     <tr>
                         <th>
-                            <input type="hidden" name="container_name[]" value="<%- c.name %>">
                             <b><%- c.image %></b>
                         </th>
                         <th>
                             <div class="slider"></div>
                             <div class="slider-value"></div>
-                            <input type="hidden" name="container_kubes[]" value="<%- c.kubes %>">
+                            <input type="hidden" name="<%- c.name %>_kubes" value="<%- c.kubes %>">
                         </th>
                     </tr>
                     <% }); %>

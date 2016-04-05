@@ -4,6 +4,8 @@
             <h2>Application "<%- model.get('name') %>"</h2>
         </div>
 
+        <div class="clearfix"></div>
+
         <% if (showDescription()) { %>
         <div class="alert alert-dismissible alert-success"  role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -27,7 +29,7 @@
                     <tbody>
                     <tr>
                         <td>
-                            CPU: <%- kube.cpu * kubes %> <%- kube.cpu_units %><br>
+                            CPU: <%- (kube.cpu * kubes).toFixed(2) %> <%- kube.cpu_units %><br>
                             Local storage: <%- kube.disk_space * kubes %> <%- kube.disk_space_units %><br>
                             Memory: <%- kube.memory * kubes %> <%- kube.memory_units %><br>
                             Traffic: <%- kube.included_traffic * kubes %> <%- kube.disk_space_units %><br>
@@ -49,11 +51,11 @@
                                 var ports = [];
                                 _.each(model.get('containers'), function(e) {
                                     _.each(e.ports, function(p) {
-                                        ports.push(p.hostPort);
+                                        ports.push(p.containerPort);
                                     });
                                 });
                             %>
-                            <% if (ports) { %>Available ports: <%- ports.join(' ') %> <% } %>
+                            <% if (!_.isEmpty(ports)) { %>Available ports: <%- ports.join(', ') %> <% } %>
                         </td>
                         <td><%- model.getStatus() %></td>
                         <td>

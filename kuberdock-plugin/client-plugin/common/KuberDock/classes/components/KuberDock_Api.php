@@ -140,7 +140,6 @@ class KuberDock_Api {
      */
     public function getRegistryUrl()
     {
-
         return strpos('https', $this->registryURL) !== false ? $this->registryURL : 'http://' . $this->registryURL;
     }
 

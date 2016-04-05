@@ -47,7 +47,13 @@ define(['app', 'bbcode', 'bootstrap'], function(App) {
         },
 
         parseResponse: function (response) {
-            return response.data ? response.data : response;
+            if (response.data) {
+                return response.data;
+            } else if (response.message) {
+                return response.message;
+            } else {
+                return response;
+            }
         },
 
         ucFirst: function (str) {

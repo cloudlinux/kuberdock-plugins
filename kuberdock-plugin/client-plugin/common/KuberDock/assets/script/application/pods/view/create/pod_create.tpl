@@ -117,7 +117,7 @@
                             </button>
                         </p>
 
-                        <table class="table table-stripped table-condensed<?php echo !isset($pod->containers[0]['volumeMounts']) ? ' hidden' : ''?>" id="volume_table">
+                        <table class="table table-stripped table-condensed>" id="volume_table">
                             <tr>
                                 <th><small>Container path</small></th>
                                 <th><small>Persistent</small></th>

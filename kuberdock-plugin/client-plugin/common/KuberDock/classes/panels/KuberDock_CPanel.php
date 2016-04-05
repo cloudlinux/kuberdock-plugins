@@ -131,16 +131,33 @@ class KuberDock_CPanel
     }
 
     /**
+     * @param bool $root
      * @return string
      */
-    public function getURL()
+    public function getURL($root = true)
     {
         $scheme = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? 'https' : 'http';
         $host = $_SERVER['SERVER_NAME'];
         $port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : 80;
-        $uri = $_SERVER['SCRIPT_URI'];
+        $uri = $root ? $this->getRootUrl() : $this->getApiUrl();
 
         return sprintf('%s://%s:%s%s', $scheme, $host, $port, $uri);
+    }
+
+    /**
+     * @return string
+     */
+    public function getRootUrl()
+    {
+        return 'kuberdock.live.php';
+    }
+
+    /**
+     * @return string
+     */
+    public function getApiUrl()
+    {
+        return 'kuberdock.api.live.php';
     }
 
     /**

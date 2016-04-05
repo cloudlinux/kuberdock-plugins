@@ -20,7 +20,7 @@
                     <tbody>
                     <tr>
                         <td>
-                            CPU: <%- kube.cpu * kubes %> <%- kube.cpu_units %><br>
+                            CPU: <%- (kube.cpu * kubes).toFixed(2) %> <%- kube.cpu_units %><br>
                             Local storage: <%- kube.disk_space * kubes %> <%- kube.disk_space_units %><br>
                             Memory: <%- kube.memory * kubes %> <%- kube.memory_units %><br>
                             Traffic: <%- kube.included_traffic * kubes %> <%- kube.disk_space_units %><br>
@@ -95,7 +95,7 @@
                 </table>
             </div>
 
-            <% if(model.get('volumes')) { %>
+            <% if (!_.isEmpty(model.get('volumes'))) { %>
             <label class="title">Volumes</label>
             <table class="table apps-list app-table">
                 <thead>
@@ -123,6 +123,16 @@
             </table>
             <% } %>
 
+            <%
+                var environments = [];
+                _.each(model.get('containers'), function(container) {
+                    _.each(container.env, function(env) {
+                        environments.push(env);
+                    });
+                });
+            %>
+
+            <% if (!_.isEmpty(environments)) { %>
             <div class="splitter last">
                 <label class="title">Environment variables</label>
                 <table class="table apps-list app-table">
@@ -133,13 +143,11 @@
                     </tr>
                     </thead>
                     <tbody>
-                <% _.each(model.get('containers'), function(container) { %>
-                    <% _.each(container.envs, function(env) { %>
+                <% _.each(environments, function(env) { %>
                     <tr>
                         <td><small><%- env.name %></small></td>
-                        <td><small><%- escapeHTML(env.value) %></small></td>
+                        <td><small><%- escape(env.value) %></small></td>
                     </tr>
-                    <% }); %>
                 <% }); %>
                     </tbody>
                 </table>
@@ -148,6 +156,7 @@
                     <p class="total-price"><%- model.getTotalPrice(true) %></p>
                 </div>
             </div>
+            <% } %>
 
             <a class="pull-left btn btn-default back">Back</a>
             <a class="pull-right btn btn-primary pod-search">Add more apps</a>

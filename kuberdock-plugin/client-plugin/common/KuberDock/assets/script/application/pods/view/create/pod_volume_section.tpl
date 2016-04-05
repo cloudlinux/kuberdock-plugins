@@ -10,7 +10,7 @@
     <td>
         <input type="text" name="volume[<%- i %>][size]" class="short volume-size" placeholder="Empty" disabled>
     </td>
-    <td class="text-center"><small>GB</small></td>
+    <td><small>GB</small></td>
     <td>
         <button type="button" class="btn btn-default btn-sm delete-volume old-button">
             <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
