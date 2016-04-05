@@ -17,17 +17,18 @@
     }
     ?>
     <tr>
-        <td class="col-md-3">
+        <td class="col-md-2">
         <?php if($pod->template_id):?>
             <a href="?c=app&a=installPredefined&podName=<?php echo $pod->name?>&template=<?php echo $pod->template_id?>"><?php echo $pod->name?></a>
         <?php else:?>
             <a href="?a=podDetails&podName=<?php echo $pod->name?>"><?php echo $pod->name?></a>
         <?php endif;?>
         </td>
-        <td class="col-md-3">
+        <td class="col-md-2">
             <?php echo isset($pod->public_ip) && $pod->public_ip ? $pod->public_ip :
                 (isset($pod->labels['kuberdock-public-ip']) ? $pod->labels['kuberdock-public-ip'] : 'none')?>
         </td>
+        <td class="col-md-2"><?php echo $pod->podIP ?></td>
         <td class="col-md-2"><?php echo ucfirst($pod->status) ?></td>
         <td class="col-md-4">
             <button type="button" class="btn btn-<?php echo $buttonClass ?> btn-xs <?php echo $statusClass?>" data-target=".confirm-modal" data-app="<?php echo $pod->name?>" title="<?php echo $statusText?>">

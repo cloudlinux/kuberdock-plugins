@@ -22,8 +22,9 @@
             <table class="table apps-list app-table">
                 <thead>
                 <tr>
-                    <th class="col-md-3 podname"><?php echo $pod->name?> </th>
-                    <th class="col-md-3">Public IP</th>
+                    <th class="col-md-2 podname"><?php echo $pod->name?> </th>
+                    <th class="col-md-2">Public IP</th>
+                    <th class="col-md-2">Pod IP</th>
                     <th class="col-md-2">Status</th>
                     <th class="col-md-4">Actions</th>
                 </tr>
@@ -63,6 +64,7 @@
                             none
                         <?php endif;?>
                     </td>
+                    <td><?php echo $pod->podIP ?></td>
                     <td><?php echo ucfirst($pod->status) ?></td>
                     <td>
                         <button type="button" class="btn btn-<?php echo $buttonClass ?> btn-xs <?php echo $statusClass?>" data-target=".confirm-modal" data-app="<?php echo $pod->name?>" title="<?php echo $statusText?>">
