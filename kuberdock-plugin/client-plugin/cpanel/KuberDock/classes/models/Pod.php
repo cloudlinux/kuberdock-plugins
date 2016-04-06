@@ -649,7 +649,7 @@ class Pod {
      */
     public function getLink()
     {
-        return Base::model()->getPanel()->getURL() . '?a=podDetails&podName=' . $this->id;
+        return Base::model()->getPanel()->getURL() . '?a=podDetails&podName=' . $this->name;
     }
 
     /**

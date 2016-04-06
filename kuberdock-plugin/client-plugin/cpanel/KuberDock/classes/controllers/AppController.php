@@ -18,8 +18,12 @@ class AppController extends KuberDock_Controller
 
         try {
             $api = Base::model()->getPanel()->getApi();
-            $sysapi = $api->getSysApi('name');
-            $maxKubes = $sysapi['max_kubes_per_container']['value'];
+            try {
+                $sysapi = $api->getSysApi('name');
+                $maxKubes = $sysapi['max_kubes_per_container']['value'];
+            } catch (CException $e) {
+                $maxKubes = 10;
+            }
 
             $app = new PredefinedApp($templateId);
             $parsedTemplate = $app->getTemplateByPodName($podName);

@@ -107,8 +107,12 @@ class DefaultController extends KuberDock_Controller {
         $image = Tools::getParam('image', Tools::getPost('image'));
 
         $api = Base::model()->getPanel()->getApi();
-        $sysapi = $api->getSysApi('name');
-        $maxKubes = $sysapi['max_kubes_per_container']['value'];
+        try {
+            $sysapi = $api->getSysApi('name');
+            $maxKubes = $sysapi['max_kubes_per_container']['value'];
+        } catch (CException $e) {
+            $maxKubes = 10;
+        }
 
         try {
             $pod = new Pod();
@@ -297,8 +301,12 @@ class DefaultController extends KuberDock_Controller {
             $pod = $pod->loadByName($podName);
 
             $api = Base::model()->getPanel()->getApi();
-            $sysapi = $api->getSysApi('name');
-            $maxKubes = $sysapi['max_kubes_per_container']['value'];
+            try {
+                $sysapi = $api->getSysApi('name');
+                $maxKubes = $sysapi['max_kubes_per_container']['value'];
+            } catch (CException $e) {
+                $maxKubes = 10;
+            }
         } catch(CException $e) {
             $pod = new stdClass();
             $this->error = $e;
