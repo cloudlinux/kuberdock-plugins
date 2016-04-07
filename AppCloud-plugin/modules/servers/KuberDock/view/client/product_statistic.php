@@ -34,7 +34,7 @@
                 <td><?php echo $pod['kubes']?></td>
                 <td><?php echo $kubes[$pod['kube_type']]['kube_name']?></td>
                 <td>
-                    <?php echo $billableItem ? $currency->getFullPrice($billableItem->amount) . ' \ ' . $product->getReadablePaymentType() : ''?>
+                    <?php echo $billableItem ? $currency->getFullPrice($billableItem->amount) . ' / ' . $product->getReadablePaymentType() : ''?>
                 </td>
                 <td>
                     <?php echo $billableItem ? \base\CL_Tools::getFormattedDate(\base\CL_Tools::sqlDateToDateTime($billableItem->duedate)) : ''?>
