@@ -8,12 +8,6 @@
 <div class="container-fluid">
     <div class="row offset-top">
         <p class="text-right">
-            <?php if ($updateDb): ?>
-                <button type="button" class="btn btn-default btn-lg migration">
-                    Update database
-                </button>
-            <?php endif;?>
-
             <a href="<?php echo \base\CL_Base::model()->baseUrl?>&a=add">
                 <button type="button" class="btn btn-default btn-lg"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Add kube type</button>
             </a>
@@ -40,17 +34,3 @@
     <?php $this->renderPartial('broken', array('brokenPackages' => $brokenPackages))?>
 
 </div>
-
-<?php if ($updateDb): ?>
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-body"></div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-<?php endif;?>
-

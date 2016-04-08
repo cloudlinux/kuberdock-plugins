@@ -13,6 +13,11 @@ use KuberDock_Addon_Kube;
 use KuberDock_Server;
 use KuberDock_Product;
 
+/**
+ * Class KuberDock_Migration
+ * @package components
+ * @deprecated
+ */
 class KuberDock_Migration extends CL_Component {
     /**
      * @var CL_Query
