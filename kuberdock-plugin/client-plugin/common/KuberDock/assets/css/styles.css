@@ -594,3 +594,7 @@ p {
 .resources span {
     margin-right: 10px;
 }
+
+.load-more a {
+    cursor: pointer;
+}

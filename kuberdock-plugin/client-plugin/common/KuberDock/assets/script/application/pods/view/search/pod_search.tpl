@@ -35,5 +35,9 @@
                 <tbody></tbody>
             </table>
         </div>
+
+        <div class="col-md-10 text-center hidden load-more">
+            <a>Load more</a>
+        </div>
     </div>
 </div>

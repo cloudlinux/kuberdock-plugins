@@ -175,7 +175,6 @@ define(['app', 'application/utils',
 
         templateHelpers: function () {
             return {
-                page: this.model.collection.page || 1,
                 index: this.model.collection.indexOf(this.model) + 1,
                 stars: this.model.get('star_count') > 10 ? 10 : this.model.get('star_count')
             };
@@ -183,7 +182,7 @@ define(['app', 'application/utils',
 
         installApp: function (e) {
             e.preventDefault();
-            App.navigate('pod/create/' + this.model.get('name'), {trigger: true});
+            App.navigate('pod/create/' + this.model.get('name'));
         },
 
         showDetails: function (e) {
@@ -197,26 +196,38 @@ define(['app', 'application/utils',
         childView: PodView.itemSearch,
         //emptyView : '',
         childViewContainer  : 'tbody',
+        image: '',
+        page: 1,
 
         ui: {
             searchButton: 'button.image-search',
-            imageInput: 'input#image'
+            imageInput: 'input#image',
+            loadMore: 'div.load-more'
         },
 
         events: {
             'click @ui.searchButton': 'searchPod',
-            'keyup @ui.imageInput': 'pressEnter'
+            'keyup @ui.imageInput': 'pressEnter',
+            'click @ui.loadMore': 'loadMore'
 
+        },
+
+        initialize: function () {
+            var self = this;
+            this.collection.on('add', function (e) {
+                self.ui.loadMore.removeClass('hidden');
+            });
         },
 
         searchPod: function(e) {
             e.preventDefault();
 
-            var image = this.ui.imageInput.val();
-            if(!image.length) return;
+            this.page = 1;
+            this.image = this.ui.imageInput.val();
+            if(!this.image.length) return;
 
             this.collection.fetch({
-                url: this.collection.url + '/' + image
+                url: this.getUrl()
             });
         },
 
@@ -230,8 +241,22 @@ define(['app', 'application/utils',
             this.searchPod(e);
         },
 
-        onBeforeRender: function() {
+        loadMore: function (e) {
+            e.preventDefault();
 
+            this.page += 1;
+            this.collection.fetch({
+                url: this.getUrl(),
+                remove: false,
+                sort: false,
+                data: {
+                    page: this.page
+                }
+            });
+        },
+
+        getUrl: function () {
+            return this.collection.url + '/' + this.image;
         }
     });
 
@@ -693,7 +718,7 @@ define(['app', 'application/utils',
             }, 0);
 
             this.ui.resourcesSection.html(template({
-                cpu: kube.cpu * kubes + ' ' + kube.cpu_units,
+                cpu: (kube.cpu * kubes).toFixed() + ' ' + kube.cpu_units,
                 hdd: kube.disk_space * kubes  + ' ' + kube.disk_space_units,
                 memory: kube.memory * kubes  + ' ' + kube.memory_units
             }));

@@ -1,6 +1,6 @@
 <td>
     <div>
-        <%- page * index %>. <strong class="text-info"><%- name %></strong>
+        <%- index %>. <strong class="text-info"><%- name %></strong>
     </div>
 
     <%- description %>

@@ -142,9 +142,9 @@ class KuberDock extends API
         return $pod->asArray();
     }
 
-    protected function get_pods_search($search, $page = 1)
+    protected function get_pods_search($search)
     {
-        $this->checkNumeric($page);
+        $page = Tools::getParam('page', 1);
 
         $pod = $this->getPod();
 
