@@ -20,8 +20,9 @@
                 <table class="table apps-list app-table">
                     <thead>
                     <tr>
-                        <th class="col-md-3">Limits</th>
-                        <th class="col-md-3">Public IP</th>
+                        <th class="col-md-2">Limits</th>
+                        <th class="col-md-2">Public IP</th>
+                        <th class="col-md-2">Pod IP</th>
                         <th class="col-md-2">Status</th>
                         <th class="col-md-4">Actions</th>
                     </tr>
@@ -57,6 +58,7 @@
                             %>
                             <% if (!_.isEmpty(ports)) { %>Available ports: <%- ports.join(', ') %> <% } %>
                         </td>
+                        <td><%- model.getPodIp() %></td>
                         <td><%- model.getStatus() %></td>
                         <td>
                             <button type="button" class="btn btn-<%- model.getButtonClass() %> btn-xs <%- model.getStatusClass() %>" data-target=".confirm-modal" title="<%- model.getStatusText() %>">

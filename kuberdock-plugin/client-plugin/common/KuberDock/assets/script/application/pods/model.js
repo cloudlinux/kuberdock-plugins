@@ -59,6 +59,10 @@ define(['backbone', 'application/utils'], function(Backbone, Utils) {
             return this.get('public_ip') ? this.get('public_ip') : 'none';
         },
 
+        getPodIp: function () {
+            return this.get('podIP') ? this.get('podIP') : 'none';
+        },
+
         getStatus: function () {
             return Utils.ucFirst(this.get('status'));
         },

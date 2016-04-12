@@ -2,6 +2,7 @@
     <a class="pod-details"><%- name %></a>
 </td>
 <td><%- model.getPublicIp() %></td>
+<td><%- model.getPodIp() %></td>
 <td><%- model.getStatus() %></td>
 <td class="col-md-4">
     <button type="button" class="btn btn-<%- model.getButtonClass() %> btn-xs <%- model.getStatusClass() %>" title="<%- model.getStatusText() %>">

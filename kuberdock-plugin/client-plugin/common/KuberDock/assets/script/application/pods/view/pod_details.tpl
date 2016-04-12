@@ -11,8 +11,9 @@
                 <table class="table apps-list app-table">
                     <thead>
                     <tr>
-                        <th class="col-md-3">Limits</th>
-                        <th class="col-md-3">Public IP</th>
+                        <th class="col-md-2">Limits</th>
+                        <th class="col-md-2">Public IP</th>
+                        <th class="col-md-2">Pod IP</th>
                         <th class="col-md-2">Status</th>
                         <th class="col-md-4">Actions</th>
                     </tr>
@@ -36,9 +37,8 @@
                                 </a>
                             </div>
                         </td>
-                        <td>
-                            <%- model.get('public_ip') ? model.get('public_ip') : 'none' %>
-                        </td>
+                        <td><%- model.getPublicIp() %></td>
+                        <td><%- model.getPodIp() %></td>
                         <td><%- model.getStatus() %></td>
                         <td>
                             <button type="button" class="btn btn-<%- model.getButtonClass() %> btn-xs <%- model.getStatusClass() %>" data-target=".confirm-modal" title="<%- model.getStatusText() %>">
