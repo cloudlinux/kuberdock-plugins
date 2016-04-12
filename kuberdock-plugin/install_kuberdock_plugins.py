@@ -88,6 +88,8 @@ class Plugin:
         exec_command(['/bin/touch', '/var/log/kuberdock-plugin.log'])
         exec_command(['/bin/chmod', '666', '/var/log/kuberdock-plugin.log'])
 
+        self.cpanel_home_script('append')
+
     def cpanel_upgrade(self):
         # client
         common_source_path = os.path.join(SOURCE_PATH, 'client-plugin/common')
@@ -142,6 +144,7 @@ class Plugin:
 
         # Remove home script
         self.cpanel_remove_home_script()
+        self.cpanel_home_script('append')
 
         templates = exec_command([KCLI, '-j', '-c', '/root/.kubecli.conf',
                                      'kubectl', 'get', 'templates', '--origin', 'cpanel'])
@@ -230,6 +233,7 @@ class Plugin:
         if os.path.exists('/var/log/kuberdock-plugin.log'):
             os.remove('/var/log/kuberdock-plugin.log')
 
+        self.cpanel_home_script('delete')
         self.cpanel_remove_home_script()
 
     def cpanel_templates(self):
@@ -238,8 +242,8 @@ class Plugin:
             and not os.path.islink(os.path.join(CPANEL_TEMPLATE_PATH, f))]
 
     def cpanel_remove_home_script(self):
-        # Remove home script
-        # TODO: resort apps
+        # todo: remove when all clients don't have these files
+        # Remove home script of old format
         home_script = '<script src="/frontend/paper_lantern/KuberDock/assets/script/home.js"></script>'
         for template in ['paper_lantern/index.auto.tmpl', 'x3/index.html']:
             index = os.path.join(CPANEL_TEMPLATE_PATH, template)
@@ -250,6 +254,23 @@ class Plugin:
                 for i in lines:
                     if i.strip() != home_script:
                         f.write(i)
+                f.truncate()
+                f.close()
+
+    def cpanel_home_script(self, action):
+        # Remove home script of old format
+        for template, file in {'paper_lantern': 'paper_lantern/index.auto.tmpl', 'x3': 'x3/index.html'}.iteritems():
+            index = os.path.join(CPANEL_TEMPLATE_PATH, file)
+            home_script = '<script src="/frontend/' + template + '/KuberDock/assets/script/lib/home.' + template + '.js"></script>'
+            if os.path.exists(index):
+                f = open(index, 'r+')
+                lines = f.readlines()
+                f.seek(0)
+                for i in lines:
+                    if i.strip() != home_script:
+                        f.write(i)
+                if action == 'append':
+                    f.write(home_script + "\n")
                 f.truncate()
                 f.close()
 
