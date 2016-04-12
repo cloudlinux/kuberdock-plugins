@@ -50,17 +50,19 @@ class CL_Order extends CL_Model {
 
     /**
      * @param int $orderId
+     * @param bool $autoSetup
+     * @param bool $sendEmail
      * @return array
      * @throws \Exception
      */
-    public function acceptOrder($orderId)
+    public function acceptOrder($orderId, $autoSetup = true, $sendEmail = true)
     {
         $admin = \KuberDock_User::model()->getCurrentAdmin();
 
         $values = array(
             'orderid' => $orderId,
-            'autosetup' => true,
-            'sendemail' => true,
+            'autosetup' => $autoSetup,
+            'sendemail' => $sendEmail,
         );
 
         $results = localAPI('acceptorder', $values, $admin['username']);

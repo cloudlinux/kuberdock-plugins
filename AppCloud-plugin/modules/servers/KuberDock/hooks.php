@@ -914,7 +914,7 @@ function KuberDock_ClientAdd($params)
     // Add service for user created from KD
     $packageId = CL_Base::model()->getPost('package_id');
 
-    if($packageId) {
+    if (is_numeric($packageId)) {
         try {
             $data = KuberDock_Addon_Product::model()->loadByAttributes(array(
                 'kuber_product_id' => $packageId,
@@ -926,13 +926,15 @@ function KuberDock_ClientAdd($params)
 
             $data = current($data);
             $result = \base\models\CL_Order::model()->createOrder($params['userid'], $data['product_id']);
-            $user = KuberDock_User::model()->loadById($params['userid']);
-            $user->notes = json_encode(array(
-                'KDOrder' => $result['orderid'],
-                'KDService' => $result['productids'],
-                'KDUser' => isset($_POST['kduser']) ? $_POST['kduser'] : 'kduser',
-            ));
-            $user->save();
+            \base\models\CL_Order::model()->acceptOrder($result['orderid'], false);
+
+            // Update service
+            $service = KuberDock_Hosting::model()->loadById($result['productids']);
+            $service->username = CL_Base::model()->getPost('kduser', '');
+            $service->save();
+
+            system('php ' . KUBERDOCK_ROOT_DIR . '/bin/updateUser.php --service_id='. $service->id .
+                " > /dev/null 2>/dev/null &");
         } catch (Exception $e) {
             CException::log($e);
         }
@@ -964,7 +966,7 @@ function KuberDock_ClientLogin($params)
         $predefinedApp->save();
     }
 }
-add_hook('ClientLogin', 1, 'KuberDock_ClientLogin');
+//add_hook('ClientLogin', 1, 'KuberDock_ClientLogin');
 
 function KuberDock_AfterModuleCreate($params) {
     $userId = $params['params']['userid'];
