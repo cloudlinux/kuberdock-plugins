@@ -6,6 +6,7 @@ use warnings FATAL => 'all';
 use Whostmgr::ACLS;
 use Whostmgr::HTMLInterface;
 use Template;
+use CGI::Session;
 
 use KuberDock::PreApps;
 use KuberDock::KubeCliConf;
@@ -36,10 +37,13 @@ sub new {
 
     Whostmgr::ACLS::init_acls();
 
+    $self->{_session} = new CGI::Session("driver:File", undef, {Directory=>"/tmp"});
+    my $cookie = $cgi->cookie(CGISESSID => $self->{_session}->id);
+
     if(defined $form->{reqType} && $form->{reqType} eq 'json') {
         print "Content-type: application/json\n\n";
     } else {
-        print "Content-type: text/html\n\n";
+        print $self->{_cgi}->header( -cookie => $cookie );
         Whostmgr::HTMLInterface::defheader('KuberDock', '/cgi/KuberDock/assets/images/kuberdock.png', '/cgi/addon_kuberdock.cgi');
     }
 
@@ -80,6 +84,7 @@ sub indexAction() {
     my @packagesKubes;
     my $appName = $self->{_cgi}->param('app_name') || '';
     my $code = $self->{_cgi}->param('code');
+    my $success = '';
 
     eval {
         @packagesKubes = $api->getPackagesKubes();
@@ -99,6 +104,11 @@ sub indexAction() {
     my $version = `rpm -q kuberdock-plugin`;
     $version =~ s/(kuberdock-plugin-)//;
 
+    if ($self->{_session}->param('success')) {
+        $success = $self->{_session}->param('success');
+        $self->{_session}->param('success', '');
+    }
+
     my $vars = {
         apps => [$apps->getList()],
         packagesKubes => $json->encode(@packagesKubes, 1),
@@ -109,6 +119,7 @@ sub indexAction() {
         appName => $appName,
         activeTab => $activeTab,
         version => $version,
+        success => $success,
     };
 
     $self->render('index.tmpl', $vars);
@@ -175,11 +186,22 @@ sub createAppAction() {
         if($@) {
             KuberDock::Exception::throw($@);
             $self->indexAction();
-            #$self->render('pre-apps/form.tmpl', $vars);
             return 0;
         }
 
-        $yaml->{kuberdock}->{name} = $appName;
+        eval {
+            $yaml->{kuberdock}->{name} = $appName;
+        };
+
+        if ($@) {
+            if ($@ =~ "Can't use string") {
+                KuberDock::Exception::throw('Wrong YAML syntax.');
+            } else {
+                KuberDock::Exception::throw($@);
+            }
+            $self->indexAction();
+            return 0;
+        }
 
         $app->saveYaml('app.yaml', $yaml);
         my $template = KuberDock::KCLI::createTemplate($app->getFilePath('app.yaml'), $appName);
@@ -348,6 +370,7 @@ sub installAppAction() {
     my $apps = KuberDock::PreApps->new($self->{_cgi}, $self->{_cgi}->param('app'));
 
     $apps->install();
+    $self->{_session}->param('success', 'Application installed.');
     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#pre_apps');
 }
 
@@ -356,6 +379,7 @@ sub uninstallAppAction() {
     my $apps = KuberDock::PreApps->new($self->{_cgi}, $self->{_cgi}->param('app'));
 
     $apps->uninstall();
+    $self->{_session}->param('success', 'Application uninstalled.');
     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#pre_apps');
 }
 
@@ -364,6 +388,7 @@ sub deleteAppAction() {
     my $apps = KuberDock::PreApps->new($self->{_cgi}, $self->{_cgi}->param('app'));
 
     $apps->delete();
+    $self->{_session}->param('success', 'Application deleted.');
     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#pre_apps');
 }
 
@@ -397,19 +422,19 @@ sub setDefaultsAction {
     };
 
     $api->setDefaults($data);
-
+    $self->{_session}->param('success', 'Settings saved.');
     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#defaults');
 }
 
 sub updateKubecliAction {
-     my ($self) = @_;
-     my $cubeCliConf = KuberDock::KubeCliConf->new;
-     my $data = {
-         url => $self->{_cgi}->param('kubecli_url'),
-         user => $self->{_cgi}->param('kubecli_user'),
-         password => $self->{_cgi}->param('kubecli_password'),
-         registry => $self->{_cgi}->param('kubecli_registry'),
-     };
+    my ($self) = @_;
+    my $cubeCliConf = KuberDock::KubeCliConf->new;
+    my $data = {
+        url => $self->{_cgi}->param('kubecli_url'),
+        user => $self->{_cgi}->param('kubecli_user'),
+        password => $self->{_cgi}->param('kubecli_password'),
+        registry => $self->{_cgi}->param('kubecli_registry'),
+    };
 
     my $validator = KuberDock::Validate->new;
     my %rules = (
@@ -430,9 +455,10 @@ sub updateKubecliAction {
         exit 0;
     }
 
-     $cubeCliConf->save($data);
+    $cubeCliConf->save($data);
+    $self->{_session}->param('success', 'Connection to KuberDock server was successful. Settings saved.');
 
-     Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#kubecli');
+    Whostmgr::HTMLInterface::redirect('addon_kuberdock.cgi#kubecli');
 }
 
 1;
