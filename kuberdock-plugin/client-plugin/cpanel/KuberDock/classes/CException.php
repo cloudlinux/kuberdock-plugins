@@ -8,7 +8,7 @@ class CException extends Exception {
     /**
      *
      */
-    const LOG_FILE = '/var/log/kuberdock-plugin.log';
+    const LOG_FILE = '.kuberdock-plugin.log';
 
     /**
      * @param string $message
@@ -62,9 +62,11 @@ class CException extends Exception {
         }
 
         if(LOG_ERRORS) {
+            $path = $_ENV['HOME'] . DS . self::LOG_FILE;
             $data = sprintf("%s - %s Line: %d (%s) %s\n",
                 $date->format(DateTime::RFC1036), $filePath, $exception->getLine(), $parent, $exception->getMessage());
-            file_put_contents(self::LOG_FILE, $data, FILE_APPEND);
+            file_put_contents($path, $data, FILE_APPEND);
+            chmod($path, 0600);
         }
     }
 }

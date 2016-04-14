@@ -592,6 +592,7 @@ class KcliCommand extends Command {
         });
 
         file_put_contents(self::getUserConfigPath(), implode("\n", $data));
+        chmod(self::getUserConfigPath(), 0600);
     }
 
     /**
@@ -621,6 +622,7 @@ class KcliCommand extends Command {
 
         if(!file_exists($path)) {
             copy(self::GLOBAL_CONF_FILE, $path);
+            chmod($path, 0600);
         }
 
         return $path;
