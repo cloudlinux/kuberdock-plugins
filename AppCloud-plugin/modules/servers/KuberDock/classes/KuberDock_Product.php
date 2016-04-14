@@ -70,7 +70,6 @@ class KuberDock_Product extends CL_Product {
             'enableTrial' => array(
                 'FriendlyName' => 'Trial package',
                 'Type' => 'yesno',
-                'Default' => 'no',
                 'Description' => '&nbsp;',
             ),
             'trialTime' => array(
@@ -84,12 +83,13 @@ class KuberDock_Product extends CL_Product {
                 'FriendlyName' => 'Service payment type',
                 'Type' => 'dropdown',
                 'Options' => implode(',', $this->getPaymentTypes()),
-                'Default' => 'hourly',
+                'Default' => 'monthly',
                 'Description' => '',
             ),
             'debug' => array(
                 'FriendlyName' => 'Debug Mode',
                 'Type' => 'yesno',
+                'Default' => 'yes',
                 'Description' => 'Logs on "Module Log"',
             ),
             'priceIP' => array(
@@ -124,13 +124,12 @@ class KuberDock_Product extends CL_Product {
                 'FriendlyName' => 'Billing type',
                 'Type' => 'radio',
                 'Options' => 'PAYG,Fixed price',
-                'default' => 'Fixed price',
+                'Default' => 'Fixed price',
                 'Description' => '',
             ),
             'restrictedUser' => array(
                 'FriendlyName' => 'Restricted users',
                 'Type' => 'yesno',
-                'default' => 'no',
                 'Description' => '',
             ),
         );
