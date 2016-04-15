@@ -9,7 +9,8 @@ use base\CL_Query;
 use base\models\CL_Server;
 use base\models\CL_Hosting;
 
-class KuberDock_Server extends CL_Server {
+class KuberDock_Server extends CL_Server
+{
     /**
      * @var array
      */
@@ -165,21 +166,5 @@ class KuberDock_Server extends CL_Server {
     public function isKuberDock()
     {
         return $this->type == KUBERDOCK_MODULE_NAME;
-    }
-
-    /**
-     * Class loader
-     *
-     * @param string $className
-     * @return $this
-     */
-    public static function model($className = __CLASS__)
-    {
-        if(isset(self::$_models[$className])) {
-            return self::$_models[$className];
-        } else {
-            self::$_models[$className] = new $className;
-            return self::$_models[$className];
-        }
     }
 } 

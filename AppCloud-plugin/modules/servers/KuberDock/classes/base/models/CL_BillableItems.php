@@ -12,7 +12,8 @@ use base\models\CL_InvoiceItems;
  * Class CL_BillableItems
  * @package base\models
  */
-class CL_BillableItems extends CL_Model {
+class CL_BillableItems extends CL_Model
+{
     const TYPE = 'Item';
 
     const CYCLE_DAY = 'Days';
@@ -156,21 +157,5 @@ class CL_BillableItems extends CL_Model {
         }
 
         return $period;
-    }
-
-    /**
-     * Class loader
-     *
-     * @param string $className
-     * @return $this
-     */
-    public static function model($className = __CLASS__)
-    {
-        if(isset(self::$_models[$className])) {
-            return self::$_models[$className];
-        } else {
-            self::$_models[$className] = new $className;
-            return self::$_models[$className];
-        }
     }
 } 

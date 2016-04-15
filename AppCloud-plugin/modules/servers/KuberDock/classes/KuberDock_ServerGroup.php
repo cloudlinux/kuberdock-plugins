@@ -8,7 +8,8 @@ use Exception;
 use base\CL_Model;
 use base\CL_Query;
 
-class KuberDock_ServerGroup extends CL_Model {
+class KuberDock_ServerGroup extends CL_Model
+{
     const FILL_TYPE_ACTIVE = 2;
     const FILL_TYPE_LEAST_FULL = 1;
 
@@ -78,21 +79,5 @@ class KuberDock_ServerGroup extends CL_Model {
         }
 
         return KuberDock_Server::model()->loadByParams($server);
-    }
-
-    /**
-     * Class loader
-     *
-     * @param string $className
-     * @return $this
-     */
-    public static function model($className = __CLASS__)
-    {
-        if(isset(self::$_models[$className])) {
-            return self::$_models[$className];
-        } else {
-            self::$_models[$className] = new $className;
-            return self::$_models[$className];
-        }
     }
 } 

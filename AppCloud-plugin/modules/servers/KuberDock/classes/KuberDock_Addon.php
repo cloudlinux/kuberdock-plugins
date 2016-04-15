@@ -65,14 +65,10 @@ class KuberDock_Addon extends CL_Component {
                 UNIQUE KEY (product_id)
             ) ENGINE=INNODB');
 
-            $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_kubes` (
+            $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_kubes_templates` (
                 id INT AUTO_INCREMENT,
                 kuber_kube_id INT,
-                product_id INT,
-                kuber_product_id INT,
                 kube_name VARCHAR(255),
-                kube_weight DECIMAL(10,2),
-                kube_price DECIMAL(10,2),
                 kube_type TINYINT(1) DEFAULT 0,
                 cpu_limit DECIMAL(10,4),
                 memory_limit INT,
@@ -80,9 +76,21 @@ class KuberDock_Addon extends CL_Component {
                 traffic_limit DECIMAL(10,2),
                 server_id INT,
                 PRIMARY KEY (id),
-                INDEX (kuber_kube_id),
+                INDEX (kuber_kube_id)
+            ) ENGINE=INNODB');
+
+            $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_kubes_links` (
+                id INT AUTO_INCREMENT,
+                template_id INT,
+                product_id INT,
+                kuber_product_id INT,
+                kube_price DECIMAL(10,2),
+                PRIMARY KEY (id),
                 FOREIGN KEY (product_id)
                     REFERENCES KuberDock_products(product_id)
+                    ON UPDATE CASCADE ON DELETE CASCADE,
+                FOREIGN KEY (template_id)
+                    REFERENCES KuberDock_kubes_templates(id)
                     ON UPDATE CASCADE ON DELETE CASCADE
             ) ENGINE=INNODB');
 
@@ -181,7 +189,6 @@ class KuberDock_Addon extends CL_Component {
 
                 $api = $server->getApi();
                 $package = $api->getPackageById(self::KD_PACKAGE_ID)->getData();
-                $kubes = $api->getPackageKubes(self::KD_PACKAGE_ID)->getData();
 
                 $product->setConfigOption('enableTrial', 0);
                 $product->setConfigOption('firstDeposit', $package['first_deposit']);
@@ -198,26 +205,32 @@ class KuberDock_Addon extends CL_Component {
 
                 $db->query('INSERT INTO KuberDock_products VALUES (?, ?)', array($product->id, 0));
 
-                $KuberDock_kubes_sql = "INSERT INTO KuberDock_kubes (
-                        `kuber_kube_id`,`kuber_product_id`,`product_id`,`kube_name`,`kube_price`,
-                        `kube_type`,`cpu_limit`,
-                        `memory_limit`,`hdd_limit`,`traffic_limit`,`server_id`
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                $templates = $api->getKubes()->getData();
+                foreach ($templates as $template) {
+                    $db->query('INSERT INTO KuberDock_kubes_templates VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', array(
+                        NULL,
+                        $template['id'],
+                        $template['name'],
+                        \KuberDock_Addon::STANDARD_KUBE_TYPE,
+                        round($template['cpu'], 2),
+                        $template['memory'],
+                        $template['disk_space'],
+                        0,
+                        $server->id
+                    ));
+                }
 
+                $templates = \KuberDock_Addon_Kube_Template::model()->loadByAttributes();
+                $templates = \base\CL_Tools::getKeyAsField($templates, 'kuber_kube_id');
+                $kubes = $api->getPackageKubes(\KuberDock_Addon::KD_PACKAGE_ID)->getData();
                 foreach ($kubes as $kube) {
-                    $values = array(self::STANDARD_KUBE_TYPE, round($kube['cpu'], 4), $kube['memory'], $kube['disk_space'], 0, $server->id);
-
-                    $db->query($KuberDock_kubes_sql, array_merge(
-                            array($kube['id'], NULL, NULL, $kube['name'], NULL),
-                            $values
-                        )
-                    );
-
-                    $db->query($KuberDock_kubes_sql, array_merge(
-                            array($kube['id'], self::KD_PACKAGE_ID, $product->id, $kube['name'], $kube['kube_price']),
-                            $values
-                        )
-                    );
+                    $db->query('INSERT INTO KuberDock_kubes_links VALUES (?, ?, ?, ?, ?)', array(
+                        NULL,
+                        $templates[$kube['id']]['id'],
+                        $product->id,
+                        \KuberDock_Addon::KD_PACKAGE_ID,
+                        $kube['kube_price']
+                    ));
                 }
             }
 
@@ -226,7 +239,9 @@ class KuberDock_Addon extends CL_Component {
         } catch(Exception $e) {
             $db->query('DROP TABLE IF EXISTS `KuberDock_preapps`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_states`');
-            $db->query('DROP TABLE IF EXISTS `KuberDock_kubes`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_kubes`'); // todo: remove deprecated
+            $db->query('DROP TABLE IF EXISTS `KuberDock_kubes_links`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_kubes_templates`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_trial`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_products`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_price_changes`');
@@ -244,52 +259,37 @@ class KuberDock_Addon extends CL_Component {
         $db = CL_Query::model();
 
         try {
-            $productKubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NOT NULL');
+            $productKubes = KuberDock_Addon_Kube_Link::model()->loadByAttributes(array(), 'kuber_product_id != 0');
             foreach ($productKubes as $row) {
-                if ($row['kuber_product_id'] == 0) continue;
-
                 try {
-                    KuberDock_Addon_Kube::model()->loadByParams($row)->deleteKubeFromPackage();
-                } catch(Exception $e) {
-                    // pass
-                }
+                    KuberDock_Addon_Kube_Link::model()->loadByParams($row)->deleteKubeFromPackage();
+                } catch(Exception $e) {}
             }
-        } catch(Exception $e) {
-            // pass
-        }
+        } catch(Exception $e) {}
 
         try {
-            $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(), 'product_id IS NULL');
+            $kubes = KuberDock_Addon_Kube_Template::model()->loadByAttributes(array(), 'kube_type != 0');
             foreach($kubes as $row) {
-                if($row['kuber_kube_id'] < 3) continue;
-
                 try {
-                    KuberDock_Addon_Kube::model()->loadByParams($row)->deleteKube();
-                } catch(Exception $e) {
-                    // pass
-                }
+                    KuberDock_Addon_Kube_Template::model()->loadByParams($row)->deleteKube();
+                } catch(Exception $e) {}
             }
-        } catch(Exception $e) {
-            // pass
-        }
+        } catch(Exception $e) {}
 
         try {
-            $products = KuberDock_Addon_Product::model()->loadByAttributes();
+            $products = KuberDock_Addon_Product::model()->loadByAttributes(array(), 'kuber_product_id != 0');
             foreach($products as $row) {
-                if($row['kuber_product_id'] == 0) continue;
                 try {
                     KuberDock_Addon_Product::model()->loadByParams($row)->deletePackage();
-                } catch(Exception $e) {
-                    // pass
-                }
+                } catch(Exception $e) {}
             }
-        } catch(Exception $e) {
-            // pass
-        }
+        } catch(Exception $e) {}
 
         $db->query('DROP TABLE IF EXISTS `KuberDock_preapps`');
         $db->query('DROP TABLE IF EXISTS `KuberDock_states`');
-        $db->query('DROP TABLE IF EXISTS `KuberDock_kubes`');
+        $db->query('DROP TABLE IF EXISTS `KuberDock_kubes`'); // todo: remove deprecated
+        $db->query('DROP TABLE IF EXISTS `KuberDock_kubes_links`');
+        $db->query('DROP TABLE IF EXISTS `KuberDock_kubes_templates`');
         $db->query('DROP TABLE IF EXISTS `KuberDock_trial`');
         $db->query('DROP TABLE IF EXISTS `KuberDock_products`');
         $db->query('DROP TABLE IF EXISTS `KuberDock_price_changes`');
@@ -305,21 +305,5 @@ class KuberDock_Addon extends CL_Component {
         KuberDock_Product::model()->deleteByAttributes(array('name' => self::STANDARD_PRODUCT, 'servertype' => KUBERDOCK_MODULE_NAME));
 
         \base\models\CL_Configuration::appendAPIAllowedIPs('KuberDock');
-    }
-
-    /**
-     * Class loader
-     *
-     * @param string $className
-     * @return $this
-     */
-    public static function model($className = __CLASS__)
-    {
-        if(isset(self::$_models[$className])) {
-            return self::$_models[$className];
-        } else {
-            self::$_models[$className] = new $className;
-            return self::$_models[$className];
-        }
     }
 }

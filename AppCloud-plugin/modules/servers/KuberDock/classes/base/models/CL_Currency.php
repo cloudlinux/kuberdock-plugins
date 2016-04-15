@@ -10,7 +10,8 @@ use Exception;
 use KuberDock_User;
 use base\CL_Model;
 
-class CL_Currency extends CL_Model {
+class CL_Currency extends CL_Model
+{
     const FORMAT_1 = 1;      // 1234.56
     const FORMAT_2 = 2;      // 1,234.56
     const FORMAT_3 = 3;      // 1.234,56
@@ -97,21 +98,5 @@ class CL_Currency extends CL_Model {
         }
 
         return $results['paymentmethods']['paymentmethod'];
-    }
-
-    /**
-     * Class loader
-     *
-     * @param string $className
-     * @return CL_Currency
-     */
-    public static function model($className = __CLASS__)
-    {
-        if(isset(self::$_models[$className])) {
-            return self::$_models[$className];
-        } else {
-            self::$_models[$className] = new $className;
-            return self::$_models[$className];
-        }
     }
 } 

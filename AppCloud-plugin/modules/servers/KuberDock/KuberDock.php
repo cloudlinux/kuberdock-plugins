@@ -147,9 +147,7 @@ function KuberDock_AdminServicesTabFields($params) {
         $productStatistic = sprintf('<div class="error">%s</div>', $e->getMessage());
     }
 
-    $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(
-        'product_id' => $product->id,
-    ));
+    $kubes = KuberDock_Addon_Kube_Link::loadByProductId($product->id);
 
     $productInfo = $view->renderPartial('admin/product_info', array(
         'currency' => $currency,
@@ -188,9 +186,7 @@ function KuberDock_ClientArea($params) {
         $trialExpired = $regDate->modify('+'.$trialTime.' day')->format('Y-m-d');
     }
 
-    $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(
-        'product_id' => $product->pid,
-    ));
+    $kubes = KuberDock_Addon_Kube_Link::loadByProductId($product->pid);
 
     try {
         $pods = $service->getApi()->getPods()->getData();

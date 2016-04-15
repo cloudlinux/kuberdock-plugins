@@ -8,7 +8,8 @@ use exceptions\CException;
 /**
  * Class KuberDock_Addon_Items
  */
-class KuberDock_Addon_Items extends CL_Model {
+class KuberDock_Addon_Items extends CL_Model
+{
     const STATUS_DELETED = 'Deleted';
 
     /**
@@ -73,21 +74,5 @@ class KuberDock_Addon_Items extends CL_Model {
     public function isPayed()
     {
         return $this->status == CL_Invoice::STATUS_PAID;
-    }
-
-    /**
-     * Class loader
-     *
-     * @param string $className
-     * @return $this
-     */
-    public static function model($className = __CLASS__)
-    {
-        if(isset(self::$_models[$className])) {
-            return self::$_models[$className];
-        } else {
-            self::$_models[$className] = new $className;
-            return self::$_models[$className];
-        }
     }
 } 

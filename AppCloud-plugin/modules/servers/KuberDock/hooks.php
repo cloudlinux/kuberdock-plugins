@@ -72,22 +72,11 @@ function KuberDock_ProductEdit($params)
             }
 
             $product->save();
-            
-            KuberDock_Addon_Kube::model()->updateByAttributes(array(
-                'server_id' => $product->getServer()->id,
-            ), array('product_id' => $product->id));
 
-            $addonProduct = KuberDock_Addon_Product::model();
-            $addonProduct->updateKubePricing($params['pid']);
+            KuberDock_Addon_Product::model()->updateKubePricing($params['pid']);
 
             if($product->isTrial()) {
-                $server = $product->getServer();
-                $standardKube = KuberDock_Addon_Kube::model()->getStandardKube($product->id, $server->id);
-                if(!$standardKube) {
-                    KuberDock_Addon_Kube::model()->createStandardKube($product->id, $server->id);
-                    $product->hidden = 0;
-                    $product->save();
-                }
+                $product->createDefaultKubeIfNeeded();
             }
         } catch(Exception $e) {
             CException::log($e);
@@ -454,9 +443,7 @@ function KuberDock_ClientAreaPage($params)
         if(isset($values['productinfo']) && isset($products[$values['productinfo']['pid']])) {
             $product = KuberDock_Product::model()->loadById($values['productinfo']['pid']);
             $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-            $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(
-                'product_id' => $values['productinfo']['pid'],
-            ));
+            $kubes = KuberDock_Addon_Kube_Link::loadByProductId($values['productinfo']['pid']);
 
             if ($predefinedApp) {
                 $values['productinfo']['name'] = ucfirst($predefinedApp->getName());

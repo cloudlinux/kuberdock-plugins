@@ -98,7 +98,7 @@ class KuberDock_Addon_Product extends CL_Model {
         // Remove KuberDock packages\kubes
         $kubes = $product->getKubes();
         foreach($kubes as $row) {
-            KuberDock_Addon_Kube::model()->loadByParams($row)->deleteKubeFromPackage();
+            KuberDock_Addon_Kube_Link::model()->loadByParams($row)->deleteKubeFromPackage();
         }
         // Delete package
         $product->getApi()->deletePackage($addonProduct->kuber_product_id);
@@ -233,22 +233,6 @@ class KuberDock_Addon_Product extends CL_Model {
             return KuberDock_Product::model()->loadById($this->product_id)->getApi();
         } else {
             return KuberDock_Server::model()->getActive()->getApi();
-        }
-    }
-
-    /**
-     * Class loader
-     *
-     * @param string $className
-     * @return $this
-     */
-    public static function model($className = __CLASS__)
-    {
-        if(isset(self::$_models[$className])) {
-            return self::$_models[$className];
-        } else {
-            self::$_models[$className] = new $className;
-            return self::$_models[$className];
         }
     }
 } 

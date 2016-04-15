@@ -11,7 +11,8 @@ use \base\db_drivers\CL_MySQLi;
 use \base\db_drivers\CL_PDO;
 use \base\interfaces\CL_iDBDriver;
 
-class CL_Query extends CL_Base implements CL_iDBDriver {
+class CL_Query extends CL_Base implements CL_iDBDriver
+{
     /**
      * @object CL_MySQL | CL_MySQLi
      */
@@ -57,21 +58,5 @@ class CL_Query extends CL_Base implements CL_iDBDriver {
     public function getLastId()
     {
         return $this->driver->getLastId();
-    }
-
-    /**
-     * Class loader
-     *
-     * @param string $className
-     * @return $this
-     */
-    public static function model($className = __CLASS__)
-    {
-        if(isset(self::$_models[$className])) {
-            return self::$_models[$className];
-        } else {
-            self::$_models[$className] = new $className;
-            return self::$_models[$className];
-        }
     }
 } 

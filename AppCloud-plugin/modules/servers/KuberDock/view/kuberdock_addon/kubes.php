@@ -1,10 +1,3 @@
-<?php
-/**
- * @var $kubes \KuberDock_Addon_Kube[]
- * @var array $brokenPackages
- */
-?>
-
 <div class="container-fluid">
     <div class="row offset-top">
         <p class="text-right">

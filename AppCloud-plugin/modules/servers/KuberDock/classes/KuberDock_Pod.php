@@ -39,9 +39,7 @@ class KuberDock_Pod {
     public function __construct(\KuberDock_Hosting $service)
     {
         $this->api = $service->getApi();
-        $this->kubes = \KuberDock_Addon_Kube::model()->loadByAttributes(array(
-            'product_id' => $service->packageid,
-        ));
+        $this->kubes = \KuberDock_Addon_Kube_Link::loadByProductId($service->packageid);
         $this->product = KuberDock_Product::model()->loadById($service->packageid);
     }
 
