@@ -14,7 +14,7 @@ class Template
      */
     public $data = array();
     /**
-     * @var KuberDock_CPanel
+     * @var KuberDock_cPanel
      */
     private $panel;
     /**
@@ -23,9 +23,9 @@ class Template
     private $id;
 
     /**
-     * @param KuberDock_CPanel $panel
+     * @param KuberDock_cPanel $panel
      */
-    public function __construct(KuberDock_CPanel $panel)
+    public function __construct(KuberDock_cPanel $panel)
     {
         $this->panel = $panel;
     }
@@ -38,7 +38,7 @@ class Template
     public function getById($id)
     {
         $this->id = $id;
-        $template = $this->panel->getCommand()->getYAMLTemplate($id);
+        $template = $this->panel->getAdminApi()->getTemplate($id);
 
         if(!$template) {
             throw new CException('Template not exists');
@@ -88,7 +88,7 @@ class Template
     public function getAll()
     {
         $data = array();
-        $templates = $this->panel->getCommand()->getYAMLTemplates();
+        $templates = $this->panel->getAdminApi()->getTemplates('cpanel');
 
         foreach($templates as &$row) {
             $row['template'] = Spyc::YAMLLoadString($row['template']);

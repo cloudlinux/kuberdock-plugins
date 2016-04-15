@@ -274,7 +274,13 @@ class Pod {
      */
     public function getImageInfo($image)
     {
-        $imageInfo = $this->command->getImage($image);
+        $panel = Base::model()->getPanel();
+
+        if ($panel->isUserExists()) {
+            $imageInfo = $this->command->getImage($image);
+        } else {
+            $imageInfo = $panel->getAdminApi()->getImage($image);
+        }
 
         foreach($imageInfo as $k => $row) {
             $methodName = 'parse'.ucfirst($k);
@@ -287,18 +293,6 @@ class Pod {
         }
 
         return $imageData;
-    }
-
-    /**
-     * @param string $image
-     * @return string
-     */
-    public function getImageUrl($image)
-    {
-        $data = $this->command->getImageData($image);
-
-        return sprintf('%s/%s/%s', $this->command->getRegistryUrl(),
-            isset($data['is_official']) && $data['is_official'] ? '_' : 'u', $image);
     }
 
     /**
@@ -481,21 +475,18 @@ class Pod {
     public function create()
     {
         // Create order with kuberdock product
-        if(!Base::model()->getPanel()->isDefaultUser()) {
+        if (Base::model()->getPanel()->isUserExists()) {
             return $this;
         }
 
-        if(!$this->panel->isNoBilling()) {
-            $service = $this->panel->getApi()->order($this->panel->user, $this->panel->domain, $this->packageId);
-            $data = current($service);
-            $command = new KcliCommand('', '', $data['token']);
-            $command->setConfig();
+        if (!$this->panel->isNoBilling()) {
+            $this->panel->getAdminApi()->order($this->panel->user, $this->panel->domain, $this->packageId);
         } else {
             $product = $this->panel->billing->getProductByKuberId($this->packageId);
             $this->panel->createUser($product['name']);
         }
 
-        Base::model()->setPanel(new KuberDock_CPanel());
+        Base::model()->unsetPanel();
 
         return $this;
     }

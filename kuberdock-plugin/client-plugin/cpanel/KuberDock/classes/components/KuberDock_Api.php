@@ -73,17 +73,8 @@ class KuberDock_Api {
      */
     protected $response;
 
-    /**
-     * @param bool $debug
-     */
-    public function __construct($debug = false)
+    public function __construct()
     {
-        $config = KcliCommand::getConfig();
-        $this->username = isset($config['user']) ? $config['user'] : '';
-        $this->password = isset($config['password']) ? $config['password'] : '';
-        $this->token = isset($config['token']) ? $config['token'] : '';
-        $this->debug = $debug;
-        $this->serverUrl = $config['url'];
         $this->dataType = self::DATA_TYPE_JSON;
     }
 
@@ -166,6 +157,22 @@ class KuberDock_Api {
         return $this->arguments;
     }
 
+    public function initUser()
+    {
+        $config = KcliCommand::getConfig();
+        $this->token = isset($config['token']) ? $config['token'] : '';
+        $this->serverUrl = $config['url'];
+    }
+
+    public function initAdmin($username = '', $password = '', $token = '')
+    {
+        $this->username = $username;
+        $this->password = $password;
+        $this->token = $token;
+        $config = KcliCommand::getConfig();
+        $this->serverUrl = $config['url'];
+    }
+
     /**
      * @param array $params
      * @param string $type
@@ -217,6 +224,7 @@ class KuberDock_Api {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         $response = curl_exec($ch);
         $status = curl_getinfo($ch);
 
@@ -336,35 +344,6 @@ class KuberDock_Api {
     }
 
     /**
-     * @return array
-     */
-    public function getNoBillingInfo()
-    {
-        $data = array(
-            'currency' => array(
-                'prefix' => '$',
-                'suffix' => ' USD',
-            ),
-            'products' => array(
-                0 => array(
-
-                ),
-            ),
-            'userServices' => array(
-                0 => array(
-
-                ),
-            ),
-            'default' => array(
-                'kubeType' => $this->getDefaultKubeType(),
-                'packageId' => $this->getDefaultPackageId(),
-            ),
-        );
-
-        return $data;
-    }
-
-    /**
      * @param $user
      * @param $domain
      * @param $packageId
@@ -386,7 +365,11 @@ class KuberDock_Api {
             throw new CException($response->getMessage());
         }
 
-        return $response->getData();
+        $data = current($response->getData());
+        $command = new KcliCommand('', '', $data['token']);
+        $command->setConfig();
+
+        return $data;
     }
 
     /**
@@ -507,5 +490,71 @@ class KuberDock_Api {
         $data['containers'] = $containers;
 
         Base::model()->getPanel()->updatePod($data);
+    }
+
+    public function getTemplates($origin, $page = 1)
+    {
+        $this->url = $this->serverUrl . '/api/predefined-apps';
+        $response = $this->call(array(
+            'page' => $page,
+        ), 'GET');
+
+        if(!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return array_filter($response->getData(), function ($e) use ($origin) {
+            if ($e['origin'] == $origin) {
+                return true;
+            }
+        });
+    }
+
+    public function getTemplate($id)
+    {
+        $this->url = $this->serverUrl . '/api/predefined-apps/' . $id;
+        $response = $this->call(array(), 'GET');
+
+        if(!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->getData();
+    }
+
+    public function getImages($name, $page = 1)
+    {
+        if (!$name) {
+            return array();
+        }
+
+        $registryUrl = Base::model()->getPanel()->getCommand()->getRegistryUrl();
+
+        $this->url = $this->serverUrl . '/api/images';
+        $response = $this->call(array(
+            'searchkey' => $name,
+            'page' => $page,
+            'url' => $registryUrl,
+        ), 'GET');
+
+        if(!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->getData();
+    }
+
+    public function getImage($name)
+    {
+        $this->url = $this->serverUrl . '/api/images/new';
+        $response = $this->call(array(
+            'image' => $name,
+        ), 'POST');
+
+        if(!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->getData();
     }
 }

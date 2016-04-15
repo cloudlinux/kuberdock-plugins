@@ -83,11 +83,11 @@ class KuberDock_View {
         $layoutPath = $this->layoutDirectory . DS . $this->layout . '.php';
 
         if(!file_exists($viewPath)) {
-            throw new CException('View file not founded: '. $view);
+            throw new CException('View file not found: '. $view);
         }
 
         if(!file_exists($layoutPath)) {
-            throw new CException('Layout file not founded: '. $this->layout);
+            throw new CException('Layout file not found: '. $this->layout);
         }
 
         ob_start();
@@ -118,7 +118,7 @@ class KuberDock_View {
         $viewPath = $this->viewDirectory . DS . $view . '.php';
 
         if(!file_exists($viewPath)) {
-            throw new CException('View file not founded');
+            throw new CException('View file not found');
         }
 
         ob_start();

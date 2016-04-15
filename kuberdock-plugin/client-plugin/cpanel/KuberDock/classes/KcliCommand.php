@@ -12,10 +12,6 @@ class KcliCommand extends Command {
      * Command path
      */
     const COMMAND_PATH = '/usr/bin/kcli';
-    /**
-     *
-     */
-    const DEFAULT_USER = 'hostingPanel';
 
     /**
      * @var string
@@ -463,9 +459,7 @@ class KcliCommand extends Command {
                 'list',
             ));
         } catch(CException $e) {
-            if(stripos($e->getMessage(), 'hostingPanel') !== false) {
-                return array();
-            }
+            return array();
         }
     }
 
@@ -558,10 +552,6 @@ class KcliCommand extends Command {
         $globalConfig = self::getConfig(true);
         $config = self::getConfig();
 
-        if(isset($config['token']) && $this->token == $config['token'] && $globalConfig['url'] == $config['url']) {
-            return;
-        }
-
         $newConfig = array(
             'global' => array(
                 'url' => $globalConfig['url'],
@@ -573,12 +563,6 @@ class KcliCommand extends Command {
 
         if($this->token) {
             $newConfig['defaults']['token'] = $this->token;
-        } elseif(isset($config['user']) && isset($config['password'])) {
-            $newConfig['defaults']['user'] = $config['user'];
-            $newConfig['defaults']['password'] = $config['password'];
-        } else {
-            $newConfig['defaults']['user'] = self::DEFAULT_USER;
-            $newConfig['defaults']['password'] = self::DEFAULT_USER;
         }
 
         $data = array();
@@ -611,7 +595,7 @@ class KcliCommand extends Command {
     static private function  getUserConfigPath($global = false)
     {
         if(!file_exists(self::GLOBAL_CONF_FILE)) {
-            throw new CException('Global config file not founded');
+            throw new CException('Global config file not found');
         }
 
         if($global) {

@@ -1,7 +1,7 @@
 <div class="search-content">
 <?php if(empty($images)):?>
     <?php if($search):?>
-    <h2>Images not founded</h2>
+    <h2>Images not found</h2>
     <?php endif;?>
 <?php else:?>
     <div class="row">

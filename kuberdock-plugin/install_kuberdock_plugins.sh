@@ -180,6 +180,10 @@ function upgrade
     if [ -e /var/log/kuberdock-plugin.log ]; then
         /bin/rm -f /var/log/kuberdock-plugin.log
     fi
+
+    if [ -e /root/.kubecli.conf ]; then
+        /bin/chmod 600 /root/.kubecli.conf
+    fi
     
     echo "Plugin upgraded"
 }

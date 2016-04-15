@@ -64,7 +64,7 @@ class AppController extends KuberDock_Controller
                         $pod->panel->getURL(), $templateId, $app->template->getPodName(), 1);
 
                     if(Base::model()->getPanel()->billing->isFixedPrice($app->getPackageId())) {
-                        Base::model()->getPanel()->getApi()->updatePod($pod->id, array(
+                        Base::model()->getPanel()->getAdminApi()->updatePod($pod->id, array(
                             'status' => 'unpaid',
                         ));
                         $response = $pod->order($link);

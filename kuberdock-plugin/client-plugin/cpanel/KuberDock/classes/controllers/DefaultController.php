@@ -77,8 +77,13 @@ class DefaultController extends KuberDock_Controller {
 
         try {
             $pod = new Pod();
-            $templates = $pod->command->getYAMLTemplates();
-            $images = $pod->searchImages($search, $page);
+            $panel = Base::model()->getPanel();
+            $templates = $panel->getAdminApi()->getTemplates('cpanel');
+            if ($panel->isUserExists()) {
+                $images = $pod->searchImages($search, $page);
+            } else {
+                $images = $panel->getAdminApi()->getImages($search, $page);
+            }
             $registryUrl = $pod->command->getRegistryUrl();
         } catch(CException $e) {
             $images = $templates = array();
@@ -149,7 +154,7 @@ class DefaultController extends KuberDock_Controller {
                 $pod = $pod->loadByName($pod->name);
 
                 if(Base::model()->getPanel()->billing->isFixedPrice($packageId)) {
-                    Base::model()->getPanel()->getApi()->updatePod($pod->id, array(
+                    Base::model()->getPanel()->getAdminApi()->updatePod($pod->id, array(
                         'status' => 'unpaid',
                     ));
                     $response = $pod->order($pod->getLink());

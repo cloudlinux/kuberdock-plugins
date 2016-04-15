@@ -63,6 +63,7 @@ sub save {
         OUTPUT => KUBE_CLI_CONF_ETC_FILE,
     })->process('kubecli/template_etc.tmpl', $data);
 
+    chmod 0600, KUBE_CLI_CONF_ROOT_FILE;
     KuberDock::KCLI::setResponseType(1);
     KuberDock::KCLI::registerPanel();
 }
