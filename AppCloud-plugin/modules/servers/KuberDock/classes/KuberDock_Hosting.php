@@ -12,7 +12,8 @@ use base\models\CL_Hosting;
 use components\KuberDock_Units;
 use components\KuberDock_InvoiceItem;
 
-class KuberDock_Hosting extends CL_Hosting {
+class KuberDock_Hosting extends CL_Hosting
+{
     /**
      * Delete pod sign
      */
@@ -561,21 +562,5 @@ class KuberDock_Hosting extends CL_Hosting {
     private function isPodDeleted($name)
     {
         return strpos($name, self::DELETED_POD_SIGN) !== false;
-    }
-
-    /**
-     * Class loader
-     *
-     * @param string $className
-     * @return KuberDock_Hosting
-     */
-    public static function model($className = __CLASS__)
-    {
-        if(isset(self::$_models[$className])) {
-            return self::$_models[$className];
-        } else {
-            self::$_models[$className] = new $className;
-            return self::$_models[$className];
-        }
     }
 } 

@@ -330,9 +330,7 @@ class KuberDock_Product extends CL_Product {
      */
     public function getKubes()
     {
-        return KuberDock_Addon_Kube::model()->loadByAttributes(array(
-            'product_id' => $this->id,
-        ));
+        return KuberDock_Addon_Kube_Link::loadByProductId($this->id);
     }
 
     /**
@@ -341,11 +339,7 @@ class KuberDock_Product extends CL_Product {
     public function getDescription()
     {
         $description = array();
-        $id = $this->pid ? $this->pid : $this->id;
         $currency = CL_Currency::model()->getDefaultCurrency();
-        $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(
-            'product_id' => $id,
-        ));
 
         if($this->getConfigOption('enableTrial')) {
             $description['Free Trial'] = sprintf('<strong>%s days</strong><br/>',$this->getConfigOption('trialTime'));
@@ -363,7 +357,7 @@ class KuberDock_Product extends CL_Product {
             $description['Additional Traffic'] = $this->formatFeature($priceOT, '1 ' . KuberDock_Units::getTrafficUnits());
         }
 
-        foreach($kubes as $kube) {
+        foreach($this->getKubes() as $kube) {
             if (!$kube['kube_price']) continue;
             $description['Kube '.$kube['kube_name']] = vsprintf(
                 '<strong>%s / %s</strong><br/><em>CPU %s, Memory %s, <br/>Disk Usage %s, Traffic %s</em>',
@@ -627,7 +621,7 @@ class KuberDock_Product extends CL_Product {
     /**
      *
      */
-    public function hide()
+    public function hideOrShow()
     {
         if($this->getKubes()) {
             $this->hidden = 0;
@@ -724,6 +718,30 @@ class KuberDock_Product extends CL_Product {
         }
     }
 
+    public function createDefaultKubeIfNeeded()
+    {
+        $defaultTemplate = KuberDock_Addon_Kube_Template::getDefaultTemplate();
+
+        $defaultKube =  KuberDock_Addon_Kube_Link::model()->loadByAttributes(array(
+            'product_id' => $this->id,
+            'template_id' => $defaultTemplate['id'],
+        ));
+
+        if(!$defaultKube) {
+            $addonProduct = KuberDock_Addon_Product::model()->loadById($this->id);
+            $kube = KuberDock_Addon_Kube_Link::model()->loadByParams(array(
+                'template_id' => $defaultTemplate['id'],
+                'product_id' => $this->id,
+                'kuber_product_id' => $addonProduct->kuber_product_id,
+                'kube_price' => '0.00',
+            ));
+
+            $kube->save();
+
+            $this->hideOrShow();
+        }
+    }
+
     /**
      * @param string $url
      */
@@ -748,22 +766,6 @@ SCRIPT;
             return \KuberDock_User::ROLE_RESTRICTED_USER;
         } else {
             return \KuberDock_User::ROLE_USER;
-        }
-    }
-
-    /**
-     * Class loader
-     *
-     * @param string $className
-     * @return $this
-     */
-    public static function model($className = __CLASS__)
-    {
-        if(isset(self::$_models[$className])) {
-            return self::$_models[$className];
-        } else {
-            self::$_models[$className] = new $className;
-            return self::$_models[$className];
         }
     }
 } 

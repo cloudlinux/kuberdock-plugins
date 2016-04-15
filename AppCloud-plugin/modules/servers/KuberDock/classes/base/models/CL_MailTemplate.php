@@ -10,7 +10,8 @@ use Exception;
 use base\CL_Model;
 use base\CL_View;
 
-class CL_MailTemplate extends CL_Model {
+class CL_MailTemplate extends CL_Model
+{
     const TYPE_PRODUCT = 'product';
     const TYPE_DOMAIN = 'domain';
     const TYPE_GENERAL = 'general';
@@ -110,22 +111,6 @@ class CL_MailTemplate extends CL_Model {
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
-        }
-    }
-
-    /**
-     * Class loader
-     *
-     * @param string $className
-     * @return $this
-     */
-    public static function model($className = __CLASS__)
-    {
-        if(isset(self::$_models[$className])) {
-            return self::$_models[$className];
-        } else {
-            self::$_models[$className] = new $className;
-            return self::$_models[$className];
         }
     }
 } 

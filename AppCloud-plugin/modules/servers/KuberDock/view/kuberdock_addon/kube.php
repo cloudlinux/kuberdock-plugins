@@ -28,13 +28,15 @@
                         <?php echo $package['name']; ?> (<?php echo $package['kuber_product_id']; ?>)
                     </td>
                     <td class="right col-md-5">
-                        <form class="price_package_form" data-id="<?php echo $package['id']; ?>" method="post">
+                        <form class="price_package_form" method="post">
                             <?php echo \base\CL_Csrf::render(); ?>
                             <input data-prev="<?php echo $package['kube_price']; ?>" name="kube_price" type="text" value="<?php echo $package['kube_price']; ?>">
-                            <input type="hidden" name="id" value="<?php echo $package['id']; ?>">
+                            <input type="hidden" name="id" value="<?php echo $package['link_id']; ?>">
                             <input type="hidden" name="product_id" value="<?php echo $package['product_id']; ?>">
                             <input type="hidden" name="kuber_kube_id" value="<?php echo $kube['kuber_kube_id'];?>">
-                            <span id="form_buttons_<?php echo $package['id']; ?>" class="hidden">
+                            <input type="hidden" name="kuber_product_id" value="<?php echo $package['kuber_product_id'];?>">
+                            <input type="hidden" name="template_id" value="<?php echo $kube['id'];?>">
+                            <span class="hidden">
                                 <button type="submit" class="btn btn-success btn-xs">Save</button>
                                 <button type="cancel" class="btn btn-danger btn-xs cancel_button">Cancel</button>
                             </span>

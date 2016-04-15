@@ -9,16 +9,14 @@ namespace components;
 use Exception;
 use \base\CL_Query;
 use \base\CL_Component;
-use KuberDock_Addon_Kube;
-use KuberDock_Server;
-use KuberDock_Product;
 
 /**
  * Class KuberDock_Migration
  * @package components
  * @deprecated
  */
-class KuberDock_Migration extends CL_Component {
+class KuberDock_Migration extends CL_Component
+{
     /**
      * @var CL_Query
      */
@@ -36,7 +34,6 @@ class KuberDock_Migration extends CL_Component {
         }
 
         try {
-            //$this->addServerIdColumn();
             $this->addUserIdColumn();
             $this->addMigrationTable();
         } catch(Exception $e) {
@@ -67,36 +64,6 @@ class KuberDock_Migration extends CL_Component {
         }
 
         $this->_db->query('ALTER TABLE `KuberDock_preapps` ADD COLUMN user_id INT NULL');
-    }
-
-    /**
-     * Add server_id column to table `KuberDock_products`
-     */
-    public function addServerIdColumn()
-    {
-        if($this->fieldExist('KuberDock_kubes', 'server_id')) {
-           return;
-        }
-
-        $this->_db->query('ALTER TABLE `KuberDock_kubes` ADD COLUMN server_id INT NOT NULL');
-        $addonKubes = KuberDock_Addon_Kube::model()->loadByAttributes();
-
-        foreach($addonKubes as $row) {
-            if($row['product_id']) {
-                $server = KuberDock_Product::model()->loadById($row['product_id'])->getServer();
-            } else {
-                $server = KuberDock_Server::model()->getActive();
-            }
-
-            KuberDock_Addon_Kube::model()->updateById($row['id'], array('server_id' => $server->id));
-        }
-
-        // Add standard kube
-        $db = CL_Query::model();
-        $db->query("INSERT INTO KuberDock_kubes (`kuber_kube_id`, `kuber_product_id`, `product_id`, `kube_name`,
-                `kube_price`, `kube_type`, `cpu_limit`, `memory_limit`, `hdd_limit`, `traffic_limit`, `server_id`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            array(0, null, null, 'Standard', null, 0, 0.01, 64, 1, 0, KuberDock_Server::model()->getActive()->id));
     }
 
     public function tableExist($table)
@@ -131,21 +98,5 @@ class KuberDock_Migration extends CL_Component {
     {
         return $this->_db->query(sprintf("SELECT * FROM `tbladdonmodules` WHERE module='%s'", KUBERDOCK_MODULE_NAME))
             ->getRow();
-    }
-
-    /**
-     * Class loader
-     *
-     * @param string $className
-     * @return $this
-     */
-    public static function model($className = __CLASS__)
-    {
-        if(isset(self::$_models[$className])) {
-            return self::$_models[$className];
-        } else {
-            self::$_models[$className] = new $className;
-            return self::$_models[$className];
-        }
     }
 } 

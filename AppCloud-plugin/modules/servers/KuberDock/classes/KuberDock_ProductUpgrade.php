@@ -7,7 +7,8 @@ use base\CL_Tools;
 use exceptions\CException;
 use components\KuberDock_InvoiceItem;
 
-class KuberDock_ProductUpgrade extends CL_ProductUpgrade {
+class KuberDock_ProductUpgrade extends CL_ProductUpgrade
+{
     /**
      *
      */
@@ -104,22 +105,6 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade {
         if($days) {
             $sum = $states->total_sum / $product->getPeriodInDays() * $days;
             CL_Invoice::model()->addCredit($service->userid, $sum, 'Adding funds for package change');
-        }
-    }
-
-    /**
-     * Class loader
-     *
-     * @param string $className
-     * @return $this
-     */
-    public static function model($className = __CLASS__)
-    {
-        if(isset(self::$_models[$className])) {
-            return self::$_models[$className];
-        } else {
-            self::$_models[$className] = new $className;
-            return self::$_models[$className];
         }
     }
 }

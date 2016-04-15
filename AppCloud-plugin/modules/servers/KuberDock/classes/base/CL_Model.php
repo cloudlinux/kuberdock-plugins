@@ -468,8 +468,12 @@ class CL_Model {
      * @param string $className
      * @return $this
      */
-    public static function model($className = __CLASS__)
+    public static function model($className = null)
     {
+        if (is_null($className)) {
+            $className = get_called_class();
+        }
+
         if(!isset(self::$_models[$className])) {
             self::$_models[$className] = new $className;
         }
