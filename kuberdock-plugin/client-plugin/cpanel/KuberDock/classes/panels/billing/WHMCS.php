@@ -91,7 +91,7 @@ class WHMCS implements BillingInterface
             }
         }
 
-        throw new CException(sprintf('Package with id: %s not founded', $id));
+        throw new CException(sprintf('Package with id: %s not found', $id));
     }
 
     /**
@@ -107,7 +107,7 @@ class WHMCS implements BillingInterface
             }
         }
 
-        throw new CException(sprintf('Package with id: %s not founded', $id));
+        throw new CException(sprintf('Package with id: %s not found or user package is different than PA package', $id));
     }
 
     /**

@@ -17,7 +17,6 @@ class CException extends Exception {
      */
     public function __construct($message, $code = 0, Exception $previous = null) {
         parent::__construct($message, $code, $previous);
-        self::log($this);
     }
 
     /**
@@ -49,6 +48,7 @@ class CException extends Exception {
     }
 
     /**
+     * Not used
      * @param Exception $exception
      */
     public static function log(Exception $exception) {

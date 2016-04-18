@@ -1,7 +1,7 @@
 <?php
 
 
-class KuberDock_CPanel
+class KuberDock_cPanel
 {
     /**
      * @var
@@ -35,30 +35,40 @@ class KuberDock_CPanel
     protected $api;
 
     /**
+     * @var KuberDock_Api
+     */
+    private $adminApi;
+
+    /**
      * @throws CException
      */
     public function __construct()
     {
-        // TODO: use common cli
         $this->user = $_ENV['REMOTE_USER'];
         $this->domain = $_ENV['DOMAIN'];
 
         $this->api = new KuberDock_Api();
-        $data = $this->api->getInfo($this->user, $this->domain);
+        $this->api->initUser();
+
+        $this->adminApi = new KuberDock_Api();
+        $adminData = $this->getAdminData();
+        $username = isset($adminData['user']) ? $adminData['user'] : '';
+        $password = isset($adminData['password']) ? $adminData['password'] : '';
+        $token = isset($adminData['token']) ? $adminData['token'] : '';
+        $this->adminApi->initAdmin($username, $password, $token);
+
+        $data = $this->adminApi->getInfo($this->user, $this->domain);
         $this->billing = $this->getBilling($data);
 
-        if($service = $this->billing->getService()) {
-            $username = isset($service['username']) ? $service['username'] : '';
-            $password = isset($service['password']) ? $service['password'] : '';
-            $token = isset($service['token']) ? $service['token'] : '';;
+        if ($service = $this->billing->getService()) {
+            $token = isset($service['token']) ? $service['token'] : '';
         } else {
-            $username = KcliCommand::DEFAULT_USER;
-            $password = KcliCommand::DEFAULT_USER;
             $token = '';
         }
 
-        $this->command = new KcliCommand($username, $password, $token);
+        $this->command = new KcliCommand('', '', $token);
         $this->kdCommon = new KDCommonCommand();
+        $this->command->setConfig();
     }
 
     /**
@@ -83,6 +93,19 @@ class KuberDock_CPanel
     public function getApi()
     {
         return $this->api;
+    }
+
+    /**
+     * @return KuberDock_Api
+     */
+    public function getAdminApi()
+    {
+        return $this->adminApi;
+    }
+
+    public function isUserExists()
+    {
+        return (bool) $this->getApi()->getToken();
     }
 
     /**
@@ -216,11 +239,9 @@ class KuberDock_CPanel
         return $this->parseModuleResponse($data);
     }
 
-    /**
-     * @return bool
-     */
-    public function isDefaultUser()
+    private function getAdminData()
     {
-        return $this->command->getUsername() == KcliCommand::DEFAULT_USER;
+        $data = Base::model()->nativePanel->uapi('KuberDock', 'getAdminData');
+        return $this->parseModuleResponse($data);
     }
 }

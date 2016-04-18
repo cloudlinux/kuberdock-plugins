@@ -123,6 +123,8 @@ class PredefinedApp {
                 $path = PredefinedApp::getAppPathByTemplateId($this->templateId);
                 $this->template->getByPath($path, $this->templateId);
             }
+
+            Base::model()->getPanel()->billing->getProductByKuberId($this->template->getPackageId());
         }
     }
 
@@ -275,10 +277,10 @@ class PredefinedApp {
      */
     public function getPackageId($fromBilling = false)
     {
-        $userProduct = $this->panel->billing->getProduct();
+        $userService = Base::model()->getPanel()->billing->getService();
 
-        if($userProduct) {
-            return $userProduct['id'];
+        if($userService) {
+            return $userService['product_id'];
         }
 
         $defaults = $this->panel->billing->getDefaults();

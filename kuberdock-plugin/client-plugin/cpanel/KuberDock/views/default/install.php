@@ -116,7 +116,7 @@
                                 <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Add variable
                             </button>
 
-                            <a href="<?php echo $pod->getImageUrl($image)?>" target="_blank" class="env-more-link">Learn more about this application</a>
+                            <a href="http://<?php echo $pod->containers[0]['sourceUrl']?>" target="_blank" class="env-more-link">Learn more about this application</a>
                         </p>
 
                         <table class="table table-stripped table-condensed<?php echo !isset($pod->containers[0]['env']) ? ' hidden' : ''?>" id="env_table">

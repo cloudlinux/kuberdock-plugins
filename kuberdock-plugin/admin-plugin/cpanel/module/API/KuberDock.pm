@@ -9,6 +9,23 @@ use Cpanel::Wrap;
 
 our $VERSION = '1.0';
 
+sub getAdminData {
+    my ($args, $result) = @_;
+
+    my $data = Cpanel::Wrap::send_cpwrapd_request(
+        'namespace' => 'KuberDock',
+        'module' => 'Module',
+        'function' => 'getAdminData',
+        'data' => $args->get('data'),
+    );
+
+    if($data->{error}) {
+        $result->error($data->{data});
+    } elsif(defined $data->{data}) {
+        $result->data($data->{data});
+    }
+}
+
 sub createUser {
     my ($args, $result) = @_;
 
