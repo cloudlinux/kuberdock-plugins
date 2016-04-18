@@ -7,7 +7,7 @@
 namespace Kuberdock\classes\models;
 
 use Kuberdock\classes\exceptions\ApiException;
-use Kuberdock\classes\panels\KuberDock_CPanel;
+use Kuberdock\classes\panels\KuberDock_cPanel;
 use Kuberdock\classes\Base;
 use Kuberdock\classes\exceptions\CException;
 use Kuberdock\classes\KcliCommand;
@@ -16,7 +16,7 @@ use Kuberdock\classes\exceptions\PaymentRequiredException;
 
 class Pod {
     /**
-     * @var KuberDock_CPanel
+     * @var KuberDock_cPanel
      */
     private $panel;
     /**
@@ -414,7 +414,7 @@ class Pod {
             $this->panel->createUser($package['name']);
         }
 
-        Base::model()->setPanel(new KuberDock_CPanel());
+        Base::model()->setPanel(new KuberDock_cPanel());
 
         return $this;
     }

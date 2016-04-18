@@ -7,7 +7,7 @@
 namespace Kuberdock\classes\models;
 
 use Kuberdock\classes\Base;
-use Kuberdock\classes\panels\KuberDock_CPanel;
+use Kuberdock\classes\panels\KuberDock_cPanel;
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\exceptions\CException;
 use Kuberdock\classes\extensions\yaml\Spyc;

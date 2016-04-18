@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+  <id>KuberDock</id>
+  <name>Module KuberDock</name>
+  <description>Add module description here...</description>
+  <version>0.1</version>
+  <release>1</release>
+  <vendor>KuberDock</vendor>
+  <url>http://kuberdock.com</url>
+  <plesk_min_version>12.5.30</plesk_min_version>
+</module>
