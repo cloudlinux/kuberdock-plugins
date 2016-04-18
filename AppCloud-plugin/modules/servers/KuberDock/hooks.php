@@ -62,17 +62,17 @@ function KuberDock_ProductEdit($params)
             $i++;
         }
 
-        if(!$product->getKubes()) {
-            $product->hidden = 1;
-        }
-
-        if($product->isFixedPrice()) {
-            $product->setConfigOption('firstDeposit', 0);
-        }
-
-        $product->save();
-
         try {
+            if(!$product->getKubes()) {
+                $product->hidden = 1;
+            }
+
+            if($product->isFixedPrice()) {
+                $product->setConfigOption('firstDeposit', 0);
+            }
+
+            $product->save();
+            
             KuberDock_Addon_Kube::model()->updateByAttributes(array(
                 'server_id' => $product->getServer()->id,
             ), array('product_id' => $product->id));
@@ -107,7 +107,7 @@ function KuberDock_ProductDelete($params)
         $addonProduct = KuberDock_Addon_Product::model();
         $addonProduct->deleteKubePricing($params['pid']);
     } catch(Exception $e) {
-        echo $e->getMessage();
+        CException::log($e);
     }
 }
 add_hook('ProductDelete', 1, 'KuberDock_ProductDelete');
