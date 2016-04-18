@@ -6,11 +6,11 @@
 
 namespace Kuberdock\classes;
 
-use Kuberdock\classes\panels\KuberDock_CPanel;
+use Kuberdock\classes\panels\KuberDock_cPanel;
 
 class Base {
     /**
-     * @var KuberDock_CPanel
+     * @var KuberDock_cPanel
      */
     protected $panel;
     /**
@@ -31,13 +31,13 @@ class Base {
     }
 
     /**
-     * @return KuberDock_CPanel
+     * @return KuberDock_cPanel
      */
     public function getPanel()
     {
         // TODO: difference panels
         if(!$this->panel) {
-            $this->panel = new KuberDock_CPanel();
+            $this->panel = new KuberDock_cPanel();
         }
 
         return $this->panel;

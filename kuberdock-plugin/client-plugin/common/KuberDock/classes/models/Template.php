@@ -2,7 +2,7 @@
 
 namespace Kuberdock\classes\models;
 
-use Kuberdock\classes\panels\KuberDock_CPanel;
+use Kuberdock\classes\panels\KuberDock_cPanel;
 use Kuberdock\classes\exceptions\CException;
 use Kuberdock\classes\extensions\yaml\Spyc;
 use Kuberdock\classes\KuberDock_View;
@@ -21,7 +21,7 @@ class Template
      */
     public $data = array();
     /**
-     * @var KuberDock_CPanel
+     * @var KuberDock_cPanel
      */
     private $panel;
     /**
@@ -30,9 +30,9 @@ class Template
     private $id;
 
     /**
-     * @param KuberDock_CPanel $panel
+     * @param KuberDock_cPanel $panel
      */
-    public function __construct(KuberDock_CPanel $panel)
+    public function __construct(KuberDock_cPanel $panel)
     {
         $this->panel = $panel;
     }

@@ -14,7 +14,7 @@ use Kuberdock\classes\panels\billing\WHMCS;
 use Kuberdock\classes\panels\billing\BillingInterface;
 use Kuberdock\classes\panels\billing\NoBilling;
 
-class KuberDock_CPanel
+class KuberDock_cPanel
 {
     /**
      * @var
