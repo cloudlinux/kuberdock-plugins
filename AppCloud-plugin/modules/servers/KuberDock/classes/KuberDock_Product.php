@@ -70,7 +70,6 @@ class KuberDock_Product extends CL_Product {
             'enableTrial' => array(
                 'FriendlyName' => 'Trial package',
                 'Type' => 'yesno',
-                'Default' => 'no',
                 'Description' => '&nbsp;',
             ),
             'trialTime' => array(
@@ -84,12 +83,13 @@ class KuberDock_Product extends CL_Product {
                 'FriendlyName' => 'Service payment type',
                 'Type' => 'dropdown',
                 'Options' => implode(',', $this->getPaymentTypes()),
-                'Default' => 'hourly',
+                'Default' => 'monthly',
                 'Description' => '',
             ),
             'debug' => array(
                 'FriendlyName' => 'Debug Mode',
                 'Type' => 'yesno',
+                'Default' => 'yes',
                 'Description' => 'Logs on "Module Log"',
             ),
             'priceIP' => array(
@@ -124,13 +124,12 @@ class KuberDock_Product extends CL_Product {
                 'FriendlyName' => 'Billing type',
                 'Type' => 'radio',
                 'Options' => 'PAYG,Fixed price',
-                'default' => 'Fixed price',
+                'Default' => 'Fixed price',
                 'Description' => '',
             ),
             'restrictedUser' => array(
                 'FriendlyName' => 'Restricted users',
                 'Type' => 'yesno',
-                'default' => 'no',
                 'Description' => '',
             ),
         );
@@ -339,27 +338,6 @@ class KuberDock_Product extends CL_Product {
     /**
      *
      */
-    public function setDescription()
-    {
-        $view = new CL_View();
-        $id = $this->pid ? $this->pid : $this->id;
-        $currency = CL_Currency::model()->getDefaultCurrency();
-        $kubes = KuberDock_Addon_Kube::model()->loadByAttributes(array(
-            'product_id' => $id,
-        ));
-
-        $description = $view->renderPartial('client/order_info', array(
-            'currency' => $currency,
-            'product' => $this,
-            'kubes' => $kubes,
-        ), false);
-
-        $this->updateById($id, array('description' => $description));
-    }
-
-    /**
-     *
-     */
     public function getDescription()
     {
         $description = array();
@@ -373,13 +351,20 @@ class KuberDock_Product extends CL_Product {
             $description['Free Trial'] = sprintf('<strong>%s days</strong><br/>',$this->getConfigOption('trialTime'));
         }
 
-        $description['Price for IP'] = sprintf('<strong>%s / %s</strong><br/>',
-            $currency->getFullPrice($this->getConfigOption('priceIP')), $this->getReadablePaymentType());
+        if (0 != $priceIP = (float) $this->getConfigOption('priceIP')) {
+            $description['Public IP'] = $this->formatFeature($priceIP, $this->getReadablePaymentType());
+        }
 
-        $description['Price for Persistent Storage'] = sprintf('<strong>%s </strong><br/>', $this->getReadablePersistentStorage());
-        $description['Price for Additional Traffic'] = sprintf('<strong>%s </strong><br/>', $this->getReadableOverTraffic());
+        if (0 != $pricePS = (float) $this->getConfigOption('pricePersistentStorage')) {
+            $description['Persistent Storage'] = $this->formatFeature($pricePS, '1 ' . KuberDock_Units::getHDDUnits());
+        }
+
+        if (0 != $priceOT = (float) $this->getConfigOption('priceOverTraffic')) {
+            $description['Additional Traffic'] = $this->formatFeature($priceOT, '1 ' . KuberDock_Units::getTrafficUnits());
+        }
 
         foreach($kubes as $kube) {
+            if (!$kube['kube_price']) continue;
             $description['Kube '.$kube['kube_name']] = vsprintf(
                 '<strong>%s / %s</strong><br/><em>CPU %s, Memory %s, <br/>Disk Usage %s, Traffic %s</em>',
                 array(
@@ -439,31 +424,15 @@ class KuberDock_Product extends CL_Product {
      */
     public function getName()
     {
-        $tr = JTransliteration::transliterate($this->name);
-
-        return $tr;
+        return JTransliteration::transliterate($this->name);
     }
 
-    /**
-     * @return string
-     */
-    public function getReadablePersistentStorage()
+    public function formatFeature($value, $units)
     {
         $currency = CL_Currency::model()->getDefaultCurrency();
+        $html = $currency->getFullPrice($value) . ' / ' . $units;
 
-        return $currency->getFullPrice($this->getConfigOption('pricePersistentStorage'))
-            .' / 1 '.KuberDock_Units::getHDDUnits();
-    }
-
-    /**
-     * @return string
-     */
-    public function getReadableOverTraffic()
-    {
-        $currency = CL_Currency::model()->getDefaultCurrency();
-
-        return $currency->getFullPrice($this->getConfigOption('priceOverTraffic'))
-            .' / 1 '.KuberDock_Units::getTrafficUnits();
+        return  sprintf('<strong>%s </strong><br/>', $html);
     }
 
     /**
@@ -518,7 +487,7 @@ class KuberDock_Product extends CL_Product {
         $items = $app->getTotalPrice();
 
         $totalPrice = array_reduce($items, function ($carry, $item) {
-            $carry += $item['total'];
+            $carry += $item->getTotal();
             return $carry;
         });
 
@@ -548,6 +517,7 @@ class KuberDock_Product extends CL_Product {
 
         $invoice_id = $invoice->createInvoice($userId, $items, $gateway);
         $invoiceItem = \base\models\CL_Invoice::model()->loadById($invoice_id);
+
         if ($paid) {
             $invoiceItem->status = CL_Invoice::STATUS_PAID;
             $invoiceItem->save();

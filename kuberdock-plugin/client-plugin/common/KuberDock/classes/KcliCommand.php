@@ -16,10 +16,6 @@ class KcliCommand extends Command {
      * Command path
      */
     const COMMAND_PATH = '/usr/bin/kcli';
-    /**
-     *
-     */
-    const DEFAULT_USER = 'hostingPanel';
 
     /**
      * @var string
@@ -460,16 +456,16 @@ class KcliCommand extends Command {
      */
     public function getPersistentDrives()
     {
-        if ($this->username == self::DEFAULT_USER) {
+        try {
+            return $this->execute(array(
+                $this->returnType,
+                'kuberdock',
+                'drives',
+                'list',
+            ));
+        } catch(CException $e) {
             return array();
         }
-
-        return $this->execute(array(
-            $this->returnType,
-            'kuberdock',
-            'drives',
-            'list',
-        ));
     }
 
     /**
@@ -556,9 +552,6 @@ class KcliCommand extends Command {
         return $data;
     }
 
-    /**
-     * @throws CException
-     */
     public function setConfig()
     {
         if(!$this->username && !$this->token) {
@@ -567,10 +560,6 @@ class KcliCommand extends Command {
 
         $globalConfig = self::getConfig(true);
         $config = self::getConfig();
-
-        if(isset($config['token']) && $this->token == $config['token'] && $globalConfig['url'] == $config['url']) {
-            return;
-        }
 
         $newConfig = array(
             'global' => array(
@@ -583,12 +572,6 @@ class KcliCommand extends Command {
 
         if($this->token) {
             $newConfig['defaults']['token'] = $this->token;
-        } elseif(isset($config['user']) && isset($config['password'])) {
-            $newConfig['defaults']['user'] = $config['user'];
-            $newConfig['defaults']['password'] = $config['password'];
-        } else {
-            $newConfig['defaults']['user'] = self::DEFAULT_USER;
-            $newConfig['defaults']['password'] = self::DEFAULT_USER;
         }
 
         $data = array();
@@ -602,6 +585,7 @@ class KcliCommand extends Command {
         });
 
         file_put_contents(self::getUserConfigPath(), implode("\n", $data));
+        chmod(self::getUserConfigPath(), 0600);
     }
 
     /**
@@ -620,7 +604,7 @@ class KcliCommand extends Command {
     static private function  getUserConfigPath($global = false)
     {
         if(!file_exists(self::GLOBAL_CONF_FILE)) {
-            throw new CException('Global config file not founded');
+            throw new CException('Global config file not found');
         }
 
         if($global) {
@@ -631,6 +615,7 @@ class KcliCommand extends Command {
 
         if(!file_exists($path)) {
             copy(self::GLOBAL_CONF_FILE, $path);
+            chmod($path, 0600);
         }
 
         return $path;

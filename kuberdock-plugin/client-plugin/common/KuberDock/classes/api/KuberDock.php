@@ -149,7 +149,7 @@ class KuberDock extends API
         $pod = $this->getPod();
 
         $images = $pod->searchImages($search, $page);
-        $registryUrl = $pod->command->getRegistryUrl();
+        $registryUrl = Base::model()->getPanel()->getAdminApi()->getRegistryUrl();
 
         $values = array(
             'page' => $page,

@@ -10,6 +10,7 @@ use DateTime;
 use Exception;
 use KuberDock_User;
 use base\CL_Model;
+use components\KuberDock_InvoiceItem;
 
 class CL_Invoice extends CL_Model {
     const CUSTOM_INVOICE_DESCRIPTION = 'Custom invoice';
@@ -37,7 +38,7 @@ class CL_Invoice extends CL_Model {
 
     /**
      * @param int $userId
-     * @param array $items
+     * @param KuberDock_InvoiceItem[] $items
      * @param string $gateway
      * @param bool $autoApply
      * @param DateTime $dueDate
@@ -47,10 +48,6 @@ class CL_Invoice extends CL_Model {
      */
     public function createInvoice($userId, $items, $gateway, $autoApply = true, DateTime $dueDate = null, $sendInvoice = true)
     {
-        $template = \base\models\CL_Configuration::model()->get()->Template;
-        $currency = CL_Currency::model()->getDefaultCurrency();
-        $admin = KuberDock_User::model()->getCurrentAdmin();
-
         $values['userid'] = $userId;
         $values['date'] = date('Ymd', time());
         $values['duedate'] = $dueDate ? $dueDate->format('Ymd') : date('Ymd', time());
@@ -60,37 +57,23 @@ class CL_Invoice extends CL_Model {
         $count = 0;
         $values['notes'] = '';
         foreach ($items as $item) {
+            if ($item->getTotal()==0) {
+                continue;
+            }
+
             $count++;
-            if (isset($item['description'])) {
-                $title = $item['description'];
-            } elseif ($item['type']=='IP' && $item['title']=='') {
-                $title = 'Public IP';
-            } else {
-                $title = $item['type'] . ': ' . $item['title'];
-            }
-            $values['itemdescription' . $count] = $title;
-            $values['itemamount' . $count] = $item['total'];
 
-            if(isset($item['notes'])) {
-                $values['itemnotes' . $count] = $item['notes'];
-            }
+            $values['itemdescription' . $count] = $item->getDescription();
+            $values['itemamount' . $count] = $item->getTotal();
 
-            if ($template == 'kuberdock') {
-                $values['notes'] .= '
-                    <tr bgcolor="#fff">
-                        <td align="center">' . $count . '</td>
-                        <td align="left">'   . $title . '</td>
-                        <td align="center">' . $item['qty'] . '</td>
-                        <td align="center">' . $item['units'] . '</td>
-                        <td align="center">' . $currency->getFullPrice($item['price']) . '</td>
-                        <td align="center">' . $currency->getFullPrice($item['total']) . '</td>
-                    </tr>
-                ';
+            if (!$item->isShort()) {
+                $values['notes'] .= $item->getHtml($count);
             }
         }
 
         $values['autoapplycredit'] = $autoApply;
 
+        $admin = KuberDock_User::model()->getCurrentAdmin();
         $results = localAPI('createinvoice', $values, $admin['username']);
 
         if($results['result'] != 'success') {

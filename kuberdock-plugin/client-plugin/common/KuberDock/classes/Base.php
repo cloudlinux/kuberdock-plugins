@@ -22,12 +22,9 @@ class Base {
      */
     protected static $_models;
 
-    /**
-     * @param $object
-     */
-    public function setPanel($object)
+    public function unsetPanel()
     {
-        $this->panel = $object;
+        unset($this->panel);
     }
 
     /**
@@ -35,7 +32,7 @@ class Base {
      */
     public function getPanel()
     {
-        // TODO: difference panels
+        // TODO: different panels
         if(!$this->panel) {
             $this->panel = new KuberDock_cPanel();
         }

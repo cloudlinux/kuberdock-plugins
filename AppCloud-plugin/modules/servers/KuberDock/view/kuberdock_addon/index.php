@@ -4,33 +4,36 @@
  * @var $tab string Current tab
  * @var $currency \base\models\CL_Currency
  */
+
+$variables = compact(array_diff(
+    array_keys(get_defined_vars()),
+    array('viewPath')
+));
+
+$tabs = array(
+    'kubes' => 'Kube types',
+    'log' => 'Changes log',
+);
+
 ?>
 
 <div class="container-fluid">
     <div role="tabpanel">
         <ul class="nav nav-tabs" role="tablist" id="kuber_tab">
-            <li role="presentation">
-                <a href="#kubes" aria-controls="kubes" role="tab">Kube types</a>
-            </li>
-            <li role="presentation">
-                <a href="#log" aria-controls="log" role="tab">Changes log</a>
-            </li>
+            <?php foreach ($tabs as $tab => $title):?>
+                <li role="presentation">
+                    <a href="#<?php echo $tab;?>" aria-controls="<?php echo $tab;?>" role="tab"><?php echo $title;?></a>
+                </li>
+            <?php endforeach;?>
         </ul>
 
         <div class="tab-content">
-            <div role="tabpanel" class="tab-pane" id="kubes">
-                <?php $this->renderPartial('kubes', array(
-                    'kubes' => $kubes,
-                    'products' => $products,
-                    'brokenPackages' => $brokenPackages,
-                ))?>
-            </div>
-            <div role="tabpanel" class="tab-pane" id="log">
-                <?php $this->renderPartial('log', array(
-                    'logs' => $logs,
-                    'paginator' => $paginator,
-                ))?>
-            </div>
+            <?php foreach ($tabs as $tab => $title):?>
+                <div role="tabpanel" class="tab-pane" id="<?php echo $tab;?>">
+                    <?php $this->renderPartial($tab, $variables)?>
+                </div>
+
+            <?php endforeach;?>
         </div>
     </div>
 </div>

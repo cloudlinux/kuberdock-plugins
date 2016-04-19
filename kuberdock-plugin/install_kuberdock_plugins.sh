@@ -56,9 +56,6 @@ function install
     /bin/cp -Rf $ADMIN_SOURCE_PATH/module/API /usr/local/cpanel/Cpanel
     /bin/chmod -R 700 /usr/local/cpanel/bin/admin/KuberDock/Module
 
-    /bin/touch /var/log/kuberdock-plugin.log
-    /bin/chmod 666 /var/log/kuberdock-plugin.log
-
     echo "Plugin installed"
 }
 
@@ -126,10 +123,6 @@ function uninstall
         /bin/rm -f /var/log/kuberdock-plugin.log
     fi
 
-    if [ -e /root/.kubecli.conf ]; then
-        /usr/bin/kcli -c /root/.kubecli.conf kubectl register
-    fi
-
     echo "Plugin uninstalled"
 }
 
@@ -182,9 +175,14 @@ function upgrade
     /bin/cp -Rf $ADMIN_SOURCE_PATH/module/API /usr/local/cpanel/Cpanel
     /bin/chmod -R 700 /usr/local/cpanel/bin/admin/KuberDock/Module
 
-    /bin/touch /var/log/kuberdock-plugin.log
-    /bin/chmod 666 /var/log/kuberdock-plugin.log
+    if [ -e /var/log/kuberdock-plugin.log ]; then
+        /bin/rm -f /var/log/kuberdock-plugin.log
+    fi
 
+    if [ -e /root/.kubecli.conf ]; then
+        /bin/chmod 600 /root/.kubecli.conf
+    fi
+    
     echo "Plugin upgraded"
 }
 

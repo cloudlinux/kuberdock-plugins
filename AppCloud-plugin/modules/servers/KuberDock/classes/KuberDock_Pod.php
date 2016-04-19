@@ -1,5 +1,7 @@
 <?php
 
+use components\KuberDock_InvoiceItem;
+
 class KuberDock_Pod {
     /**
      *
@@ -191,14 +193,20 @@ class KuberDock_Pod {
             $billableItem = \base\models\CL_BillableItems::model()->loadById($item->billable_item_id);
 
             if($newKubes > 0) {
+                $items = array();
                 $price = $this->kube['kube_price'] * $billableItem->getProRate();
-                $items[] = array(
-                    'description' => self::UPDATE_KUBES_DESCRIPTION . ' (Pod ' . $this->name . ', added ' . $newKubes . ' kubes)',
-                    'qty' => $newKubes,
-                    'units' => 'kube',
-                    'price' => $price,
-                    'total' => $newKubes * $price,
-                );
+                foreach ($newPod['containers'] as $newContainer) {
+                    $c = $this->getContainerByName($newContainer['name']);
+                    $delta = $newContainer['kubes'] - $c['kubes'];
+                    if ($c && $delta!=0) {
+                        $description = self::UPDATE_KUBES_DESCRIPTION
+                            . ' (Pod ' . $this->name . ', container ' . $newContainer['name'] . ', '
+                            . ($delta > 0 ? 'added ' : 'removed ') . abs($delta) . (abs($delta) == 1 ? ' kube' : ' kubes')
+                            . ')';
+
+                        $items[] = KuberDock_InvoiceItem::create($description, $price, 'kube', $delta);
+                    }
+                }
 
                 $invoice = \base\models\CL_Invoice::model()->createInvoice($user->id, $items, $user->getGateway(), false);
                 $invoice = \base\models\CL_Invoice::model()->loadById($invoice);

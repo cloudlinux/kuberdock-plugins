@@ -71,4 +71,39 @@ $(function() {
             _this.siblings('span').addClass('hidden');
         }
     });
+
+    $(document).on('click', 'button.migration', function(e) {
+        var self = $(this);
+
+        $.ajax({
+            url: 'addonmodules.php?module=KuberDock&a=migrate',
+            type: 'POST',
+            dataType: 'json'
+        }).success(function(data) {
+            var modal = $('#myModal');
+            modal.find('.modal-body').html(data.message);
+            modal.modal('show');
+            self.remove();
+        });
+    });
+
+    $$.tablesorter.addParser({
+        id: 'kubeTypeParser',
+        is: function(s) {
+            return false;
+        },
+        format: function(s, table, cell, cellIndex) {
+            return $(cell).data('id');
+        },
+        type: 'numeric'
+    });
+
+    $$('#kubes_table').tablesorter({
+        sortList: [[0,0]],
+        selectorHeaders: 'thead tr.sorted th',
+        cssChildRow: 'package_row',
+        headers: {
+            0 : { sorter: 'kubeTypeParser' }
+        }
+    });
 });

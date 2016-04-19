@@ -28,7 +28,7 @@ function KuberDock_activate()
     } catch(Exception $e) {
         return array(
             'status' =>  'error',
-            'description' => $e->getMessage(),
+            'description' => 'Addon module FAILED to activate: ' . $e->getMessage(),
         );
     }
 }
@@ -45,7 +45,7 @@ function KuberDock_deactivate()
     } catch(Exception $e) {
         return array(
             'status' =>  'error',
-            'description' => $e->getMessage(),
+            'description' => 'Addon module FAILED to deactivate: ' . $e->getMessage(),
         );
     }
 }

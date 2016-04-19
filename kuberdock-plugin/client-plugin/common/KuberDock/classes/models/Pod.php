@@ -273,8 +273,13 @@ class Pod {
      */
     public function getImageInfo($image)
     {
-        $imageInfo = $this->command->getImage($image);
-        $imageData = array();
+        $panel = Base::model()->getPanel();
+
+        if ($panel->isUserExists()) {
+            $imageInfo = $this->command->getImage($image);
+        } else {
+            $imageInfo = $panel->getAdminApi()->getImage($image);
+        }
 
         foreach($imageInfo as $k => $row) {
             $methodName = 'parse'.ucfirst($k);
@@ -287,18 +292,6 @@ class Pod {
         }
 
         return $imageData;
-    }
-
-    /**
-     * @param string $image
-     * @return string
-     */
-    public function getImageUrl($image)
-    {
-        $data = $this->command->getImageData($image);
-
-        return sprintf('%s/%s/%s', $this->command->getRegistryUrl(),
-            isset($data['is_official']) && $data['is_official'] ? '_' : 'u', $image);
     }
 
     /**
@@ -403,18 +396,18 @@ class Pod {
     public function createProduct()
     {
         // Create order with kuberdock product
-        if(!Base::model()->getPanel()->isDefaultUser()) {
+        if (Base::model()->getPanel()->isUserExists()) {
             return $this;
         }
 
-        if(!$this->panel->isNoBilling()) {
-            $this->panel->getApi()->order($this->panel->user, $this->panel->domain, $this->packageId);
+        if (!$this->panel->isNoBilling()) {
+            $this->panel->getAdminApi()->order($this->panel->user, $this->panel->domain, $this->packageId);
         } else {
-            $package = $this->panel->billing->getPackageById($this->packageId);
-            $this->panel->createUser($package['name']);
+            $product = $this->panel->billing->getProductByKuberId($this->packageId);
+            $this->panel->createUser($product['name']);
         }
 
-        Base::model()->setPanel(new KuberDock_cPanel());
+        Base::model()->unsetPanel();
 
         return $this;
     }
@@ -584,7 +577,13 @@ class Pod {
      */
     public function searchImages($image, $page = 1)
     {
-        return $this->command->searchImages($image, $page);
+        $panel = Base::model()->getPanel();
+
+        if ($panel->isUserExists()) {
+            return $this->command->searchImages($image, $page);
+        } else {
+            return $panel->getAdminApi()->getImages($image, $page);
+        }
     }
 
     /**

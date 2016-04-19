@@ -21,7 +21,6 @@ class CException extends \Exception {
      */
     public function __construct($message, $code = 0, \Exception $previous = null) {
         parent::__construct($message, $code, $previous);
-        self::log($this);
     }
 
     /**
@@ -50,7 +49,6 @@ class CException extends \Exception {
             ), false),
         ));
     }
-
     /**
      * @return string
      */
@@ -64,6 +62,7 @@ class CException extends \Exception {
     }
 
     /**
+     * Not used
      * @param \Exception $exception
      */
     public static function log(\Exception $exception) {
@@ -79,7 +78,8 @@ class CException extends \Exception {
         if(LOG_ERRORS) {
             $data = sprintf("%s - %s Line: %d (%s) %s\n",
                 $date->format(\DateTime::RFC1036), $filePath, $exception->getLine(), $parent, $exception->getMessage());
-            file_put_contents(self::LOG_FILE, $data, FILE_APPEND);
+            file_put_contents($path, $data, FILE_APPEND);
+            chmod($path, 0600);
         }
     }
 }

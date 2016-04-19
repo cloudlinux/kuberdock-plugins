@@ -1,6 +1,12 @@
 [% INCLUDE 'header.tmpl' %]
 
 <div id="admin-plugin">
+    [% IF success %]
+    <div role="alert" class="alert alert-success">
+        [% success %]
+    </div>
+    [% END %]
+
     [% IF error %]
         <div role="alert" class="alert alert-danger">
             Cannot connect to KuberDock server, invalid credentials or server url in ~/.kubecli.conf

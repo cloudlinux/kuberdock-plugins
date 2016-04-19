@@ -56,6 +56,9 @@ try {
 
     $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadById($item->app_id);
     $service = \KuberDock_Hosting::model()->loadById($item->service_id);
+    if ($service == false) {
+        throw new Exception('Service not found');
+    }
 
     $kdPod = new \KuberDock_Pod($service);
     $kdPod->loadById($pod['id']);

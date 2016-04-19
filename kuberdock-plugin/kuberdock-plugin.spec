@@ -1,7 +1,7 @@
 Version: 1.0
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 1%{?dist}.cloudlinux
+Release: 3%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -57,6 +57,15 @@ fi
 %{python_sitelib}/kd_common/*
 
 %changelog
+
+* Thu Apr 14 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.0-3
+- Move error log to user home directory. Change config file\log permissions
+- AC-2667 cPanel. Successful kubecli.conf edit notification
+
+* Wed Apr 06 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.0-2
+- cPanel. Catch sysapi request. Fixed pod link
+- AC-2729 - Add Pod IP to cpanel interface
+- AC-2666 - cPanel plugin version display
 
 * Mon Mar 14 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.0-1
 - Added referer cPanel. jquery issue for 11.54 WHMCS & cPanel. Decrease kubes

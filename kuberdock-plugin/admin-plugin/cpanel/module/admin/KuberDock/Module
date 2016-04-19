@@ -7,6 +7,7 @@ use Cpanel::Logger ();
 use Cpanel::PwCache ();
 use KuberDock::JSON;
 use KuberDock::API;
+use KuberDock::KubeCliConf;
 use Data::Dumper;
 
 use constant KUBERDOCK_CONFIG_PATH => '/var/cpanel/apps/kuberdock_whmcs.json';
@@ -41,6 +42,20 @@ elsif($function eq 'updatePod') {
     eval {
         my $response = $api->updatePod($data);
         print $json->encode($response);
+        exit(0);
+    };
+
+    if($@) {
+        print $@;
+        exit(1);
+    }
+}
+elsif($function eq 'getAdminData') {
+    my $conf = KuberDock::KubeCliConf->new;
+    my $json = KuberDock::JSON->new;
+
+    eval {
+        print $json->encode($conf->read());
         exit(0);
     };
 

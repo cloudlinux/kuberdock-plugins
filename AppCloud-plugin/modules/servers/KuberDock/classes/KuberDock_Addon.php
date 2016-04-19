@@ -4,7 +4,6 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
-use PDO;
 use base\CL_Component;
 use base\CL_Query;
 use base\models\CL_MailTemplate;
@@ -50,11 +49,13 @@ class KuberDock_Addon extends CL_Component {
             throw new CException('Add KuberDock server and server group before activating addon.');
         }
 
-        $group = CL_Query::model()->query('SELECT * FROM `tblproductgroups` WHERE hidden != 1 ORDER BY `order` ASC LIMIT 1')
+        $group = CL_Query::model()->query('SELECT * FROM `tblproductgroups`
+            WHERE name = "KuberDock" ORDER BY `order` ASC LIMIT 1')
             ->getRow();
 
         if(!$group) {
-            throw new CException('Add product group before activating addon.');
+            $result = CL_Query::model()->query('INSERT INTO `tblproductgroups` (name) VALUES ("KuberDock")');
+            $group['id'] = $result->getLastId();
         }
 
         try {
@@ -141,6 +142,12 @@ class KuberDock_Addon extends CL_Component {
                 PRIMARY KEY (id)
             ) ENGINE=INNODB');
 
+            $db->query("CREATE TABLE `KuberDock_migrations` (
+                `version` int NOT NULL,
+                `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`version`)
+            ) ENGINE=InnoDB;");
+
             // Create email templates
             $mailTemplate = CL_MailTemplate::model();
             $mailTemplate->createTemplate($mailTemplate::TRIAL_NOTICE_NAME, 'KuberDock Trial Notice',
@@ -224,6 +231,7 @@ class KuberDock_Addon extends CL_Component {
             $db->query('DROP TABLE IF EXISTS `KuberDock_products`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_price_changes`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_items`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_migrations`');
             throw $e;
         }
     }
@@ -286,6 +294,7 @@ class KuberDock_Addon extends CL_Component {
         $db->query('DROP TABLE IF EXISTS `KuberDock_products`');
         $db->query('DROP TABLE IF EXISTS `KuberDock_price_changes`');
         $db->query('DROP TABLE IF EXISTS `KuberDock_items`');
+        $db->query('DROP TABLE IF EXISTS `KuberDock_migrations`');
 
         // Delete email templates
         $mailTemplate = CL_MailTemplate::model();
