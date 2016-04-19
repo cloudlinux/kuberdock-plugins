@@ -3,9 +3,9 @@
 namespace Kuberdock\classes\panels;
 
 use Kuberdock\classes\components\KuberDock_Api;
-
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\KDCommonCommand;
+use Kuberdock\classes\panels\assets\KuberDock_cPanel_Assets;
 use Kuberdock\classes\Tools;
 use Kuberdock\classes\Base;
 use Kuberdock\classes\exceptions\CException;
@@ -14,52 +14,15 @@ use Kuberdock\classes\panels\billing\WHMCS;
 use Kuberdock\classes\panels\billing\BillingInterface;
 use Kuberdock\classes\panels\billing\NoBilling;
 
-class KuberDock_cPanel
+class KuberDock_cPanel extends KuberDock_Panel
 {
-    /**
-     * @var
-     */
-    public $user;
-    /**
-     * @var
-     */
-    public $domain;
-    /**
-     * @var billing\BillingInterface
-     */
-    public $billing;
-
-    /**
-     * @var KuberDock_ApiResponse
-     */
-    protected $_data;
-    /**
-     * @var KcliCommand
-     */
-    protected $command;
-    /**
-     * @var KDCommonCommand
-     */
-    protected $kdCommon;
-
-    /**
-     * @var KuberDock_Api
-     */
-    protected $api;
-
-    /**
-     * @var KuberDock_Api
-     */
-    private $adminApi;
-
     /**
      * @throws CException
      */
     public function __construct()
     {
-        // TODO: use common cli
-        $this->user = $_ENV['REMOTE_USER'];
-        $this->domain = $_ENV['DOMAIN'];
+        $this->user = Base::model()->getStaticPanel()->getUser();
+        $this->domain = Base::model()->getStaticPanel()->getDomain();
 
         $this->api = new \Kuberdock\classes\components\KuberDock_Api();
         $this->api->initUser();
@@ -86,19 +49,19 @@ class KuberDock_cPanel
     }
 
     /**
-     * @return KcliCommand
+     * @return string
      */
-    public function getCommand()
+    public function getUser()
     {
-        return $this->command;
+        return $_ENV['REMOTE_USER'];
     }
 
     /**
-     * @return KDCommonCommand
+     * @return string
      */
-    public function getCommonCommand()
+    public function getDomain()
     {
-        return $this->kdCommon;
+        return $_ENV['DOMAIN'];
     }
 
     /**
@@ -122,46 +85,9 @@ class KuberDock_cPanel
         return (bool) $this->getApi()->getToken();
     }
 
-    /**
-     * @param $data
-     * @return WHMCS | BillingInterface
-     * @throws CException
-     */
-    public function getBilling($data)
+    public function getHomeDir()
     {
-        $billingClasses = array(
-            'No billing' => 'NoBilling',
-            'WHMCS' => 'WHMCS',
-        );
-
-        if(!isset($billingClasses[$data['billing']])) {
-            throw new CException('Billing class not exist');
-        }
-
-        $className = '\Kuberdock\classes\panels\billing\\' . $billingClasses[$data['billing']];
-        return new $className($data);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isNoBilling()
-    {
-        return $this->billing instanceof NoBilling;
-    }
-
-    /**
-     * @param bool $root
-     * @return string
-     */
-    public function getURL($root = true)
-    {
-        $scheme = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? 'https' : 'http';
-        $host = $_SERVER['SERVER_NAME'];
-        $port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : 80;
-        $uri = $root ? $this->getRootUrl() : $this->getApiUrl();
-
-        return sprintf('%s://%s:%s%s', $scheme, $host, $port, $uri);
+        return getenv('HOME');
     }
 
     /**
@@ -181,21 +107,15 @@ class KuberDock_cPanel
     }
 
     /**
-     * @return array
+     * @return KuberDock_cPanel_Assets
      */
-    public function getUserDomains()
+    public function getAssets()
     {
-        return $this->kdCommon->getUserDomains();
-    }
+        if (!$this->assets) {
+            $this->assets = KuberDock_cPanel_Assets::model();
+        }
 
-    /**
-     * @return mixed
-     */
-    public function getUserMainDomain()
-    {
-        list($domain, $directory) = $this->kdCommon->getUserMainDomain();
-
-        return $domain;
+        return $this->assets;
     }
 
     /**

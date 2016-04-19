@@ -8,4 +8,4 @@
     var imageRegistryURL = '<?php echo $imageRegistryURL ?>';
 </script>
 
-<script data-main="assets/script/main.js" src="assets/script/lib/require.min.js"></script>
+<?php echo \Kuberdock\classes\Base::model()->getStaticPanel()->getAssets()->renderScripts(); ?>

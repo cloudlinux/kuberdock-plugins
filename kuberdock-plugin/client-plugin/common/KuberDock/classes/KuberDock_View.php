@@ -3,6 +3,7 @@
 namespace Kuberdock\classes;
 
 use Kuberdock\classes\exceptions\CException;
+use Kuberdock\classes\Base;
 
 class KuberDock_View {
     /**
@@ -30,7 +31,6 @@ class KuberDock_View {
      * @var string
      */
     public $layout = 'default';
-
 
     /**
      * @param mixed
@@ -81,6 +81,7 @@ class KuberDock_View {
     public function render($view, $values = array(), $output = true)
     {
         $values['controller'] = $this->controller;
+        $values['assets'] = Base::model()->getStaticPanel()->getAssets();
 
         $viewPath = $this->viewDirectory . DS . $view . '.php';
         $layoutPath = $this->layoutDirectory . DS . $this->layout . '.php';

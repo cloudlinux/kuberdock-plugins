@@ -6,13 +6,19 @@
 
 namespace Kuberdock\classes;
 
-use Kuberdock\classes\panels\KuberDock_cPanel;
+use Kuberdock\classes\exceptions\CException;
+use Kuberdock\classes\KDCommonCommand;
+use Kuberdock\classes\panels\KuberDock_Panel;
 
 class Base {
     /**
-     * @var KuberDock_cPanel
+     * @var KuberDock_Panel
      */
     protected $panel;
+    /**
+     * @var KuberDock_Panel
+     */
+    protected $staticPanel;
     /**
      * @var object Native hosting panel class
      */
@@ -28,16 +34,46 @@ class Base {
     }
 
     /**
-     * @return KuberDock_cPanel
+     * @return KuberDock_Panel
+     * @throws CException
      */
     public function getPanel()
     {
-        // TODO: different panels
-        if(!$this->panel) {
-            $this->panel = new KuberDock_cPanel();
-        }
+        $kdCommon = new KDCommonCommand();
+        $panel = $kdCommon->getPanel();
 
-        return $this->panel;
+        try {
+            if (!$this->panel) {
+                $this->panel = new \ReflectionClass('Kuberdock\classes\panels\KuberDock_' . $panel);
+                $this->panel = $this->panel->newInstance();
+            }
+
+            if (!$this->staticPanel) {
+                $this->staticPanel = $this->panel->newInstanceWithoutConstructor();
+            }
+
+            return $this->panel;
+        } catch (\ReflectionException $e) {
+            throw new CException('Unknown panel');
+        }
+    }
+
+    /**
+     * @return KuberDock_Panel
+     * @throws CException
+     */
+    public function getStaticPanel()
+    {
+        $kdCommon = new KDCommonCommand();
+        $panel = $kdCommon->getPanel();
+
+        try {
+            $obj = new \ReflectionClass('Kuberdock\classes\panels\KuberDock_' . $panel);
+            $this->staticPanel = $obj->newInstanceWithoutConstructor();
+            return $this->staticPanel;
+        } catch (\ReflectionException $e) {
+            throw new CException('Unknown panel');
+        }
     }
 
     /**
@@ -45,14 +81,13 @@ class Base {
      */
     public function setNativePanel($panel)
     {
-        $this->nativePanel =$panel;
+        $this->nativePanel = $panel;
     }
 
     /**
-     * @param $panel
      * @return object
      */
-    public function getNativePanel($panel)
+    public function getNativePanel()
     {
         return $this->nativePanel;
     }

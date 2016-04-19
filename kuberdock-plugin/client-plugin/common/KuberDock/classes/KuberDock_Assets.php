@@ -31,6 +31,11 @@ class KuberDock_Assets {
     protected $_styles = array();
 
     /**
+     * @var $this
+     */
+    protected static $model;
+
+    /**
      *
      */
     public function __construct()
@@ -51,15 +56,25 @@ class KuberDock_Assets {
      * @param bool $output
      * @return mixed string|void
      */
-    public function renderScriptFiles($output = true)
+    public function renderScripts($output = true)
     {
         $html = '';
-        foreach($this->_scripts as $script) {
-            $relPath = $this->getRelativePath($script). '.' . self::SCRIPT_EXT;
-            $html .= sprintf('<script src="%s"></script>', $relPath);
+        foreach ($this->_scripts as $k => $script) {
+            if (is_array($script)) {
+                $attributes = array();
+                $relPath = $this->getRelativePath($k). '.' . self::SCRIPT_EXT;
+
+                foreach ($script as $attr => $data) {
+                    $attributes[] = sprintf('%s="%s"', $attr, $data);
+                }
+                $html .= sprintf('<script src="%s"%s></script>', $relPath, implode(' ', $attributes));
+            } else {
+                $relPath = $this->getRelativePath($script). '.' . self::SCRIPT_EXT;
+                $html .= sprintf('<script src="%s"></script>', $relPath);
+            }
         }
 
-        if($output) {
+        if ($output) {
             echo $html;
         } else {
             return $html;
@@ -72,7 +87,7 @@ class KuberDock_Assets {
      * @param bool $output
      * @return mixed string|void
      */
-    public function renderStyleFiles($output = true)
+    public function renderStyles($output = true)
     {
         $html = '';
         foreach($this->_styles as $style) {
@@ -92,10 +107,10 @@ class KuberDock_Assets {
      *
      * @param array $fileNames
      */
-    public function registerScriptFiles($fileNames = array())
+    public function registerScripts($fileNames = array())
     {
-        foreach($fileNames as $row) {
-            $this->_scripts[] = $row;
+        foreach($fileNames as $k => $row) {
+            $this->_scripts[$k] = $row;
         }
     }
 
@@ -104,7 +119,7 @@ class KuberDock_Assets {
      *
      * @param array $fileNames
      */
-    public function registerStyleFiles($fileNames = array())
+    public function registerStyles($fileNames = array())
     {
         foreach($fileNames as $row) {
             $this->_styles[] = $row;
@@ -150,5 +165,24 @@ class KuberDock_Assets {
         }
 
         return $content;
+    }
+
+    /**
+     * Class loader
+     *
+     * @param string $className
+     * @return $this
+     */
+    public static function model($className = __CLASS__)
+    {
+        if ($class = get_called_class()) {
+            $className = $class;
+        }
+
+        if (!self::$model[$className]) {
+            self::$model[$className] = new $className;
+        }
+
+        return self::$model[$className];
     }
 }

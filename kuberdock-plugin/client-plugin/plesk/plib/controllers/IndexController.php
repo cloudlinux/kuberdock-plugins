@@ -2,7 +2,6 @@
 
 class IndexController extends pm_Controller_Action
 {
-    
     public function init()
     {
         $session = new pm_Session();

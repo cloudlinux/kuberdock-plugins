@@ -6,6 +6,7 @@
 
 namespace Kuberdock\classes\exceptions;
 
+use Kuberdock\classes\Base;
 use \Kuberdock\classes\KuberDock_View;
 
 class CException extends \Exception {
