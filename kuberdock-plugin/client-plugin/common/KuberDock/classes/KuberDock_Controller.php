@@ -32,6 +32,10 @@ class KuberDock_Controller {
      * @var \Exception
      */
     public $error;
+    /**
+     * @var KuberDock_Assets
+     */
+    public $assets;
 
     /**
      * View object

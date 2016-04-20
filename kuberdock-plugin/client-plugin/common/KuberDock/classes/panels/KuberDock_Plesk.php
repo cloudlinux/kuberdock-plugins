@@ -3,9 +3,9 @@
 namespace Kuberdock\classes\panels;
 
 use Kuberdock\classes\components\KuberDock_Api;
-
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\KDCommonCommand;
+use Kuberdock\classes\KuberDock_Assets;
 use Kuberdock\classes\Tools;
 use Kuberdock\classes\Base;
 use Kuberdock\classes\exceptions\CException;
@@ -13,50 +13,19 @@ use Kuberdock\classes\components\KuberDock_ApiResponse;
 use Kuberdock\classes\panels\billing\WHMCS;
 use Kuberdock\classes\panels\billing\BillingInterface;
 use Kuberdock\classes\panels\billing\NoBilling;
+use Kuberdock\classes\panels\assets\KuberDock_Plesk_Assets;
 
-class KuberDock_Plesk
+class KuberDock_Plesk extends KuberDock_Panel
 {
-    /**
-     * @var
-     */
-    public $user;
-    /**
-     * @var
-     */
-    public $domain;
-    /**
-     * @var billing\BillingInterface
-     */
-    public $billing;
-
-    /**
-     * @var KuberDock_ApiResponse
-     */
-    protected $_data;
-    /**
-     * @var KcliCommand
-     */
-    protected $command;
-    /**
-     * @var KDCommonCommand
-     */
-    protected $kdCommon;
-
-    /**
-     * @var KuberDock_Api
-     */
-    protected $api;
-
     /**
      * @throws CException
      */
     public function __construct()
     {
-        // TODO: use common cli
-        $this->user = $_ENV['REMOTE_USER'];
-        $this->domain = $_ENV['DOMAIN'];
+        $this->user = Base::model()->getStaticPanel()->getUser();
+        $this->domain = Base::model()->getStaticPanel()->getDomain();
 
-        $this->api = new \Kuberdock\classes\components\KuberDock_Api();
+        $this->api = new KuberDock_Api();
         $data = $this->api->getInfo($this->user, $this->domain);
         $this->billing = $this->getBilling($data);
 
@@ -79,69 +48,37 @@ class KuberDock_Plesk
     }
 
     /**
-     * @return KcliCommand
-     */
-    public function getCommand()
-    {
-        return $this->command;
-    }
-
-    /**
-     * @return KDCommonCommand
-     */
-    public function getCommonCommand()
-    {
-        return $this->kdCommon;
-    }
-
-    /**
-     * @return KuberDock_Api
-     */
-    public function getApi()
-    {
-        return $this->api;
-    }
-
-    /**
-     * @param $data
-     * @return WHMCS | BillingInterface
-     * @throws CException
-     */
-    public function getBilling($data)
-    {
-        $billingClasses = array(
-            'No billing' => 'NoBilling',
-            'WHMCS' => 'WHMCS',
-        );
-
-        if(!isset($billingClasses[$data['billing']])) {
-            throw new CException('Billing class not exist');
-        }
-
-        $className = '\Kuberdock\classes\panels\billing\\' . $billingClasses[$data['billing']];
-        return new $className($data);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isNoBilling()
-    {
-        return $this->billing instanceof NoBilling;
-    }
-
-    /**
-     * @param bool $root
      * @return string
      */
-    public function getURL($root = true)
+    public function getUser()
     {
-        $scheme = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? 'https' : 'http';
-        $host = $_SERVER['SERVER_NAME'];
-        $port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : 80;
-        $uri = $root ? $this->getRootUrl() : $this->getApiUrl();
+        $session = new \pm_Session();
+        $client = $session->getClient();
+        return $client->getProperty('login');
+    }
 
-        return sprintf('%s://%s:%s%s', $scheme, $host, $port, $uri);
+    /**
+     * @return string
+     */
+    public function getDomain()
+    {
+        $session = new \pm_Session();
+        $domain = $session->getCurrentDomain();
+        return $domain->getName();
+    }
+
+    /**
+     * @return string
+     */
+    public function getHomeDir()
+    {
+        $dir = \pm_Context::getVarDir() . $this->getUser();
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0700);
+        }
+
+        return $dir;
     }
 
     /**
@@ -149,7 +86,7 @@ class KuberDock_Plesk
      */
     public function getRootUrl()
     {
-        return 'kuberdock.live.php';
+        return '';
     }
 
     /**
@@ -157,63 +94,24 @@ class KuberDock_Plesk
      */
     public function getApiUrl()
     {
-        return 'kuberdock.api.live.php';
+        return '';
     }
 
     /**
-     * @return array
+     * @return KuberDock_Plesk_Assets
      */
-    public function getUserDomains()
+    public function getAssets()
     {
-        return $this->kdCommon->getUserDomains();
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getUserMainDomain()
-    {
-        list($domain, $directory) = $this->kdCommon->getUserMainDomain();
-
-        return $domain;
-    }
-
-    /**
-     * @param $response
-     * @return mixed
-     * @throws CException
-     */
-    private function  getResponseData($response)
-    {
-        if(!isset($response['cpanelresult']['result'])) {
-            throw new CException(sprintf('Undefined response from %s:%s',
-                $response['cpanelresult']['module'], $response['cpanelresult']['func']));
+        if (!$this->assets) {
+            $this->assets = KuberDock_Plesk_Assets::model();
         }
 
-        $result = $response['cpanelresult']['result'];
-
-        if($result['errors']) {
-            throw new CException(implode("\n", $result['errors']));
-        }
-
-        return $result['data'];
+        return $this->assets;
     }
 
-    /**
-     * @param $response
-     * @return mixed
-     * @throws CException
-     */
-    private function parseModuleResponse($response)
+    public function setAssets(KuberDock_Assets $assets)
     {
-        $data = $this->getResponseData($response);
-        $json = json_decode($data, true);
-
-        if(isset($json['status']) && $json['status'] == 'ERROR') {
-            throw new CException(sprintf('%s', $json['message']));
-        }
-
-        return $json;
+        $this->assets = $assets;
     }
 
     /**
@@ -223,6 +121,7 @@ class KuberDock_Plesk
      */
     public function createUser($package)
     {
+        return;
         $password = Tools::generatePassword();
 
         $data = array(
@@ -242,19 +141,5 @@ class KuberDock_Plesk
         $this->command = new KcliCommand('', '', $token);
 
         return $data;
-    }
-
-    public function updatePod($attributes)
-    {
-        $data = Base::model()->nativePanel->uapi('KuberDock', 'updatePod', array('data' => json_encode($attributes)));
-        return $this->parseModuleResponse($data);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isDefaultUser()
-    {
-        return $this->command->getUsername() == KcliCommand::DEFAULT_USER;
     }
 }

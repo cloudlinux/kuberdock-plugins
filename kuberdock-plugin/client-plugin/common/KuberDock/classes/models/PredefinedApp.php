@@ -460,7 +460,7 @@ class PredefinedApp {
     private static function getAppPathByTemplateId($templateId, $name = null)
     {
         $path = array('.kuberdock_pre_apps', 'kuberdock_'. $templateId);
-        $appDir = getenv('HOME');
+        $appDir = \Kuberdock\classes\Base::model()->getStaticPanel()->getHomeDir();
 
         foreach($path as $row) {
             $appDir .= DS . $row;

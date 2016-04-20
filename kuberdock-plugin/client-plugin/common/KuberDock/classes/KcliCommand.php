@@ -535,7 +535,6 @@ class KcliCommand extends Command {
     static public function getConfig($global = false)
     {
         $path = self::getUserConfigPath($global);
-
         $data = array();
         $fp = fopen($path, 'r');
 
@@ -611,7 +610,7 @@ class KcliCommand extends Command {
             return self::GLOBAL_CONF_FILE;
         }
 
-        $path = getenv('HOME') .DS . '.kubecli.conf';
+        $path = Base::model()->getStaticPanel()->getHomeDir() .DS . '.kubecli.conf';
 
         if(!file_exists($path)) {
             copy(self::GLOBAL_CONF_FILE, $path);

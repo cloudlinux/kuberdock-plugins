@@ -68,4 +68,16 @@ class KDCommonCommand extends Command {
             '--domain' => $domain,
         ));
     }
+
+    /**
+     * @return string
+     */
+    public function getPanel()
+    {
+        return $this->execute(array(
+            $this->returnType,
+            'panel',
+            'detect',
+        ));
+    }
 }

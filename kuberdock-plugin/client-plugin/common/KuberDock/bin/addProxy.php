@@ -32,7 +32,7 @@ $podName = $opts['pod_name'];
 $rule = $opts['rule'];
 $path = $opts['path'];
 $startCount = $opts['c'];
-$userHome = getenv('HOME');
+$userHome = \Kuberdock\classes\Base::model()->getStaticPanel()->getHomeDir();
 
 if(strpos($path, $userHome) === false) {
     throw new CException('Wrong path');
