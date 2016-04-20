@@ -18,26 +18,40 @@ SOURCE_PATH = '/usr/share/kuberdock-plugin/'
 CPANEL_CGI_PATH = '/usr/local/cpanel/whostmgr/cgi/'
 CPANEL_TEMPLATE_PATH = '/usr/local/cpanel/base/frontend/'
 
+PLESK_EXTENTION_TOOL = '/usr/local/psa/bin/extension'
+
 
 class Plugin:
     def __init__(self):
         self.panel = exec_command([KDCOMMON, 'panel', 'detect'])
 
     def install(self):
-        if self.panel == 'cPanel':
-            self.cpanel_install()
+        action = '{0}_install'.format(self.panel.lower())
+        try:
+            getattr(self, action)()
+        except AttributeError:
+            print 'Unknown panel'
+            exit(1)
 
         print 'Plugin installed'
 
     def upgrade(self):
-        if self.panel == 'cPanel':
-            self.cpanel_upgrade()
+        action = '{0}_upgrade'.format(self.panel.lower())
+        try:
+            getattr(self, action)()
+        except AttributeError:
+            print 'Unknown panel'
+            exit(1)
 
         print 'Plugin upgraded'
 
     def delete(self):
-        if self.panel == 'cPanel':
-            self.cpanel_delete()
+        action = '{0}_delete'.format(self.panel.lower())
+        try:
+            getattr(self, action)()
+        except AttributeError:
+            print 'Unknown panel'
+            exit(1)
 
         print 'Plugin uninstalled'
 
@@ -273,6 +287,30 @@ class Plugin:
                     f.write(home_script + "\n")
                 f.truncate()
                 f.close()
+
+    # Plesk
+    def plesk_install(self):
+        # update structure
+        common_source_path = os.path.join(SOURCE_PATH, 'client-plugin/common')
+        client_path = os.path.join(SOURCE_PATH, 'client-plugin')
+        client_source_path = os.path.join(client_path, 'plesk')
+
+        exec_command(['/bin/cp', '-R', os.path.join(common_source_path, 'KuberDock'),
+                      os.path.join(client_source_path, 'plib', 'library')])
+        exec_command(['/bin/cp', '-R', os.path.join(common_source_path, 'KuberDock', 'assets'),
+                      os.path.join(client_source_path, 'htdocs')])
+
+        # extension
+        os.chdir(client_source_path)
+        exec_command(['/usr/bin/zip', '-r', 'KuberDock.zip', '.'])
+        exec_command(['/bin/mv', '-f', os.path.join(client_source_path, PLUGIN_NAME + '.zip'), client_path])
+        exec_command([PLESK_EXTENTION_TOOL, '--install', os.path.join(client_path, PLUGIN_NAME + '.zip')])
+
+    def plesk_upgrade(self):
+        self.plesk_install()
+
+    def plesk_delete(self):
+        exec_command([PLESK_EXTENTION_TOOL, '--uninstall', PLUGIN_NAME])
 
 
 def exec_command(command, **kwargs):

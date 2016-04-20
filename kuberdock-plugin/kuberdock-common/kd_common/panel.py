@@ -17,6 +17,8 @@ class Panel(object):
     def get_current(self):
         if os.path.isfile('/usr/local/cpanel/cpanel'):
             return 'cPanel'
+        elif os.path.isfile('/usr/local/psa/bin/pleskbackup'):
+            return 'Plesk'
         else:
             raise CLIError(UNKNOWN_PANEL, json=self.json)
 
