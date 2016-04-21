@@ -152,6 +152,42 @@ class CL_Tools extends CL_Component {
     }
 
     /**
+     * @param array $vars
+     * @return object
+     */
+    public static function getApiParams($vars) {
+        $param = array('action' => array(), 'params' => array());
+        $param['action'] = $vars['_POST']['action'];
+        unset($vars['_POST']['username']);
+        unset($vars['_POST']['password']);
+        unset($vars['_POST']['action']);
+        $param['params'] = (object) $vars['_POST'];
+
+        return (object) $param;
+    }
+
+    /**
+     * @param string $url
+     * @param string $email
+     * @return string
+     */
+    public static function generateAutoAuthLink($url, $email)
+    {
+        global $CONFIG;
+        global $autoauthkey;
+
+        if (isset($autoauthkey) && $autoauthkey) {
+            $loginUrl = $CONFIG['SystemURL'] . '/dologin.php';
+            $timestamp = time();
+            $hash = sha1($email . $timestamp . $autoauthkey);
+            return sprintf('%s?email=%s&timestamp=%s&hash=%s&goto=%s',
+                $loginUrl, $email, $timestamp, $hash, urlencode($url));
+        } else {
+            return $CONFIG['SystemURL'] . '/' . $url;
+        }
+    }
+
+    /**
      * Class loader
      *
      * @param string $className
