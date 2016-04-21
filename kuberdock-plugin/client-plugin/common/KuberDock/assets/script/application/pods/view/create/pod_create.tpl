@@ -7,7 +7,7 @@
                 one minute.
             </p>
 
-            <div class="page-header">
+            <div class="kd-page-header">
                 <h2>Setup "<%- model.get('image') %>"</h2>
             </div>
         </div>

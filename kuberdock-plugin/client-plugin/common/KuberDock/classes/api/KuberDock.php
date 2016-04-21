@@ -61,9 +61,6 @@ class KuberDock extends API
         $package = Base::model()->getPanel()->billing->getPackage();
 
         if(Base::model()->getPanel()->billing->isFixedPrice($package['id'])) {
-            Base::model()->getPanel()->getApi()->updatePod($pod->id, array(
-                'status' => 'unpaid',
-            ));
             $pod->order($pod->getLink());
         } else {
             $pod->start();
@@ -130,9 +127,6 @@ class KuberDock extends API
         $pod = $app->getPod()->loadByName($app->template->getPodName());
 
         if(Base::model()->getPanel()->billing->isFixedPrice($app->getPackageId())) {
-            Base::model()->getPanel()->getApi()->updatePod($pod->id, array(
-                'status' => 'unpaid',
-            ));
             $link = sprintf('#pod/%s/1', $app->template->getPodName());
             $pod->order(Base::model()->getPanel()->getURL() . $link);
         } else {
@@ -190,6 +184,11 @@ class KuberDock extends API
     protected function get_persistent_drives()
     {
         return $this->getPod()->getPersistentDrives();
+    }
+
+    protected function get_user_package()
+    {
+        return Base::model()->getPanel()->billing->getPackage();
     }
 
     protected function get_stream()

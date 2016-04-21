@@ -28,23 +28,25 @@ class Proxy {
      */
     const ROOT_DIR = 'root';
 
-    public function __construct()
-    {
-    }
-
     /**
      * @param string $podName
      * @param string $dir
      * @param string $domain
      * @param int $port
+     * @throws CException
      */
     public function addProxy($podName, $dir, $domain, $port)
     {
         $htaccessPath = $this->getHtaccessPathByDomain($domain);
         $rule = $this->getRewriteRule($dir, '%s', $port);
-        $command = sprintf('%s --pod_name="%s" --path=%s --rule=\'%s\' -c 1',
-            $this->getProxyCommand(), $podName, $htaccessPath, $rule);
-        exec($command);
+
+        $pod = Base::model()->getPanel()->getCommand()->describePod($podName);
+
+        if (!isset($pod['podIP'])) {
+            throw new CException(sprintf('Cannot get pod IP for pod %s', $podName));
+        }
+
+        $this->addRule($htaccessPath, sprintf($rule, $pod['podIP']));
     }
 
     /**
@@ -53,11 +55,8 @@ class Proxy {
      */
     public function addRule($path, $rule)
     {
-        if(!file_exists($path)) {
-            file_put_contents($path, '');
-        }
-
-        $htaccess = file_get_contents($path);
+        $fileManager = Base::model()->getStaticPanel()->getFileManager();
+        $htaccess = $fileManager->getFileContent($path);
 
         if(!preg_match($this->getHtaccessRegexp(), $htaccess)) {
             $data = array("\n", self::HTACCESS_START_SECTION, $rule, self::HTACCESS_END_SECTION);
@@ -72,7 +71,15 @@ class Proxy {
             }, $htaccess);
         }
 
-        file_put_contents($path, $htaccess);
+        if (!$fileManager->file_exists($path)) {
+            $fileManager->putFileContent($path, $htaccess);
+            $fileManager->chown($path);
+            $fileManager->chmod($path, 0660);
+        } else {
+            $fileManager->chown($path);
+            $fileManager->chmod($path, 0660);
+            file_put_contents($path, $htaccess);
+        }
     }
 
     /**
@@ -82,11 +89,13 @@ class Proxy {
      */
     public function removeRule($path, $rule)
     {
-        if(!file_exists($path)) {
+        $fileManager = Base::model()->getStaticPanel()->getFileManager();
+
+        if (!$fileManager->file_exists($path)) {
             return false;
         }
 
-        $htaccess = file_get_contents($path);
+        $htaccess = $fileManager->getFileContent($path);
 
         if(preg_match($this->getHtaccessRegexp(), $htaccess)) {
             $htaccess = preg_replace_callback($this->getHtaccessRegexp(), function($e) use ($rule) {
@@ -99,7 +108,11 @@ class Proxy {
             }, $htaccess);
         }
 
-        file_put_contents($path, $htaccess);
+        if ($fileManager->file_exists($path)) {
+            $fileManager->chown($path);
+            $fileManager->chmod($path, 0660);
+            file_put_contents($path, $htaccess);
+        }
     }
 
     /**
@@ -110,11 +123,13 @@ class Proxy {
     public function removeRuleByDirName($dir, $domain)
     {
         $path = $this->getHtaccessPathByDomain($domain);
-        if(!file_exists($path)) {
+
+        if (!file_exists($path)) {
             return false;
         }
 
-        $htaccess = file_get_contents($path);
+        $fileManager = Base::model()->getStaticPanel()->getFileManager();
+        $htaccess = $fileManager->getFileContent($path);
 
         if(preg_match($this->getHtaccessRegexp(), $htaccess)) {
             $htaccess = preg_replace_callback($this->getHtaccessRegexp(), function($e) use ($dir) {
@@ -128,7 +143,11 @@ class Proxy {
             }, $htaccess);
         }
 
-        file_put_contents($path, $htaccess);
+        if ($fileManager->file_exists($path)) {
+            $fileManager->chown($path);
+            $fileManager->chmod($path, 0660);
+            file_put_contents($path, $htaccess);
+        }
     }
 
     /**
@@ -211,10 +230,10 @@ class Proxy {
      */
     private function getDocRootByDomain($domain)
     {
-        $panel = Base::model()->getPanel();
-        $docRoot = $panel->getCommonCommand()->getUserDomainDocroot($domain);
+        $panel = Base::model()->getStaticPanel();
+        $docRoot = $panel->getCommonCommand()->getUserDomainDocroot($domain, $panel->getUser());
 
-        if(file_exists($docRoot)) {
+        if (file_exists($docRoot)) {
             return $docRoot;
         }
 

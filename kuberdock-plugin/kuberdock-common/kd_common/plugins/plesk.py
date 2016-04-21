@@ -34,7 +34,7 @@ class Plesk(object):
                 domains_list.append((m.group('domain'), document_root))
 
         if not domains_list:
-            raise CLIError('Not found', json=self.json)
+            raise CLIError('Domains Not found', json=self.json)
         return domains_list
 
     def get_domain_docroot(self, user, domain):
@@ -43,4 +43,4 @@ class Plesk(object):
             user_domain, docroot = d
             if user_domain == domain:
                 return docroot
-        raise CLIError('Not found', json=self.json)
+        raise CLIError('Docroot Not found', json=self.json)

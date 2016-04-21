@@ -8,6 +8,7 @@ use api\KuberDock_Api;
 use base\CL_Query;
 use base\models\CL_Server;
 use base\models\CL_Hosting;
+use Kuberdock\classes\exceptions\CException;
 
 class KuberDock_Server extends CL_Server {
     /**
@@ -79,6 +80,28 @@ class KuberDock_Server extends CL_Server {
         $this->setAttributes(current($rows));
 
         return $this;
+    }
+
+    /**
+     * @param string $url
+     * @return $this
+     * @throws CException
+     */
+    public function getByUrl($url)
+    {
+        $url = parse_url($url);
+        $host = $url['host'];
+        $host .= $url['port'] ? ':'.$url['port'] : '';
+
+        $rows = $this->loadByAttributes(array(
+            'type' => KUBERDOCK_MODULE_NAME,
+        ), "ipaddress = '$host' OR hostname = '$host'");
+
+        if(!$rows) {
+            throw new CException("No available products for KuberDock server: " . $host);
+        }
+
+        return $this->loadByParams(current($rows));
     }
 
     /**

@@ -16,6 +16,10 @@ class KcliCommand extends Command {
      * Command path
      */
     const COMMAND_PATH = '/usr/bin/kcli';
+    /**
+     * KCLI pod templates directory
+     */
+    const KCLI_POD_DIR = '.kube_containers';
 
     /**
      * @var string
@@ -512,22 +516,6 @@ class KcliCommand extends Command {
     }
 
     /**
-     * @param string $path
-     * @return $this
-     * @throws CException
-     */
-    public function setConfPath($path)
-    {
-        if(!file_exists($path)) {
-            throw new CException(sprintf('Config file %s not exist', $path));
-        }
-
-        $this->confPath = $path;
-
-        return $this;
-    }
-
-    /**
      * Get user config file data
      * @param bool $global
      * @return array
@@ -551,12 +539,11 @@ class KcliCommand extends Command {
         return $data;
     }
 
+    /**
+     * @throws CException
+     */
     public function setConfig()
     {
-        if(!$this->username && !$this->token) {
-            return;
-        }
-
         $globalConfig = self::getConfig(true);
         $config = self::getConfig();
 
@@ -569,7 +556,7 @@ class KcliCommand extends Command {
             ),
         );
 
-        if($this->token) {
+        if ($this->token) {
             $newConfig['defaults']['token'] = $this->token;
         }
 
@@ -583,16 +570,9 @@ class KcliCommand extends Command {
             }
         });
 
-        file_put_contents(self::getUserConfigPath(), implode("\n", $data));
-        chmod(self::getUserConfigPath(), 0600);
-    }
-
-    /**
-     * @return bool
-     */
-    static public function isUserConfigExist()
-    {
-        return file_exists(self::getUserConfigPath());
+        $fileManager = Base::model()->getStaticPanel()->getFileManager();
+        $fileManager->putFileContent(self::getUserConfigPath(), implode("\n", $data));
+        $fileManager->chmod(self::getUserConfigPath(), 0660);
     }
 
     /**
@@ -610,11 +590,18 @@ class KcliCommand extends Command {
             return self::GLOBAL_CONF_FILE;
         }
 
-        $path = Base::model()->getStaticPanel()->getHomeDir() .DS . '.kubecli.conf';
+        $panel = Base::model()->getStaticPanel();
+        $templatesPath = $panel->getHomeDir() . DS . self::KCLI_POD_DIR;
 
-        if(!file_exists($path)) {
-            copy(self::GLOBAL_CONF_FILE, $path);
-            chmod($path, 0600);
+        if (!is_dir($templatesPath)) {
+            $panel->getFileManager()->mkdir($templatesPath, 0770);
+        }
+
+        $path = $panel->getHomeDir() . DS . '.kubecli.conf';
+
+        if (!file_exists($path)) {
+            $panel->getFileManager()->copy(self::GLOBAL_CONF_FILE, $path);
+            $panel->getFileManager()->chmod($path, 0660);
         }
 
         return $path;

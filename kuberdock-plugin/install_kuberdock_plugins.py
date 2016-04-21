@@ -71,7 +71,6 @@ class Plugin:
                 shutil.rmtree(os.path.join(CPANEL_TEMPLATE_PATH, template, PLUGIN_NAME))
             exec_command(['/bin/cp', '-R', os.path.join(client_source_path, PLUGIN_NAME), template_path])
             exec_command(['/bin/cp', '-R', os.path.join(common_source_path, PLUGIN_NAME), template_path])
-            exec_command(['/bin/chmod', '755', os.path.join(template_path, PLUGIN_NAME, 'bin', 'addProxy.php')])
 
         exec_command(['/bin/tar', '-cjf', os.path.join(conf_path, 'kuberdock-plugin.tar.bz2'),
                       '-C', os.path.join(conf_path, 'kuberdock-plugin'), '.'])
@@ -115,11 +114,8 @@ class Plugin:
             if os.path.isdir(os.path.join(template_path, 'dynamicui')):
                 shutil.copy(os.path.join(conf_path, 'dynamicui_kuberdockgroup.conf'),
                             os.path.join(template_path, 'dynamicui'))
-            if os.path.exists(os.path.join(CPANEL_TEMPLATE_PATH, template, PLUGIN_NAME)):
-                shutil.rmtree(os.path.join(CPANEL_TEMPLATE_PATH, template, PLUGIN_NAME))
             exec_command(['/bin/cp', '-R', os.path.join(client_source_path, PLUGIN_NAME), template_path])
             exec_command(['/bin/cp', '-R', os.path.join(common_source_path, PLUGIN_NAME), template_path])
-            exec_command(['/bin/chmod', '755', os.path.join(template_path, PLUGIN_NAME, 'bin', 'addProxy.php')])
 
         exec_command(['/bin/tar', '-cjf', os.path.join(conf_path, 'kuberdock-plugin.tar.bz2'),
                       '-C', os.path.join(conf_path, 'kuberdock-plugin'), '.'])

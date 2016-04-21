@@ -10,7 +10,7 @@ class Response
             'status' => 'OK',
         );
 
-        if (is_array($data)) {
+        if (is_array($data) || is_null($data)) {
             $array['data'] = $data;
         } else {
             $array['message'] = $data;
