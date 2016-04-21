@@ -6,20 +6,9 @@ if (!defined('WHMCS')) {
 
 require dirname(__FILE__) . '/../../modules/servers/KuberDock/init.php';
 
-function getParams($vars) {
-    $param = array('action' => array(), 'params' => array());
-    $param['action'] = $vars['_POST']['action'];
-    unset($vars['_POST']['username']);
-    unset($vars['_POST']['password']);
-    unset($vars['_POST']['action']);
-    $param['params'] = (object) $vars['_POST'];
-
-    return (object) $param;
-}
-
 try {
     $vars = get_defined_vars();
-    $postFields = getParams($vars);
+    $postFields = \base\CL_Tools::getApiParams($vars);
 
     foreach(array('client_id', 'pod') as $attr) {
         if(!isset($postFields->params->{$attr}) || !$postFields->params->{$attr}) {
@@ -69,6 +58,10 @@ try {
         'status' => $invoice->status,
         'invoice_id' => $invoice->id,
     );
+
+    if (!$invoice->isPayed()) {
+        $results['redirect'] = \base\CL_Tools::generateAutoAuthLink('viewinvoice.php?id=' . $invoice->id, $user->email);
+    }
 
     $apiresults = array('result' => 'success', 'results' => $results);
 } catch (Exception $e) {

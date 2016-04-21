@@ -6,22 +6,14 @@ if (!defined('WHMCS')) {
 
 require dirname(__FILE__) . '/../../modules/servers/KuberDock/init.php';
 
-function getParams($vars) {
-    $param = array('action' => array(), 'params' => array());
-    $param['action'] = $vars['_POST']['action'];
-    unset($vars['_POST']['username']);
-    unset($vars['_POST']['password']);
-    unset($vars['_POST']['action']);
-    $param['params'] = (object) $vars['_POST'];
-
-    return (object) $param;
-}
-
 try {
     global $CONFIG;
 
     $vars = get_defined_vars();
-    $postFields = getParams($vars);
+    $postFields = \base\CL_Tools::getApiParams($vars);
+    $kdServer = $postFields->params->kdServer;
+    $cpanelUser = $postFields->params->user;
+    $cpanelUserDomains = explode(',', $postFields->params->userDomains);
 
     foreach (array('kdServer', 'user', 'userDomains') as $attr) {
         if (!isset($postFields->params->{$attr}) || !$postFields->params->{$attr}) {
