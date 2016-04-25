@@ -1,6 +1,7 @@
 import json
 import os
 import pwd
+import subprocess
 
 from functools import wraps
 
@@ -22,9 +23,21 @@ class Utils(object):
         return wrapper
 
     @classmethod
+    def get_user(cls, login):
+        return pwd.getpwnam(login)
+
+    @classmethod
     def get_current_user(cls):
         return pwd.getpwuid(os.geteuid()).pw_name
 
     @classmethod
     def is_root(cls):
         return os.geteuid() == 0
+
+    @classmethod
+    def exec_command(cls, command, **kwargs):
+        if isinstance(command, basestring):
+            command = [command]
+        p = subprocess.Popen(command, stdout=subprocess.PIPE, **kwargs)
+        output = p.stdout.read()
+        return output.strip()

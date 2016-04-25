@@ -2,11 +2,13 @@ import os
 
 from kd_common.helper import Utils
 from kd_common.plugins.cpanel import CPanel
+from kd_common.plugins.plesk import Plesk
 from kd_common.exceptions import CLIError
 
 UNKNOWN_PANEL = 'Unknown'
 PANELS = {
     'cPanel': CPanel,
+    'Plesk': Plesk,
 }
 
 
