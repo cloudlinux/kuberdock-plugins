@@ -6,6 +6,7 @@ class KubeCli extends \pm_Form_Simple
 {
     public function init()
     {
+        $this->setAttrib('id', 'form_kubecli');
         $this->addElement('text', 'url', array(
             'label' => 'Kuberdock master url',
         ));

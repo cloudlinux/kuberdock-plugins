@@ -597,6 +597,28 @@ class KuberDock_Api {
         return $response->getData();
     }
 
+    public function postTemplate($name, $origin, $template)
+    {
+        return $this->apiCall('/api/predefined-apps', array(
+            'name' => $name,
+            'origin' => $origin,
+            'template' => $template,
+        ), 'POST');
+    }
+
+    public function putTemplate($id, $name, $template)
+    {
+        return $this->apiCall('/api/predefined-apps/' . $id, array(
+            'name' => $name,
+            'template' => $template,
+        ), 'PUT');
+    }
+
+    public function deleteTemplate($id)
+    {
+        return $this->apiCall('/api/predefined-apps/' . $id, array(), 'DELETE');
+    }
+
     public function getImages($name, $page = 1)
     {
         if (!$name) {

@@ -1,0 +1,19 @@
+<?php echo $this->assets->renderScripts();?>
+<?php echo $this->assets->renderStyles();?>
+<script>
+    jQuery.noConflict();
+</script>
+
+<?php echo $this->renderTabs($this->tabs); ?>
+
+<?php if ($this->error):?>
+    <div class="msg-box msg-error">
+         <div class="msg-content">
+            <span class="title">Error:</span> <?php echo $this->error;?>
+         </div>
+    </div>
+<?php endif;?>
+
+<?php echo $this->form; ?>
+
+<?php echo $this->partial('admin/footer.phtml');?>

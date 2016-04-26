@@ -1,1 +1,13 @@
+<?php echo $this->assets->renderScripts();?>
+<?php echo $this->assets->renderStyles();?>
+<script>
+    jQuery.noConflict();
+</script>
+
 <?php echo $this->renderTabs($this->tabs); ?>
+
+<a href="<?php echo pm_Context::getActionUrl('admin', 'application');?>" class="btn always-blue">Create new app</a>
+
+<?php echo $this->renderList($this->list); ?>
+
+<?php echo $this->partial('admin/footer.phtml');?>

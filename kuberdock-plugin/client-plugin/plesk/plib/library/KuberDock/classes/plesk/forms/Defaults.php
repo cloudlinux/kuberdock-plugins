@@ -6,6 +6,7 @@ class Defaults extends \pm_Form_Simple
 {
     public function init()
     {
+        $this->setAttrib('id', 'form_defaults');
         $this->addElement('select', 'packageId', array(
             'label' => 'Default package',
         ));
