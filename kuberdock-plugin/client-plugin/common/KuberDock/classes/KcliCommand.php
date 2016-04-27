@@ -52,7 +52,6 @@ class KcliCommand extends Command {
         $this->returnType = '--'.self::DATA_TYPE_JSON;
 
         $this->confPath = $this->getUserConfigPath();
-        $this->setConfig();
     }
 
     /**

@@ -43,7 +43,12 @@ define(['backbone', 'application/utils', 'application/pods/model'], function (Ba
         },
 
         getKDSection: function () {
-            return this.get('kuberdock') || {};
+            if (this.has('template')) {
+                return this.get('template').kuberdock || {};
+            } else {
+                return this.get('kuberdock') || {};
+            }
+
         },
 
         getName: function () {

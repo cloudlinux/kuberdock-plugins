@@ -4,6 +4,7 @@ namespace Kuberdock\classes\panels;
 
 use Kuberdock\classes\Base;
 use Kuberdock\classes\components\KuberDock_Api;
+use Kuberdock\classes\exceptions\UserNotFoundException;
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\KDCommonCommand;
 use Kuberdock\classes\panels\assets\Assets;
@@ -13,6 +14,7 @@ use Kuberdock\classes\components\KuberDock_ApiResponse;
 use Kuberdock\classes\panels\billing\WHMCS;
 use Kuberdock\classes\panels\billing\BillingInterface;
 use Kuberdock\classes\panels\billing\NoBilling;
+use Kuberdock\classes\Tools;
 
 abstract class KuberDock_Panel
 {
@@ -98,16 +100,41 @@ abstract class KuberDock_Panel
     abstract public function getFileManager();
 
     /**
-     * @param string $package
-     * @return mixed
-     * @throws CException
-     */
-    abstract public function createUser($package);
-
-    /**
      * @return array
      */
     abstract protected function getAdminData();
+
+    public function __construct()
+    {
+        $this->user = Base::model()->getStaticPanel()->getUser();
+        $this->domain = Base::model()->getStaticPanel()->getDomain();
+
+        $this->adminApi = new KuberDock_Api();
+        $adminData = $this->getAdminData();
+        $username = isset($adminData['user']) ? $adminData['user'] : '';
+        $password = isset($adminData['password']) ? $adminData['password'] : '';
+        $token = isset($adminData['token']) ? $adminData['token'] : '';
+        $this->adminApi->initAdmin($username, $password, $token);
+
+        $data = $this->adminApi->getInfo($this->user, $this->domain);
+        $this->billing = $this->getBilling($data);
+
+        if (!$this->isNoBilling() && ($service = $this->billing->getService())) {
+            $token = isset($service['token']) ? $service['token'] : '';
+        } else {
+            $token = '';
+        }
+
+        $this->command = new KcliCommand('', '', $token);
+        $this->kdCommon = new KDCommonCommand();
+
+        if (!$this->isNoBilling()) {
+            $this->command->setConfig();
+        }
+
+        $this->api = new KuberDock_Api();
+        $this->api->initUser();
+    }
 
     /**
      * @return KcliCommand
@@ -209,5 +236,39 @@ abstract class KuberDock_Panel
     {
         list($domain, $directory) = $this->kdCommon->getUserMainDomain();
         return $domain;
+    }
+
+
+    /**
+     * @param string $package
+     * @return mixed
+     * @throws CException
+     */
+    public function createUser($package)
+    {
+        $password = Tools::generatePassword();
+
+        $data = array(
+            'username' => $this->getUser(),
+            'password' => $password,
+            'active' => true,
+            'rolename' => 'User',
+            'package' => $package,
+            'email' => $this->getUser() . '@' . $this->getDomain(),
+        );
+        try {
+            $user = $this->getAdminApi()->getUser($this->getUser())->getData();
+            throw new CException('User already exists');
+        } catch (CException $e) {
+            // pass
+        }
+
+        $data = $this->getAdminApi()->createUser($data);
+        $token = $this->getAdminApi()->getUserToken($this->user, $password);
+
+        $this->command = new KcliCommand('', '', $token);
+        $this->command->setConfig();
+
+        return $data;
     }
 }

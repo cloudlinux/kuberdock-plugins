@@ -648,6 +648,7 @@ p {
 #main_content input[type="text"], #main_content select {
     border: #e3e3e3 solid 1px;
     background: #fff;
+    padding: 2px;
 }
 
 /* Bootstrap issues */

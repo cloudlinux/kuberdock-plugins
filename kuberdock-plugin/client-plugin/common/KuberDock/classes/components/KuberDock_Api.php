@@ -5,6 +5,8 @@ namespace Kuberdock\classes\components;
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\exceptions\CException;
 use Kuberdock\classes\exceptions\WithoutBillingException;
+use Kuberdock\classes\exceptions\UserNotFoundException;
+use Kuberdock\classes\exceptions\PaymentRequiredException;
 use Kuberdock\classes\Tools;
 use Kuberdock\classes\Base;
 
@@ -89,6 +91,10 @@ class KuberDock_Api {
         $this->dataType = self::DATA_TYPE_JSON;
     }
 
+    /**
+     * @param array $data
+     * @return KuberDock_Api
+     */
     public static function create($data)
     {
         $api = new self;
@@ -172,7 +178,7 @@ class KuberDock_Api {
     }
 
     /**
-     * @param $token
+     * @param string $token
      */
     public function setToken($token)
     {
@@ -187,6 +193,9 @@ class KuberDock_Api {
         return $this->arguments;
     }
 
+    /**
+     *
+     */
     public function initUser()
     {
         $config = KcliCommand::getConfig();
@@ -195,6 +204,11 @@ class KuberDock_Api {
         $this->registryURL = isset($config['registry']) ? $config['registry'] : '';
     }
 
+    /**
+     * @param string $username
+     * @param string $password
+     * @param string $token
+     */
     public function initAdmin($username = '', $password = '', $token = '')
     {
         $config = KcliCommand::getConfig();
@@ -205,6 +219,14 @@ class KuberDock_Api {
         $this->registryURL = isset($config['registry']) ? $config['registry'] : '';
     }
 
+    /**
+     * @param string $url
+     * @param array $params
+     * @param string $type
+     * @return array
+     * @throws CException
+     * @throws WithoutBillingException
+     */
     public function apiCall($url, $params = array(), $type = 'GET')
     {
         $this->url = $this->serverUrl . '/' . trim($url, '/');
@@ -218,31 +240,70 @@ class KuberDock_Api {
         return $response->getData();
     }
 
+    /**
+     * @return array
+     * @throws CException
+     */
     public function getDefaultKube()
     {
         return $this->apiCall('api/pricing/kubes/default');
     }
 
+    /**
+     * @param int $kubeType
+     * @return array
+     * @throws CException
+     */
     public function setDefaultKube($kubeType)
     {
         return $this->apiCall('/api/pricing/kubes/' . $kubeType, array('is_default' => true), 'PUT');
     }
 
+    /**
+     * @return array
+     * @throws CException
+     */
     public function getDefaultPackage()
     {
         return $this->apiCall('api/pricing/packages/default');
     }
 
+    /**
+     * @param int $packageId
+     * @return array
+     * @throws CException
+     */
     public function setDefaultPackage($packageId)
     {
         return $this->apiCall('/api/pricing/packages/' . $packageId, array('is_default' => true), 'PUT');
     }
 
+    /**
+     * @param int $id
+     * @return array
+     * @throws CException
+     */
+    public function getPackage($id)
+    {
+        return $this->apiCall('api/pricing/packages/' . $id, array(
+            'with_kubes' => true,
+        ));
+    }
+
+    /**
+     * @return array
+     * @throws CException
+     */
     public function getPackages()
     {
         return $this->apiCall('api/pricing/packages');
     }
 
+    /**
+     * @param int $packageId
+     * @return array
+     * @throws CException
+     */
     public function getPackageKubes($packageId)
     {
         return $this->apiCall('api/pricing/packages/' . $packageId . '/kubes');
@@ -419,14 +480,15 @@ class KuberDock_Api {
     }
 
     /**
-     * @param $user
-     * @param $domain
-     * @param $packageId
+     * @param string $user
+     * @param string $domain
+     * @param int $packageId
      * @return array
      * @throws CException
      * @throws WithoutBillingException
+     * @throws PaymentRequiredException
      */
-    public function order($user, $domain, $packageId)
+    public function orderProduct($user, $domain, $packageId)
     {
         $this->url = $this->serverUrl . '/api/billing/order';
 
@@ -436,13 +498,17 @@ class KuberDock_Api {
             'package_id' => $packageId,
         ), 'POST');
 
-        if(!$response->getStatus()) {
+        if (!$response->getStatus()) {
             throw new CException($response->getMessage());
         }
 
-        $data = current($response->getData());
-        $command = new KcliCommand('', '', $data['token']);
-        $command->setConfig();
+        $data = $response->getData();
+
+        if ($data['status'] == 'Unpaid') {
+            throw new PaymentRequiredException($data);
+        }
+
+        Base::model()->unsetPanel();
 
         return $data;
     }
@@ -541,22 +607,9 @@ class KuberDock_Api {
 
     /**
      * @param string $podId
-     * @param array $attributes
-     * @return KuberDock_ApiResponse
-     * @throws \Exception
-     */
-    public function updatePod($podId, $attributes)
-    {
-        $data['id'] = $podId;
-        $data['command'] = 'set';
-        $data['commandOptions'] = $attributes;
-
-        Base::model()->getPanel()->updatePod($data);
-    }
-
-    /**
-     * @param string $podId
      * @param array $containers
+     * @return array
+     * @throws CException
      */
     public function addKubes($podId, $containers)
     {
@@ -564,9 +617,23 @@ class KuberDock_Api {
         $data['command'] = 'redeploy';
         $data['containers'] = $containers;
 
-        Base::model()->getPanel()->updatePod($data);
+        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
+        $response = $this->call($data, 'PUT');
+
+        if(!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->getData();
     }
 
+    /**
+     * @param string $origin
+     * @param int $page
+     * @return array
+     * @throws CException
+     * @throws WithoutBillingException
+     */
     public function getTemplates($origin, $page = 1)
     {
         $this->url = $this->serverUrl . '/api/predefined-apps';
@@ -585,6 +652,12 @@ class KuberDock_Api {
         });
     }
 
+    /**
+     * @param int $id
+     * @return array
+     * @throws CException
+     * @throws WithoutBillingException
+     */
     public function getTemplate($id)
     {
         $this->url = $this->serverUrl . '/api/predefined-apps/' . $id;
@@ -597,6 +670,13 @@ class KuberDock_Api {
         return $response->getData();
     }
 
+    /**
+     * @param string $name
+     * @param string $origin
+     * @param string $template
+     * @return array
+     * @throws CException
+     */
     public function postTemplate($name, $origin, $template)
     {
         return $this->apiCall('/api/predefined-apps', array(
@@ -606,6 +686,13 @@ class KuberDock_Api {
         ), 'POST');
     }
 
+    /**
+     * @param int $id
+     * @param string $name
+     * @param string $template
+     * @return array
+     * @throws CException
+     */
     public function putTemplate($id, $name, $template)
     {
         return $this->apiCall('/api/predefined-apps/' . $id, array(
@@ -614,11 +701,23 @@ class KuberDock_Api {
         ), 'PUT');
     }
 
+    /**
+     * @param $id
+     * @return array
+     * @throws CException
+     */
     public function deleteTemplate($id)
     {
         return $this->apiCall('/api/predefined-apps/' . $id, array(), 'DELETE');
     }
 
+    /**
+     * @param string $name
+     * @param int $page
+     * @return array
+     * @throws CException
+     * @throws WithoutBillingException
+     */
     public function getImages($name, $page = 1)
     {
         if (!$name) {
@@ -641,6 +740,12 @@ class KuberDock_Api {
         return $response->getData();
     }
 
+    /**
+     * @param string $name
+     * @return array
+     * @throws CException
+     * @throws WithoutBillingException
+     */
     public function getImage($name)
     {
         $this->url = $this->serverUrl . '/api/images/new';
@@ -648,10 +753,50 @@ class KuberDock_Api {
             'image' => $name,
         ), 'POST');
 
-        if(!$response->getStatus()) {
+        if (!$response->getStatus()) {
             throw new CException($response->getMessage());
         }
 
         return $response->getData();
+    }
+
+    /**
+     * @param string $user
+     * @return KuberDock_ApiResponse
+     * @throws CException
+     * @throws UserNotFoundException
+     * @throws WithoutBillingException
+     */
+    public function getUser($user)
+    {
+        if (!$user) {
+            throw new UserNotFoundException();
+        }
+
+        $this->url = $this->serverUrl . '/api/users/all/' . $user;
+        $response = $this->call();
+
+        if (!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param $values
+     * @return KuberDock_ApiResponse
+     * @throws CException
+     */
+    public function createUser($values)
+    {
+        $this->url = $this->serverUrl . '/api/users/all';
+        $response = $this->call($values, 'POST');
+
+        if (!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response;
     }
 }

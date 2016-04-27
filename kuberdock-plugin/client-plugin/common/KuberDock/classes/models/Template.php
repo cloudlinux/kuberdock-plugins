@@ -96,7 +96,7 @@ class Template
     public function getAll()
     {
         $data = array();
-        $templates = $this->panel->getAdminApi()->getTemplates('cpanel');
+        $templates = $this->panel->getAdminApi()->getTemplates(strtolower(Base::model()->getPanelType()));
 
         foreach($templates as &$row) {
             $row['template'] = Spyc::YAMLLoadString($row['template']);

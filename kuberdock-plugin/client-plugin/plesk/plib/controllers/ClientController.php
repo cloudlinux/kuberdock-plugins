@@ -66,6 +66,8 @@ class ClientController extends pm_Controller_Action
 
     public function applicationsAction()
     {
+        $base = \Kuberdock\classes\Base::model();
+        $this->view->apps = $base->getPanel()->getAdminApi()->getTemplates(strtolower($base->getPanelType()));
     }
 
     public function apiAction()

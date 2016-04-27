@@ -274,6 +274,7 @@ class Pod {
     public function getImageInfo($image)
     {
         $panel = Base::model()->getPanel();
+        $imageData = array();
 
         if ($panel->isUserExists()) {
             $imageInfo = $this->command->getImage($image);
@@ -301,7 +302,7 @@ class Pod {
     {
         $data = array();
 
-        if(!$this->panel->billing->getService()) {
+        if (!Base::model()->getPanel()->isUserExists()) {
             return $data;
         }
 
@@ -396,18 +397,18 @@ class Pod {
     public function createProduct()
     {
         // Create order with kuberdock product
-        if (Base::model()->getPanel()->isUserExists()) {
+        $panel = Base::model()->getPanel();
+
+        if ($panel->isUserExists()) {
             return $this;
         }
 
-        if (!$this->panel->isNoBilling()) {
-            $this->panel->getAdminApi()->order($this->panel->user, $this->panel->domain, $this->packageId);
+        if (!$panel->isNoBilling()) {
+            $panel->getAdminApi()->orderProduct($panel->user, $panel->domain, $this->packageId);
         } else {
-            $product = $this->panel->billing->getProductByKuberId($this->packageId);
-            $this->panel->createUser($product['name']);
+            $product = $panel->billing->getPackageById($this->packageId);
+            $panel->createUser($product['name']);
         }
-
-        Base::model()->unsetPanel();
 
         return $this;
     }
@@ -475,7 +476,7 @@ class Pod {
      */
     public function start()
     {
-        if($this->isUnPaid()) {
+        if ($this->isUnPaid()) {
             $this->order();
             $message = 'Application started';
         } elseif(in_array($this->status, array('stopped', 'terminated', 'failed', 'succeeded'))) {

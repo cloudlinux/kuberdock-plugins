@@ -18,30 +18,7 @@ class KuberDock_Plesk extends KuberDock_Panel
      */
     public function __construct()
     {
-        $this->user = Base::model()->getStaticPanel()->getUser();
-        $this->domain = Base::model()->getStaticPanel()->getDomain();
-
-        $this->api = new KuberDock_Api();
-        $this->api->initUser();
-
-        $this->adminApi = new KuberDock_Api();
-        $adminData = $this->getAdminData();
-        $username = isset($adminData['user']) ? $adminData['user'] : '';
-        $password = isset($adminData['password']) ? $adminData['password'] : '';
-        $token = isset($adminData['token']) ? $adminData['token'] : '';
-        $this->adminApi->initAdmin($username, $password, $token);
-
-        $data = $this->adminApi->getInfo($this->user, $this->domain);
-        $this->billing = $this->getBilling($data);
-
-        if ($service = $this->billing->getService()) {
-            $token = isset($service['token']) ? $service['token'] : '';
-        } else {
-            $token = '';
-        }
-
-        $this->command = new KcliCommand('', '', $token);
-        $this->kdCommon = new KDCommonCommand();
+        parent::__construct();
     }
 
     /**
@@ -130,35 +107,6 @@ class KuberDock_Plesk extends KuberDock_Panel
         }
 
         return $this->assets;
-    }
-
-    /**
-     * @param string $package
-     * @return mixed
-     * @throws CException
-     */
-    public function createUser($package)
-    {
-        return;
-        $password = Tools::generatePassword();
-
-        $data = array(
-            'username' => $this->user,
-            'password' => $password,
-            'active' => true,
-            'rolename' => 'User',
-            'package' => $package,
-            'email' => $this->user . '@' . $this->domain,
-        );
-
-        $data = Base::model()->nativePanel->uapi('KuberDock', 'createUser', array('data' => json_encode($data)));
-        $data = $this->parseModuleResponse($data);
-
-        $token = $this->api->getUserToken($this->user, $password);
-
-        $this->command = new KcliCommand('', '', $token);
-
-        return $data;
     }
 
     /**

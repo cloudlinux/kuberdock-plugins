@@ -126,7 +126,7 @@ class KuberDock extends API
 
         $pod = $app->getPod()->loadByName($app->template->getPodName());
 
-        if(Base::model()->getPanel()->billing->isFixedPrice($app->getPackageId())) {
+        if (Base::model()->getPanel()->billing->isFixedPrice($app->getPackageId())) {
             $link = sprintf('#pod/%s/1', $app->template->getPodName());
             $pod->order(Base::model()->getPanel()->getURL() . $link);
         } else {

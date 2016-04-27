@@ -2,7 +2,9 @@
 
 namespace Kuberdock\classes\panels\billing;
 
+use Kuberdock\classes\Base;
 use Kuberdock\classes\exceptions\CException;
+use Kuberdock\classes\exceptions\UserNotFoundException;
 use Kuberdock\classes\components\KuberDock_ApiResponse;
 
 /**
@@ -63,7 +65,7 @@ class NoBilling implements BillingInterface
      */
     public function getService()
     {
-        return $this->_data['user'];
+        return $this->getPackage();
     }
 
     /**
@@ -81,13 +83,7 @@ class NoBilling implements BillingInterface
      */
     public function getUserCredit()
     {
-        $userInfo = $this->getUserInfo();
-
-        if(!isset($userInfo['credit'])) {
-            throw new CException('Cannot get billing user balance');
-        }
-
-        return $userInfo['credit'];
+        return 0;
     }
 
     /**
@@ -95,7 +91,7 @@ class NoBilling implements BillingInterface
      * @throws CException
      */
     public function getDefaults() {
-        if(isset($this->_data['default'])) {
+        if (isset($this->_data['default'])) {
             return array(
                 'packageId' => $this->_data['default']['packageId']['id'],
                 'kubeType' => $this->_data['default']['kubeType']['id'],
@@ -115,15 +111,27 @@ class NoBilling implements BillingInterface
     }
 
     public function getPackage() {
-        return current($this->_data['package']);
+        $panel =  Base::model()->getPanel();
+
+        if ($panel->isUserExists()) {
+            try {
+                $response = $panel->getAdminApi()->getUser($panel->getUser())->getData();
+                $package = $panel->getAdminApi()->getPackage($response['package_info']['id']);
+                return $package;
+            } catch (UserNotFoundException $e) {
+                return array();
+            }
+        } else {
+            return array();
+        }
     }
 
     public function getPackageById($id)
     {
         if ($this->getPackage()) return $this->getPackage();
 
-        foreach($this->getPackages() as $row) {
-            if($row['id'] == $id) {
+        foreach ($this->getPackages() as $row) {
+            if ($row['id'] == $id) {
                 return $row;
             }
         }

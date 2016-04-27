@@ -143,6 +143,6 @@ class WHMCS implements BillingInterface
     }
 
     public function getPackages() {
-        return $this->_data['packages'];
+        return isset($this->_data['packages']) ? $this->_data['packages'] : null;
     }
 }
