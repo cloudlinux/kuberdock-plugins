@@ -1,6 +1,6 @@
 <div class="container-fluid content preapp-plan-page">
     <div class="row">
-        <div class="page-header">
+        <div class="kd-page-header">
             <div class="col-xs-1 nopadding"><span class="header-ico-preapp-install"></span></div>
             <h2><%= model.getName() %></h2>
         </div>

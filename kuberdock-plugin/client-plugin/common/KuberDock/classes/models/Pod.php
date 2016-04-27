@@ -647,7 +647,7 @@ class Pod {
 
     public function checkMaxKubes($kubeCount)
     {
-        $sysapi = Base::model()->getPanel()->getApi()->getSysApi('name');
+        $sysapi = Base::model()->getPanel()->getAdminApi()->getSysApi('name');
         $maxKubes = $sysapi['max_kubes_per_container']['value'];
 
         if ($kubeCount > $maxKubes) {

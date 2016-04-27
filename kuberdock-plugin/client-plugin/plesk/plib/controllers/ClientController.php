@@ -1,11 +1,23 @@
 <?php
 
+use \Kuberdock\classes\api\KuberDock;
+use \Kuberdock\classes\api\Response;
+use \Kuberdock\classes\exceptions\PaymentRequiredException;
+use \Kuberdock\classes\exceptions\ApiException;
+
 
 class ClientController extends pm_Controller_Action
 {
     public function init()
     {
         parent::init();
+
+        $session = new pm_Session();
+        $client = $session->getClient();
+
+        if ($client->isAdmin()) {
+            $this->_redirect('/admin/index');
+        }
 
         $this->view->pageTitle = 'KuberDock Extension';
         $this->view->tabs = array(
@@ -50,5 +62,29 @@ class ClientController extends pm_Controller_Action
         } catch(\Kuberdock\classes\exceptions\CException $e) {
             echo $e;
         }
+    }
+
+    public function applicationsAction()
+    {
+    }
+
+    public function apiAction()
+    {
+        try {
+            if (!isset($_REQUEST['request'])) {
+                throw new ApiException('Request not found', 404);
+            }
+
+            $API = new KuberDock($_REQUEST['request']);
+            $API->run();
+        } catch (PaymentRequiredException $e) {
+            Response::error('Payment required', 402, $e->getRedirect());
+        } catch (ApiException $e) {
+            Response::error($e->getMessage(), $e->getCode());
+        } catch (\Exception $e) {
+            Response::error($e->getMessage(), 500);
+        }
+
+        exit(0);
     }
 }

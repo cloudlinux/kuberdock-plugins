@@ -126,7 +126,7 @@ class WHMCS implements BillingInterface
     }
 
     public function getPackage() {
-        return current($this->_data['package']);
+        return $this->_data['package'] ? current($this->_data['package']) : null;
     }
 
     public function getPackageById($id)

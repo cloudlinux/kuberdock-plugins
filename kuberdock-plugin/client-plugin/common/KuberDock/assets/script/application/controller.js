@@ -36,6 +36,16 @@ define([
         podDetails: function (name, description) {
             var view;
 
+            if (_.isEmpty(userPackage)) {
+                $.ajax({
+                    async: false,
+                    url: rootURL + '?request=user/package',
+                    dataType: 'json'
+                }).done(function (response) {
+                    userPackage = response.data;
+                });
+            }
+
             if (this.podCollection && this.podCollection.get(name)) {
                 this.pod = this.podCollection.get(name);
                 view = new Views.Details({

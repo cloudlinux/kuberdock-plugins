@@ -36,7 +36,7 @@ class CPanel(object):
                         domains_list.append((domain, document_root))
             domains_file.close()
         if not domains_list:
-            raise CLIError('Not found', json=self.json)
+            raise CLIError('Domains Not found', json=self.json)
         return domains_list
 
     def get_domain_docroot(self, user, domain):
@@ -45,4 +45,4 @@ class CPanel(object):
             user_domain, docroot = d
             if user_domain == domain:
                 return docroot
-        raise CLIError('Not found', json=self.json)
+        raise CLIError('Docroot Not found', json=self.json)

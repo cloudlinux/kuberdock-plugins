@@ -1,8 +1,8 @@
 <?php
 
-namespace Kuberdock\classes;
+namespace Kuberdock\classes\panels\assets;
 
-class KuberDock_Assets {
+class Assets {
     /**
      * Default JavaScript file extension
      */

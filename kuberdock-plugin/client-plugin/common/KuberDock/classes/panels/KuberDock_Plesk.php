@@ -5,15 +5,11 @@ namespace Kuberdock\classes\panels;
 use Kuberdock\classes\components\KuberDock_Api;
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\KDCommonCommand;
-use Kuberdock\classes\KuberDock_Assets;
+use Kuberdock\classes\panels\fileManager\Plesk_FileManager;
 use Kuberdock\classes\Tools;
 use Kuberdock\classes\Base;
 use Kuberdock\classes\exceptions\CException;
-use Kuberdock\classes\components\KuberDock_ApiResponse;
-use Kuberdock\classes\panels\billing\WHMCS;
-use Kuberdock\classes\panels\billing\BillingInterface;
-use Kuberdock\classes\panels\billing\NoBilling;
-use Kuberdock\classes\panels\assets\KuberDock_Plesk_Assets;
+use Kuberdock\classes\panels\assets\Plesk_Assets;
 
 class KuberDock_Plesk extends KuberDock_Panel
 {
@@ -26,25 +22,38 @@ class KuberDock_Plesk extends KuberDock_Panel
         $this->domain = Base::model()->getStaticPanel()->getDomain();
 
         $this->api = new KuberDock_Api();
-        $data = $this->api->getInfo($this->user, $this->domain);
+        $this->api->initUser();
+
+        $this->adminApi = new KuberDock_Api();
+        $adminData = $this->getAdminData();
+        $username = isset($adminData['user']) ? $adminData['user'] : '';
+        $password = isset($adminData['password']) ? $adminData['password'] : '';
+        $token = isset($adminData['token']) ? $adminData['token'] : '';
+        $this->adminApi->initAdmin($username, $password, $token);
+
+        $data = $this->adminApi->getInfo($this->user, $this->domain);
         $this->billing = $this->getBilling($data);
 
-        if($service = $this->billing->getService()) {
-            $username = isset($service['username']) ? $service['username'] : '';
-            $password = isset($service['password']) ? $service['password'] : '';
+        if ($service = $this->billing->getService()) {
             $token = isset($service['token']) ? $service['token'] : '';
         } else {
-            $username = KcliCommand::DEFAULT_USER;
-            $password = KcliCommand::DEFAULT_USER;
             $token = '';
         }
 
-        if($token) {
-            $this->api->setToken($token);
+        $this->command = new KcliCommand('', '', $token);
+        $this->kdCommon = new KDCommonCommand();
+    }
+
+    /**
+     * @return Plesk_FileManager
+     */
+    public function getFileManager()
+    {
+        if (!$this->fileManager) {
+            $this->fileManager = new Plesk_FileManager();
         }
 
-        $this->command = new KcliCommand($username, $password, $token);
-        $this->kdCommon = new KDCommonCommand();
+        return $this->fileManager;
     }
 
     /**
@@ -55,6 +64,15 @@ class KuberDock_Plesk extends KuberDock_Panel
         $session = new \pm_Session();
         $client = $session->getClient();
         return $client->getProperty('login');
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserGroup()
+    {
+        $groupInfo = posix_getgrgid(posix_getegid());
+        return $groupInfo['name'];
     }
 
     /**
@@ -72,13 +90,18 @@ class KuberDock_Plesk extends KuberDock_Panel
      */
     public function getHomeDir()
     {
-        $dir = \pm_Context::getVarDir() . $this->getUser();
+        $data = posix_getpwnam($this->getUser());
 
-        if (!is_dir($dir)) {
-            mkdir($dir, 0700);
+        if (isset($data['dir'])) {
+            return $data['dir'];
+        } else {
+            $dir = \pm_Context::getVarDir() . $this->getUser();
+            if (!is_dir($dir)) {
+                $this->getFileManager($dir, 0700);
+            }
+
+            return $dir;
         }
-
-        return $dir;
     }
 
     /**
@@ -86,7 +109,7 @@ class KuberDock_Plesk extends KuberDock_Panel
      */
     public function getRootUrl()
     {
-        return '';
+        return 'index';
     }
 
     /**
@@ -94,24 +117,19 @@ class KuberDock_Plesk extends KuberDock_Panel
      */
     public function getApiUrl()
     {
-        return '';
+        return 'api';
     }
 
     /**
-     * @return KuberDock_Plesk_Assets
+     * @return Plesk_Assets
      */
     public function getAssets()
     {
         if (!$this->assets) {
-            $this->assets = KuberDock_Plesk_Assets::model();
+            $this->assets = Plesk_Assets::model();
         }
 
         return $this->assets;
-    }
-
-    public function setAssets(KuberDock_Assets $assets)
-    {
-        $this->assets = $assets;
     }
 
     /**
@@ -141,5 +159,42 @@ class KuberDock_Plesk extends KuberDock_Panel
         $this->command = new KcliCommand('', '', $token);
 
         return $data;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getAdminData()
+    {
+        $data = array();
+        $fileManager = new \pm_ServerFileManager();
+        $content = $fileManager->fileGetContents('/root/.kubecli.conf');
+
+        foreach (explode("\n", $content) as $line) {
+            if (in_array(substr($line, 0, 1), array('#', '/'))) continue;
+
+            if (preg_match('/^(.*)=(.*)$/', $line, $match)) {
+                $data[trim($match[1])] = trim($match[2]);
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return array
+     */
+    public function getUserDomains()
+    {
+        return $this->kdCommon->getUserDomains($this->getUser());
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUserMainDomain()
+    {
+        list($domain, $directory) = $this->kdCommon->getUserMainDomain($this->getUser());
+        return $domain;
     }
 }

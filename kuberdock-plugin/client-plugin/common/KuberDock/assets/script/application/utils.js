@@ -13,9 +13,10 @@ define(['app', 'bbcode', 'bootstrap'], function(App) {
         getKubes: function (sorted) {
             sorted = sorted || 'id';
             var kubes = [];
+            var data = _.isEmpty(userPackage) ? packages : [userPackage];
 
-            _.each([userPackage] || packages, function(row){
-                _.each(row.kubes, function(kube){
+            _.each(data, function(row) {
+                _.each(row.kubes, function(kube) {
                     if (kube.available) {
                         kubes.push({
                             'id' : kube.id,

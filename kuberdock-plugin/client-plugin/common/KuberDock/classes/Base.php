@@ -16,6 +16,10 @@ class Base {
      */
     protected $panel;
     /**
+     * @var string
+     */
+    protected $panelType;
+    /**
      * @var KuberDock_Panel
      */
     protected $staticPanel;
@@ -28,9 +32,13 @@ class Base {
      */
     protected static $_models;
 
+    /**
+     *
+     */
     public function unsetPanel()
     {
         unset($this->panel);
+        $this->getPanel();
     }
 
     /**
@@ -39,8 +47,7 @@ class Base {
      */
     public function getPanel()
     {
-        $kdCommon = new KDCommonCommand();
-        $panel = $kdCommon->getPanel();
+        $panel = $this->getPanelType();
 
         try {
             if (!$this->panel) {
@@ -64,12 +71,14 @@ class Base {
      */
     public function getStaticPanel()
     {
-        $kdCommon = new KDCommonCommand();
-        $panel = $kdCommon->getPanel();
+        $panel = $this->getPanelType();
 
         try {
-            $obj = new \ReflectionClass('Kuberdock\classes\panels\KuberDock_' . $panel);
-            $this->staticPanel = $obj->newInstanceWithoutConstructor();
+            if (!$this->staticPanel) {
+                $obj = new \ReflectionClass('Kuberdock\classes\panels\KuberDock_' . $panel);
+                $this->staticPanel = $obj->newInstanceWithoutConstructor();
+            }
+
             return $this->staticPanel;
         } catch (\ReflectionException $e) {
             throw new CException('Unknown panel');
@@ -90,6 +99,19 @@ class Base {
     public function getNativePanel()
     {
         return $this->nativePanel;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPanelType()
+    {
+        if (!$this->panelType) {
+            $kdCommon = new KDCommonCommand();
+            $this->panelType = $kdCommon->getPanel();
+        }
+
+        return $this->panelType;
     }
 
     /**

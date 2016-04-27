@@ -1,5 +1,5 @@
 var KDReq = requirejs.config({
-    baseUrl: 'assets/script',
+    baseUrl: assetsURL + 'script',
     urlArgs: "bust=" +  (new Date()).getTime(),
     paths: {
         jquery: 'lib/jquery.min',

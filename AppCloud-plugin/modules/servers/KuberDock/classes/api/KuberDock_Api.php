@@ -742,13 +742,16 @@ class KuberDock_Api {
     }
 
     /**
+     * @param bool $withKubes
      * @return KuberDock_ApiResponse
      * @throws Exception
      */
-    public function getPackages()
+    public function getPackages($withKubes = false)
     {
         $this->url = $this->serverUrl . '/api/pricing/packages';
-        $response = $this->call(array(), 'GET');
+        $response = $this->call(array(
+            'with_kubes' => $withKubes,
+        ), 'GET');
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());
@@ -760,13 +763,16 @@ class KuberDock_Api {
 
     /**
      * @param int $id
+     * @param bool $withKubes
      * @return KuberDock_ApiResponse
      * @throws Exception
      */
-    public function getPackageById($id)
+    public function getPackageById($id, $withKubes = false)
     {
         $this->url = $this->serverUrl . '/api/pricing/packages/' . $id;
-        $response = $this->call(array(), 'GET');
+        $response = $this->call(array(
+            'with_kubes' => $withKubes,
+        ), 'GET');
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());

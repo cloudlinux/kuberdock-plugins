@@ -2,11 +2,12 @@
 
 namespace Kuberdock\classes\panels;
 
+use Kuberdock\classes\Base;
 use Kuberdock\classes\components\KuberDock_Api;
-
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\KDCommonCommand;
-use Kuberdock\classes\KuberDock_Assets;
+use Kuberdock\classes\panels\assets\Assets;
+use Kuberdock\classes\panels\fileManager\FileManagerInterface;
 use Kuberdock\classes\exceptions\CException;
 use Kuberdock\classes\components\KuberDock_ApiResponse;
 use Kuberdock\classes\panels\billing\WHMCS;
@@ -45,14 +46,26 @@ abstract class KuberDock_Panel
      */
     protected $api;
     /**
-     * @var KuberDock_Assets
+     * @var KuberDock_Api
+     */
+    protected $adminApi;
+    /**
+     * @var Assets
      */
     protected $assets;
+    /**
+     * @var FileManagerInterface
+     */
+    protected $fileManager;
 
     /**
      * @return string
      */
     abstract public function getUser();
+    /**
+     * @return string
+     */
+    abstract public function getUserGroup();
 
     /**
      * @return string
@@ -75,9 +88,14 @@ abstract class KuberDock_Panel
     abstract public function getApiUrl();
 
     /**
-     * @return KuberDock_Assets
+     * @return Assets
      */
     abstract public function getAssets();
+
+    /**
+     * @return FileManagerInterface
+     */
+    abstract public function getFileManager();
 
     /**
      * @param string $package
@@ -85,6 +103,11 @@ abstract class KuberDock_Panel
      * @throws CException
      */
     abstract public function createUser($package);
+
+    /**
+     * @return array
+     */
+    abstract protected function getAdminData();
 
     /**
      * @return KcliCommand
@@ -99,6 +122,10 @@ abstract class KuberDock_Panel
      */
     public function getCommonCommand()
     {
+        if (!$this->kdCommon) {
+            $this->kdCommon = new KDCommonCommand();
+        }
+
         return $this->kdCommon;
     }
 
@@ -108,6 +135,13 @@ abstract class KuberDock_Panel
     public function getApi()
     {
         return $this->api;
+    }
+    /**
+     * @return KuberDock_Api
+     */
+    public function getAdminApi()
+    {
+        return $this->adminApi;
     }
 
     /**
@@ -136,6 +170,14 @@ abstract class KuberDock_Panel
     public function isNoBilling()
     {
         return $this->billing instanceof NoBilling;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isUserExists()
+    {
+        return (bool) $this->getApi()->getToken();
     }
 
     /**

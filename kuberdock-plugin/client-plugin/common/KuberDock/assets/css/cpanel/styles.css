@@ -91,7 +91,7 @@ label.title{
     height: 16px;
     display: inline-block;
     vertical-align: middle;
-    background: url(../images/ajax-loader.gif) no-repeat;
+    background: url(../../images/ajax-loader.gif) no-repeat;
 }
 .ajax-loader.buttons {
     margin: 0;
@@ -194,7 +194,7 @@ p {
     margin: auto;
     height: 65px;
     display: block;
-    background: url(../images/preapinstall-ico.png) center no-repeat;
+    background: url(../../images/preapinstall-ico.png) center no-repeat;
 
 }
 .preapp-install-page .page-header h2,
@@ -360,7 +360,7 @@ p {
     padding-top: 30px;
     position: relative;
     margin: 0 auto 18px;
-    background: url(../images/chocolate.png) 0 0 no-repeat;
+    background: url(../../images/chocolate.png) 0 0 no-repeat;
 }
 .preapp-plan-page form.plans .item .img-wrapper .plan-name{
     position: absolute;
@@ -393,7 +393,7 @@ p {
     height: 133px;
     margin: 0 auto;
     position: relative;
-    background: url('../images/price-area.png') 0 0 no-repeat;
+    background: url('../../images/price-area.png') 0 0 no-repeat;
 }
 .preapp-plan-page form.plans .item .img-wrapper .price-wrapper .price{
     color: #fff;
@@ -447,7 +447,7 @@ p {
     height: 18px;
     margin: auto;
     position: absolute;
-    background: url('../images/item-arrow.png') 0 0 no-repeat;
+    background: url('../../images/item-arrow.png') 0 0 no-repeat;
 }
 .preapp-plan-page form.plans .item .hide-details:before{
     transform: rotate(90deg) scale(0.817) skew(1deg) translate(0px);
@@ -508,7 +508,7 @@ p {
     height: 40px;
     margin: auto;
     position: absolute;
-    background: url(../images/lamp-icon.png) center no-repeat;
+    background: url(../../images/lamp-icon.png) center no-repeat;
 }
 
 /* Preloader */
@@ -587,6 +587,39 @@ p {
     width: 100px;
 }
 
+@-webkit-keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+@keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
 /* Upgrade page */
 .slider-value {
     margin-top: 10px;
@@ -597,4 +630,11 @@ p {
 
 .load-more a {
     cursor: pointer;
+}
+/* End upgrade page */
+
+.kd-page-header {
+    padding-bottom: 9px;
+    margin: 40px 0 20px;
+    border-bottom: 1px solid #eee
 }

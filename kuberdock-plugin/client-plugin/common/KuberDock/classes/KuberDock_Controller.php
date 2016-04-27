@@ -2,6 +2,8 @@
 
 namespace Kuberdock\classes;
 
+use Kuberdock\classes\panels\assets\Assets;
+
 class KuberDock_Controller {
     /**
      * Default controller directory
@@ -33,7 +35,7 @@ class KuberDock_Controller {
      */
     public $error;
     /**
-     * @var KuberDock_Assets
+     * @var Assets
      */
     public $assets;
 

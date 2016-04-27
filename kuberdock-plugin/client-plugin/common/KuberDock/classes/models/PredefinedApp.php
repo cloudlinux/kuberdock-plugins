@@ -238,12 +238,16 @@ class PredefinedApp {
         // Create order with kuberdock product
         $pod = $this->pod->createProduct();
         $this->command = $pod->getCommand();
-        file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template->data));
+        $fileManager = Base::model()->getStaticPanel()->getFileManager();
+        $fileManager->putFileContent($this->getAppPath(), Spyc::YAMLDump($this->template->data));
         $response = $this->command->createPodFromYaml($this->getAppPath());
 
         $this->setPostInstallVariables($response);
-        file_put_contents($this->getAppPath(), Spyc::YAMLDump($this->template->data));
-        file_put_contents($this->getAppPath($this->template->getPodName()), Spyc::YAMLDump($this->template->data));
+        $fileManager->putFileContent($this->getAppPath(), Spyc::YAMLDump($this->template->data));
+        $fileManager->putFileContent($this->getAppPath($this->template->getPodName()), Spyc::YAMLDump($this->template->data));
+
+        $fileManager->chmod($this->getAppPath(), 0640);
+        $fileManager->chmod($this->getAppPath($this->template->getPodName()), 0640);
 
         return $response;
     }
@@ -460,13 +464,14 @@ class PredefinedApp {
     private static function getAppPathByTemplateId($templateId, $name = null)
     {
         $path = array('.kuberdock_pre_apps', 'kuberdock_'. $templateId);
-        $appDir = \Kuberdock\classes\Base::model()->getStaticPanel()->getHomeDir();
+        $panel = \Kuberdock\classes\Base::model()->getStaticPanel();
+        $appDir = $panel->getHomeDir();
 
         foreach($path as $row) {
             $appDir .= DS . $row;
 
-            if(!file_exists($appDir)) {
-                mkdir($appDir);
+            if (!file_exists($appDir)) {
+                $panel->getFileManager()->mkdir($appDir, 0770);
             }
         }
 

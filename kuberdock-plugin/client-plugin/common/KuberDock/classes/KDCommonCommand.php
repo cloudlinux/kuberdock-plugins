@@ -34,39 +34,53 @@ class KDCommonCommand extends Command {
     }
 
     /**
+     * @param string $user
      * @return array
      */
-    public function getUserDomains()
+    public function getUserDomains($user = '')
     {
-        return $this->execute(array(
+        $attributes = array(
             $this->returnType,
             'user',
             'domains',
-        ));
+        );
+
+        if ($user) {
+            $attributes['--user'] = $user;
+        }
+        return $this->execute($attributes);
     }
 
     /**
+     * @param string $user
      * @return array
      */
-    public function getUserMainDomain()
+    public function getUserMainDomain($user = '')
     {
-        $domains = $this->getUserDomains();
+        $domains = $this->getUserDomains($user);
 
         return $domains ? $domains[0] : array();
     }
 
     /**
      * @param string $domain
+     * @param string $user
      * @return array
      */
-    public function getUserDomainDocroot($domain)
+    public function getUserDomainDocroot($domain, $user = '')
     {
-        return $this->execute(array(
+        $attributes = array(
             $this->returnType,
             'user',
             'docroot',
             '--domain' => $domain,
-        ));
+        );
+
+        if ($user) {
+            $attributes['--user'] = $user;
+        }
+
+        return $this->execute($attributes);
     }
 
     /**

@@ -5,14 +5,12 @@ namespace Kuberdock\classes\panels;
 use Kuberdock\classes\components\KuberDock_Api;
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\KDCommonCommand;
-use Kuberdock\classes\panels\assets\KuberDock_cPanel_Assets;
+use Kuberdock\classes\panels\assets\cPanel_Assets;
+use Kuberdock\classes\panels\fileManager\cPanel_FileManager;
 use Kuberdock\classes\Tools;
 use Kuberdock\classes\Base;
 use Kuberdock\classes\exceptions\CException;
-use Kuberdock\classes\components\KuberDock_ApiResponse;
-use Kuberdock\classes\panels\billing\WHMCS;
-use Kuberdock\classes\panels\billing\BillingInterface;
-use Kuberdock\classes\panels\billing\NoBilling;
+
 
 class KuberDock_cPanel extends KuberDock_Panel
 {
@@ -45,7 +43,18 @@ class KuberDock_cPanel extends KuberDock_Panel
 
         $this->command = new KcliCommand('', '', $token);
         $this->kdCommon = new KDCommonCommand();
-        $this->command->setConfig();
+    }
+
+    /**
+     * @return cPanel_FileManager
+     */
+    public function getFileManager()
+    {
+        if (!$this->fileManager) {
+            $this->fileManager = new cPanel_FileManager();
+        }
+
+        return $this->fileManager;
     }
 
     /**
@@ -59,30 +68,18 @@ class KuberDock_cPanel extends KuberDock_Panel
     /**
      * @return string
      */
+    public function getUserGroup()
+    {
+        $groupInfo = posix_getgrgid(posix_getegid());
+        return $groupInfo['name'];
+    }
+
+    /**
+     * @return string
+     */
     public function getDomain()
     {
         return $_ENV['DOMAIN'];
-    }
-
-    /**
-     * @return KuberDock_Api
-     */
-    public function getApi()
-    {
-        return $this->api;
-    }
-
-    /**
-     * @return KuberDock_Api
-     */
-    public function getAdminApi()
-    {
-        return $this->adminApi;
-    }
-
-    public function isUserExists()
-    {
-        return (bool) $this->getApi()->getToken();
     }
 
     public function getHomeDir()
@@ -107,12 +104,12 @@ class KuberDock_cPanel extends KuberDock_Panel
     }
 
     /**
-     * @return KuberDock_cPanel_Assets
+     * @return cPanel_Assets
      */
     public function getAssets()
     {
         if (!$this->assets) {
-            $this->assets = KuberDock_cPanel_Assets::model();
+            $this->assets = cPanel_Assets::model();
         }
 
         return $this->assets;
@@ -191,7 +188,7 @@ class KuberDock_cPanel extends KuberDock_Panel
         return $this->parseModuleResponse($data);
     }
 
-    private function getAdminData()
+    protected function getAdminData()
     {
         $data = Base::model()->nativePanel->uapi('KuberDock', 'getAdminData');
         return $this->parseModuleResponse($data);

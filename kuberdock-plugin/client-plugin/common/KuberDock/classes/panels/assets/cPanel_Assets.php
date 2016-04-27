@@ -2,9 +2,8 @@
 
 namespace Kuberdock\classes\panels\assets;
 
-use Kuberdock\classes\KuberDock_Assets;
 
-class KuberDock_cPanel_Assets extends KuberDock_Assets {
+class cPanel_Assets extends Assets {
     /**
      * @param string $fileName
      * @return string

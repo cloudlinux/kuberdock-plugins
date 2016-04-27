@@ -2,7 +2,8 @@
 
 namespace Kuberdock\classes\models;
 
-use Kuberdock\classes\panels\KuberDock_cPanel;
+use Kuberdock\classes\panels\KuberDock_Panel;
+use Kuberdock\classes\Base;
 use Kuberdock\classes\exceptions\CException;
 use Kuberdock\classes\extensions\yaml\Spyc;
 use Kuberdock\classes\KuberDock_View;
@@ -21,7 +22,7 @@ class Template
      */
     public $data = array();
     /**
-     * @var KuberDock_cPanel
+     * @var KuberDock_Panel
      */
     private $panel;
     /**
@@ -30,9 +31,9 @@ class Template
     private $id;
 
     /**
-     * @param KuberDock_cPanel $panel
+     * @param KuberDock_Panel $panel
      */
-    public function __construct(KuberDock_cPanel $panel)
+    public function __construct(KuberDock_Panel $panel)
     {
         $this->panel = $panel;
     }
@@ -64,7 +65,7 @@ class Template
     public function getByPath($path, $id)
     {
         $this->id = $id;
-        $template = file_get_contents($path);
+        $template = Base::model()->getStaticPanel()->getFileManager()->getFileContent($path);
 
         if(!$template) {
             throw new CException('Template not exists');
@@ -85,7 +86,7 @@ class Template
             return false;
         }
 
-        return Spyc::YAMLLoadString(file_get_contents($path));
+        return Spyc::YAMLLoadString(Base::model()->getStaticPanel()->getFileManager()->getFileContent($path));
     }
 
     /**

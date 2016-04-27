@@ -1,7 +1,7 @@
 <div class="container-fluid content">
     <div class="row">
         <div class="col-md-10">
-            <div class="page-header">
+            <div class="kd-page-header">
                 <h2>Search applications</h2>
 
                 <div id="templates"></div>

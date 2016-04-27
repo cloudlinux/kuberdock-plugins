@@ -2,9 +2,8 @@
 
 namespace Kuberdock\classes\panels\assets;
 
-use Kuberdock\classes\KuberDock_Assets;
 
-class KuberDock_Plesk_Assets extends KuberDock_Assets {
+class Plesk_Assets extends Assets {
     /**
      * @param string $fileName
      * @return string
