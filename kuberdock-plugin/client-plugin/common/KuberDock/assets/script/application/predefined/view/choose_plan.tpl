@@ -1,8 +1,8 @@
 <div class="container-fluid content preapp-plan-page">
     <div class="row">
-        <div class="kd-page-header">
+        <div class="kd-page-header clearfix">
             <div class="col-xs-1 nopadding"><span class="header-ico-preapp-install"></span></div>
-            <h2><%= model.getName() %></h2>
+            <h2 class="col-xs-11"><%= model.getName() %></h2>
         </div>
         <div class="col-xs-11 col-xs-offset-1 nopadding">
             <p class="pre-app-desc"><%= model.getPreDescription() %></p>

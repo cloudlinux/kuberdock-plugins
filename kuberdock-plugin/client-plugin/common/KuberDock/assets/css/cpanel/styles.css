@@ -123,6 +123,7 @@ p {
 .env-more-link {
     display: inline-block;
     margin-top: 7px;
+    float: right;
 }
 /* fix paper_lantern */
 .modal-backdrop {
@@ -637,4 +638,20 @@ p {
     padding-bottom: 9px;
     margin: 40px 0 20px;
     border-bottom: 1px solid #eee
+}
+.table > tbody > tr > td {
+    vertical-align: middle;
+}
+.centered > div {
+    vertical-align: top;
+}
+
+.table > tbody> tr > td .dropdown-menu a {
+    color: #6b6b6b;
+    font-size: 12px;
+    padding: 3px 10px;
+}
+.table > tbody > tr > td .dropdown-menu a:hover {
+    text-decoration: none;
+    color: #6b6b6b;
 }

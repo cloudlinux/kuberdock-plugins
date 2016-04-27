@@ -53,6 +53,7 @@ class Template
         }
 
         $this->data = Spyc::YAMLLoadString($template['template']);
+        $this->data['kuberdock']['name'] = $template['name'];
 
         return $this->data;
     }

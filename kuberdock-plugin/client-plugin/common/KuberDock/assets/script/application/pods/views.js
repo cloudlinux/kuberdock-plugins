@@ -59,7 +59,8 @@ define(['app', 'application/utils',
             stopButton: '.pod-stop',
             editButton: '.pod-edit',
             deleteButton: '.pod-delete',
-            podDetails: '.pod-details'
+            podDetails: '.pod-details',
+            dropdown: '.kd-dropdown'
         },
 
         events: {
@@ -68,7 +69,8 @@ define(['app', 'application/utils',
             'click @ui.stopButton': 'stopPod',
             'click @ui.editButton': 'editPod',
             'click @ui.deleteButton': 'deletePod',
-            'click @ui.podDetails': 'podDetails'
+            'click @ui.podDetails': 'podDetails',
+            'click @ui.dropdown': 'dropdown'
         },
 
         templateHelpers: function() {
@@ -148,6 +150,11 @@ define(['app', 'application/utils',
                 this.model.set('status', statuses[value]);
                 this.render();
             }
+        },
+
+        // Plesk issue: dropdown become hidden when fired toggle event
+        dropdown: function (e) {
+            $(e.target).parents('div.dropdown').toggleClass('open');
         }
     });
 
@@ -540,7 +547,8 @@ define(['app', 'application/utils',
             upgradeButton: '.pod-upgrade',
             restartButton: '.pod-restart',
             addMoreAppsButton: '.pod-search',
-            backButton: '.back'
+            backButton: '.back',
+            dropdown: '.kd-dropdown'
         },
 
         events: {
@@ -552,7 +560,8 @@ define(['app', 'application/utils',
             'click @ui.backButton': 'back',
             'click @ui.upgradeButton': 'upgradePod',
             'click @ui.restartButton': 'restartPod',
-            'click @ui.addMoreAppsButton': 'searchImages'
+            'click @ui.addMoreAppsButton': 'searchImages',
+            'click @ui.dropdown': 'dropdown'
         },
 
         templateHelpers: function () {
@@ -677,6 +686,11 @@ define(['app', 'application/utils',
         searchImages: function (e) {
             e.preventDefault();
             App.navigate('pod/image/search', {trigger: true});
+        },
+
+        // Plesk issue: dropdown become hidden when fired toggle event
+        dropdown: function (e) {
+            $(e.target).parents('div.dropdown').toggleClass('open');
         }
     });
 
@@ -718,7 +732,7 @@ define(['app', 'application/utils',
             }, 0);
 
             this.ui.resourcesSection.html(template({
-                cpu: (kube.cpu * kubes).toFixed() + ' ' + kube.cpu_units,
+                cpu: (kube.cpu * kubes).toFixed(2) + ' ' + kube.cpu_units,
                 hdd: kube.disk_space * kubes  + ' ' + kube.disk_space_units,
                 memory: kube.memory * kubes  + ' ' + kube.memory_units
             }));

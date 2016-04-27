@@ -93,7 +93,7 @@
                             <a href="http://<%- model.get('sourceUrl') %>" target="_blank" class="env-more-link">Learn more about this application</a>
                         </p>
 
-                        <table class="table table-stripped table-condensed" id="env_table">
+                        <table class="table table-stripped table-condensed clearfix" id="env_table">
                             <tr>
                                 <th><small>Name</small></th>
                                 <th><small>Value</small></th>

@@ -106,6 +106,7 @@ class KcliCommand extends Command {
                 'pods',
             ));
         } catch(CException $e) {
+            echo $e->getMessage();
             return array();
         }
     }

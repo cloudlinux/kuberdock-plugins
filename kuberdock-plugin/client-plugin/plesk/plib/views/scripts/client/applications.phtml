@@ -4,15 +4,7 @@
 <?php foreach($this->apps as $app): ?>
     <div class="text-center" style="display: inline-block; margin: 5px 20px">
         <a href="index#predefined/<?php echo $app['id']?>">
-        <?php
-            $yaml = \Kuberdock\classes\extensions\yaml\Spyc::YAMLLoadString($app['template']);
-            if (isset($yaml['kuberdock']['icon'])) {
-                $icon = $yaml['kuberdock']['icon'];
-            } else {
-                $icon = \Kuberdock\classes\Base::model()->getPanel()->getAssets()->getRelativePath('images/default_transparent.png');
-            }
-        ?>
-            <img src="<?php echo $icon; ?>" height="48" width="48">
+            <img src="<?php echo $app['icon']; ?>" height="48" width="48">
         </a>
         <p>
             <a href="index#predefined/<?php echo $app['id']?>">
