@@ -89,6 +89,17 @@ class KuberDock_Api {
         $this->dataType = self::DATA_TYPE_JSON;
     }
 
+    public static function create($data)
+    {
+        $api = new self;
+        $api->username = isset($data['user']) ? $data['user'] : $data['username'];
+        $api->password = $data['password'];
+        $api->serverUrl = $data['url'];
+        $api->registryURL = isset($data['registry']) ? $data['registry'] : '';
+
+        return $api;
+    }
+
     /**
      * @return string
      */
@@ -192,6 +203,49 @@ class KuberDock_Api {
         $this->token = $token;
         $this->serverUrl = $config['url'];
         $this->registryURL = isset($config['registry']) ? $config['registry'] : '';
+    }
+
+    public function apiCall($url, $params = array(), $type = 'GET')
+    {
+        $this->url = $this->serverUrl . '/' . trim($url, '/');
+
+        $response = $this->call($params, $type);
+
+        if(!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->getData();
+    }
+
+    public function getDefaultKube()
+    {
+        return $this->apiCall('api/pricing/kubes/default');
+    }
+
+    public function setDefaultKube($kubeType)
+    {
+        return $this->apiCall('/api/pricing/kubes/' . $kubeType, array('is_default' => true), 'PUT');
+    }
+
+    public function getDefaultPackage()
+    {
+        return $this->apiCall('api/pricing/packages/default');
+    }
+
+    public function setDefaultPackage($packageId)
+    {
+        return $this->apiCall('/api/pricing/packages/' . $packageId, array('is_default' => true), 'PUT');
+    }
+
+    public function getPackages()
+    {
+        return $this->apiCall('api/pricing/packages');
+    }
+
+    public function getPackageKubes($packageId)
+    {
+        return $this->apiCall('api/pricing/packages/' . $packageId . '/kubes');
     }
 
     /**
