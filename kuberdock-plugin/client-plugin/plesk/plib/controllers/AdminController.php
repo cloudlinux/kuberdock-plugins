@@ -12,6 +12,10 @@ class AdminController extends pm_Controller_Action
 
         $this->view->assets = \Kuberdock\classes\Base::model()->getStaticPanel()->getAssets();
         $this->view->pageTitle = 'KuberDock Extension';
+
+        $version = shell_exec('rpm -q kuberdock-plugin');
+        $this->view->version = preg_replace('/kuberdock-plugin-/i', '', $version);
+
         $this->view->tabs = array(
             array(
                 'title' => 'Existing apps',
@@ -35,8 +39,11 @@ class AdminController extends pm_Controller_Action
             'script/plesk/admin/index',
         ));
         $this->view->assets->registerStyles(array('css/plesk/admin'));
-
-        $this->view->list = new \Kuberdock\classes\plesk\lists\App($this->view, $this->_request);
+        try{
+            $this->view->list = new \Kuberdock\classes\plesk\lists\App($this->view, $this->_request);
+        } catch (\Kuberdock\classes\exceptions\CException $e) {
+            $this->settingsWrong();
+        }
     }
 
     public function applicationAction()
@@ -118,7 +125,11 @@ class AdminController extends pm_Controller_Action
             $model->save($this->getRequest()->getPost());
         }
 
-        $data = $model->read();
+        try{
+            $data = $model->read();
+        } catch (\Kuberdock\classes\exceptions\CException $e) {
+            $this->settingsWrong();
+        }
 
         $this->view->form = new \Kuberdock\classes\plesk\forms\Defaults();
         $this->view->packagesKubes = $data['packagesKubes'];
@@ -163,5 +174,12 @@ class AdminController extends pm_Controller_Action
             'redirect' => pm_Context::getActionUrl('admin', 'index'),
         ));
         die;
+    }
+
+    protected function settingsWrong()
+    {
+        $this->_status->addMessage('error',
+            'Cannot connect to KuberDock server, invalid credentials or server url in ~/.kubecli.conf');
+        $this->_redirect('admin/settings');
     }
 }
