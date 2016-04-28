@@ -15,9 +15,9 @@ sub new {
 sub validate {
     my ($self, $data, $rules) = @_;
 
-    foreach my $key (keys $data) {
+    foreach my $key (keys %$data) {
         if(defined $rules->{$key}) {
-            foreach my $validator (keys $rules->{$key}) {
+            foreach my $validator (keys %{$rules->{$key}}) {
                 if($self->can($validator)) {
                     my $error = $self->$validator($key, $data->{$key}, $rules->{$key}->{$validator});
                     die $error if $error;

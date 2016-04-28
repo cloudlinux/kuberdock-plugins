@@ -68,7 +68,10 @@ class KuberDock_cPanel
 
         $this->command = new KcliCommand('', '', $token);
         $this->kdCommon = new KDCommonCommand();
-        $this->command->setConfig();
+
+        if (!$this->isNoBilling()) {
+            $this->command->setConfig();
+        }
     }
 
     /**
