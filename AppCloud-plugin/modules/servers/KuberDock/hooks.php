@@ -333,7 +333,7 @@ add_hook('AfterShoppingCartCheckout', 1, 'KuberDock_AfterShoppingCartCheckout');
 function KuberDock_OrderProductPricingOverride($params)
 {
     $product = KuberDock_Product::model()->loadById($params['pid']);
-    if(!$product) return;
+    if (!$product->isKuberProduct()) return;
 
     $setup = $product->getConfigOption('firstDeposit') ? $product->getConfigOption('firstDeposit') : 0;
     $recurring = 0;
