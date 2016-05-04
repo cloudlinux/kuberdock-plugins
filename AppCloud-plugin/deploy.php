@@ -21,6 +21,9 @@ Possible keys:
 --help, -h - print this help
     php deploy.php --help
 
+--forced -f - Execute script even if current version is last.
+    By default script stops if user has last version.
+
 --user, -u - change owner of downloaded files (both commands beneath change owner to whmcs:whmcs)
     php deploy.php --user=whmcs
     php deploy.php --user=whmcs:whmcs
@@ -30,9 +33,9 @@ Possible keys:
 
 HELP;
 
-$options = getopt('h::u::', array('help::', 'user::'));
+$options = getopt('h::u::f::', array('help::', 'user::', 'forced::'));
 
-if (isset($options['help'])) {
+if (issetOption($options, 'help')) {
     die($help);
 }
 
@@ -47,25 +50,57 @@ list($link, $versionTo) = getLastLink($billing);
 // null if this is first installation
 $versionFrom = getCurrentVersion($billing);
 
-$tmpName = '/tmp/' . $link;
-downloadFile(SITE_URL . $link, $tmpName);
-$result = unZip($tmpName);
-changeOwner($result, $options['user']);
-unlink($tmpName);
+if ($versionFrom==$versionTo && !issetOption($options, 'forced')) {
+    die("KuberDock plugin is already up-to-date.\n\n");
+}
+
+$user = getOptionValue($options, 'user');
+
+perform($link, $user);
 
 if (!is_null($versionFrom)) {
     migrate();
 }
 
 if (is_null($versionFrom)) {
-    echo "Installed version $versionTo of plugin.\n\n";
+    echo "Installed version $versionTo of KuberDock plugin.\n\n";
 } else {
-    echo "Plugin upgraded from version $versionFrom to version $versionTo\n\n";
+    echo "KuberDock plugin upgraded from version $versionFrom to version $versionTo\n\n";
 }
 
 /*
  * end script
  */
+
+function perform($link, $user)
+{
+    $tmpName = '/tmp/' . $link;
+    downloadFile(SITE_URL . $link, $tmpName);
+    $result = unZip($tmpName);
+
+    changeOwner($result, $user);
+    unlink($tmpName);
+}
+
+function getOptionValue($options, $option)
+{
+    if (isset($options[$option])) {
+        return $options[$option];
+    }
+
+    $short = $option[0];
+    if (isset($options[$short])) {
+        return $options[$short];
+    }
+
+    return null;
+}
+
+function issetOption($options, $option)
+{
+    $short = $option[0];
+    return isset($options[$option]) || isset($options[$short]);
+}
 
 function migrate()
 {
@@ -181,10 +216,10 @@ function downloadFile($url, $path)
                 fwrite($to, fread($from, 1024 * 8), 1024 * 8);
             }
         } else {
-            die("Can not write file: $path");
+            die("Can not write file: $path\n");
         }
     } else {
-        die("Can not open url: $url");
+        die("Can not open url: $url\n");
     }
 
     if ($from) {
