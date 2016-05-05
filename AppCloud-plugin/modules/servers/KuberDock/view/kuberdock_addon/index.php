@@ -9,12 +9,6 @@ $variables = compact(array_diff(
     array_keys(get_defined_vars()),
     array('viewPath')
 ));
-
-$tabs = array(
-    'kubes' => 'Kube types',
-    'log' => 'Changes log',
-);
-
 ?>
 
 <div class="container-fluid">

@@ -47,6 +47,13 @@ $(function() {
                 var values = data.values;
                 _this.find('input[name="kube_price"]').data('prev', values.kube_price).val(values.kube_price);
                 _this.find('input[name="id"]').val(values.id);
+
+                var deleteButton = _this.parents('tr:eq(1)').prev('tr').find('.kube-delete');
+                if (values.deletable) {
+                    deleteButton.removeClass('hidden');
+                } else {
+                    deleteButton.addClass('hidden');
+                }
             }
         });
     });
@@ -87,6 +94,37 @@ $(function() {
         });
     });
 
+    $(document).on('click', 'button.kube-delete', function (e) {
+        e.preventDefault();
+        var self = $(this);
+
+        if (!confirm('You want to delete kube?')) {
+            return false;
+        }
+
+        $.ajax({
+            url: 'addonmodules.php?module=KuberDock&a=delete',
+            type: 'POST',
+            data: {
+                id: $(this).data('kube-id')
+            },
+            dataType: 'json',
+            beforeSend: function () {
+                $('div.alert').addClass('hidden');
+            }
+        }).success(function (response) {
+            var message = $('.message').text(response.message).parents('div.alert');
+            if (response.error) {
+                message.addClass('alert-danger').removeClass('alert-success');
+            } else {
+                self.parents('tr').next('tr').remove();
+                self.parents('tr').remove();
+                message.removeClass('alert-danger').addClass('alert-success');
+            }
+            message.removeClass('hidden');
+        });
+    });
+
     $$.tablesorter.addParser({
         id: 'kubeTypeParser',
         is: function(s) {
@@ -103,7 +141,12 @@ $(function() {
         selectorHeaders: 'thead tr.sorted th',
         cssChildRow: 'package_row',
         headers: {
-            0 : { sorter: 'kubeTypeParser' }
+            0 : {
+                sorter: 'kubeTypeParser'
+            },
+            5: {
+                sorter: false
+            }
         }
     });
 });

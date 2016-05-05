@@ -7,6 +7,11 @@
         </p>
     </div>
 
+    <div class="alert alert-danger alert-dismissible hidden" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <span class="message"></span>
+    </div>
+
     <div class="row">
         <table id="kubes_table" class="tablesorter table table-bordered">
         <thead>
@@ -16,6 +21,7 @@
             <th class="col-md-3">Memory limit (<?php echo \components\KuberDock_Units::getMemoryUnits()?>)</th>
             <th class="col-md-2">HDD limit (<?php echo \components\KuberDock_Units::getHDDUnits()?>)</th>
             <th class="col-md-1">Traffic limit (<?php echo \components\KuberDock_Units::getTrafficUnits()?>)</th>
+            <th class="col-md-1"></th>
         </tr>
         </thead>
             <?php foreach($kubes as $kube): ?>

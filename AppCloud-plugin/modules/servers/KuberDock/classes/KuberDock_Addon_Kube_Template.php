@@ -144,6 +144,14 @@ class KuberDock_Addon_Kube_Template extends CL_Model
     }
 
     /**
+     * @return bool
+     */
+    public function isStandart()
+    {
+        return $this->kube_type == self::STANDARD_TYPE;
+    }
+
+    /**
      * @return \api\KuberDock_Api
      * @throws CException
      * @throws Exception
