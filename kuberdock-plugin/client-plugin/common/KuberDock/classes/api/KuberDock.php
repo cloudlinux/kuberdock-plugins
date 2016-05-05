@@ -196,6 +196,11 @@ class KuberDock extends API
         set_time_limit(0);
         header('Content-Type: text/event-stream');
 
+        // Strange fix, but it works!
+        // Have no idea what with buffer flushing
+        header('X-Accel-Buffering: no');    // for Plesk
+        echo str_repeat("\n", 1024);        // for cPanel
+
         $config = KcliCommand::getConfig();
 
         if(!isset($config['url']) || !isset($config['token'])) {
@@ -206,11 +211,12 @@ class KuberDock extends API
         $url = sprintf('%s/api/stream?token=%s', $config['url'], $config['token']);
         $handle = fopen($url, 'r');
 
-        while($handle) {
+        if (ob_get_level() == 0) ob_start();
+
+        while (!connection_aborted()) {
             $response = fgets($handle);
-            if($response) {
-                echo sprintf("%s", $response);
-            }
+            echo sprintf("%s", $response);
+            ob_flush();
             flush();
             sleep(1);
         }

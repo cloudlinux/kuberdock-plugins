@@ -158,7 +158,10 @@ class Plugin:
 
         templates = exec_command([KCLI, '-j', '-c', '/root/.kubecli.conf',
                                      'kubectl', 'get', 'templates', '--origin', 'cpanel'])
-        template_ids = [template.get('id', None) for template in json.loads(templates)]
+        try:
+            template_ids = [template.get('id', None) for template in json.loads(templates)]
+        except (TypeError, ValueError):
+            return
 
         # Remove non exist apps
         if os.path.exists('/root/.kuberdock_pre_apps'):
