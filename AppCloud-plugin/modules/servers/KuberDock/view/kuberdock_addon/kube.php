@@ -7,6 +7,12 @@
     <td class="col-md-3"><?php echo $kube['memory_limit']?></td>
     <td class="col-md-2"><?php echo $kube['hdd_limit']?></td>
     <td class="col-md-2"><?php echo $kube['traffic_limit']?></td>
+    <td>
+        <button type="button" class="btn btn-default btn-xs kube-delete<?php echo $kube['deletable']? '' : ' hidden'?>"
+                data-kube-id="<?php echo $kube['id']?>">
+            <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+        </button>
+    </td>
 </tr>
 
 <tr id="package_<?php echo $kube['kuber_kube_id'];?>" class="package_row" style="display: none;">

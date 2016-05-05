@@ -61,8 +61,18 @@ class KuberDock_AddonController extends CL_Controller {
                     'kube_price' => $link ? $link['kube_price'] : null,
                 );
             }
+
+            $kubePackages = array_filter($kube['packages'], function ($e) {
+                return $e['kube_price'] != '';
+            });
+            $kube['deletable'] = ($kube['kube_type'] == \KuberDock_Addon_Kube_Template::NON_STANDARD_TYPE && empty($kubePackages));
         }
         unset($kube);
+
+        $tabs = array(
+            'kubes' => 'Kube types',
+            'log' => 'Changes log',
+        );
 
         $this->render('index', array(
             'kubes' => $kubes,
@@ -117,6 +127,37 @@ class KuberDock_AddonController extends CL_Controller {
         ));
     }
 
+    public function deleteAction()
+    {
+        $id = CL_Base::model()->getPost('id');
+        $kube = \KuberDock_Addon_Kube_Template::model()->loadById($id);
+        $kubeProducts = \KuberDock_Addon_Kube_Link::model()->loadByAttributes(array(
+            'template_id' => $id,
+        ));
+
+        if (!$kubeProducts && !$kube->isStandart()) {
+            try {
+                $kube->delete();
+                echo json_encode(array(
+                    'error' => false,
+                    'message' => 'Kube deleted',
+                ));
+            } catch (Exception $e) {
+                echo json_encode(array(
+                    'error' => true,
+                    'message' => $e->getMessage(),
+                ));
+            }
+        } else {
+            echo json_encode(array(
+                'error' => true,
+                'message' => 'Kube is used by package, can not delete',
+            ));
+        }
+
+        exit(0);
+    }
+
     public function kubePriceAction()
     {
         if(!CL_Tools::getIsAjaxRequest() || !$_POST) {
@@ -141,7 +182,7 @@ class KuberDock_AddonController extends CL_Controller {
                         'template_id' => $template_id,
                         'product_id' => $product_id,
                         'kuber_product_id' => $kuber_product_id,
-                        'kube_price' => $kube_price,
+                        'kube_price' => $kubePrice,
                     ));
 
             $old_price = $kube->kube_price;
@@ -154,6 +195,10 @@ class KuberDock_AddonController extends CL_Controller {
 
             $kube->save();
 
+            $kubeProducts = \KuberDock_Addon_Kube_Link::model()->loadByAttributes(array(
+                'template_id' => $template_id,
+            ));
+
             \KuberDock_Addon_PriceChange::saveLog($kuber_kube_id, $kuber_product_id, $old_price, $kubePrice);
 
             echo json_encode(array('error' => false, 'values' => array(
@@ -164,6 +209,7 @@ class KuberDock_AddonController extends CL_Controller {
                 'kube_price' => ($kubePrice=='')
                     ? ''
                     : $currency->getFormatted($kubePrice),
+                'deletable' => empty($kubeProducts),
             )));
 
         } catch(Exception $e) {
