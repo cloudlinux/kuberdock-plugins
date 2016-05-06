@@ -851,8 +851,13 @@ function KuberDock_AdminServiceEdit($params)
 {
     $nextDueDate = CL_Base::model()->getPost('nextduedate');
     $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
-    $service->nextduedate = CL_Tools::getMySQLFormattedDate($nextDueDate);
-    $service->save();
+    $product = KuberDock_Product::model()->loadById($service->packageid);
+
+    if ($product->isKuberProduct()) {
+        $service->updateById($service->id, array(
+            'nextduedate' => CL_Tools::getMySQLFormattedDate($nextDueDate),
+        ));
+    }
 }
 add_hook('AdminServiceEdit', 1, 'KuberDock_AdminServiceEdit');
 

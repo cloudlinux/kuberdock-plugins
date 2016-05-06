@@ -48,9 +48,9 @@ class KuberDock_Addon_Items extends CL_Model {
         $currentDate = new DateTime();
         $daysLeft = (int) $dueDate->diff($currentDate)->format('%R%a');
 
-        if($billableItem &&  $daysLeft >= $config->AutoSuspensionDays) {
+        if ($billableItem &&  $daysLeft >= $config->AutoSuspensionDays) {
             $service = KuberDock_Hosting::model()->loadById($this->service_id);
-            if($this->pod_id && $service) {
+            if ($this->pod_id && $service) {
                 try {
                     $service->getApi()->stopPod($this->pod_id);
                     $service->getAdminApi()->updatePod($this->pod_id, array(

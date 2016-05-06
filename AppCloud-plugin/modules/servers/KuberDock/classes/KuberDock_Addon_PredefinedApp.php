@@ -407,7 +407,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model {
                 foreach($row->ports as $port) {
                     if(isset($port->isPublic) && $port->isPublic) {
                         $ipPrice = (float) $product->getConfigOption('priceIP');
-                        $items[] = KuberDock_InvoiceItem::create('IP: ' . $data->public_ip, 'IP', $ipPrice);
+                        $items[] = KuberDock_InvoiceItem::create('IP: ' . $data->public_ip, $ipPrice, 'IP');
                     }
                 }
             }

@@ -8,7 +8,7 @@ use api\KuberDock_Api;
 use base\CL_Query;
 use base\models\CL_Server;
 use base\models\CL_Hosting;
-use Kuberdock\classes\exceptions\CException;
+use exceptions\CException;
 
 class KuberDock_Server extends CL_Server {
     /**

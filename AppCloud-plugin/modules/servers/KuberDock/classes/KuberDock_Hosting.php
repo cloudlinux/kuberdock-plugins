@@ -121,7 +121,6 @@ class KuberDock_Hosting extends CL_Hosting {
             $items = $this->calculateUsageByDate($date, $kubes, $paymentType);
 
             $totalPrice = $this->getItemsTotalPrice($items);
-
             if($totalPrice) {
                 if($clientDetails['client']['credit'] < $totalPrice) {
                     $this->addInvoice($this->userid, $date, $items, false);
@@ -158,8 +157,10 @@ class KuberDock_Hosting extends CL_Hosting {
     public function calculateUsageByDate(DateTime $date, $kubes, $paymentType = 'hourly')
     {
         $nextDueDate = CL_Tools::sqlDateToDateTime($this->nextduedate);
+        // For some reason this date set for newly created service
+        $dumpDate = new DateTime('1999-12-31');
 
-        if(is_null($nextDueDate) || $date <= $nextDueDate) {
+        if(is_null($nextDueDate) || ($nextDueDate == $dumpDate) || $date <= $nextDueDate) {
             switch ($paymentType) {
                 case 'hourly':
                     return $this->getHourlyUsage($date, $kubes);
