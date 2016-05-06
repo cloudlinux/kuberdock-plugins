@@ -61,6 +61,12 @@
                                         </a>
                                     </li>
                                     <li>
+                                        <a href="#" class="pod-restart" data-target=".restart-modal" title="Restart">
+                                            <span class="glyphicon glyphicon-eject" aria-hidden="true"></span>
+                                            <span>Restart</span>
+                                        </a>
+                                    </li>
+                                    <li>
                                         <a type="button" class="pod-delete" data-target=".confirm-modal" title="Delete">
                                             <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                                             <span>Delete</span>
