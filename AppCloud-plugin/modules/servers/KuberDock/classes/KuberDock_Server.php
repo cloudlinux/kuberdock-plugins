@@ -133,7 +133,8 @@ class KuberDock_Server extends CL_Server
     public function getApiServerUrl()
     {
         $scheme = $this->secure == 'on' ? KuberDock_Api::PROTOCOL_HTTPS : KuberDock_Api::PROTOCOL_HTTP;
-        $url = sprintf('%s://%s', $scheme, $this->ipaddress);
+        $domain = $this->hostname ? : $this->ipaddress;
+        $url = sprintf('%s://%s', $scheme, $domain);
 
         return $url;
     }

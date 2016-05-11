@@ -222,6 +222,8 @@ function KuberDock_ClientArea($params) {
 }
 
 /**
+ * Admin area KD login link
+ *
  * @param $params
  * @return string
  */
