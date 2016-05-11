@@ -60,6 +60,23 @@ class KuberDock_Addon_PriceChange extends CL_Model
         return $logs;
     }
 
+    public function getDeleted()
+    {
+        $sql = "SELECT *, CONCAT(package_id, '_', type_id) as input_id 
+        FROM $this->tableName 
+        WHERE id IN ( 
+            SELECT MAX(id) 
+            FROM $this->tableName 
+            WHERE new_value IS NULL 
+            GROUP BY type_id, package_id
+        )";
+
+        $rows = $this->_db->query($sql)->getRows();
+        $rows = CL_Tools::getKeyAsField($rows, 'input_id');
+
+        return $rows;
+    }
+
     private static function getDescription($log, $currency)
     {
         if (is_null($log['old_value'])) {

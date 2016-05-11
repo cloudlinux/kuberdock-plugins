@@ -134,7 +134,8 @@ class KuberDock_Addon extends CL_Component {
                 `package_id` int(11) NOT NULL,
                 `old_value` float DEFAULT NULL,
                 `new_value` float DEFAULT NULL,
-                PRIMARY KEY (`id`)
+                PRIMARY KEY (`id`),
+                KEY `new_value` (`new_value`)
             ) ENGINE=InnoDB');
 
             $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_items` (

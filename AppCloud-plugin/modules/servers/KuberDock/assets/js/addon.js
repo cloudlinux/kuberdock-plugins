@@ -14,12 +14,23 @@ $(function() {
         $(document).scrollTop(curPos);
     });
 
-    var pricing = $('span.pricing');
-    pricing.on('click', function (e){
+    $(document).on('click', 'span.pricing', function (e){
         var text = $(e.target).text();
         $('#package_' + $(this).parent().data('id')).toggle();
         $(this).parent().toggleClass('active');
         $(e.target).text(text == "$ Pricing settings" ? "∧ Hide settings" : "$ Pricing settings");
+    });
+
+    $(document).on('change', '.active_kube_checkbox' , function () {
+        var input = $('#price_input_' + $(this).data('input'));
+        var checked = this.checked;
+        var prev = input.data('prev');
+
+        input
+            .val(checked ? prev : '')
+            .prop('disabled', !checked)
+            .parent('.price_package_form').trigger({type:"submit", prev:prev})
+            .siblings('span').addClass('hidden');
     });
 
     var cancelPriceChange = function(span) {
@@ -28,25 +39,39 @@ $(function() {
         span.addClass('hidden');
     };
 
+    var showError = function(self, message) {
+        cancelPriceChange(self.find('span'));
+        self.append('<span class="error">' + message + '</span>');
+    };
+
     $(document).on('submit', '.price_package_form', function(e) {
         e.preventDefault();
-        var _this = $(this);
+        var self = $(this);
+        var called_from_checkbox = (typeof e.prev!=='undefined');
+
+        if (!called_from_checkbox && self.find('input[name="kube_price"]').val()=='') {
+            showError(self, 'Price required');
+            return false;
+        }
 
         $.ajax({
             url: 'addonmodules.php?module=KuberDock&a=kubePrice',
             type: 'POST',
-            data: _this.serialize(),
+            data: self.serialize(),
             dataType: 'json'
         }).success(function(data) {
-            var span = _this.find('span');
+            var span = self.find('span');
             span.addClass('hidden');
             if (data.error) {
-                cancelPriceChange(span);
-                _this.append('<span class="error">' + data.message + '</span>');
+                showError(self, data.message);
+                if (called_from_checkbox) {
+                    var input = self.find('input[name="kube_price"]');
+                    input.prop('disabled', !input.prop('disabled'));
+                    var checkbox = $('#active_kube_checkbox_' + input.data('input'));
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+                }
             } else {
                 var values = data.values;
-                _this.find('input[name="kube_price"]').data('prev', values.kube_price).val(values.kube_price);
-                _this.find('input[name="id"]').val(values.id);
 
                 var deleteButton = _this.parents('tr:eq(1)').prev('tr').find('.kube-delete');
                 if (values.deletable) {
@@ -54,6 +79,13 @@ $(function() {
                 } else {
                     deleteButton.addClass('hidden');
                 }
+
+                var prev = called_from_checkbox
+                    ? e.prev
+                    : values.kube_price;
+
+                self.find('input[name="kube_price"]').data('prev', prev).val(values.kube_price);
+                self.find('input[name="id"]').val(values.id);
             }
         });
     });
