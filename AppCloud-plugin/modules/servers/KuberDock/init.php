@@ -12,6 +12,9 @@ defined(KUBERDOCK_CLASS_DIR) or define(KUBERDOCK_CLASS_DIR, KUBERDOCK_ROOT_DIR .
 defined(KUBERDOCK_DEBUG) or define(KUBERDOCK_DEBUG, true);
 defined(KUBERDOCK_DEBUG_API) or define(KUBERDOCK_DEBUG_API, false);
 
+// Enable JWT tokens for KD API requests
+defined(USE_JWT_TOKENS) or define(USE_JWT_TOKENS, true);
+
 if(KUBERDOCK_DEBUG) {
     ini_set('display_errors', true);
     error_reporting(E_ERROR);

@@ -8,7 +8,7 @@
         <script>
             function redirect() {
                 document.getElementById('redirect').submit();
-            };
+            }
         </script>
     </body>
 </html>

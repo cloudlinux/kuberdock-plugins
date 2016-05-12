@@ -83,21 +83,28 @@ class KuberDock_OrderController extends CL_Controller {
         $serviceId = \base\CL_Base::model()->getParam('sid');
         $podId = \base\CL_Base::model()->getParam('podId');
 
-        if($serviceId && $podId) {
+        if ($serviceId && $podId) {
             $service = \KuberDock_Hosting::model()->loadById($serviceId);
             $view = new \base\CL_View();
             $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadByPodId($podId);
             $postDescription = htmlentities($predefinedApp->getPostDescription(), ENT_QUOTES);
             try {
-                if($predefinedApp->referer) {
-                    header('Location: '. htmlspecialchars_decode($predefinedApp->referer));
+                if ($predefinedApp->referer) {
+                    header('Location: ' . htmlspecialchars_decode($predefinedApp->referer));
                 } else {
-                    $view->renderPartial('client/preapp_complete', array(
-                        'serverLink' => $service->getServer()->getLoginPageLink(),
-                        'token' => $service->getToken(),
-                        'podId' => $podId,
-                        'postDescription' => $postDescription ? $postDescription : 'You successfully make payment for application',
-                    ));
+                    $link = $service->getServer()->getLoginPageLink();
+
+                    if (USE_JWT_TOKENS) {
+                        $link = sprintf('%s/?token2=%s#pods/%s', $link, $service->getApi()->getJWTToken(), $podId);
+                        header('Location: ' . $link);
+                    } else {
+                        $view->renderPartial('client/preapp_complete', array(
+                            'token' => $service->getToken(),
+                            'serverLink' => $link,
+                            'podId' => $podId,
+                            'postDescription' => $postDescription ? $postDescription : 'You successfully make payment for application',
+                        ));
+                    }
                 }
                 exit;
             } catch (Exception $e) {
