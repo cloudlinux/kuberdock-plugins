@@ -240,7 +240,12 @@ class PredefinedApp {
         $this->command = $pod->getCommand();
         $fileManager = Base::model()->getStaticPanel()->getFileManager();
         $fileManager->putFileContent($this->getAppPath(), Spyc::YAMLDump($this->template->data));
-        $response = $this->command->createPodFromYaml($this->getAppPath());
+
+        try{
+            $response = $this->command->createPodFromYaml($this->getAppPath());
+        } catch (CException $e) {
+            throw new CException(preg_replace('/^kube_type:\s/i', '', $e->getMessage())); // AC-3003
+        }
 
         $this->setPostInstallVariables($response);
         $fileManager->putFileContent($this->getAppPath(), Spyc::YAMLDump($this->template->data));
