@@ -6,7 +6,7 @@ class KuberDock_Pod {
     /**
      *
      */
-    const UPDATE_KUBES_DESCRIPTION = 'Update kubes';
+    const UPDATE_KUBES_DESCRIPTION = 'Update resources';
 
     /**
      * @var \api\KuberDock_Api
