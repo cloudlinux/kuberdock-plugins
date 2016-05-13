@@ -15,8 +15,10 @@ class KubeCli extends \pm_Form_Simple
             'label' => 'User',
         ));
 
-        $this->addElement('text', 'password', array(
+        $this->addElement('password', 'password', array(
             'label' => 'Password',
+            'renderPassword' => true,
+            'autocomplete' => 'off',
         ));
 
         $this->addElement('text', 'registry', array(
