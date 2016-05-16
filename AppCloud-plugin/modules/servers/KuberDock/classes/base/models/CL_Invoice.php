@@ -17,6 +17,7 @@ class CL_Invoice extends CL_Model {
 
     const STATUS_PAID = 'Paid';
     const STATUS_UNPAID = 'Unpaid';
+    const STATUS_DELETED = 'Deleted';
 
     /**
      *
@@ -48,6 +49,8 @@ class CL_Invoice extends CL_Model {
      */
     public function createInvoice($userId, $items, $gateway, $autoApply = true, DateTime $dueDate = null, $sendInvoice = true)
     {
+        $template = \base\models\CL_Configuration::model()->get()->Template;
+
         $values['userid'] = $userId;
         $values['date'] = date('Ymd', time());
         $values['duedate'] = $dueDate ? $dueDate->format('Ymd') : date('Ymd', time());
@@ -66,7 +69,7 @@ class CL_Invoice extends CL_Model {
             $values['itemdescription' . $count] = $item->getDescription();
             $values['itemamount' . $count] = $item->getTotal();
 
-            if (!$item->isShort()) {
+            if (!$item->isShort() && $template == 'kuberdock') {
                 $values['notes'] .= $item->getHtml($count);
             }
         }

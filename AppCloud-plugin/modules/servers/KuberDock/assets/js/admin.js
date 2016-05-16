@@ -24,7 +24,7 @@ $(document).ready(function() {
                 });
 
             $('input[name="password"]').hide();
-            $('input[name="username"]').prop('disabled', true);
+            $('input[name="username"]').prop('readonly', true);
             password.insertAfter($('input[name="password"]'));
 
             $('input[name="domain"]').parents('tr:eq(0)').find('td.fieldarea:last').html(nextDueDate);
