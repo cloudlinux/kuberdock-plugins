@@ -32,7 +32,7 @@
                 </td>
                 <td><?php echo implode(',', $pod['images'])?></td>
                 <td><?php echo $pod['kubes']?></td>
-                <td><?php echo $kubes[$pod['kube_type']]['kube_name']?></td>
+                <td><?php echo $kubes[$pod['kube_type']]['name']?></td>
                 <td>
                     <?php echo $billableItem ? $currency->getFullPrice($billableItem->amount) . ' / ' . $product->getReadablePaymentType() : ''?>
                 </td>
@@ -44,9 +44,6 @@
                     <a href="#login-modal" data-toggle="modal" data-target="#restartModal">
                         <button class="btn btn-success pod-restart">Restart</button>
                     </a>
-                    <!--<a href="<?php /*printf('kdorder.php?a=addKubes&podId=%s&serviceId=%s', $pod['id'], $service->id)*/?>">
-                        <button class="btn btn-default">Upgrade</button>
-                    </a>-->
                 </td>
             </tr>
         <?php endforeach;?>

@@ -10,6 +10,7 @@ table.product-info td { text-align: center; }
 table.client { border: 1px #ccc solid; border-collapse: collapse; }
 table.client th, table.client td { padding: 2px; border: 1px #ccc solid; }
 table.client th { background-color: #ccc; }
+table.client .unavailable, table.product-info .unavailable { color: #ccc; }
 
 .product .prodfeature { display: inline-block !important; float: none !important; }
 

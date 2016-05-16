@@ -133,21 +133,23 @@ function KuberDock_AdminServicesTabFields($params) {
     $regDate = new DateTime($service->regdate);
     $trialExpired = '';
 
-    if($enableTrial && $service->isTrialExpired($regDate, $trialTime)) {
+    if ($enableTrial && $service->isTrialExpired($regDate, $trialTime)) {
         $trialExpired = $regDate->modify('+'.$trialTime.' day')->format('Y-m-d');
     }
+
+    $addonProduct = KuberDock_Addon_Product::model()->loadById($product->pid);
+    $kubes = $service->getAdminApi()->getPackageKubes($addonProduct->kuber_product_id)->getData();
+    $kubes = \base\CL_Tools::getKeyAsField($kubes, 'id');
 
     try {
         $pods = $service->getApi()->getPods()->getData();
         $productStatistic = $view->renderPartial('admin/product_statistic', array(
             'pods' => $pods,
-            'kubes' => \base\CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id'),
+            'kubes' => $kubes,
         ), false);
     } catch(Exception $e) {
         $productStatistic = sprintf('<div class="error">%s</div>', $e->getMessage());
     }
-
-    $kubes = KuberDock_Addon_Kube_Link::loadByProductId($product->id);
 
     $productInfo = $view->renderPartial('admin/product_info', array(
         'currency' => $currency,
@@ -186,39 +188,38 @@ function KuberDock_ClientArea($params) {
         $trialExpired = $regDate->modify('+'.$trialTime.' day')->format('Y-m-d');
     }
 
-    $kubes = KuberDock_Addon_Kube_Link::loadByProductId($product->pid);
+    $addonProduct = KuberDock_Addon_Product::model()->loadById($product->pid);
 
     try {
+        if (!$addonProduct) {
+            throw new Exception('KuberDock product not found');
+        }
         $pods = $service->getApi()->getPods()->getData();
-        $nodes = $service->getAdminApi()->getNodes()->getData();
-        $kubeTypes = array_map(function ($e) {
-            return $e['kube_type'];
-        }, $nodes);
-
+        $kubes = $service->getAdminApi()->getPackageKubes($addonProduct->kuber_product_id)->getData();
+        $kubes = \base\CL_Tools::getKeyAsField($kubes, 'id');
+        
         $productStatistic = $view->renderPartial('client/product_statistic', array(
             'pods' => $pods,
-            'kubes' => \base\CL_Tools::getKeyAsField($kubes, 'kuber_kube_id'),
+            'kubes' => $kubes,
             'service' => $service,
             'items' => $items,
             'product' => $product,
             'currency' => $currency,
-            'service' => $service,
         ), false);
+
+        $productInfo = $view->renderPartial('client/product_info', array(
+            'currency' => $currency,
+            'product' => $product,
+            'service' => $service,
+            'kubes' => $kubes,
+            'server' => $server,
+            'trialExpired' => $trialExpired,
+        ), false);
+
+        return $productInfo . $productStatistic;
     } catch(Exception $e) {
-        $productStatistic = sprintf('<div class="error">%s</div>', $e->getMessage());
+        return sprintf('<div class="error">%s</div>', $e->getMessage());
     }
-
-    $productInfo = $view->renderPartial('client/product_info', array(
-        'currency' => $currency,
-        'product' => $product,
-        'service' => $service,
-        'kubes' => $kubes,
-        'server' => $server,
-        'trialExpired' => $trialExpired,
-        'kubeTypes' => $kubeTypes,
-    ), false);
-
-    return $productInfo . $productStatistic;
 }
 
 /**

@@ -20,16 +20,14 @@
         <th>Traffic limit (<?php echo \components\KuberDock_Units::getTrafficUnits()?>)</th>
     </tr>
 
-    <?php foreach($kubes as $kube):
-        if (!in_array($kube['kuber_kube_id'], $kubeTypes)) continue;
-    ?>
-        <tr>
-            <td><?php echo $kube['kube_name'] ?></td>
+    <?php foreach($kubes as $kube): ?>
+        <tr<?php echo !$kube['available'] ? ' class="unavailable"' : ''?>>
+            <td><?php echo $kube['name'] ?></td>
             <td><?php echo $currency->getFullPrice($kube['kube_price']) . ' / ' . $product->getReadablePaymentType()?></td>
-            <td><?php echo $kube['cpu_limit'] ?></td>
-            <td><?php echo $kube['memory_limit'] ?></td>
-            <td><?php echo $kube['hdd_limit'] ?></td>
-            <td><?php echo $kube['traffic_limit'] ?></td>
+            <td><?php echo $kube['cpu'] ?></td>
+            <td><?php echo $kube['memory'] ?></td>
+            <td><?php echo $kube['disk_space'] ?></td>
+            <td><?php echo $kube['included_traffic'] ?></td>
         </tr>
     <?php endforeach;?>
 </table>

@@ -9,13 +9,13 @@
     </tr>
 
     <?php foreach($kubes as $kube):?>
-    <tr>
-        <td><?php echo $kube['kube_name'] ?></td>
+    <tr<?php echo !$kube['available'] ? ' class="unavailable"' : ''?>>
+        <td><?php echo $kube['name'] ?></td>
         <td><?php echo $currency->getFullPrice($kube['kube_price']) . ' / ' . $product->getReadablePaymentType()?></td>
-        <td><?php echo $kube['cpu_limit'] ?></td>
-        <td><?php echo $kube['memory_limit'] ?></td>
-        <td><?php echo $kube['hdd_limit'] ?></td>
-        <td><?php echo $kube['traffic_limit'] ?></td>
+        <td><?php echo $kube['cpu'] ?></td>
+        <td><?php echo $kube['memory'] ?></td>
+        <td><?php echo $kube['disk_space'] ?></td>
+        <td><?php echo $kube['included_traffic'] ?></td>
     </tr>
     <?php endforeach;?>
 </table>
