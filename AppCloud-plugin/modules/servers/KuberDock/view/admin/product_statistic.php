@@ -20,7 +20,7 @@
             <td><?php echo $pod['name']?></td>
             <td><?php echo implode(',', $pod['images'])?></td>
             <td><?php echo $pod['kubes']?></td>
-            <td><?php echo $kubes[$pod['kube_type']]['kube_name']?></td>
+            <td><?php echo $kubes[$pod['kube_type']]['name']?></td>
             <td><?php echo $pod['status']?></td>
         </tr>
         <?php endforeach;?>
