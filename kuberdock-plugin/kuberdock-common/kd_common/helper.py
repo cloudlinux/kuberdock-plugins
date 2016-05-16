@@ -4,6 +4,7 @@ import pwd
 import subprocess
 
 from functools import wraps
+from exceptions import CLIError
 
 
 class Utils(object):
@@ -24,7 +25,10 @@ class Utils(object):
 
     @classmethod
     def get_user(cls, login):
-        return pwd.getpwnam(login)
+        try:
+            return pwd.getpwnam(login)
+        except KeyError:
+            raise CLIError('User Not found')
 
     @classmethod
     def get_current_user(cls):

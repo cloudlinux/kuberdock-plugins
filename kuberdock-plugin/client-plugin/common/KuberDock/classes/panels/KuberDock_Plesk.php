@@ -40,7 +40,20 @@ class KuberDock_Plesk extends KuberDock_Panel
     {
         $session = new \pm_Session();
         $client = $session->getClient();
-        return $client->getProperty('login');
+
+        $sql = 'SELECT s.login FROM sys_users s, clients c WHERE s.id=c.account_id AND c.id = ' .
+            $client->getProperty('id');
+
+        ob_start();
+        passthru('/usr/sbin/plesk db "' . $sql . '" 2>&1');
+        $response = ob_get_contents();
+        ob_end_clean();
+
+        if (preg_match_all('|\w+|', $response, $match) && isset($match[0][1])) {
+            return $match[0][1];
+        } else {
+            return $client->getProperty('login');
+        }
     }
 
     /**

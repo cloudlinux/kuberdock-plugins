@@ -18,8 +18,9 @@ class Plesk(object):
 
         sql = Utils.exec_command([PLESK_BIN, 'db',
                                   'SELECT d.id, d.name, d.parentDomainId FROM domains d '
-                                  'LEFT JOIN clients c ON d.cl_id=c.id '
-                                  'WHERE c.login="{0}" '
+                                  'INNER JOIN clients c ON d.cl_id=c.id '
+                                  'INNER JOIN sys_users s ON s.id=c.account_id '
+                                  'WHERE s.login="{0}" '
                                   'ORDER BY parentDomainId ASC'.format(user)])
 
         home_dir = Utils.get_user(user).pw_dir
