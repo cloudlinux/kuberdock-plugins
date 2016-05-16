@@ -821,7 +821,7 @@ function KuberDock_ClientDelete($params)
     foreach($rows as $row) {
         $service = KuberDock_Hosting::model()->loadByParams($row);
         try {
-            $service->getAdminApi()->deleteUserFull($service->username);
+            $service->getAdminApi()->deleteUser($service->username, true);
         } catch(Exception $e) {
             CException::log($e);
         }

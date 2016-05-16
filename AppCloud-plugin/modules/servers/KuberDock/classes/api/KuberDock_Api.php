@@ -386,31 +386,14 @@ class KuberDock_Api {
 
     /**
      * @param string $user
+     * @param bool $force
      * @return KuberDock_ApiResponse
      * @throws Exception
      */
-    public function deleteUser($user)
+    public function deleteUser($user, $force = false)
     {
         $this->url = $this->serverUrl . '/api/users/all/' . $user;
-        $response = $this->call(array(), 'DELETE');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
-    }
-
-    /**
-     * @param string $user
-     * @return KuberDock_ApiResponse
-     * @throws Exception
-     */
-    public function deleteUserFull($user)
-    {
-        $this->url = $this->serverUrl . '/api/users/full/' . $user;
-        $response = $this->call(array(), 'DELETE');
+        $response = $this->call(array('force' => $force), 'DELETE');
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());
