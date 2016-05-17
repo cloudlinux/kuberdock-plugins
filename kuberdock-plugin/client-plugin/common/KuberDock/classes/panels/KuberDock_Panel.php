@@ -214,11 +214,13 @@ abstract class KuberDock_Panel
     public function getURL($root = true)
     {
         $scheme = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? 'https' : 'http';
-        $host = $_SERVER['SERVER_NAME'];
+        $host = $_SERVER['SERVER_NAME'] ? $_SERVER['SERVER_NAME'] : $_SERVER['SERVER_ADDR'];
         $port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : 80;
+        $self = explode('/', $_SERVER['PHP_SELF']);
+        $self = implode('/', array_slice($self, 0, count($self) - 1));
         $uri = $root ? $this->getRootUrl() : $this->getApiUrl();
 
-        return sprintf('%s://%s:%s%s', $scheme, $host, $port, $uri);
+        return sprintf('%s://%s:%s%s/%s', $scheme, $host, $port, $self, $uri);
     }
 
     /**

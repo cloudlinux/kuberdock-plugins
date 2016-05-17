@@ -474,7 +474,7 @@ class KuberDock_Product extends CL_Product {
      */
     public function addBillableApp($userId, KuberDock_Addon_PredefinedApp $app, $paid = false)
     {
-        if(!$this->isFixedPrice()) {
+        if (!$this->isFixedPrice()) {
             throw new Exception('Fixed price - billable items not needed.');
         }
 
@@ -484,6 +484,27 @@ class KuberDock_Product extends CL_Product {
             $carry += $item->getTotal();
             return $carry;
         });
+
+        $data = KuberDock_Hosting::model()->getByUser($userId);
+
+        if (!$data) {
+            throw new Exception('Service not found');
+        }
+        $service = KuberDock_Hosting::model()->loadByParams(current($data));
+
+        if ($totalPrice == 0) {
+            $item = new KuberDock_Addon_Items();
+            $item->setAttributes(array(
+                'user_id' => $userId,
+                'service_id' => $service->id,
+                'app_id' => $app->id,
+                'pod_id' => $app->getPodId(),
+                'invoice_id' => null,
+                'status' => CL_Invoice::STATUS_PAID,
+            ));
+
+            return $item;
+        }
 
         list($recur, $recurCycle) = $this->getRecurType();
         $model = CL_BillableItems::model();
@@ -499,9 +520,6 @@ class KuberDock_Product extends CL_Product {
         ));
 
         $model->duedate = CL_Tools::getMySQLFormattedDate($model->getNextDueDate());
-
-        $data = KuberDock_Hosting::model()->getByUser($userId);
-        $service = KuberDock_Hosting::model()->loadByParams(current($data));
 
         $client = KuberDock_User::model()->getClientDetails($userId);
         $gateway = $client['client']['defaultgateway']
