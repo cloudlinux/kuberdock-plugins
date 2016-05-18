@@ -6,8 +6,6 @@ use base\CL_Query;
 
 class Migration
 {
-    private static $versions_path = '../modules/servers/KuberDock/classes/migrations/versions';
-
     public static function check()
     {
         $last = \KuberDock_Migrations::getLast();
@@ -53,10 +51,12 @@ class Migration
 
     private static function getAvailable($min)
     {
-        $files = glob(self::$versions_path . '/*.php');
+        $versions_path = __DIR__ . '/versions';
+
+        $files = glob($versions_path . '/*.php');
 
         # get versions of available migrations classes
-        $path = preg_replace('#(\.|\/)#i', '\\\\${1}', self::$versions_path);
+        $path = preg_replace('#(\.|\/)#i', '\\\\${1}', $versions_path);
         $files = preg_replace("#(" . $path . "\/Version)|(\.php)#i", '', $files);
 
         $files = array_filter($files, function($item) use ($min) {
