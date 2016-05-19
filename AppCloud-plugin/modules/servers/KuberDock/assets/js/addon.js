@@ -73,7 +73,7 @@ $(function() {
             } else {
                 var values = data.values;
 
-                var deleteButton = _this.parents('tr:eq(1)').prev('tr').find('.kube-delete');
+                var deleteButton = self.parents('tr:eq(1)').prev('tr').find('.kube-delete');
                 if (values.deletable) {
                     deleteButton.removeClass('hidden');
                 } else {
