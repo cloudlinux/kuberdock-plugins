@@ -26,6 +26,15 @@ sub read {
     my $contentRoot = $self->readFile(KUBE_CLI_CONF_ROOT_FILE);
     my $contentEtc = $self->readFile(KUBE_CLI_CONF_ETC_FILE);
 
+    if($@) {
+        return {
+            url => '',
+            registry => 'registry.hub.docker.com',
+            password => '',
+            user => '',
+        }
+    }
+
     my $data = {
         url => $self->getKey($contentEtc, 'url'),
         registry => $self->getKey($contentEtc, 'registry'),
