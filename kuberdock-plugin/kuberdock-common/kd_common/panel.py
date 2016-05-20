@@ -3,12 +3,14 @@ import os
 from kd_common.helper import Utils
 from kd_common.plugins.cpanel import CPanel
 from kd_common.plugins.plesk import Plesk
+from kd_common.plugins.directadmin import DirectAdmin
 from kd_common.exceptions import CLIError
 
 UNKNOWN_PANEL = 'Unknown'
 PANELS = {
     'cPanel': CPanel,
     'Plesk': Plesk,
+    'DirectAdmin': DirectAdmin,
 }
 
 
@@ -21,6 +23,8 @@ class Panel(object):
             return 'cPanel'
         elif os.path.isfile('/usr/local/psa/bin/pleskbackup'):
             return 'Plesk'
+        elif os.path.isfile('/usr/local/directadmin/directadmin'):
+            return 'DirectAdmin'
         else:
             raise CLIError(UNKNOWN_PANEL, json=self.json)
 

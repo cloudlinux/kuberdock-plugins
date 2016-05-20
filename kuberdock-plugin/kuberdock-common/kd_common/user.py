@@ -1,6 +1,5 @@
 from kd_common.helper import Utils
 from kd_common.panel import Panel
-from kd_common.exceptions import CLIError
 
 
 class User(object):
