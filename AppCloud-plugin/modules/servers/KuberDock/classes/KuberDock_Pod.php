@@ -198,8 +198,13 @@ class KuberDock_Pod {
                     $delta = $newContainer['kubes'] - $c['kubes'];
                     if ($c && $delta!=0) {
                         $description = self::UPDATE_KUBES_DESCRIPTION
-                            . ' (Pod ' . $this->name . ', container ' . $newContainer['name'] . ', '
-                            . ($delta > 0 ? 'added ' : 'removed ') . abs($delta) . (abs($delta) == 1 ? ' kube' : ' kubes')
+                            . ', '
+                            . abs($delta)
+                            . (abs($delta) == 1 ? ' kube' : ' kubes')
+                            . ($delta > 0 ? ' added' : ' removed')
+                            . ' ('
+                            . '"' . $this->name . '", '
+                            . '"' . $newContainer['name'] . '"'
                             . ')';
 
                         $items[] = KuberDock_InvoiceItem::create($description, $price, 'kube', $delta);
