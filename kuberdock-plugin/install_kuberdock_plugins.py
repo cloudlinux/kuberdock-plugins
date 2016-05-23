@@ -20,6 +20,8 @@ CPANEL_TEMPLATE_PATH = '/usr/local/cpanel/base/frontend/'
 
 PLESK_EXTENTION_TOOL = '/usr/local/psa/bin/extension'
 
+DA_PLUGIN_PATH = '/usr/local/directadmin/plugins'
+
 
 class Plugin:
     def __init__(self):
@@ -178,19 +180,22 @@ class Plugin:
             if int(m.group(1)) not in template_ids and os.path.exists(conf):
                 os.remove(conf)
             else:   # update to new url
-                f = open(conf, 'r+')
-                lines = f.readlines()
-                f.seek(0)
-                for line in lines:
-                    data = line.split(',')
-                    for i, d in enumerate(data):
-                        if d.startswith('url'):
-                            m = re.search('template=(\d+)$', d)
-                            if m:
-                                data[i] = 'url=>KuberDock/kuberdock.live.php#predefined/{0}'.format(m.group(1))
-                    f.write(','.join(data))
-                f.truncate()
-                f.close()
+                try:
+                    f = open(conf, 'r+')
+                    lines = f.readlines()
+                    f.seek(0)
+                    for line in lines:
+                        data = line.split(',')
+                        for i, d in enumerate(data):
+                            if d.startswith('url'):
+                                m = re.search('template=(\d+)$', d)
+                                if m:
+                                    data[i] = 'url=>KuberDock/kuberdock.live.php#predefined/{0}'.format(m.group(1))
+                        f.write(','.join(data))
+                    f.truncate()
+                    f.close()
+                except IOError:
+                    continue
         exec_command('/usr/local/cpanel/bin/rebuild_sprites')
 
     def cpanel_delete(self):
@@ -310,6 +315,40 @@ class Plugin:
 
     def plesk_delete(self):
         exec_command([PLESK_EXTENTION_TOOL, '--uninstall', PLUGIN_NAME])
+
+    # DirectAdmin
+    def directadmin_install(self):
+        plugin_path = os.path.join(DA_PLUGIN_PATH, PLUGIN_NAME)
+        common_source_path = os.path.join(SOURCE_PATH, 'client-plugin', 'common', PLUGIN_NAME)
+        client_source_path = os.path.join(SOURCE_PATH, 'client-plugin', 'directadmin', PLUGIN_NAME)
+
+        if not os.path.exists(DA_PLUGIN_PATH):
+            os.mkdir(DA_PLUGIN_PATH)
+
+        exec_command(['/bin/cp', '-r', client_source_path, DA_PLUGIN_PATH])
+        exec_command(['/bin/cp', '-r', common_source_path, plugin_path])
+
+        images_path = os.path.join(plugin_path, 'images')
+        if not os.path.exists(images_path):
+            os.mkdir(images_path)
+
+        exec_command(['/bin/cp', '-r', os.path.join(common_source_path, 'assets'), images_path])
+        exec_command(['/bin/chown', '-R', 'diradmin:diradmin', plugin_path])
+
+        for role in ['user', 'admin', 'reseller']:
+            path = os.path.join(plugin_path, role)
+            if os.path.exists(path):
+                for filename in glob.glob(os.path.join(path, '*')):
+                    exec_command(['/bin/chmod', '755', filename])
+
+    def directadmin_upgrade(self):
+        self.directadmin_install()
+
+    def directadmin_delete(self):
+        plugin_path = os.path.join(DA_PLUGIN_PATH, PLUGIN_NAME)
+
+        if os.path.exists(plugin_path):
+            shutil.rmtree(plugin_path)
 
 
 def exec_command(command, **kwargs):
