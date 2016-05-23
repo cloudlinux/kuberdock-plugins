@@ -41,6 +41,7 @@ class DefaultController extends KuberDock_Controller {
             'assetsURL' => $panel->getAssets()->getRelativePath(''),
             'rootURL' => $panel->getApiUrl(),
             'imageRegistryURL' => $panel->getApi()->getRegistryUrl(),
+            'panelType' => Base::model()->getPanelType(),
         ));
     }
 }

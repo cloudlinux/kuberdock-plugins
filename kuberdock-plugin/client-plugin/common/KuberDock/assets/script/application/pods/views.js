@@ -427,7 +427,7 @@ define(['app', 'application/utils',
         },
 
         getPortSection: function (data, i) {
-            var i = typeof data.i == 'undefined' ? i : data.i;
+            i = typeof data.i == 'undefined' ? i : data.i;
             return podPortSectionTpl({port: data, i: i});
         },
 
@@ -442,7 +442,7 @@ define(['app', 'application/utils',
         },
 
         getEnvSection: function (data, i) {
-            var i = typeof data.i == 'undefined' ? i : data.i;
+            i = typeof data.i == 'undefined' ? i : data.i;
             return podEnvSectionTpl({env: data, i: i});
         },
 
@@ -453,7 +453,7 @@ define(['app', 'application/utils',
         },
 
         getVolumeSection: function (data, i) {
-            var i = typeof data.i == 'undefined' ? i : data.i;
+            i = typeof data.i == 'undefined' ? i : data.i;
             return podVolumeSectionTpl({volume: data, i: i});
         },
 

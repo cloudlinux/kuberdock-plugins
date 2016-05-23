@@ -41,8 +41,11 @@ class KuberDock_Plesk extends KuberDock_Panel
         $session = new \pm_Session();
         $client = $session->getClient();
 
-        $sql = 'SELECT s.login FROM sys_users s, clients c WHERE s.id=c.account_id AND c.id = ' .
-            $client->getProperty('id');
+        $sql = sprintf('SELECT s.login FROM sys_users s
+            LEFT JOIN hosting h on s.id=h.sys_user_id
+            LEFT JOIN domains d on d.id=h.dom_id
+            LEFT JOIN clients c on c.id=d.cl_id
+            WHERE c.id = %d LIMIT 1', $client->getProperty('id'));
 
         ob_start();
         passthru('/usr/sbin/plesk db "' . $sql . '" 2>&1');

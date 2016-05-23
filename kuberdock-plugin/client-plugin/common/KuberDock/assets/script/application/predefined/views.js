@@ -95,8 +95,8 @@ define(['app', 'application/utils', 'application/predefined/model', 'application
             _.map(formData, function (v, k) {
                 model.set(v.name, v.value);
             });
-            model.save({id: this.model.get('id')}, {
-                type: 'POST'
+            model.save({
+                id: this.model.get('id')
             }).done(function (response) {
                 App.Controller.pod = new Pod.Model();
                 App.Controller.pod.set(response.data);

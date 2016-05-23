@@ -11,22 +11,26 @@ function(Backbone, Marionette, Utils, MessageModel, MessageView) {
         initialize: function () {
             var _that = this;
 
-            $(document).ajaxStart (function(e) {
+            $.ajaxSetup({
+                mimeType: 'text/plain'
+            });
+
+            $(document).ajaxStart(function(e) {
                 $('#page-preloader').show();
             });
 
-            $(document).ajaxStop (function(e) {
+            $(document).ajaxStop(function(e, response) {
                 $('#page-preloader').hide();
             });
 
-            $(document).ajaxComplete (function(e, response) {
+            $(document).ajaxSuccess(function(e, response) {
                 var json = response.responseJSON;
                 _that.message.show(new MessageView.View({
                     model: new MessageModel.Model(json)
                 }));
             });
 
-            $(document).ajaxError (function(e, response) {
+            $(document).ajaxError(function(e, response) {
                 var json = response.responseJSON;
                 _that.message.show(new MessageView.View({
                     model: new MessageModel.Model(json)
@@ -53,6 +57,11 @@ function(Backbone, Marionette, Utils, MessageModel, MessageView) {
                     'predefined/new/:id/:plan': 'predefinedSetup'
                 }
             });
+
+            if (_.indexOf(['DirectAdmin'], panelType) != -1) {
+                Backbone.emulateHTTP = true;
+                Backbone.emulateJSON = true;
+            }
 
             Backbone.history.start();
             App.eventHandler();

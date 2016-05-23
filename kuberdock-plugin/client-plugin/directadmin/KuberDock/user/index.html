@@ -1,7 +1,10 @@
 #!/usr/local/bin/php
-
 <?php
     require_once __DIR__ . '/../KuberDock/init.php';
+
+    parse_str(html_entity_decode(getenv('POST')), $_POST);
+    parse_str(html_entity_decode(getenv('QUERY_STRING')), $_GET);
+    $_REQUEST = array_merge($_GET, $_POST);
 
     $controller = isset($_GET[\Kuberdock\classes\KuberDock_Controller::CONTROLLER_PARAM])
         ? $_GET[\Kuberdock\classes\KuberDock_Controller::CONTROLLER_PARAM]

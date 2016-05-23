@@ -2,6 +2,8 @@
 
 namespace Kuberdock\classes\api;
 
+use Kuberdock\classes\Base;
+
 class Response
 {
     public static function out($data, $redirect = null)
@@ -29,19 +31,7 @@ class Response
         self::output($array, $code, $redirect);
     }
 
-    private static function output($array, $code, $redirect)
-    {
-        header("Content-Type: application/json");
-        header("HTTP/1.1 " . $code . " " . self::requestStatus($code));
-
-        if ($redirect) {
-            $array['redirect'] = $redirect;
-        }
-
-        echo json_encode($array);
-    }
-
-    private static function requestStatus($code)
+    public static function requestStatus($code)
     {
         $status = array(
             200 => 'OK',
@@ -55,5 +45,16 @@ class Response
         return ($status[$code])
             ? $status[$code]
             : $status[500];
+    }
+
+    private static function output($array, $code, $redirect)
+    {
+        Base::model()->getPanel()->renderResponseHeaders($code);
+
+        if ($redirect) {
+            $array['redirect'] = $redirect;
+        }
+
+        echo json_encode($array);
     }
 }

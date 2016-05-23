@@ -45,13 +45,17 @@ abstract class API
         $this->endpoint = array_shift($this->args);
 
         $this->method = $_SERVER['REQUEST_METHOD'];
-        if ($this->method == 'POST' && array_key_exists('HTTP_X_HTTP_METHOD', $_SERVER)) {
-            if ($_SERVER['HTTP_X_HTTP_METHOD'] == 'DELETE') {
-                $this->method = 'DELETE';
-            } else if ($_SERVER['HTTP_X_HTTP_METHOD'] == 'PUT') {
-                $this->method = 'PUT';
-            } else {
-                throw new \Exception("Unexpected Header");
+        if ($this->method == 'POST') {
+            if (array_key_exists('HTTP_X_HTTP_METHOD', $_SERVER)
+                    && in_array($_SERVER['HTTP_X_HTTP_METHOD'], array('DELETE', 'PUT'))) {
+                $this->method = $_SERVER['HTTP_X_HTTP_METHOD'];
+            } elseif (isset($_SERVER['X-HTTP-Method-Override'])
+                    && in_array($_SERVER['X-HTTP-Method-Override'], array('DELETE', 'PUT'))) {
+                // Backbone.emulateHTTP = true;
+                $this->method = $_SERVER['X-HTTP-Method-Override'];
+            } elseif (isset($_POST['_method']) && in_array($_POST['_method'], array('DELETE', 'PUT'))) {
+                // Backbone.emulateJSON = true;
+                $this->method = $_POST['_method'];
             }
         }
 
@@ -138,6 +142,11 @@ abstract class API
      */
     protected function getJSONData($assoc = false)
     {
+        // Backbone.emulateJSON = true;
+        if (isset($_POST['model']) && !$this->file) {
+            return json_decode($_POST['model'], $assoc);
+        }
+
         return json_decode($this->file, $assoc);
     }
 }

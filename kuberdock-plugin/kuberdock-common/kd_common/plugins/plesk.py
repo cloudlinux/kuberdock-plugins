@@ -19,7 +19,8 @@ class Plesk(object):
         sql = Utils.exec_command([PLESK_BIN, 'db',
                                   'SELECT d.id, d.name, d.parentDomainId FROM domains d '
                                   'INNER JOIN clients c ON d.cl_id=c.id '
-                                  'INNER JOIN sys_users s ON s.id=c.account_id '
+                                  'INNER JOIN hosting h on d.id=h.dom_id '
+                                  'INNER JOIN sys_users s ON s.id=h.sys_user_id '
                                   'WHERE s.login="{0}" '
                                   'ORDER BY parentDomainId ASC'.format(user)])
 

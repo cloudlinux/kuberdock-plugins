@@ -97,7 +97,7 @@ class KuberDock extends API
         return $app->getPods();
     }
 
-    protected function post_predefined($template_id)
+    protected function put_predefined($template_id)
     {
         $this->checkNumeric($template_id);
         $data = (array) $this->getJSONData();
@@ -194,17 +194,14 @@ class KuberDock extends API
     protected function get_stream()
     {
         set_time_limit(0);
-        header('Content-Type: text/event-stream');
 
-        // Strange fix, but it works!
-        // Have no idea what with buffer flushing
-        header('X-Accel-Buffering: no');    // for Plesk
-        echo str_repeat("\n", 1024);        // for cPanel
+        Base::model()->getPanel()->renderStreamHeaders();
+        echo str_repeat("\n", 1024);    // for cPanel
 
         $config = KcliCommand::getConfig();
 
         if(!isset($config['url']) || !isset($config['token'])) {
-            echo "retry: 10000\n\n";
+            echo "retry: 10000\r\n";
             exit;
         }
 
@@ -221,7 +218,7 @@ class KuberDock extends API
             sleep(1);
         }
 
-        echo "retry: 50000\n\n";
+        echo "retry: 50000\r\n";
         fclose($handle);
     }
 

@@ -449,7 +449,7 @@ class KuberDock_Api {
             'userDomains' => $domain,
         ), 'GET');
 
-        if(!$response->getStatus()) {
+        if (!$response->getStatus()) {
             throw new CException($response->getMessage());
         }
 

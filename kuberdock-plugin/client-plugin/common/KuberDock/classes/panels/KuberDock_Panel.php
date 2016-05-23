@@ -4,9 +4,9 @@ namespace Kuberdock\classes\panels;
 
 use Kuberdock\classes\Base;
 use Kuberdock\classes\components\KuberDock_Api;
-use Kuberdock\classes\exceptions\UserNotFoundException;
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\KDCommonCommand;
+use Kuberdock\classes\api\Response;
 use Kuberdock\classes\panels\assets\Assets;
 use Kuberdock\classes\panels\fileManager\FileManagerInterface;
 use Kuberdock\classes\exceptions\CException;
@@ -178,12 +178,16 @@ abstract class KuberDock_Panel
      */
     public function getBilling($data)
     {
+        if (isset($data['result']) && $data['result'] == 'error') {
+            throw new CException($data['message']);
+        }
+
         $billingClasses = array(
             'No billing' => 'NoBilling',
             'WHMCS' => 'WHMCS',
         );
 
-        if(!isset($billingClasses[$data['billing']])) {
+        if (!isset($billingClasses[$data['billing']])) {
             throw new CException('Billing class not exist');
         }
 
@@ -272,5 +276,25 @@ abstract class KuberDock_Panel
         $this->command->setConfig();
 
         return $data;
+    }
+
+    /**
+     * Headers for Kuberdock\classes\api\KuberDock\* except get_stream()
+     * @param int $code
+     */
+    public function renderResponseHeaders($code)
+    {
+        header("HTTP/1.1 " . $code . " " . Response::requestStatus($code));
+        header("Content-Type: application/json");
+    }
+
+    /**
+     * Headers for Kuberdock\classes\api\KuberDock\get_stream()
+     */
+    public function renderStreamHeaders()
+    {
+        header('Content-Type: text/event-stream');
+        // Strange fix, but it works!
+        header('X-Accel-Buffering: no');    // for Plesk
     }
 }
