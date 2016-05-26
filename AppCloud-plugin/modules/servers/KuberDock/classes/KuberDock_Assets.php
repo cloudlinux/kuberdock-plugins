@@ -29,7 +29,16 @@ class KuberDock_Assets extends CL_Assets {
     {
         global $CONFIG;
 
-        $url = $CONFIG['SystemURL'];
+        if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') {
+            if ($CONFIG['SystemSSLURL']) {
+                $url = $CONFIG['SystemSSLURL'];
+            } else {
+                $url = str_replace('http:', 'https:', $CONFIG['SystemURL']);
+            }
+        } else {
+            $url = str_replace('https:', 'http:', $CONFIG['SystemURL']);
+        }
+
         $path = array(self::RELATIVE_PATH, KUBERDOCK_MODULE_NAME, self::ASSET_DIRECTORY , $fileName);
 
         if (strpos($url, '/', strlen($url) - 1) === false) {

@@ -797,13 +797,14 @@ add_hook('ServerAdd', 1, 'KuberDock_ServerAdd');
 function KuberDock_ServerEdit($params)
 {
     $server = KuberDock_Server::model()->loadById($params['serverid']);
-    if($server->isKuberDock()) {
+    if ($server->isKuberDock()) {
         $server->accesshash = '';
         try {
             $server->accesshash = $server->getApi()->getToken();
             $server->save();
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             CException::log($e);
+            $server->save();
         }
     }
 }

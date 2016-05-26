@@ -34,26 +34,32 @@ class KuberDock_Addon extends CL_Component {
      */
     public function activate()
     {
-        if(version_compare(phpversion(), self::REQUIRED_PHP_VERSION) < 0) {
+        if (version_compare(phpversion(), self::REQUIRED_PHP_VERSION) < 0) {
             throw new CException('KuberDock plugin require PHP version' . self::REQUIRED_PHP_VERSION . ' or greater.');
         }
 
-        if(!class_exists('PDO')) {
+        if (!class_exists('PDO')) {
             throw new CException('KuberDock plugin require PHP (PDO).');
         }
 
         $db = CL_Query::model();
         $server = KuberDock_Server::model()->getActive();
 
-        if(!$server) {
+        if (!$server) {
             throw new CException('Add KuberDock server and server group before activating addon.');
+        }
+
+        try {
+            $server->getApi()->getPackages();
+        } catch (Exception $e) {
+            throw new CException('Cannot connect to KuberDock server. Please check server credentials.');
         }
 
         $group = CL_Query::model()->query('SELECT * FROM `tblproductgroups`
             WHERE name = "KuberDock" ORDER BY `order` ASC LIMIT 1')
             ->getRow();
 
-        if(!$group) {
+        if (!$group) {
             $result = CL_Query::model()->query('INSERT INTO `tblproductgroups` (name) VALUES ("KuberDock")');
             $group['id'] = $result->getLastId();
         }
