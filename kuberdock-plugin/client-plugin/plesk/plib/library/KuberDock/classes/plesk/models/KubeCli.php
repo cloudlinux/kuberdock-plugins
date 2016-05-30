@@ -17,12 +17,17 @@ class KubeCli
             'registry' => $this->getKey($contentEtc, 'registry'),
             'user' => $this->getKey($contentRoot, 'user'),
             'password' => $this->getKey($contentRoot, 'password'),
+            'token' => $this->getKey($contentRoot, 'token'),
         );
     }
 
     public function save($data)
     {
         $view = new \Kuberdock\classes\KuberDock_View();
+        $api = \Kuberdock\classes\components\KuberDock_Api::create($data);
+        $api->setToken('');
+
+        $data['token'] = $api->requestToken();
 
         $renderEtc = $view->renderPartial('plesk/template_etc', $data, false);
         $this->saveFile(self::KUBE_CLI_CONF_ETC_FILE, $renderEtc, '644');
@@ -37,7 +42,7 @@ class KubeCli
             return '';
         }
 
-        preg_match('/' . $key . ' = ([\w\d:\/\.]+)/i', $content, $matches);
+        preg_match('/' . $key . ' = ([\w\d:\/\.\|]+)/i', $content, $matches);
 
         if ($matches) {
             return $matches[1];

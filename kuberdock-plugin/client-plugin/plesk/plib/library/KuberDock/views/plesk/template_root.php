@@ -8,9 +8,4 @@ url = <?php echo $url;?>
 # default registry to pull docker images from
 registry = <?php echo $registry;?>
 
-# default username for kuberdock to log in
-user = <?php echo $user;?>
-
-# default password for kuberdock to log in
-password = <?php echo $password;?>
-
+token = <?php echo $token;?>

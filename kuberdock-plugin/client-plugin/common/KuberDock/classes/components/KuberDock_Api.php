@@ -2,6 +2,7 @@
 
 namespace Kuberdock\classes\components;
 
+use Kuberdock\classes\extensions\yaml\Spyc;
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\exceptions\CException;
 use Kuberdock\classes\exceptions\WithoutBillingException;
@@ -100,6 +101,7 @@ class KuberDock_Api {
         $api = new self;
         $api->username = isset($data['user']) ? $data['user'] : $data['username'];
         $api->password = $data['password'];
+        $api->token = isset($data['token']) && $data['token'] ? $data['token'] : '';
         $api->serverUrl = $data['url'];
         $api->registryURL = isset($data['registry']) ? $data['registry'] : '';
 
@@ -318,7 +320,7 @@ class KuberDock_Api {
      */
     public function call($params = array(), $type = 'GET')
     {
-        if(!in_array($type, array('GET', 'POST', 'PUT', 'DELETE'))) {
+        if (!in_array($type, array('GET', 'POST', 'PUT', 'DELETE'))) {
             throw new CException('Undefined request type: '.$type);
         }
 
@@ -326,7 +328,7 @@ class KuberDock_Api {
         $this->arguments = $params;
         $this->requestType = $type;
 
-        switch($type) {
+        switch ($type) {
             case 'POST':
             case 'PUT':
                 $this->requestUrl = $this->url;
@@ -341,7 +343,7 @@ class KuberDock_Api {
                 ));
                 break;
             default:
-                if($this->token) {
+                if ($this->token) {
                     $this->requestUrl = $params ? $this->url .'?token='. $this->token .'&' . http_build_query($params)
                         : $this->url . '?token=' . $this->token;
                 } else {
@@ -354,7 +356,7 @@ class KuberDock_Api {
         curl_setopt($ch, CURLOPT_URL, $this->requestUrl);
         curl_setopt($ch, CURLOPT_TIMEOUT, self::API_CONNECTION_TIMEOUT);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $type);
-        if(!$this->token) {
+        if (!$this->token) {
             curl_setopt($ch, CURLOPT_USERPWD, "$this->username:$this->password");
         }
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -366,19 +368,19 @@ class KuberDock_Api {
 
         $this->parseResponse($response);
 
-        if($status['http_code'] != KuberDock_ApiStatusCode::HTTP_OK) {
+        if ($status['http_code'] != KuberDock_ApiStatusCode::HTTP_OK) {
             $err = ucwords(curl_error($ch));
             curl_close($ch);
             $responseData = $this->response->getData();
-
-            switch($status['http_code']) {
+            switch ($status['http_code']) {
                 case KuberDock_ApiStatusCode::HTTP_BAD_REQUEST:
                 case KuberDock_ApiStatusCode::HTTP_NOT_FOUND:
-                    if(filter_var($responseData, FILTER_VALIDATE_URL)) {
+                case KuberDock_ApiStatusCode::HTTP_UNAUTHORIZED:
+                    if (filter_var($responseData, FILTER_VALIDATE_URL)) {
                         throw new CException(
                             sprintf('You have no billing account, please buy product at <a href="%s">%s</a>'
                                 , $responseData, $responseData));
-                    } elseif($responseData == 'Without billing') {
+                    } elseif ($responseData == 'Without billing') {
                         throw new WithoutBillingException();
                     } else {
                         throw new CException($responseData);
@@ -387,7 +389,7 @@ class KuberDock_Api {
                 case KuberDock_ApiStatusCode::HTTP_FORBIDDEN:
                     throw new CException(sprintf('Invalid credential for KuberDock server %s', $this->url));
                 default:
-                    if($err) {
+                    if ($err) {
                         $msg = sprintf('%s (%s): %s', KuberDock_ApiStatusCode::getMessageByCode($status['http_code']),
                             $err, $this->url);
                     } else {
@@ -398,7 +400,6 @@ class KuberDock_Api {
         }
 
         curl_close($ch);
-
 
         return $this->response;
     }
@@ -679,11 +680,19 @@ class KuberDock_Api {
      */
     public function postTemplate($name, $origin, $template)
     {
-        return $this->apiCall('/api/predefined-apps', array(
+        $data =  $this->apiCall('/api/predefined-apps', array(
             'name' => $name,
             'origin' => $origin,
             'template' => $template,
         ), 'POST');
+
+        // TODO: move it to KD
+        $yaml = Spyc::YAMLLoad($data['template']);
+        $yaml['kuberdock']['kuberdock_template_id'] = (int) $data['id'];
+        $template = Spyc::YAMLDump($yaml);
+        $this->putTemplate($data['id'], $name, $template);
+
+        return $data;
     }
 
     /**
@@ -695,6 +704,11 @@ class KuberDock_Api {
      */
     public function putTemplate($id, $name, $template)
     {
+        // TODO: move it to KD
+        $yaml = Spyc::YAMLLoadString($template);
+        $yaml['kuberdock']['kuberdock_template_id'] = (int) $id;
+        $template = Spyc::YAMLDump($yaml);
+
         return $this->apiCall('/api/predefined-apps/' . $id, array(
             'name' => $name,
             'template' => $template,
@@ -798,5 +812,22 @@ class KuberDock_Api {
         }
 
         return $response;
+    }
+
+
+    /**
+     * @return string
+     * @throws CException
+     */
+    public function requestToken()
+    {
+        $this->url = $this->serverUrl . '/api/auth/token';
+        $response = $this->call(array(), 'GET');
+
+        if (!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->parsed['token'];
     }
 }

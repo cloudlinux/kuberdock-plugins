@@ -39,7 +39,7 @@ class AdminController extends pm_Controller_Action
             'script/plesk/admin/index',
         ));
         $this->view->assets->registerStyles(array('css/plesk/admin'));
-        try{
+        try {
             $this->view->list = new \Kuberdock\classes\plesk\lists\App($this->view, $this->_request);
         } catch (\Kuberdock\classes\exceptions\CException $e) {
             $this->settingsWrong();
@@ -144,7 +144,12 @@ class AdminController extends pm_Controller_Action
         $model = new \Kuberdock\classes\plesk\models\KubeCli;
 
         if ($this->getRequest()->isPost() && $form->isValid($this->getRequest()->getPost())) {
-            $model->save($form->getValues());
+            try {
+                $model->save($form->getValues());
+            } catch (\Kuberdock\classes\exceptions\CException $e) {
+                echo $e->getMessage();
+                exit;
+            }
         }
 
         $form->populate($model->read());
@@ -179,7 +184,7 @@ class AdminController extends pm_Controller_Action
     protected function settingsWrong()
     {
         $this->_status->addMessage('error',
-            'Cannot connect to KuberDock server, invalid credentials or server url in ~/.kubecli.conf');
+            'Cannot connect to KuberDock server, invalid credentials or server url in /root/.kubecli.conf');
         $this->_redirect('admin/settings');
     }
 }
