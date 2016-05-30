@@ -387,14 +387,10 @@ class KuberDock_Hosting extends CL_Hosting
      */
     public function getApi($plainAuth = false)
     {
-        if(($token = $this->getToken()) && !$plainAuth) {
-            $api = KuberDock_Server::model()->getApiByToken($token, $this->server);
-        } else {
-            $api = KuberDock_Server::model()
-                ->getApiByUser($this->username, $this->decryptPassword($this->password), $this->server);
-        }
+        $token = $plainAuth ? '' : $this->getToken();
 
-        return $api;
+        return KuberDock_Server::model()
+            ->getApiByUser($this->username, $this->decryptPassword($this->password), $token, $this->server);
     }
 
     /**
@@ -467,7 +463,7 @@ class KuberDock_Hosting extends CL_Hosting
         $sql = 'SELECT * FROM `tblcustomfieldsvalues` WHERE relid=? AND fieldid=?';
         $row = $this->_db->query($sql, array($this->id, $customField['id']))->getRow();
 
-        return $row['value'];
+        return $row ? $row['value'] : '';
     }
 
     /**
@@ -497,18 +493,20 @@ class KuberDock_Hosting extends CL_Hosting
     }
 
     /**
-     * @param bool|true $login
      * @return string
      */
-    public function getLoginByTokenLink($login = true)
+    public function getLoginByTokenLink()
     {
         $serverLink = $this->getServer()->getLoginPageLink();
-
-        if($login) {
-            return sprintf('%s/login?token=%s', $serverLink, $this->getToken());
+        if (USE_JWT_TOKENS) {
+            $tokenField = 'token2';
+            $token = $this->getApi()->getJWTToken(array(), true);
         } else {
-            return sprintf('%s/?token=%s', $serverLink, $this->getToken());
+            $tokenField = 'token';
+            $token = $this->getToken();
         }
+
+        return sprintf('%s/?%s=%s', $serverLink, $tokenField, $token);
     }
 
     /**

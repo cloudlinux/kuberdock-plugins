@@ -138,25 +138,27 @@ function KuberDock_AdminServicesTabFields($params) {
     }
 
     $addonProduct = KuberDock_Addon_Product::model()->loadById($product->pid);
-    $kubes = $service->getAdminApi()->getPackageKubes($addonProduct->kuber_product_id)->getData();
-    $kubes = \base\CL_Tools::getKeyAsField($kubes, 'id');
 
     try {
+        $kubes = $service->getAdminApi()->getPackageKubes($addonProduct->kuber_product_id)->getData();
+        $kubes = \base\CL_Tools::getKeyAsField($kubes, 'id');
         $pods = $service->getApi()->getPods()->getData();
         $productStatistic = $view->renderPartial('admin/product_statistic', array(
             'pods' => $pods,
             'kubes' => $kubes,
         ), false);
+
+        $productInfo = $view->renderPartial('admin/product_info', array(
+            'currency' => $currency,
+            'product' => $product,
+            'kubes' => $kubes,
+            'trialExpired' => $trialExpired,
+        ), false);
+
     } catch(Exception $e) {
         $productStatistic = sprintf('<div class="error">%s</div>', $e->getMessage());
+        $productInfo = '';
     }
-
-    $productInfo = $view->renderPartial('admin/product_info', array(
-        'currency' => $currency,
-        'product' => $product,
-        'kubes' => $kubes,
-        'trialExpired' => $trialExpired,
-    ), false);
 
     return array(
         'Package Kubes' => $productInfo,
@@ -220,6 +222,29 @@ function KuberDock_ClientArea($params) {
     } catch(Exception $e) {
         return sprintf('<div class="error">%s</div>', $e->getMessage());
     }
+}
+
+/**
+ * Render button on Setup -> products -> servers page
+ * @param $params
+ * @return string
+ * @throws CException
+ * @throws Exception
+ */
+function KuberDock_AdminLink($params) {
+    $server = KuberDock_Server::model()->loadById($params['serverid']);
+
+    if (USE_JWT_TOKENS) {
+        $tokenField = 'token2';
+        $token = $server->getApi()->getJWTToken(array(), true);
+    } else {
+        $tokenField = 'token';
+        $token = $server->getApi()->getToken();
+    }
+
+    $url = sprintf('%s/?%s=%s', $server->getApiServerUrl(), $tokenField, $token);
+
+    return sprintf('<a href="%s" target="_blank" class="btn btn-sm btn-default" >Login to KuberDock</a>', $url);
 }
 
 /**

@@ -43,11 +43,11 @@ class KuberDock_Server extends CL_Server
     {
         $serverId = $serverId ? $serverId : $this->id;
 
-        if(!$serverId) {
+        if (!$serverId) {
             throw new Exception('Cannot get api');
         }
 
-        if(!isset($this->id)) {
+        if (!isset($this->id)) {
             $this->setAttributes($this->loadById($serverId));
         }
 
@@ -55,7 +55,8 @@ class KuberDock_Server extends CL_Server
         $password = $this->password;
         $password = CL_Hosting::model()->decryptPassword($password);
         self::$_api[$serverId] = new KuberDock_Api($this->username, $password, $url);
-        if($this->accesshash && $this->username) {
+
+        if ($this->accesshash && $this->username) {
             self::$_api[$serverId]->setToken($this->accesshash);
         }
 
@@ -127,27 +128,16 @@ class KuberDock_Server extends CL_Server
     /**
      * @param string $username
      * @param string $password
-     * @param null|int $serverId
-     * @return api\KuberDock_Api
-     */
-    public function getApiByUser($username, $password, $serverId = null)
-    {
-        $api = $this->getApi($serverId);
-        $api->setToken('');
-
-        return $api->setLogin($username, $password);
-    }
-
-    /**
      * @param string $token
      * @param null|int $serverId
      * @return api\KuberDock_Api
      */
-    public function getApiByToken($token, $serverId = null)
+    public function getApiByUser($username, $password, $token = '', $serverId = null)
     {
         $api = $this->getApi($serverId);
-        $api->setLogin('', '');
-        return $api->setToken($token);
+        $api->setToken($token);
+
+        return $api->setLogin($username, $password);
     }
 
     /**
