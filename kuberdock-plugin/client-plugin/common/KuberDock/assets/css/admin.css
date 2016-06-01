@@ -1,0 +1,139 @@
+/* cPanel icon fix */
+div#doctitle h1 span img {
+    top: 0;
+}
+.CodeMirror {
+    border: 1px solid #ddd;
+}
+
+#progress {
+    display: inline-block;
+    background: #FFFFFF;
+    border: none;
+    box-shadow: none;
+    width: 100%;
+}
+
+#create-new-app .btn-default {
+    color: #000 !important;
+}
+
+/* new style */
+#admin-plugin .nav-tabs>li>a{ color: #1c96d2; }
+#admin-plugin .nav-tabs>li.active>a,
+#admin-plugin .nav-tabs>li.active>a:focus,
+#admin-plugin .nav-tabs>li.active>a:hover{
+    color: #131313;
+}
+#admin-plugin .table,
+#admin-plugin .top-offset,
+#create-new-app .top-offset{
+    margin-top: 21px;
+}
+#admin-plugin .table>tbody>tr>td,
+#admin-plugin .table>tbody>tr>th,
+#admin-plugin .table>tfoot>tr>td,
+#admin-plugin .table>tfoot>tr>th,
+#admin-plugin .table>thead>tr>td,
+#admin-plugin .table>thead>tr>th{
+    padding: 10px 20px 9px;
+    vertical-align: middle;
+}
+#admin-plugin .table>thead>tr>td,
+#admin-plugin .table>thead>tr>th{
+    border-bottom: none;
+}
+#admin-plugin .table>tbody>tr>td{
+    color: #131313;
+}
+#admin-plugin .table>tbody>tr>td.actions{
+    font-size: 0;
+    background-color: #fff;
+}
+#admin-plugin button.btn{
+    margin: 0;
+}
+#admin-plugin .table>tbody>tr>td.actions .btn{
+    min-width: 110px;
+}
+#admin-plugin .table>tbody>tr>td.actions .btn span{
+    margin-right: 3px;
+    vertical-align: text-top;
+}
+#admin-plugin .table>tbody>tr>td.actions input + input,
+#admin-plugin .table>tbody>tr>td.actions a + a{
+    margin-left: 10px;
+}
+#admin-plugin .table>tbody>tr>td.actions > a:hover{
+    text-decoration: none;
+}
+#admin-plugin .table input[type="text"],
+#admin-plugin .table input[type="password"]{
+    width: 100%;
+    border-color: #ddd;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+#admin-plugin #default-app-setting .form-group{
+    margin-bottom: 20px;
+    display: inline-block;
+}
+#admin-plugin #default-app-setting .form-group + .form-group{
+    margin-left: 25px;
+}
+#admin-plugin #default-app-setting .form-group label,
+#edit-kubecli-conf label,
+#create-new-app label{
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+#default-app-setting .form-group select,
+#edit-kubecli-conf input[type="text"],
+#edit-kubecli-conf input[type="password"],
+#create-new-app input[type="text"]{
+    height: 33px;
+    padding: 0 20px;
+    min-width: 200px;
+    font-size: 13px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+}
+#edit-kubecli-conf input[type="text"],
+#edit-kubecli-conf input[type="password"],
+#create-new-app input[type="text"]{
+    -webkit-border-radius: none !important;
+    -moz-border-radius: none !important;
+    border-radius: none !important;
+    box-shadow: none;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+}
+#create-new-app input[type="text"] + .help-block.form-error,
+#create-new-app input[type="password"] + .help-block.form-error,
+#edit-kubecli-conf input[type="text"] + .help-block.form-error{
+    margin: 0;
+    min-height: 33px;
+    line-height: 33px;
+    margin-left: 10px;
+    vertical-align: top;
+    display: inline-block;
+}
+#create-new-app .CodeMirror-scroll{
+    padding: 10px 20px;
+}
+
+.support{
+    background-color: white;
+    text-align: left;
+    padding: 0;
+    font-size: 13px;
+    margin: 20px 0;
+    color: rgba(51, 51, 51, 0.7);
+}
+
+.grey{
+    color: rgba(51, 51, 51, 0.7);
+    font-size: 12px;
+    font-weight: 400;
+}
