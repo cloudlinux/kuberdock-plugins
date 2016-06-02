@@ -376,9 +376,10 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         if(isset($spec['volumes'])) {
             foreach($spec['volumes'] as $row) {
                 if(isset($row['persistentDisk']['pdSize'])) {
+                    $unit = \components\KuberDock_Units::getPSUnits();
                     $psPrice = (float)$product->getConfigOption('pricePersistentStorage');
                     $title = 'Storage: ' . $row['persistentDisk']['pdName'];
-                    $items[] = KuberDock_InvoiceItem::create($title, $psPrice, 'pod', $row['persistentDisk']['pdSize']);
+                    $items[] = KuberDock_InvoiceItem::create($title, $psPrice, $unit, $row['persistentDisk']['pdSize']);
                 }
             }
         }
