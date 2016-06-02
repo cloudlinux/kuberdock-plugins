@@ -123,8 +123,12 @@ class KuberDock_Api {
      * @throws Exception
      */
     public function getToken() {
+        $token = $this->token;
+        $this->setToken('');
+
         $this->url = $this->serverUrl . '/api/auth/token';
         $response = $this->call();
+        $this->setToken($token);
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());

@@ -103,6 +103,10 @@ define(['backbone', 'application/utils', 'application/pods/model'], function (Ba
         getPersistentSize: function (planKey) {
             var plan = this.getPlan(planKey);
             var size = _.reduce(this.getVolumes(), function (s, v) {
+                if (typeof v.persistentDisk == 'undefined') {
+                    return 0;
+                }
+
                 return s + v.persistentDisk.pdSize || 0;
             }, 0);
 

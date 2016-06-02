@@ -1,7 +1,7 @@
 from kd_common.helper import Utils
 from kd_common.exceptions import CLIError
 
-USER_DATA_DOMAINS_PATH = "/etc/userdatadomains;/var/cpanel/userdata/{user}/cache"
+USER_DATA_DOMAINS_PATH = "/etc/userdatadomains"
 
 
 class CPanel(object):
