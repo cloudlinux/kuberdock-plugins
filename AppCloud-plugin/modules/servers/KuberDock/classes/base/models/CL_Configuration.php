@@ -22,11 +22,19 @@ class CL_Configuration extends CL_Model
      */
     public function get()
     {
-        if (!$this->getAttributes()) {
-            $values = $this->loadByAttributes();
+        global $CONFIG;
 
-            foreach ($values as $value) {
-                $this->setAttribute($value['setting'], $value['value']);
+        if (!$this->getAttributes()) {
+            if (isset($CONFIG) && $CONFIG) {
+                foreach ($CONFIG as $k => $v) {
+                    $this->setAttribute($k, $v);
+                }
+            } else {
+                $values = $this->loadByAttributes();
+
+                foreach ($values as $value) {
+                    $this->setAttribute($value['setting'], $value['value']);
+                }
             }
         }
 

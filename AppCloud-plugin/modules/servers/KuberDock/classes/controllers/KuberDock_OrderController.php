@@ -26,6 +26,33 @@ class KuberDock_OrderController extends CL_Controller {
         $this->clientArea = CL_Base::model()->getClientArea();
     }
 
+    public function toCartAction()
+    {
+        $sessionId = CL_Base::model()->getParam('sessionId');
+        $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadByAttributes(array(
+            'session_id' => $sessionId,
+        ));
+
+        try {
+            if (!$predefinedApp) {
+                throw new CException('App not found.');
+            }
+
+            $product = \KuberDock_Product::model()->loadById($predefinedApp->product_id);
+
+            if (!$product) {
+                throw new CException('App product not found.');
+            }
+            $predefinedApp->session_id = \base\CL_Base::model()->getSession();
+            $predefinedApp->save();
+            $product->addToCart();
+            header('Location: cart.php?a=view');
+        } catch(Exception $e) {
+            CException::log($e);
+            CException::displayError($e);
+        }
+    }
+
     public function orderAppAction()
     {
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
