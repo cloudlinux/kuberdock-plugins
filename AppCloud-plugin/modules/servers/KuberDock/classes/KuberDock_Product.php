@@ -499,7 +499,7 @@ class KuberDock_Product extends CL_Product {
                 'service_id' => $service->id,
                 'app_id' => $app->id,
                 'pod_id' => $app->getPodId(),
-                'invoice_id' => null,
+                'invoice_id' => 0,
                 'status' => CL_Invoice::STATUS_PAID,
             ));
 

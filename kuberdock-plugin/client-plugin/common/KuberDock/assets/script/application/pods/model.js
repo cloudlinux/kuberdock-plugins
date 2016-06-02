@@ -91,6 +91,9 @@ define(['backbone', 'application/utils'], function(Backbone, Utils) {
 
         getPersistentSize: function () {
             return _.reduce(this.get('volumes'), function (s, v) {
+                if (typeof v.persistentDisk == 'undefined') {
+                    return 0;
+                }
                 return s + v.persistentDisk.pdSize || 0;
             }, 0);
         },
