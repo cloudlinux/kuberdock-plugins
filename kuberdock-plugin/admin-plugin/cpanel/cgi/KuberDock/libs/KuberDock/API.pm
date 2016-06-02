@@ -20,9 +20,10 @@ sub new {
     };
 
     my $config = Config::Tiny->read(KuberDock::KCLI::getConfPath());
-    $self->{_server} = $config->{global}->{url};
-    $self->{_username} = $config->{defaults}->{user};
-    $self->{_password} = $config->{defaults}->{password};
+    $self->{_server} = $self->{_server} || $config->{global}->{url};
+    $self->{_username} = $self->{_username} || $config->{defaults}->{user};
+    $self->{_password} = $self->{_password} || $config->{defaults}->{password};
+    $self->{_token} = $config->{defaults}->{token};
 
     return bless $self, $class;
 }
@@ -108,14 +109,24 @@ sub updatePod() {
     return $self->request('/api/podapi/' . $decoded->{id}, 'PUT', $data);
 }
 
-sub request {
-    my ($self, $url, $requestType, $data) = @_;
-    my $agent = LWP::UserAgent->new(ssl_opts => { verify_hostname => 0 },);
+sub getToken() {
+    my ($self) = @_;
 
+    return $self->request('/api/auth/token', 'GET', {}, 1);
+}
+
+sub request {
+    my ($self, $url, $requestType, $data, $plain) = @_;
+    my $agent = LWP::UserAgent->new(ssl_opts => { verify_hostname => 0 },);
+    $plain = defined $plain ? $plain : 0;
     my $endpoint = $self->{_server} . $url;
 
     if(!grep {$_ eq $requestType} ('GET', 'POST', 'PUT')) {
         die 'Unknown request type';
+    }
+
+    if ($self->{_token} && !$plain) {
+        $endpoint .= '?token=' . $self->{_token};
     }
 
     my $req = HTTP::Request->new($requestType => $endpoint);
@@ -124,7 +135,9 @@ sub request {
         $req->header('content-type' => 'application/json');
     }
 
-    $req->authorization_basic($self->{_username}, $self->{_password});
+    if (!$self->{_token} || $plain) {
+        $req->authorization_basic( $self->{_username}, $self->{_password} );
+    }
 
     if(grep {$_ eq $requestType} ('POST', 'PUT')) {
         $req->content($data);
@@ -148,8 +161,8 @@ sub getData {
     my $json = KuberDock::JSON->new;
     my $decoded = $json->decode($data);
 
-    if($decoded->{status} eq 'OK' && defined $decoded->{data}) {
-        return $decoded->{data};
+    if($decoded->{status} eq 'OK' && defined $decoded->{data} || defined $decoded->{token}) {
+        return $decoded->{data} || $decoded->{token};
     } elsif($decoded->{status} eq 'error' && defined $decoded->{data}) {
         return $decoded->{data};
     } elsif(defined $decoded->{message}) {

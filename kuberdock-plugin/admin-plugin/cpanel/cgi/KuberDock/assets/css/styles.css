@@ -91,7 +91,7 @@ div#doctitle h1 span img {
 #default-app-setting .form-group select,
 #edit-kubecli-conf input[type="text"],
 #edit-kubecli-conf input[type="password"],
-#create-new-app input[type="text"]{
+#create-new-app input[type="text"] {
     height: 33px;
     padding: 0 20px;
     min-width: 200px;
@@ -101,7 +101,7 @@ div#doctitle h1 span img {
 }
 #edit-kubecli-conf input[type="text"],
 #edit-kubecli-conf input[type="password"],
-#create-new-app input[type="text"]{
+#create-new-app input[type="text"] {
     -webkit-border-radius: none !important;
     -moz-border-radius: none !important;
     border-radius: none !important;
