@@ -43,7 +43,7 @@ sub read {
         user => $self->getKey($contentRoot, 'user'),
         token => $self->getKey($contentRoot, 'token'),
     };
-    print Dumper($self->getKey($contentRoot, 'token'),);
+
     return $data;
 }
 

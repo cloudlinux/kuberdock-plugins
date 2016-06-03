@@ -447,7 +447,7 @@ class KuberDock_Api {
 
         $response = $this->call(array(
             'user' => $user,
-            'userDomains' => $domain,
+            'domains' => $domain,
         ), 'GET');
 
         if (!$response->getStatus()) {
@@ -495,7 +495,7 @@ class KuberDock_Api {
 
         $response = $this->call(array(
             'user' => $user,
-            'userDomains' => $domain,
+            'domains' => $domain,
             'package_id' => $packageId,
         ), 'POST');
 
