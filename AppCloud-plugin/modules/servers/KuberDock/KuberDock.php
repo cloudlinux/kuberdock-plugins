@@ -234,17 +234,21 @@ function KuberDock_ClientArea($params) {
 function KuberDock_AdminLink($params) {
     $server = KuberDock_Server::model()->loadById($params['serverid']);
 
-    if (USE_JWT_TOKENS) {
-        $tokenField = 'token2';
-        $token = $server->getApi()->getJWTToken(array(), true);
-    } else {
-        $tokenField = 'token';
-        $token = $server->getApi()->getToken();
+    try {
+        if (USE_JWT_TOKENS) {
+            $tokenField = 'token2';
+            $token = $server->getApi()->getJWTToken(array(), true);
+        } else {
+            $tokenField = 'token';
+            $token = $server->getApi()->getToken();
+        }
+
+        $url = sprintf('%s/?%s=%s', $server->getApiServerUrl(), $tokenField, $token);
+
+        return sprintf('<a href="%s" target="_blank" class="btn btn-sm btn-default" >Login to KuberDock</a>', $url);
+    } catch (Exception $e) {
+        return '';
     }
-
-    $url = sprintf('%s/?%s=%s', $server->getApiServerUrl(), $tokenField, $token);
-
-    return sprintf('<a href="%s" target="_blank" class="btn btn-sm btn-default" >Login to KuberDock</a>', $url);
 }
 
 /**

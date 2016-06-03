@@ -1,7 +1,7 @@
 from kd_common.helper import Utils
 from kd_common.exceptions import CLIError
 
-USER_DATA_DOMAINS_PATH = "/etc/userdatadomains"
+USER_DATA_DOMAINS_PATH = "/etc/userdatadomains;/var/cpanel/userdata/{user}/cache"
 
 
 class CPanel(object):
@@ -30,6 +30,9 @@ class CPanel(object):
                 if user == user_:
                     document_root = domain_data[4]
                     main_domain = 'main' == domain_data[2]
+                    if (domain, document_root) in domains_list:
+                        continue
+
                     if main_domain:
                         domains_list.insert(0, (domain, document_root))  # main domain must be first in list
                     else:
