@@ -659,3 +659,8 @@ p {
 .message {
     box-shadow: none;
 }
+
+#contents {
+    width: 1100px;
+    margin: 0 20px;
+}

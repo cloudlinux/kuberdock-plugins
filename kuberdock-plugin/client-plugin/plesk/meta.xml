@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <module>
   <id>KuberDock</id>
-  <name>Module KuberDock</name>
-  <description>Add module description here...</description>
+  <name>KuberDock Plugin</name>
+  <description>KuberDock Plugin</description>
   <version>0.1</version>
   <release>1</release>
   <vendor>KuberDock</vendor>

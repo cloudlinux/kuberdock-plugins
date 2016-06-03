@@ -11,11 +11,11 @@
                 <table class="table apps-list app-table">
                     <thead>
                     <tr>
-                        <th class="col-md-2">Limits</th>
+                        <th class="col-md-4">Limits</th>
                         <th class="col-md-2">Public IP</th>
                         <th class="col-md-2">Pod IP</th>
                         <th class="col-md-2">Status</th>
-                        <th class="col-md-4">Actions</th>
+                        <th class="col-md-2">Actions</th>
                     </tr>
                     </thead>
                     <tbody>

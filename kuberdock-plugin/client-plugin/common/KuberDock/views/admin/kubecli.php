@@ -3,7 +3,7 @@
     <form method="post" class="form-inline">
         <input type="hidden" name="tab" value="kubecli">
         <div class="row col-md-12">
-            <label for="app_name">Kuberdock master url</label>
+            <label for="app_name">KuberDock master url</label>
             <input type="text" name="url" value="<?php echo $kubeCli['url'];?>">
         </div>
 

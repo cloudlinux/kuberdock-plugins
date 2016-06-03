@@ -7,6 +7,7 @@
 namespace api;
 
 use exceptions\CException;
+use exceptions\NotFoundException;
 use exceptions\UserNotFoundException;
 use Exception;
 use extensions\jwt\JWT;
@@ -212,7 +213,7 @@ class KuberDock_Api {
      */
     public function call($params = array(), $type = 'GET')
     {
-        if(!in_array($type, array('GET', 'POST', 'PUT', 'PATCH', 'DELETE'))) {
+        if (!in_array($type, array('GET', 'POST', 'PUT', 'PATCH', 'DELETE'))) {
             throw new CException('Undefined request type: '.$type);
         }
 
@@ -268,10 +269,11 @@ class KuberDock_Api {
 
             switch ($status['http_code']) {
                 case KuberDock_ApiStatusCode::HTTP_BAD_REQUEST:
-                case KuberDock_ApiStatusCode::HTTP_NOT_FOUND:
                     break;
                 case KuberDock_ApiStatusCode::HTTP_FORBIDDEN:
                     throw new CException(sprintf('Invalid credential for KuberDock server %s', $this->url));
+                case KuberDock_ApiStatusCode::HTTP_NOT_FOUND:
+                    throw new NotFoundException();
                 default:
                     if ($err) {
                         $msg = sprintf('%s (%s): %s', KuberDock_ApiStatusCode::getMessageByCode($status['http_code']),
@@ -446,14 +448,18 @@ class KuberDock_Api {
      */
     public function getUser($user)
     {
-        if(!$user) {
+        if (!$user) {
             throw new UserNotFoundException();
         }
 
         $this->url = $this->serverUrl . '/api/users/all/' . $user;
-        $response = $this->call();
+        try {
+            $response = $this->call();
+        } catch (NotFoundException $e) {
+            throw new UserNotFoundException();
+        }
 
-        if(!$response->getStatus()) {
+        if (!$response->getStatus()) {
             $this->logError($response->getMessage());
             throw new Exception($response->getMessage());
         }
@@ -470,7 +476,7 @@ class KuberDock_Api {
         $this->url = $this->serverUrl . '/api/users/all';
         $response = $this->call();
 
-        if(!$response->getStatus()) {
+        if (!$response->getStatus()) {
             $this->logError($response->getMessage());
             throw new Exception($response->getMessage());
         }
