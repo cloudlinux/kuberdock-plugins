@@ -61,6 +61,9 @@ try {
             if (!$invoice->isPayed()) {
                 $results['status'] = \base\models\CL_Invoice::STATUS_UNPAID;
                 $results['redirect'] = \base\CL_Tools::generateAutoAuthLink('viewinvoice.php?id=' . $invoice->id, $userData['email']);
+            } else {
+                \base\models\CL_Order::model()->acceptOrder($orderId);
+                $results['status'] = \base\models\CL_Invoice::STATUS_PAID;
             }
         } else {
             \base\models\CL_Order::model()->acceptOrder($orderId);
