@@ -70,7 +70,7 @@ class KuberDock extends API
         $data = $this->getJSONData();
         $pod = $this->getPod()->loadByName($name);
 
-        if($data->command == 'edit') {
+        if ($data->command == 'edit') {
             $this->redirect = $pod->processCommand($data->command, $data);
             return;
         }

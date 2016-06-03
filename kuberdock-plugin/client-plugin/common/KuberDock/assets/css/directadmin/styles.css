@@ -664,3 +664,10 @@ p {
     width: 1100px;
     margin: 0 20px;
 }
+
+.preapp-plan-page form.plans .margin-top a.btn.current-plan {
+    background-color: #05B91A !important;
+}
+.preapp-plan-page form.plans .margin-top a.btn.current-plan:hover {
+    background-color: #05a218 !important;
+}

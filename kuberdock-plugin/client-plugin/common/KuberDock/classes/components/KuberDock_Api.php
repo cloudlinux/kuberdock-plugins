@@ -325,12 +325,14 @@ class KuberDock_Api {
         return $this->apiCall('/api/predefined-apps/validate-template', array('template' => $template), 'POST');
     }
 
+
     /**
      * @param array $params
      * @param string $type
      * @return KuberDock_ApiResponse
      * @throws CException
      * @throws WithoutBillingException
+     * @throws YamlValidationException
      */
     public function call($params = array(), $type = 'GET')
     {
@@ -627,6 +629,27 @@ class KuberDock_Api {
     }
 
     /**
+     * @param array $params
+     * @param string $referer
+     * @return array
+     * @throws CException
+     */
+    public function orderEdit($params, $referer = '')
+    {
+        $this->url = $this->serverUrl . '/api/billing/orderPodEdit';
+        $response = $this->call(array(
+            'pod' => json_encode($params),
+            'referer' => urldecode($referer),
+        ), 'POST');
+
+        if (!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->getData();
+    }
+
+    /**
      * @param string $podId
      * @param array $containers
      * @return array
@@ -646,6 +669,39 @@ class KuberDock_Api {
         }
 
         return $response->getData();
+    }
+
+    /**
+     * @param string $podId
+     * @param string $plan
+     * @return array
+     * @throws CException
+     */
+    public function switchPlan($podId, $plan)
+    {
+        $this->url = $this->serverUrl . sprintf('/api/yamlapi/switch/%s/%s', $podId, $plan);
+        $response = $this->call(array(
+            'async' => 'false',
+        ), 'PUT');
+
+        if (!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->getData();
+    }
+
+    /**
+     * @param string $podId
+     * @param string $plan
+     * @param string $referer
+     * @return array
+     */
+    public function orderSwitchPlan($podId, $plan, $referer = '')
+    {
+        return $this->apiCall(sprintf('/api/billing/switch-app-package/%s/%s', $podId, $plan), array(
+            'referer' => $referer,
+        ), 'POST');
     }
 
     /**

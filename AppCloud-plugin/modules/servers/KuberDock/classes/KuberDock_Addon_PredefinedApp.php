@@ -199,7 +199,12 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         $adminApi->updatePod($podId, array(
             'status' => 'stopped',
         ));
-        $api->startPod($podId);
+        try {
+            $api->startPod($podId);
+        } catch (Exception $e) {
+            // pass
+            \exceptions\CException::log($e);
+        }
     }
 
     /**

@@ -588,6 +588,7 @@ class PredefinedApp {
 
             $this->template->setContainers($containers);
             $this->template->setVolumes($volumes);
+            $this->template->setPlanName($plan['name']);
         }
     }
 

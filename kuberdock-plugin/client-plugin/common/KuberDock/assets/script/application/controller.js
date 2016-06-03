@@ -182,6 +182,34 @@ define([
                     self.layout.showChildView('content', view);
                 });
             }
+        },
+
+        predefinedChangePlan: function (name) {
+            var view;
+
+            if (this.pod && this.templateModel) {
+                this.pod.set('templateModel', this.templateModel);
+                view = new Views.ChangePlan({
+                    model: this.pod
+                });
+                this.layout.showChildView('content', view);
+            } else {
+                this.pod = new Pod.Model({name: name});
+                view = new Views.ChangePlan({
+                    model: this.pod
+                });
+                var self = this;
+
+                $.when(this.pod.fetch({silent: true})).done(function () {
+                    self.templateModel = new Predefined.TemplateModel({
+                        id: self.pod.get('template_id')
+                    });
+                    $.when(self.templateModel.fetch({silent: true})).done(function () {
+                        self.pod.set('templateModel', self.templateModel);
+                        self.layout.showChildView('content', view);
+                    });
+                });
+            }
         }
     });
 });

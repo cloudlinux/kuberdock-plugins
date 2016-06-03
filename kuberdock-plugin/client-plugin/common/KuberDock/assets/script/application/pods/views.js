@@ -12,13 +12,16 @@ define(['app', 'application/utils',
     'tpl!application/pods/view/create/pod_volume_section.tpl',
     'tpl!application/pods/view/pod_details.tpl',
     'tpl!application/pods/view/predefined_details.tpl',
+    'tpl!application/pods/view/predefined_change_plan.tpl',
+    'tpl!application/predefined/view/plan_description.tpl',
     'tpl!application/pods/view/pod_upgrade.tpl',
     'tpl!application/pods/view/search/templates_list.tpl',
     'tpl!application/pods/view/search/templates_list_item.tpl',
     'slider', 'carousel'
 ], function(App, Utils, Pod, layoutPodTpl, podListTpl, podListItemTpl, podSearchTpl, podSearchItemTpl,
             podCreateTpl, podDescriptionTpl, podPortSectionTpl, podEnvSectionTpl, podVolumeSectionTpl,
-            podDetailsTpl, predefinedDetailsTpl, podUpgradeTpl, templatesListTpl, templatesListItemTpl) {
+            podDetailsTpl, predefinedDetailsTpl, predefinedChangePlanTpl, predefinedPlanDescriptionTpl,
+            podUpgradeTpl, templatesListTpl, templatesListItemTpl) {
     'use strict';
 
     var PodView = {};
@@ -548,6 +551,7 @@ define(['app', 'application/utils',
             deleteButton: '.pod-delete',
             upgradeButton: '.pod-upgrade',
             restartButton: '.pod-restart',
+            changePlanButton: '.pod-change-plan',
             addMoreAppsButton: '.pod-search',
             backButton: '.back',
             dropdown: '.kd-dropdown'
@@ -562,6 +566,7 @@ define(['app', 'application/utils',
             'click @ui.backButton': 'back',
             'click @ui.upgradeButton': 'upgradePod',
             'click @ui.restartButton': 'restartPod',
+            'click @ui.changePlanButton': 'changePlan',
             'click @ui.addMoreAppsButton': 'searchImages',
             'click @ui.dropdown': 'dropdown'
         },
@@ -666,6 +671,11 @@ define(['app', 'application/utils',
                     }
                 ]
             });
+        },
+
+        changePlan: function (e) {
+            e.preventDefault();
+            App.navigate('predefined/change_plan/' + this.model.getName());
         },
 
         processCommand: function (model, value) {
@@ -795,6 +805,67 @@ define(['app', 'application/utils',
         back: function (e) {
             e.preventDefault();
             App.navigate('pod/' + encodeURIComponent(this.model.get('name')));
+        }
+    });
+
+    PodView.ChangePlan = Backbone.Marionette.ItemView.extend({
+        template: predefinedChangePlanTpl,
+
+        initialize: function() {
+        },
+
+        ui: {
+            showDetails: '.show-details',
+            changePlan: '.select-plan'
+        },
+
+        events: {
+            'click @ui.showDetails': 'showDetails',
+            'click @ui.changePlan': 'changePlan'
+        },
+
+        templateHelpers: function () {
+            var templateModel = this.model.get('templateModel');
+
+            return {
+                model: this.model,
+                templateModel: templateModel,
+                planPackage: templateModel.getPackage(),
+                planDescription: this.planDescription
+            };
+        },
+
+        planDescription: function (planKey) {
+            var templateModel = this.model.get('templateModel');
+
+            return predefinedPlanDescriptionTpl({
+                kube: templateModel.getKube(planKey),
+                kubes: templateModel.getKubes(planKey),
+                publicIP: templateModel.getPublicIP(planKey),
+                hasDomain: templateModel.hasDomain(planKey),
+                pdSize: templateModel.getPersistentSize(planKey)
+            });
+        },
+
+        showDetails: function (e) {
+            e.preventDefault();
+            $(e.target).parent().find('.product-description').toggleClass('hidden');
+        },
+
+        changePlan: function (e) {
+            e.preventDefault();
+            var podName = this.model.getName();
+
+            if ($(e.target).hasClass('current-plan')) {
+                return;
+            }
+
+            this.model.save({
+                command: 'changePlan',
+                plan: $(e.target).data('plan')
+            }).done(function (response) {
+                App.navigate('pod/' + encodeURIComponent(podName));
+            });
         }
     });
 

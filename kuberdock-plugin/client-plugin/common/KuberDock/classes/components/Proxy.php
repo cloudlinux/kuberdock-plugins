@@ -47,7 +47,7 @@ class Proxy {
         $pod = Base::model()->getPanel()->getCommand()->describePod($podName);
 
         if (!isset($pod['podIP'])) {
-            throw new CException(sprintf('Cannot get pod IP for pod %s', $podName));
+            return;
         }
 
         $this->addRule($htaccessPath, sprintf($rule, $pod['podIP']));

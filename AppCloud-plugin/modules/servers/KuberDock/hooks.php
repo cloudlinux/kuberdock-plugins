@@ -322,6 +322,13 @@ function KuberDock_InvoicePaid($params)
                 if (isset($params['containers'])) {
                     // upgrade pod
                     $service->getAdminApi()->redeployPod($params['id'], $params);
+                } elseif (isset($params['plan'])) {
+                    // Switch plan
+                    $service->getAdminApi()->updatePod($params['id'], array(
+                        'status' => 'stopped',
+                    ));
+                    $service->getAdminApi()->switchPodPlan($params['id'], $params['plan']);
+                    $service->getProduct()->redirectToPod($service, $params['id'], true);
                 } else {
                     // edit pod
                     $pod = $service->getApi()->getPod($params['id']);

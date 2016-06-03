@@ -460,6 +460,41 @@ class Pod {
     }
 
     /**
+     * @param string $podId
+     * @param string $plan
+     * @param string $referer
+     * @return array
+     * @throws PaymentRequiredException
+     */
+    public function orderSwitchPlan($podId, $plan, $referer = '')
+    {
+        $response = Base::model()->getPanel()->getApi()->orderSwitchPlan($podId, $plan, $referer);
+
+        if ($response['status'] == 'Unpaid') {
+            throw new PaymentRequiredException($response);
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param array $params
+     * @param string $referer
+     * @return array
+     * @throws PaymentRequiredException
+     */
+    public function orderEdit($params, $referer)
+    {
+        $response = Base::model()->getPanel()->getApi()->orderEdit($params, $referer);
+
+        if ($response['status'] == 'Unpaid') {
+            throw new PaymentRequiredException($response);
+        }
+
+        return $response;
+    }
+
+    /**
      *
      */
     public function save()
@@ -544,11 +579,6 @@ class Pod {
 
     public function upgrade($data)
     {
-        /*array_walk_recursive($data->containers, function (&$e) {
-            if ($e instanceof \stdClass) {
-                $e = (array) $e;
-            }
-        });*/
         $params['id'] = $this->id;
         $params['containers'] = $data->containers;
         $params['kube_type'] = $this->kube_type;
@@ -561,6 +591,31 @@ class Pod {
         }
 
         return 'Application upgraded';
+    }
+
+    public function changePlan($data)
+    {
+        $params = array(
+            'id' => $data->id,
+            'template_id' => $data->template_id,
+        );
+
+        /*$app = new PredefinedApp($data->template_id);
+        $podParams = $app->getTemplate()->getPodStructureFromPlan($data->plan);
+        $params['plan'] = $podParams['plan'];
+        $params['edited_config'] = $podParams;*/
+
+        $package = Base::model()->getPanel()->billing->getPackage();
+
+        //Base::model()->getPanel()->getAdminApi()->switchPlan($data->id, $data->plan);
+
+        if (Base::model()->getPanel()->billing->isFixedPrice($package['id'])) {
+            $this->orderSwitchPlan($data->id, $data->plan, $this->getLink());
+        } else {
+            Base::model()->getPanel()->getAdminApi()->switchPlan($data->id, $data->plan);
+        }
+
+        return 'Plan changed';
     }
 
     public function processCommand($command, $data = array())

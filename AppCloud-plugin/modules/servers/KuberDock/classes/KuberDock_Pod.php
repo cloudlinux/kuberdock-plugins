@@ -256,9 +256,13 @@ class KuberDock_Pod
      * @return \base\models\CL_Invoice
      * @throws Exception
      */
-    public function editKubes($newPod, KuberDock_User $user)
+    public function edit($newPod, KuberDock_User $user)
     {
         $attributes['id'] = $this->id;
+
+        if (isset($newPod['template_plan_name'])) {
+            $attributes['plan'] = $newPod['template_plan_name'];
+        }
 
         $data = KuberDock_Addon_Items::model()->loadByAttributes(array('pod_id' => $this->id));
         if (!$data) {
@@ -268,7 +272,7 @@ class KuberDock_Pod
         $billableItem = \base\models\CL_BillableItems::model()->loadById($item->billable_item_id);
         $this->proRate = $billableItem->getProRate();
 
-        $this->collectInvoiceItems($this->_values, $newPod['edited_config']);
+        $this->collectInvoiceItems($this->_values, $newPod);
 
         $price = array_reduce($this->editInvoiceItems, function ($carry, $item) {
             $carry += $item->getTotal();
@@ -306,7 +310,14 @@ class KuberDock_Pod
             return \base\models\CL_Invoice::model()->loadById($invoice->id);
         } else {
             $service = KuberDock_Hosting::model()->loadById($item->service_id);
-            $service->getAdminApi()->redeployPod($this->id, $attributes);
+            if (isset($attributes['plan'])) {
+                // Switch plan
+                $service->getAdminApi()->switchPodPlan($this->id, $attributes['plan']);
+            } else {
+                // Edit pod
+                $service->getAdminApi()->redeployPod($this->id, $attributes);
+            }
+
             $billableItem->amount += $price;
             $billableItem->save();
             // Update app
@@ -317,7 +328,6 @@ class KuberDock_Pod
 
             return \base\models\CL_Invoice::model()->loadById($item->invoice_id);
         }
-
     }
 
     private function collectInvoiceItems($old, $new)
@@ -363,8 +373,7 @@ class KuberDock_Pod
                     if ($oldKubeType != $newKubeType) {
                         $description = sprintf('Change kube type from %s to %s (%s)',
                             $oldKube['kube_name'], $this->kube['kube_name'], $newKontainers[$name]['image']);
-                        $price = $newKontainers[$name]['kubes'] * $newKubePrice
-                            - $newKontainers[$name]['kubes'] * $oldKubePrice;
+                        $price = $oldKontainers[$name]['kubes'] * ($newKubePrice - $oldKubePrice);
                         $this->editInvoiceItems[] = $this->product->createInvoice($description, $price, 'kube', 1);
                     }
                 }

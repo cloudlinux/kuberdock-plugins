@@ -786,6 +786,16 @@ class KuberDock_Api {
     }
 
     /**
+     * @param string $podId
+     * @param string $plan
+     * @return KuberDock_ApiResponse
+     */
+    public function switchPodPlan($podId, $plan)
+    {
+        return $this->makeCall(sprintf('/api/yamlapi/switch/%s/%s', $podId, $plan), 'PUT');
+    }
+
+    /**
      * @return KuberDock_ApiResponse
      * @throws Exception
      */
