@@ -689,7 +689,7 @@ class KuberDock_Product extends CL_Product {
                     $predefinedApp->start($pod['id'], $service->id);
                 }
                 $url = sprintf($configuration->SystemURL .
-                    'kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $pod['id']);
+                    '/kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $pod['id']);
 
                 if($jsRedirect) {
                     $this->jsRedirect($url);
@@ -724,7 +724,7 @@ class KuberDock_Product extends CL_Product {
                 }
 
                 $url = sprintf($configuration->SystemURL .
-                    'kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $podId);
+                    '/kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $podId);
                 if($jsRedirect) {
                     $this->jsRedirect($url);
                 } else {
