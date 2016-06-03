@@ -1,7 +1,6 @@
 <?php
 $tabs = array(
     'pre_apps' => 'Existing apps',
-    'create' => 'Add new application',
     'defaults' => 'Application defaults',
     'kubecli' => 'Edit kubecli.conf',
 );

@@ -13,9 +13,6 @@ class AdminController extends pm_Controller_Action
         $this->view->assets = \Kuberdock\classes\Base::model()->getStaticPanel()->getAssets();
         $this->view->pageTitle = 'KuberDock Extension';
 
-        $version = shell_exec('rpm -q kuberdock-plugin');
-        $this->view->version = preg_replace('/kuberdock-plugin-/i', '', $version);
-
         $this->view->tabs = array(
             array(
                 'title' => 'Existing apps',

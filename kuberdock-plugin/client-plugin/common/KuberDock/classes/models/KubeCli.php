@@ -46,6 +46,11 @@ class KubeCli
         $this->saveFile($this->rootPath, $renderRoot, 0600);
     }
 
+    public function getRootPath()
+    {
+        return $this->rootPath;
+    }
+
     private function getKey($content, $key)
     {
         if (!$content) {

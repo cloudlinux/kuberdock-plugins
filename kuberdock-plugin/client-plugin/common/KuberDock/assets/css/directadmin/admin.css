@@ -3,7 +3,6 @@
     max-width: 780px;
 }
 
-.alert {
-    margin-left: 15px;
-    margin-right: 15px;
+#create-new-app {
+    max-width: 780px;
 }
