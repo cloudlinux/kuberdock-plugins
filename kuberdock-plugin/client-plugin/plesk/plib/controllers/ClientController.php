@@ -19,7 +19,7 @@ class ClientController extends pm_Controller_Action
             $this->_redirect('/admin/index');
         }
 
-        $this->view->pageTitle = 'KuberDock Extension';
+        $this->view->pageTitle = 'KuberDock Applications';
         $this->view->tabs = array(
             array(
                 'title' => 'Your apps',

@@ -74,10 +74,10 @@ class Proxy {
         if (!$fileManager->file_exists($path)) {
             $fileManager->putFileContent($path, $htaccess);
             $fileManager->chown($path);
-            $fileManager->chmod($path, 0660);
+            $fileManager->chmod($path, 0664);
         } else {
             $fileManager->chown($path);
-            $fileManager->chmod($path, 0660);
+            $fileManager->chmod($path, 0664);
             file_put_contents($path, $htaccess);
         }
     }
@@ -110,7 +110,7 @@ class Proxy {
 
         if ($fileManager->file_exists($path)) {
             $fileManager->chown($path);
-            $fileManager->chmod($path, 0660);
+            $fileManager->chmod($path, 0664);
             file_put_contents($path, $htaccess);
         }
     }
@@ -145,7 +145,7 @@ class Proxy {
 
         if ($fileManager->file_exists($path)) {
             $fileManager->chown($path);
-            $fileManager->chmod($path, 0660);
+            $fileManager->chmod($path, 0664);
             file_put_contents($path, $htaccess);
         }
     }

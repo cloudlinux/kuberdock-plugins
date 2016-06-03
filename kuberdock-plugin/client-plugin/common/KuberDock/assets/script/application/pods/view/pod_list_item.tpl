@@ -4,7 +4,7 @@
 <td><%- model.getPublicIp() %></td>
 <td><%- model.getPodIp() %></td>
 <td><%- model.getStatus() %></td>
-<td class="col-md-4">
+<td class="col-md-2">
     <div class="dropdown kd-dropdown">
         <button class="btn btn-default dropdown-toggle btn-sm" type="button" data-toggle="kd-dropdown" aria-haspopup="true" aria-expanded="false">
             Сhoose action
