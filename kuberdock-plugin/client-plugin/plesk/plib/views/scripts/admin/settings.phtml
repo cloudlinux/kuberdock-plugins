@@ -1,0 +1,7 @@
+<?php echo $this->assets->renderStyles();?>
+
+<?php echo $this->renderTabs($this->tabs); ?>
+
+<?php echo $this->form; ?>
+
+<?php echo $this->partial('admin/footer.phtml', array('version' => $this->version));?>

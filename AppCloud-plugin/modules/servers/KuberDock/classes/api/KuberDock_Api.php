@@ -6,13 +6,15 @@
 
 namespace api;
 
-use api\KuberDock_ApiResponse;
-use api\KuberDock_ApiStatusCode;
-use base\CL_Tools;
 use exceptions\CException;
 use exceptions\UserNotFoundException;
 use Exception;
+use extensions\jwt\JWT;
 
+/**
+ * Class KuberDock_Api
+ * @package api
+ */
 class KuberDock_Api {
     /**
      *
@@ -35,9 +37,18 @@ class KuberDock_Api {
      */
     const API_URL = 'https://KUBERDOCK_MASTER_IP';
     /**
-     * seconds
+     * int seconds
      */
     const API_CONNECTION_TIMEOUT = 150;
+
+    /**
+     * int seconds
+     */
+    const JWT_LIFETIME = 3600;
+    /**
+     * https://tools.ietf.org/html/draft-ietf-jose-json-web-algorithms-40
+     */
+    const JWT_ALGORITHM = 'HS256';
 
     /**
      * @var string
@@ -112,8 +123,12 @@ class KuberDock_Api {
      * @throws Exception
      */
     public function getToken() {
+        $token = $this->token;
+        $this->setToken('');
+
         $this->url = $this->serverUrl . '/api/auth/token';
         $response = $this->call();
+        $this->setToken($token);
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());
@@ -205,23 +220,26 @@ class KuberDock_Api {
         $this->arguments = $params;
         $this->requestType = $type;
 
-        switch($type) {
+        switch ($type) {
             case 'POST':
             case 'PUT':
             case 'PATCH':
                 $this->requestUrl = $this->url;
-                if($this->token) {
-                    $this->requestUrl .= '?token=' . $this->token;
-                }
                 $strData = json_encode($params);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $strData);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                $headers = array(
                     'Content-Type: application/json',
                     'Content-Length: ' . strlen($strData)
-                ));
-            break;
+                );
+
+                if ($this->token) {
+                    $this->requestUrl .= '?token=' . $this->token;
+                }
+
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                break;
             default:
-                if($this->token) {
+                if ($this->token) {
                     $this->requestUrl = $params ? $this->url .'?token='. $this->token .'&' . http_build_query($params)
                         : $this->url . '?token=' . $this->token;
                 } else {
@@ -244,18 +262,18 @@ class KuberDock_Api {
         $response = curl_exec($ch);
         $status = curl_getinfo($ch);
 
-        if($status['http_code'] != KuberDock_ApiStatusCode::HTTP_OK) {
+        if ($status['http_code'] != KuberDock_ApiStatusCode::HTTP_OK) {
             $err = ucwords(curl_error($ch));
             curl_close($ch);
 
-            switch($status['http_code']) {
+            switch ($status['http_code']) {
                 case KuberDock_ApiStatusCode::HTTP_BAD_REQUEST:
                 case KuberDock_ApiStatusCode::HTTP_NOT_FOUND:
                     break;
                 case KuberDock_ApiStatusCode::HTTP_FORBIDDEN:
                     throw new CException(sprintf('Invalid credential for KuberDock server %s', $this->url));
                 default:
-                    if($err) {
+                    if ($err) {
                         $msg = sprintf('%s (%s): %s', KuberDock_ApiStatusCode::getMessageByCode($status['http_code']),
                             $err, $this->url);
                     } else {
@@ -268,7 +286,7 @@ class KuberDock_Api {
         curl_close($ch);
         $this->parseResponse($response);
 
-        if(KUBERDOCK_DEBUG_API) {
+        if (KUBERDOCK_DEBUG_API) {
             $this->log(print_r($this->response->raw, true));
         }
 
@@ -725,13 +743,16 @@ class KuberDock_Api {
     }
 
     /**
+     * @param bool $withKubes
      * @return KuberDock_ApiResponse
      * @throws Exception
      */
-    public function getPackages()
+    public function getPackages($withKubes = false)
     {
         $this->url = $this->serverUrl . '/api/pricing/packages';
-        $response = $this->call(array(), 'GET');
+        $response = $this->call(array(
+            'with_kubes' => $withKubes,
+        ), 'GET');
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());
@@ -743,13 +764,16 @@ class KuberDock_Api {
 
     /**
      * @param int $id
+     * @param bool $withKubes
      * @return KuberDock_ApiResponse
      * @throws Exception
      */
-    public function getPackageById($id)
+    public function getPackageById($id, $withKubes = false)
     {
         $this->url = $this->serverUrl . '/api/pricing/packages/' . $id;
-        $response = $this->call(array(), 'GET');
+        $response = $this->call(array(
+            'with_kubes' => $withKubes,
+        ), 'GET');
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());
@@ -1017,6 +1041,32 @@ class KuberDock_Api {
         }
 
         return $response;
+    }
+
+    /**
+     * @param array $data
+     * @param bool $auth
+     * @return string
+     * @throws CException
+     */
+    public function getJWTToken($data = array(), $auth = true)
+    {
+        global $autoauthkey;
+
+        if (!isset($autoauthkey) || !$autoauthkey) {
+            throw new CException('Secret key not set. http://docs.whmcs.com/AutoAuth');
+        }
+
+        if ($auth) {
+            $data = array_merge($data, array(
+                'username' => $this->username,
+                'auth' => true,
+            ));
+        }
+
+        return JWT::encode($data, $autoauthkey, self::JWT_ALGORITHM, null, array(
+            'exp' => time() + self::JWT_LIFETIME,
+        ));
     }
 
     /**

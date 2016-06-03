@@ -1,14 +1,14 @@
-Version: 1.0
+Version: 1.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 4%{?dist}.cloudlinux
+Release: 1%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
 URL: http://www.cloudlinux.com
 Source0: %{name}-%{version}.tar.bz2
 
-Requires: kuberdock-cli >= 0.1-29
+Requires: kuberdock-cli >= 1.0-1
 
 AutoReq: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -35,18 +35,18 @@ rm -rf %{buildroot}
 
 %post
 if [ $1 = 1 ] ; then
-    bash /usr/share/kuberdock-plugin/install_kuberdock_plugins.sh -i
+    python /usr/share/kuberdock-plugin/install_kuberdock_plugins.py -i
     exit 0
 fi
 if [ $1 = 2 ] ; then
-    bash /usr/share/kuberdock-plugin/install_kuberdock_plugins.sh -u
+    python /usr/share/kuberdock-plugin/install_kuberdock_plugins.py -u
     exit 0
 fi
 
 %preun
 # uninstall?
 if [ $1 == 0 ] ; then
-    bash /usr/share/kuberdock-plugin/install_kuberdock_plugins.sh -d
+    python /usr/share/kuberdock-plugin/install_kuberdock_plugins.py -d
     exit 0
 fi
 
@@ -57,6 +57,29 @@ fi
 %{python_sitelib}/kd_common/*
 
 %changelog
+
+* Fri Jun 03 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.1-1
+- Changed getInfo, orderProduct args
+- Fixed kdcommon get user domains, catch errors on AdminLink
+- AC-3354 Hosting plugin. Generate token for admin
+- Further fixes
+- Error fixed, when there is no .kubecli.conf file
+- Plesk. Change get user login method
+- AC-3003 cPanel > Remove "kube_type:" from message
+- AC-3157 In hosting panels show asterisks instead of passwords
+- AC-2972 Action buttons need to separate, to display them in each own column
+- AC-3004 Move link to the right side
+- Fixed SSE translator for cPanel\Plesk Install script catch get templates exception
+- AC-2936 Plesk. Client tab - Available apps Fixed no billing logic
+- AC-2934 Plesk. Admin tab - Applications. Add\Update\Delete. Install\Uninstall
+- AC-2937 Plesk. Client tab - Client controller extends Base controller
+- AC-2939 Plesk. Client tab - Implement Proxy mechanizm (for YAML proxy section) Separate styles.css for each panel
+- AC-2929 Plesk. KDcommon changes to support Plesk
+- AC-2933 Plesk. Admin tab - Set default package\kube
+- AC-2930 Plesk. Update plugin install script according to new structure
+- AC-2928 Plesk. Add Plesk assets component
+- AC-2932 Plesk. Admin tab - Update kubecli.conf settings
+- cPanel. Plesk base structure
 
 * Thu Apr 28 2016 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.0-4
 - cPanel. Fixed Validation.pm error for cPanel v.56. Fixed no billing logic

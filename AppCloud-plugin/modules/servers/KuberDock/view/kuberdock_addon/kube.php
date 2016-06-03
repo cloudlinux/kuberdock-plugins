@@ -22,8 +22,9 @@
             <tr>
                 <th class="left col-md-3">Billing type</th>
                 <th class="middle col-md-2">Package name (id)</th>
+                <th class="right col-md-1">Active</th>
                 <th class="right col-md-5">Price</th>
-                <th class="col-md-2"></th>
+                <th class="col-md-1"></th>
             </tr>
             </thead>
             <tbody>
@@ -33,11 +34,28 @@
                     <td class="middle col-md-2">
                         <?php echo $package['name']; ?> (<?php echo $package['kuber_product_id']; ?>)
                     </td>
+                    <td class="middle col-md-1">
+                        <input
+                            type="checkbox"
+                            class="active_kube_checkbox"
+                            id="active_kube_checkbox_<?php echo $package['input_id']; ?>"
+                            data-input="<?php echo $package['input_id']; ?>"
+                            <?php if ($package['kubeIsActive']) :?> checked="checked"<?php endif;?>
+                        >
+                    </td>
                     <td class="right col-md-5">
                         <form class="price_package_form" method="post">
                             <?php echo \base\CL_Csrf::render(); ?>
-                            <input data-prev="<?php echo $package['kube_price']; ?>" name="kube_price" type="text" value="<?php echo $package['kube_price']; ?>">
-                            <input type="hidden" name="id" value="<?php echo $package['link_id']; ?>">
+                            <input
+                                id="price_input_<?php echo $package['input_id']; ?>"
+                                data-prev="<?php echo $package['prev']; ?>"
+                                data-input="<?php echo $package['input_id']; ?>"
+                                name="kube_price"
+                                type="text"
+                                value="<?php echo $package['kube_price']; ?>"
+                                <?php if (!$package['kubeIsActive']) :?> disabled="disabled"<?php endif;?>
+                            >
+                            <input type="hidden" name="id" value="<?php echo $package['id']; ?>">
                             <input type="hidden" name="product_id" value="<?php echo $package['product_id']; ?>">
                             <input type="hidden" name="kuber_kube_id" value="<?php echo $kube['kuber_kube_id'];?>">
                             <input type="hidden" name="kuber_product_id" value="<?php echo $package['kuber_product_id'];?>">

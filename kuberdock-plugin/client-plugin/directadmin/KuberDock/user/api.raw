@@ -1,0 +1,28 @@
+#!/usr/local/bin/php -n
+<?php
+    use \Kuberdock\classes\api\Response;
+    use \Kuberdock\classes\exceptions\PaymentRequiredException;
+    use \Kuberdock\classes\exceptions\ApiException;
+    use \Kuberdock\classes\api\KuberDock;
+
+    require_once __DIR__ . '/../KuberDock/init.php';
+
+    try {
+        parse_str(html_entity_decode(getenv('POST')), $_POST);
+        parse_str(html_entity_decode(getenv('QUERY_STRING')), $_GET);
+        $_REQUEST = array_merge($_GET, $_POST);
+
+        if (!isset($_REQUEST['request'])) {
+            throw new ApiException('Request not found', 404);
+        }
+
+        $API = new KuberDock($_REQUEST['request']);
+        $API->run();
+    } catch (PaymentRequiredException $e) {
+        Response::error('Payment required', 402, $e->getRedirect());
+    } catch (ApiException $e) {
+        Response::error($e->getMessage(), $e->getCode());
+    } catch (\Exception $e) {
+        Response::error($e->getMessage(), 500);
+    }
+?>

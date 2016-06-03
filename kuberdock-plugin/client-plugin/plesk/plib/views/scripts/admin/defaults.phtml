@@ -1,0 +1,13 @@
+<?php echo $this->assets->renderScripts();?>
+<?php echo $this->assets->renderStyles();?>
+<script>
+    jQuery.noConflict();
+    var packagesKubes = <?php echo $this->packagesKubes;?>;
+    var defaults =  <?php echo $this->defaults;?>;
+</script>
+
+<?php echo $this->renderTabs($this->tabs); ?>
+
+<?php echo $this->form; ?>
+
+<?php echo $this->partial('admin/footer.phtml', array('version' => $this->version));?>

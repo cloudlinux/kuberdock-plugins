@@ -1,1 +1,0 @@
-<div class="error message">No data</div>

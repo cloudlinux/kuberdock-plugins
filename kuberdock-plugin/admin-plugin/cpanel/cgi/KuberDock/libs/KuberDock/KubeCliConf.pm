@@ -4,6 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use Template;
 use KuberDock::KCLI;
+use KuberDock::API;
 use Data::Dumper;
 
 use constant KUBE_CLI_CONF_ROOT_FILE => '/root/.kubecli.conf';
@@ -26,11 +27,21 @@ sub read {
     my $contentRoot = $self->readFile(KUBE_CLI_CONF_ROOT_FILE);
     my $contentEtc = $self->readFile(KUBE_CLI_CONF_ETC_FILE);
 
+    if($@) {
+        return {
+            url => '',
+            registry => 'registry.hub.docker.com',
+            password => '',
+            user => '',
+        }
+    }
+
     my $data = {
         url => $self->getKey($contentEtc, 'url'),
         registry => $self->getKey($contentEtc, 'registry'),
         password => $self->getKey($contentRoot, 'password'),
         user => $self->getKey($contentRoot, 'user'),
+        token => $self->getKey($contentRoot, 'token'),
     };
 
     return $data;
@@ -50,6 +61,17 @@ sub readCGI {
 
 sub save {
     my ($self, $data) = @_;
+
+    my $api = new KuberDock::API($data->{url}, $data->{user}, $data->{password});
+    eval {
+        $data->{token} = $api->getToken();
+        delete $data->{user};
+        delete $data->{password};
+    };
+
+    if ($@) {
+        # pass
+    }
 
     Template->new({
         INCLUDE_PATH => KUBERDOCK_TEMPLATE_PATH,
@@ -71,7 +93,7 @@ sub save {
 sub getKey {
     my ($self, $content, $key) = @_;
 
-    my ($string) = $content =~ /\r?\n$key = ([\w\d:\/\.]+)\r?\n/;
+    my ($string) = $content =~ /\r?\n$key = ([\w\d:\/\.\|]+)\r?\n?/;
 
     return $string;
 }

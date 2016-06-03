@@ -9,12 +9,12 @@
 
         <div class="row col-md-12">
             <label for="app_name">User</label>
-            <input type="text" name="kubecli_user" value="[% kubeCli.user %]">
+            <input type="text" name="kubecli_user" value="[% kubeCli.user %]" autocomplete="off"[% IF kubeCli.token %] placeholder="Token generated"[% END %]>
         </div>
 
         <div class="row col-md-12">
             <label for="app_name">Password</label>
-            <input type="text" name="kubecli_password" value="[% kubeCli.password %]" autocomplete="off">
+            <input type="password" name="kubecli_password" value="[% kubeCli.password %]" autocomplete="off"[% IF kubeCli.token %] placeholder="Token generated"[% END %]>
         </div>
 
         <div class="row col-md-12">

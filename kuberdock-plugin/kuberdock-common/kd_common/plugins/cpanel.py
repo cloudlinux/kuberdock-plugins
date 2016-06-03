@@ -1,5 +1,5 @@
-from ..helper import Utils
-from ..exceptions import CLIError
+from kd_common.helper import Utils
+from kd_common.exceptions import CLIError
 
 USER_DATA_DOMAINS_PATH = "/etc/userdatadomains;/var/cpanel/userdata/{user}/cache"
 
@@ -30,13 +30,16 @@ class CPanel(object):
                 if user == user_:
                     document_root = domain_data[4]
                     main_domain = 'main' == domain_data[2]
+                    if (domain, document_root) in domains_list:
+                        continue
+
                     if main_domain:
                         domains_list.insert(0, (domain, document_root))  # main domain must be first in list
                     else:
                         domains_list.append((domain, document_root))
             domains_file.close()
         if not domains_list:
-            raise CLIError('Not found', json=self.json)
+            raise CLIError('Domains Not found', json=self.json)
         return domains_list
 
     def get_domain_docroot(self, user, domain):
@@ -45,4 +48,4 @@ class CPanel(object):
             user_domain, docroot = d
             if user_domain == domain:
                 return docroot
-        raise CLIError('Not found', json=self.json)
+        raise CLIError('Docroot Not found', json=self.json)

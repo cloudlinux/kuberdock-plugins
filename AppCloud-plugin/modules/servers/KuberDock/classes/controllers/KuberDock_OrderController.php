@@ -26,6 +26,33 @@ class KuberDock_OrderController extends CL_Controller {
         $this->clientArea = CL_Base::model()->getClientArea();
     }
 
+    public function toCartAction()
+    {
+        $sessionId = CL_Base::model()->getParam('sessionId');
+        $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadByAttributes(array(
+            'session_id' => $sessionId,
+        ));
+
+        try {
+            if (!$predefinedApp) {
+                throw new CException('App not found.');
+            }
+
+            $product = \KuberDock_Product::model()->loadById($predefinedApp->product_id);
+
+            if (!$product) {
+                throw new CException('App product not found.');
+            }
+            $predefinedApp->session_id = \base\CL_Base::model()->getSession();
+            $predefinedApp->save();
+            $product->addToCart();
+            header('Location: cart.php?a=view');
+        } catch(Exception $e) {
+            CException::log($e);
+            CException::displayError($e);
+        }
+    }
+
     public function orderAppAction()
     {
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
@@ -83,21 +110,28 @@ class KuberDock_OrderController extends CL_Controller {
         $serviceId = \base\CL_Base::model()->getParam('sid');
         $podId = \base\CL_Base::model()->getParam('podId');
 
-        if($serviceId && $podId) {
+        if ($serviceId && $podId) {
             $service = \KuberDock_Hosting::model()->loadById($serviceId);
             $view = new \base\CL_View();
             $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadByPodId($podId);
             $postDescription = htmlentities($predefinedApp->getPostDescription(), ENT_QUOTES);
             try {
-                if($predefinedApp->referer) {
-                    header('Location: '. htmlspecialchars_decode($predefinedApp->referer));
+                if ($predefinedApp->referer) {
+                    header('Location: ' . htmlspecialchars_decode($predefinedApp->referer));
                 } else {
-                    $view->renderPartial('client/preapp_complete', array(
-                        'serverLink' => $service->getServer()->getLoginPageLink(),
-                        'token' => $service->getToken(),
-                        'podId' => $podId,
-                        'postDescription' => $postDescription ? $postDescription : 'You successfully make payment for application',
-                    ));
+                    $link = $service->getServer()->getLoginPageLink();
+
+                    if (USE_JWT_TOKENS) {
+                        $link = sprintf('%s/?token2=%s#pods/%s', $link, $service->getApi()->getJWTToken(), $podId);
+                        header('Location: ' . $link);
+                    } else {
+                        $view->renderPartial('client/preapp_complete', array(
+                            'token' => $service->getToken(),
+                            'serverLink' => $link,
+                            'podId' => $podId,
+                            'postDescription' => $postDescription ? $postDescription : 'You successfully make payment for application',
+                        ));
+                    }
                 }
                 exit;
             } catch (Exception $e) {

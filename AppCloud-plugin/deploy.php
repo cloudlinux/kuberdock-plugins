@@ -33,7 +33,7 @@ Possible keys:
 
 HELP;
 
-$options = getopt('h::u::f::', array('help::', 'user::', 'forced::'));
+$options = getopt('h::u::f::m::', array('help::', 'user::', 'forced::', 'migrate::'));
 
 if (issetOption($options, 'help')) {
     die($help);
@@ -49,6 +49,11 @@ list($link, $versionTo) = getLastLink($billing);
 
 // null if this is first installation
 $versionFrom = getCurrentVersion($billing);
+
+if (issetOption($options, 'migrate')) {
+    migrate();
+    die("Db migration performed. Files not copied\n\n");
+}
 
 if ($versionFrom==$versionTo && !issetOption($options, 'forced')) {
     die("KuberDock plugin is already up-to-date.\n\n");
@@ -116,19 +121,16 @@ function getCurrentVersion($billing)
     if ($billing === WHMCS_BILLING) {
         require 'init.php';
 
-        // try to load init, if failure - plugin not installed
+        // try to load KuberDock.php, if failure - plugin not installed
         set_error_handler("warningHandler", E_WARNING);
-        if ((include 'modules/servers/KuberDock/init.php') === false) {
+        if ((include 'modules/addons/KuberDock/KuberDock.php') === false) {
             return null;
         }
         restore_error_handler();
 
-        $addonModulesClass = '\base\models\CL_AddonModules';
+        $config = KuberDock_config();
 
-        // 1.0.6 - last version without CL_AddonModules
-        return class_exists($addonModulesClass)
-            ? $addonModulesClass::getSetting('version')
-            : '1.0.6';
+        return $config['version'];
     }
 }
 
