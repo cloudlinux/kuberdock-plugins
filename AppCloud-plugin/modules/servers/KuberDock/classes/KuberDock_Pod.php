@@ -277,14 +277,13 @@ class KuberDock_Pod
             return $carry;
         });
 
-        if($price <= 0 || !$this->product->isFixedPrice()) {
+        if (!$this->product->isFixedPrice()) {
             $invoice = new \base\models\CL_Invoice();
             return $invoice->setAttributes(array(
                 'invoice_id' => 0,
                 'status' => $invoice::STATUS_PAID,
             ));
         }
-        $attributes['containers'] = $params;
 
         if($price > 0) {
             $invoice = \base\models\CL_Invoice::model()->createInvoice($user->id, $this->editInvoiceItems, $user->getGateway(), false);
@@ -310,7 +309,7 @@ class KuberDock_Pod
         } else {
             $service = KuberDock_Hosting::model()->loadById($item->service_id);
             $service->getAdminApi()->redeployPod($this->id, $attributes);
-            $billableItem->amount -= abs($newKubes * $this->kube['kube_price']);
+            $billableItem->amount += $price;
             $billableItem->save();
             // Update app
             $pod = $service->getApi()->getPod($this->id);
