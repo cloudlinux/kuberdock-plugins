@@ -5,6 +5,11 @@ namespace Kuberdock\classes\plesk\models;
 use Kuberdock\classes\components\KuberDock_Api;
 use Kuberdock\classes\Tools;
 
+/**
+ * Class App
+ * @deprecated after admin/password are removed from plesk, use Kuberdock\classes\models\App
+ * @package Kuberdock\classes\plesk\models
+ */
 class App
 {
     private $api;

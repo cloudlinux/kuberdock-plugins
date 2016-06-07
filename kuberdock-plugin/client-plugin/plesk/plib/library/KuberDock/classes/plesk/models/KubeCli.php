@@ -2,6 +2,11 @@
 
 namespace Kuberdock\classes\plesk\models;
 
+/**
+ * Class KubeCli
+ * @deprecated after admin/password are removed from plesk, use Kuberdock\classes\models\KubeCli
+ * @package Kuberdock\classes\plesk\models
+ */
 class KubeCli
 {
     const KUBE_CLI_CONF_ROOT_FILE = '/root/.kubecli.conf';

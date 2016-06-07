@@ -1,24 +1,22 @@
 <?php
 
-namespace Kuberdock\classes\plesk\models;
+namespace Kuberdock\classes\models;
 
 use Kuberdock\classes\Tools;
 use Kuberdock\classes\components\KuberDock_Api;
 
-/**
- * Class Defaults
- * @deprecated after admin/password are removed from plesk, use Kuberdock\classes\models\Defaults
- * @package Kuberdock\classes\plesk\models
- */
 class Defaults
 {
     private $api;
-
-    public function __construct()
+    
+    private $panelName;
+    
+    public function __construct($panelName)
     {
-        $kubeCliModel = new \Kuberdock\classes\plesk\models\KubeCli;
+        $kubeCliModel = new \Kuberdock\classes\models\KubeCli($panelName);
         $adminData = $kubeCliModel->read();
         $this->api = KuberDock_Api::create($adminData);
+        $this->panelName = strtolower($panelName);
     }
 
     public function read()

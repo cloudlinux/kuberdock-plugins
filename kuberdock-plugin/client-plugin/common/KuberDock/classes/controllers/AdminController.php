@@ -35,6 +35,7 @@ class AdminController extends KuberDock_Controller
         ));
 
         $kubeCliModel = new \Kuberdock\classes\models\KubeCli($this->panelName);
+        $defaultsModel = new \Kuberdock\classes\models\Defaults($this->panelName);
 
         if (isset($_POST['tab']) && $_POST['tab']=='kubecli') {
             $kubeCli = $this->preparePost(array('url', 'user', 'password', 'registry'));
@@ -46,6 +47,11 @@ class AdminController extends KuberDock_Controller
             }
         }
 
+        if (isset($_POST['tab']) && $_POST['tab']=='defaults') {
+            $defaultsModel->save($this->preparePost(array('packageId', 'kubeType')));
+        }
+
+        $defaults = $defaultsModel->read();
         $kubeCli = $kubeCliModel->read();
 
         if (!$kubeCli['token']) {
@@ -61,16 +67,12 @@ class AdminController extends KuberDock_Controller
         $appModel = new \Kuberdock\classes\models\App($this->panelName);
         $apps = $appModel->getAll();
 
-        // todo: replace with real data
-        $packageKubes = '{}';
-        $defaults = '{}';
-
         $this->render('index', array(
             'apps' => $apps,
             'kubeCli' => $kubeCli,
             'messages' => isset($messages) ? $messages : array(),
-            'defaults' => $defaults,
-            'packagesKubes' => $packageKubes,
+            'defaults' => $defaults['defaults'],
+            'packagesKubes' => $defaults['packagesKubes'],
             'activeTab' => !isset($activeTab) ? 'pre_apps' : $activeTab,
         ));
     }
