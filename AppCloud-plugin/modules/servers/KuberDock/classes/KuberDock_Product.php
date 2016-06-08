@@ -436,8 +436,8 @@ class KuberDock_Product extends CL_Product {
     {
         $sessionProducts = &$_SESSION['cart']['products'];
 
-        foreach($sessionProducts as $row) {
-            if($row['pid'] == $this->id) {
+        foreach ($sessionProducts as $row) {
+            if ($row['pid'] == $this->id) {
                 return;
             }
         }

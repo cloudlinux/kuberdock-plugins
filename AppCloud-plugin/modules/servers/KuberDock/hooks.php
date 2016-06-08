@@ -141,11 +141,11 @@ function KuberDock_ShoppingCartValidateCheckout($params)
     $userId = $params['userid'];
 
 
-    if(isset($_SESSION['cart']) && $userId) {
-        foreach($_SESSION['cart']['products'] as $product) {
+    if (isset($_SESSION['cart']) && $userId) {
+        foreach ($_SESSION['cart']['products'] as $product) {
             $product = KuberDock_Product::model()->loadById($product['pid']);
             // TOS enabled but not accepted
-            if(!$product->isKuberProduct()
+            if (!$product->isKuberProduct()
                 || ((bool) $CONFIG['EnableTOSAccept'] && !isset($_POST['accepttos']))) {
                 continue;
             }
@@ -166,8 +166,9 @@ function KuberDock_ShoppingCartValidateCheckout($params)
                                 continue;
                             }
                             $result = \base\models\CL_Order::model()->createOrder($userId, $product->id);
-                            \base\models\CL_Order::model()->acceptOrder($result['orderid']);
+                            \base\models\CL_Order::model()->acceptOrder($result['orderid'], false);
                             $service = \KuberDock_Hosting::model()->loadById($result['productids']);
+                            $service->createModule();
                         }
                         $item = $product->addBillableApp($userId, $predefinedApp);
                         if (!($pod = $predefinedApp->isPodExists($service->id))) {
@@ -187,8 +188,9 @@ function KuberDock_ShoppingCartValidateCheckout($params)
                     } else {
                         if (!$service) {
                             $result = \base\models\CL_Order::model()->createOrder($userId, $product->id);
-                            \base\models\CL_Order::model()->acceptOrder($result['orderid']);
+                            \base\models\CL_Order::model()->acceptOrder($result['orderid'], false);
                             $service = \KuberDock_Hosting::model()->loadById($result['productids']);
+                            $service->createModule();
                             $product->removeFromCart();
                             $product->createPodAndRedirect($service->id, true);
                         } else {
@@ -197,17 +199,19 @@ function KuberDock_ShoppingCartValidateCheckout($params)
                         }
                     }
                 }
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 CException::log($e);
-                CException::displayError($e, true);
+                //CException::displayError($e, true);
+                $errors[] = str_replace('ERROR: ', '', $e->getMessage());
+                $product->addToCart();
             }
 
             $errorMessage = 'You can not buy more than 1 KuberDock product.';
-            if($userProducts && !in_array($errorMessage, $userProducts)) {
+            if ($userProducts && !in_array($errorMessage, $userProducts)) {
                 $errors[] = $errorMessage;
             }
 
-            if($product->getConfigOption('enableTrial') && KuberDock_Addon_Trial::model()->loadById($userId)) {
+            if ($product->getConfigOption('enableTrial') && KuberDock_Addon_Trial::model()->loadById($userId)) {
                 $errors[] = 'You are already have trial KuberDock product.';
             }
         }
