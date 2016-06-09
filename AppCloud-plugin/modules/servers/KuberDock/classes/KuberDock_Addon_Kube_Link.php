@@ -49,7 +49,7 @@ class KuberDock_Addon_Kube_Link extends CL_Model
      */
     public function beforeSave()
     {
-        if(!empty($this->kube_price)) {
+        if(!empty($this->kube_price) || $this->kube_price==='0') {
             $template = \KuberDock_Addon_Kube_Template::model()->loadById($this->template_id);
 
             $this->getApi()->addKubeToPackage($this->kuber_product_id, $template->kuber_kube_id, $this->kube_price);
