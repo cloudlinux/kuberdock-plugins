@@ -1,7 +1,7 @@
 Version: 1.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 1%{?dist}.cloudlinux
+Release: 0%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -58,7 +58,7 @@ fi
 
 %changelog
 
-* Fri Jun 03 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.1-1
+* Fri Jun 03 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.1-0
 - Changed getInfo, orderProduct args
 - Fixed kdcommon get user domains, catch errors on AdminLink
 - AC-3354 Hosting plugin. Generate token for admin
