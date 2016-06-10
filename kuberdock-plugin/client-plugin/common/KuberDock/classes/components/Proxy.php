@@ -26,6 +26,10 @@ class Proxy {
     /**
      *
      */
+    const HTACCESS_REWRITE_REGEXP = '/RewriteEngine (On|Off)/i';
+    /**
+     *
+     */
     const ROOT_DIR = 'root';
 
     /**
@@ -58,7 +62,7 @@ class Proxy {
         $fileManager = Base::model()->getStaticPanel()->getFileManager();
         $htaccess = $fileManager->getFileContent($path);
 
-        if(!preg_match($this->getHtaccessRegexp(), $htaccess)) {
+        if (!preg_match($this->getHtaccessRegexp(), $htaccess)) {
             $data = array("\n", self::HTACCESS_START_SECTION, $rule, self::HTACCESS_END_SECTION);
             $htaccess .= implode("\n", $data);
         } else {
@@ -69,6 +73,12 @@ class Proxy {
                 }
                 return implode("\n", array_merge(array(self::HTACCESS_START_SECTION), $rules, array(self::HTACCESS_END_SECTION)));
             }, $htaccess);
+        }
+
+        if (!preg_match(self::HTACCESS_REWRITE_REGEXP, $htaccess, $match)) {
+            $htaccess = "RewriteEngine On\n" . $htaccess;
+        } elseif ($match[1] == 'Off') {
+            $htaccess = str_ireplace('RewriteEngine Off', 'RewriteEngine On', $htaccess);
         }
 
         if (!$fileManager->file_exists($path)) {
@@ -97,7 +107,7 @@ class Proxy {
 
         $htaccess = $fileManager->getFileContent($path);
 
-        if(preg_match($this->getHtaccessRegexp(), $htaccess)) {
+        if (preg_match($this->getHtaccessRegexp(), $htaccess)) {
             $htaccess = preg_replace_callback($this->getHtaccessRegexp(), function($e) use ($rule) {
                 $rules = array_filter(explode("\n", $e[1]), function($r) use ($rule) {
                     if(trim($r) != trim($rule)) {
@@ -131,11 +141,11 @@ class Proxy {
         $fileManager = Base::model()->getStaticPanel()->getFileManager();
         $htaccess = $fileManager->getFileContent($path);
 
-        if(preg_match($this->getHtaccessRegexp(), $htaccess)) {
-            $htaccess = preg_replace_callback($this->getHtaccessRegexp(), function($e) use ($dir) {
-                $rules = array_filter(explode("\n", $e[1]), function($r) use ($dir) {
+        if (preg_match($this->getHtaccessRegexp(), $htaccess)) {
+            $htaccess = preg_replace_callback($this->getHtaccessRegexp(), function ($e) use ($dir) {
+                $rules = array_filter(explode("\n", $e[1]), function ($r) use ($dir) {
                     $dir = ($dir == self::ROOT_DIR) ? '' : $dir . '/';
-                    if(strpos($r, $dir . '(.*)') === false) {
+                    if (strpos($r, $dir . '(.*)') === false) {
                         return $r;
                     }
                 });
@@ -159,9 +169,9 @@ class Proxy {
         $template = PredefinedApp::getTemplateById($pod->template_id, $pod->name);
         $pod = (new Pod)->loadByName($pod->name);
 
-        if(isset($template['kuberdock']['proxy'])) {
-            foreach($template['kuberdock']['proxy'] as $dir => $proxy) {
-                if(isset($proxy['domain']) && isset($proxy['container'])) {
+        if (isset($template['kuberdock']['proxy'])) {
+            foreach ($template['kuberdock']['proxy'] as $dir => $proxy) {
+                if (isset($proxy['domain']) && isset($proxy['container'])) {
                     $container = $pod->getContainerByName($proxy['container']);
                     if ($ports = $container['ports']) {
                         foreach ($ports as $port) {
@@ -182,9 +192,9 @@ class Proxy {
     {
         $template = PredefinedApp::getTemplateById($pod->template_id, $pod->name);
 
-        if(isset($template['kuberdock']['proxy'])) {
-            foreach($template['kuberdock']['proxy'] as $dir => $proxy) {
-                if(isset($proxy['domain']) && isset($proxy['container'])) {
+        if (isset($template['kuberdock']['proxy'])) {
+            foreach ($template['kuberdock']['proxy'] as $dir => $proxy) {
+                if (isset($proxy['domain']) && isset($proxy['container'])) {
                     $this->removeRuleByDirName($dir, $proxy['domain']);
                 }
             }
