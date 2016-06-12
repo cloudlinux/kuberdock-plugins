@@ -106,6 +106,17 @@ class Plugin:
         self.cpanel_home_script('append')
 
     def cpanel_upgrade(self):
+        if os.path.exists('/root/.kubecli.conf'):
+            r = exec_command([KCLI, '-c', '/root/.kubecli.conf', 'kubectl', 'register'])
+            if re.match('Not Authorize', r, re.IGNORECASE):
+                print 'You have wrong credentials in /root/.kubecli.conf. Please fix it and re-run update script' \
+                      '/usr/share/kuberdock-plugin/install_kuberdock_plugins.py -u'
+                exit(1)
+        else:
+            print 'You have no config file /root/.kubecli.conf. Please fix it and re-run update script' \
+                  '/usr/share/kuberdock-plugin/install_kuberdock_plugins.py -u'
+            exit(1)
+        
         # client
         common_source_path = os.path.join(SOURCE_PATH, 'client-plugin/common')
         client_source_path = os.path.join(SOURCE_PATH, 'client-plugin/cpanel')
@@ -150,9 +161,6 @@ class Plugin:
 
         exec_command(['/bin/touch', '/var/log/kuberdock-plugin.log'])
         exec_command(['/bin/chmod', '666', '/var/log/kuberdock-plugin.log'])
-
-        if os.path.exists('/root/.kubecli.conf'):
-            exec_command([KCLI, '-c', '/root/.kubecli.conf', 'kubectl', 'register'])
 
         # Remove home script
         self.cpanel_remove_home_script()
@@ -367,9 +375,12 @@ def exec_command(command, **kwargs):
     if isinstance(command, basestring):
         command = [command]
 
-    p = subprocess.Popen(command, stdout=subprocess.PIPE, **kwargs)
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
     output = p.stdout.read()
-    return output.strip()
+    if output:
+        return output.strip()
+    else:
+        return p.stderr.read().strip()
 
 
 def process_parser():
