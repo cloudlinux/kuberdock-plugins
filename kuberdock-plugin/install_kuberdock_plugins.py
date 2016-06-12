@@ -341,6 +341,18 @@ class Plugin:
                 for filename in glob.glob(os.path.join(path, '*')):
                     exec_command(['/bin/chmod', '755', filename])
 
+        if os.path.exists('/root/.kubecli.conf'):
+            exec_command(['/bin/cp', '-f', '/root/.kubecli.conf', '/home/admin/.kubecli.conf'])
+        else:
+            exec_command(['/bin/cp', '-f', '/etc/kubecli.conf', '/home/admin/.kubecli.conf'])
+        exec_command(['/usr/bin/chown', 'admin:admin', '/home/admin/.kubecli.conf'])
+
+        read_conf_path = os.path.join(plugin_path, 'bin')
+        exec_command(['/usr/bin/g++', '-o', os.path.join(read_conf_path, 'read_conf'),
+                      os.path.join(read_conf_path, 'read_conf.c')])
+        exec_command(['/bin/chown', 'root:root', os.path.join(read_conf_path, 'read_conf')])
+        exec_command(['/bin/chmod', '4755', os.path.join(read_conf_path, 'read_conf')])
+
     def directadmin_upgrade(self):
         self.directadmin_install()
 

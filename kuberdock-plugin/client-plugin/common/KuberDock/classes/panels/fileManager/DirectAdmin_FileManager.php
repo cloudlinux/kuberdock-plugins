@@ -2,6 +2,8 @@
 
 namespace Kuberdock\classes\panels\fileManager;
 
+use Kuberdock\classes\panels\KuberDock_DirectAdmin;
+
 class DirectAdmin_FileManager implements FileManagerInterface
 {
     /**
@@ -36,7 +38,7 @@ class DirectAdmin_FileManager implements FileManagerInterface
             return;
         }
 
-        chmod($path, $user);
+        chown($path, $user);
     }
 
     /**

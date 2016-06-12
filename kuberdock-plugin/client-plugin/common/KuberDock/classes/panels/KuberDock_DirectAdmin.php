@@ -117,8 +117,10 @@ class KuberDock_DirectAdmin extends KuberDock_Panel
     protected function getAdminData()
     {
         $data = array();
-        $fileManager = $this->getFileManager();
-        $content = $fileManager->getFileContent('/home/admin/.kubecli.conf');
+        ob_start();
+        passthru('/usr/local/directadmin/plugins/KuberDock/bin/read_conf');
+        $content = ob_get_contents();
+        ob_end_clean();
 
         foreach (explode("\n", $content) as $line) {
             if (in_array(substr($line, 0, 1), array('#', '/'))) continue;
