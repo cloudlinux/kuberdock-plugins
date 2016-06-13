@@ -24,9 +24,11 @@
                     <div class="col-sm-4">
                         <select class="form-control" name="kube_id" id="kube_id">
                             <% _.each(model.get('kubes'), function(kube) { %>
+                            <% if (kube.available) { %>
                             <option value="<%- kube.id %>" data-pid="<%- kube.package_id %>">
                                 <%- kube.name %> (<%- kube.package_name %>)
                             </option>
+                            <% } %>
                             <% }); %>
                         </select>
                     </div>

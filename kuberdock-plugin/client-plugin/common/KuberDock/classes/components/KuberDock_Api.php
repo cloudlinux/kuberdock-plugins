@@ -551,9 +551,13 @@ class KuberDock_Api {
     {
         $this->username = $username;
         $this->password = $password;
+        $token = $this->token;
+        $this->token = '';
 
         $this->url = $this->serverUrl . '/api/auth/token';
         $response = $this->call();
+
+        $this->token = $token;
 
         if(!$response->getStatus()) {
             throw new CException($response->getMessage());
