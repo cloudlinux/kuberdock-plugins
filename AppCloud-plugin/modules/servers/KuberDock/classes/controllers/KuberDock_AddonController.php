@@ -24,6 +24,11 @@ class KuberDock_AddonController extends CL_Controller {
         $this->assets = new \KuberDock_Assets();
         $this->assets->registerScriptFiles(array('jquery.min', 'bootstrap.min', 'addon'));
         $this->assets->registerStyleFiles(array('bootstrap.min', 'addon'));
+
+        $admin = \KuberDock_User::model()->getCurrentAdmin();
+        if ($admin['template'] == 'blend') {
+            $this->assets->registerStyleFiles(array('addon_blend'));
+        }
     }
 
     public function indexAction()
