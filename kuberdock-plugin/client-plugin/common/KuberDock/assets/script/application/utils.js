@@ -17,14 +17,13 @@ define(['app', 'bbcode', 'bootstrap'], function(App) {
 
             _.each(data, function(row) {
                 _.each(row.kubes, function(kube) {
-                    if (kube.available) {
-                        kubes.push({
-                            'id' : kube.id,
-                            'name' : kube.name,
-                            'package_id' : row.id,
-                            'package_name' : row.name
-                        });
-                    }
+                    kubes.push({
+                        'id' : kube.id,
+                        'name' : kube.name,
+                        'available' : kube.available,
+                        'package_id' : row.id,
+                        'package_name' : row.name
+                    });
                 });
             });
 
