@@ -911,7 +911,7 @@ class KuberDock_Api {
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());
-            throw new Exception('Error while creating pod from YAML. <br>' . $response->getMessage());
+            throw new Exception($response->getMessage());
         }
 
         return $response;

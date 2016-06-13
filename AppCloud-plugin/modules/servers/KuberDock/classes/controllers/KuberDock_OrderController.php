@@ -66,18 +66,6 @@ class KuberDock_OrderController extends CL_Controller {
                 $kdProductId = $parsedYaml['kuberdock']['packageID'];
             }
 
-            if(!$referer) {
-                if(isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER']) {
-                    $referer = $_SERVER['HTTP_REFERER'];
-                } elseif(isset($parsedYaml['kuberdock']['server'])) {
-                    $referer = $parsedYaml['kuberdock']['server'];
-                } elseif($server = \KuberDock_Server::model()->getActive()) {
-                    $referer = $server->getApiServerUrl();
-                } else {
-                    throw new CException('Cannot get KuberDock server url');
-                }
-            }
-
             $kdProduct = \KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $referer);
             $product = \KuberDock_Product::model()->loadById($kdProduct->product_id);
 
@@ -91,6 +79,7 @@ class KuberDock_OrderController extends CL_Controller {
                 'kuber_product_id' => $kdProductId,
                 'product_id' => $product->id,
                 'data' => $yaml,
+                'referer' => $referer,
             ));
 
             $predefinedApp->save();
@@ -127,8 +116,7 @@ class KuberDock_OrderController extends CL_Controller {
                     } else {
                         $view->renderPartial('client/preapp_complete', array(
                             'token' => $service->getToken(),
-                            'serverLink' => $link,
-                            'podId' => $podId,
+                            'action' => $link . '/#pods/' . $podId,
                             'postDescription' => $postDescription ? $postDescription : 'You successfully make payment for application',
                         ));
                     }
