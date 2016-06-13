@@ -1,6 +1,5 @@
 /* Fix bootstrap */
 #contentarea * {  box-sizing: inherit !important; }
-body { background-color: #1A4D80 !important; }
 .container-fluid { box-sizing: border-box !important; }
 
 .search-show { text-decoration: underline; }
