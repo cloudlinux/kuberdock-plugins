@@ -55,6 +55,17 @@ class KuberDock_Addon extends CL_Component {
             throw new CException('Cannot connect to KuberDock server. Please check server credentials.');
         }
 
+        $config = \base\models\CL_Configuration::model()->get();
+        $part = substr($_SERVER['SCRIPT_NAME'], 0, strrpos($_SERVER['SCRIPT_NAME'], '/'));
+        $url = $config->SystemURL . $part . '/configservers.php?action=manage&id=' . $server->id;
+
+        if ($server->ipaddress && !filter_var($server->ipaddress, FILTER_VALIDATE_IP)) {
+            throw new CException('KuberDock server IP address is wrong. Please edit it on ' . $url);
+        }
+        if ($server->hostname && !filter_var(gethostbyname($server->hostname), FILTER_VALIDATE_IP)) {
+            throw new CException('KuberDock server hostname is wrong. Please edit it on ' . $url);
+        }
+
         $group = CL_Query::model()->query('SELECT * FROM `tblproductgroups`
             WHERE name = "KuberDock" ORDER BY `order` ASC LIMIT 1')
             ->getRow();
