@@ -64,7 +64,10 @@ function(Backbone, Marionette, Utils, MessageModel, MessageView) {
             }
 
             Backbone.history.start();
-            App.eventHandler();
+
+            $.when(Utils.getToken2()).done(function (token2) {
+                App.eventHandler(token2);
+            });
         });
     });
 
@@ -76,8 +79,8 @@ function(Backbone, Marionette, Utils, MessageModel, MessageView) {
         Backbone.history.navigate(route, options);
     };
 
-    App.eventHandler = function () {
-        var source = new EventSource(rootURL + '?request=stream');
+    App.eventHandler = function (token2) {
+        var source = new EventSource(rootURL + '?request=stream/' + token2);
 
         source.addEventListener('pod:change', function(e) {
             App.sync();
@@ -94,7 +97,7 @@ function(Backbone, Marionette, Utils, MessageModel, MessageView) {
         source.addEventListener('error', function(e) {
             console.info('SSE connection lost');
             source.close();
-            setTimeout(App.eventHandler, 5000);
+            setTimeout(App.eventHandler(token2), 5000);
         }, false);
     };
 

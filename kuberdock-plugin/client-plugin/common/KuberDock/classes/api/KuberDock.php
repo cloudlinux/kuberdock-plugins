@@ -191,21 +191,36 @@ class KuberDock extends API
         return Base::model()->getPanel()->billing->getPackage();
     }
 
-    protected function get_stream()
+    protected function get_token2()
+    {
+        $api = Base::model()->getPanel()->getApi();
+        try {
+            return array('token2' => $api->requestToken2());
+        } catch (\Exception $e) {
+            return array('token2' => '');
+        }
+    }
+
+    protected function get_stream($token2)
     {
         set_time_limit(0);
 
         Base::model()->getPanel()->renderStreamHeaders();
         echo str_repeat("\n", 1024);    // for cPanel
 
-        $config = KcliCommand::getConfig();
+        $api = Base::model()->getPanel()->getApi();
 
-        if(!isset($config['url']) || !isset($config['token'])) {
-            echo "retry: 10000\r\n";
+        if (!$api->getToken()) {
+            echo "retry: 50000\r\n";
             exit;
         }
 
-        $url = sprintf('%s/api/stream?token=%s', $config['url'], $config['token']);
+        if (!$token2) {
+            $token2 = $api->requestToken2();
+        }
+
+        $url = sprintf('%s/api/stream?token2=%s', $api->getServerUrl(), $token2);
+
         $handle = fopen($url, 'r');
 
         if (ob_get_level() == 0) ob_start();

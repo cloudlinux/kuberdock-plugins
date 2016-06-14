@@ -107,6 +107,34 @@ define(['app', 'bbcode', 'bootstrap'], function(App) {
             });
 
             window.modal(options);
+        },
+
+        localStorage: function () {
+            return window.localStorage;
+        },
+
+        getToken2: function () {
+            var storage = this.localStorage(),
+                authTime = storage.getItem('authTime'),
+                authToken = storage.getItem('authToken'),
+                tokenLife = 3600,
+                ts = Math.floor(Date.now() / 1000),
+                d = $.Deferred();
+
+            if (!authToken || (authTime && Math.abs(authTime - ts) > tokenLife)) {
+                Backbone.ajax({
+                    url: rootURL + '?request=token2',
+                    dataType: 'json'
+                }).done(function (response) {
+                    storage.setItem('authTime', ts);
+                    storage.setItem('authToken', response.data.token2);
+                    d.resolve(response.data.token2);
+                });
+            } else {
+                d.resolve(authToken);
+            }
+
+            return d.promise();
         }
     };
 

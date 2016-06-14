@@ -147,6 +147,14 @@ class KuberDock_Api {
     /**
      * @return string
      */
+    public function getServerUrl()
+    {
+        return $this->serverUrl;
+    }
+
+    /**
+     * @return string
+     */
     public function getRegistryUrl()
     {
         return strpos('https', $this->registryURL) !== false ? $this->registryURL : 'http://' . $this->registryURL;
@@ -827,6 +835,25 @@ class KuberDock_Api {
     {
         $this->url = $this->serverUrl . '/api/auth/token';
         $response = $this->call(array(), 'GET');
+
+        if (!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->parsed['token'];
+    }
+
+    /**
+     * Get JWT token
+     * @return string
+     * @throws CException
+     */
+    public function requestToken2()
+    {
+        $this->url = $this->serverUrl . '/api/auth/token2';
+        $response = $this->call(array(
+            'token' => $this->token,
+        ), 'POST');
 
         if (!$response->getStatus()) {
             throw new CException($response->getMessage());
