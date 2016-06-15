@@ -1,0 +1,28 @@
+* 1.0.7
+- AC-3384 WHMCS. Blue frontend with v4 Admin Template
+- WHMCS. Show error if user cann't be created in KD
+- WHMCS. Fixed order product
+- AC-3276 WHMCS. Billing method for applying pod edit
+- WHMCS. Move order app to api method
+- AC-3153 WHMCS. Switch tokens to JWT WHMCS. Added login to KD button on servers page
+- AC-3188 WHMCS. All available Kubes are not listed in WHMCS client area
+- AC-2701 WHMCS. After delete user in WHMCS user don't delete from KD
+- AC-2969 WHMCS. Addon. Add column active
+- AC-3035 WHMCS. Change invoice for pod upgrade
+- AC-3002 WHMCS. For all links generated for KD login, if available server hostname use it instead IP
+- AC-2940 WHMCS. Refactoring of KuberDock_kubes table
+- AC-3016 WHMCS. Dont update current version of plugin
+
+* 1.0.6.3
+- WHMCS. Allow to order free pods
+- WHMCS. deploy.php - take version from KuberDock.php, not from db
+- AC-3270 WHMCS. No error message while activating addon when KD credentials are wrong
+- AC-3272 WHMCS. Kube types are not displayed on mixed http/https connection
+
+* 1.0.6.2
+- AC-3103 WHMCS. Ability to remove kube type
+- AC-3150 WHMCS. Wrong relative path to assets
+- AC-3227 WHMCS. Second package cannot be ordered using KD + WHMCS
+- AC-3188 WHMCS. All available Kubes are not listed in WHMCS client area
+- WHMCS. In migrations relative path replaced with __DIR__
+- WHMCS. Fixed 0 payment for public IP, add notes to invoice only for KD template

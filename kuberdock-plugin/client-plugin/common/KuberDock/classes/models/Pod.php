@@ -347,8 +347,9 @@ class Pod {
      */
     public function getPodUrl($withToken = false)
     {
-        if($withToken) {
-            return sprintf('%s/login?token=%s&next=/#pods/%s', $this->getKuberDockUrl(), $this->command->getToken(), $this->id);
+        if ($withToken) {
+            $token2 = Base::model()->getPanel()->getApi()->requestToken2();
+            return sprintf('%s/?token2=%s#pods/%s', $this->getKuberDockUrl(), $token2, $this->id);
         } else {
             return sprintf('%s/#pods/%s', $this->getKuberDockUrl(), $this->id);
         }

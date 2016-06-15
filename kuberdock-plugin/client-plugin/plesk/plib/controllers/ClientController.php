@@ -22,7 +22,7 @@ class ClientController extends pm_Controller_Action
         $this->view->pageTitle = 'KuberDock Applications';
         $this->view->tabs = array(
             array(
-                'title' => 'Your apps',
+                'title' => 'My apps',
                 'action' => 'index',
             ),
             array(
