@@ -5,7 +5,7 @@
         </div>
         <div class="col-md-12">
             <p>
-                A list of your applications below. Click "Add new App" to set up new application or click on the name
+                A list of your applications below. Click "Create custom application" to set up new application or click on the name
                 of application to go to application page with detailed information of application configuration.
                 Use control buttons to start, edit or delete your application.
             </p>
@@ -35,7 +35,7 @@
     </div>
     <div class="row">
         <div class="col-md-12">
-            <a href="#" class="add-new-app btn btn-primary pull-right">Add new App</a>
+            <a href="#" class="add-new-app btn btn-primary pull-right">Create custom application</a>
             <div class="clearfix"></div>
         </div>
     </div>
