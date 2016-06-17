@@ -1,4 +1,5 @@
 * 1.0.7
+- AC-3539 WHMCS. Check does whmcs\plugin work on mysql with enabled strict mode
 - AC-3384 WHMCS. Blue frontend with v4 Admin Template
 - WHMCS. Show error if user cann't be created in KD
 - WHMCS. Fixed order product

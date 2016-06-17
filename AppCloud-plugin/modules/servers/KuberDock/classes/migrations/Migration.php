@@ -49,7 +49,7 @@ class Migration
         };
     }
 
-    private static function getAvailable($min)
+    public static function getAvailable($min)
     {
         $versions_path = __DIR__ . '/versions';
 

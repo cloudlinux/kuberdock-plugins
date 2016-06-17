@@ -163,6 +163,12 @@ class KuberDock_Addon extends CL_Component {
                 PRIMARY KEY (`version`)
             ) ENGINE=InnoDB;");
 
+            // Add existing migrations
+            $migrations = \migrations\Migration::getAvailable('');
+            foreach ($migrations as $version) {
+                \KuberDock_Migrations::addVersion($version);
+            }
+
             // Create email templates
             $mailTemplate = CL_MailTemplate::model();
             $mailTemplate->createTemplate($mailTemplate::TRIAL_NOTICE_NAME, 'KuberDock Trial Notice',
