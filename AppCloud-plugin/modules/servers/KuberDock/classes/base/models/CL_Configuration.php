@@ -48,7 +48,8 @@ class CL_Configuration extends CL_Model
      */
     public static function appendAPIAllowedIPs($name, $ip = null)
     {
-        $row = self::model()->loadById('APIAllowedIPs');
+        $model = new self();
+        $row = $model->loadById('APIAllowedIPs');
         $ips = unserialize($row->value);
         $node_id = self::getNodeOfAPIAllowedIPs($ips, $name);
 

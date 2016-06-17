@@ -35,7 +35,8 @@ class CL_PDO implements CL_iDBDriver {
         $dsn = "mysql:host=$db_host;dbname=$db_name;charset=$mysql_charset";
         $opt = array(
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::MYSQL_ATTR_INIT_COMMAND => 'SET sql_mode=""',
         );
         $this->pdo = new PDO($dsn, $db_username, $db_password, $opt);
     }
