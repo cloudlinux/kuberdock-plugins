@@ -28,6 +28,11 @@ class App
         return $this->api->getTemplate($id);
     }
 
+    public function validate($template)
+    {
+        $this->api->validateTemplate($template);
+    }
+
     public function save($post)
     {
         if ($post['id']) {
