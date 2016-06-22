@@ -435,7 +435,7 @@ class KuberDock_Product extends CL_Product {
      * @return array
      * @throws Exception
      */
-    public function getService($userId)
+    public function orderService($userId)
     {
         $result = \base\models\CL_Order::model()->createOrder($userId, $this->id);
         \base\models\CL_Order::model()->acceptOrder($result['orderid'], false);

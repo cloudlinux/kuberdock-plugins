@@ -59,10 +59,12 @@ class KuberDock_Addon extends CL_Component {
         $part = substr($_SERVER['SCRIPT_NAME'], 0, strrpos($_SERVER['SCRIPT_NAME'], '/'));
         $url = $config->SystemURL . $part . '/configservers.php?action=manage&id=' . $server->id;
 
-        if ($server->ipaddress && !filter_var($server->ipaddress, FILTER_VALIDATE_IP)) {
+        $ipAddress = current(explode(':', $server->ipaddress));
+        if ($ipAddress && !filter_var($ipAddress, FILTER_VALIDATE_IP)) {
             throw new CException('KuberDock server IP address is wrong. Please edit it on ' . $url);
         }
-        if ($server->hostname && !filter_var(gethostbyname($server->hostname), FILTER_VALIDATE_IP)) {
+        $hostname = current(explode(':', $server->hostname));
+        if ($hostname && !filter_var(gethostbyname($hostname), FILTER_VALIDATE_IP)) {
             throw new CException('KuberDock server hostname is wrong. Please edit it on ' . $url);
         }
 
@@ -168,7 +170,7 @@ class KuberDock_Addon extends CL_Component {
                 PRIMARY KEY (id)
             ) ENGINE=INNODB');
 
-            $db->query("CREATE TABLE `KuberDock_migrations` (
+            $db->query("CREATE TABLE IF NOT EXISTS `KuberDock_migrations` (
                 `version` int NOT NULL,
                 `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (`version`)

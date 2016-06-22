@@ -141,7 +141,7 @@ class CL_Hosting extends CL_Model {
 
         $results = localAPI('modulecreate', $values, $admin['username']);
 
-        if($results['result'] != 'success') {
+        if ($results['result'] != 'success') {
             throw new Exception($results['message']);
         }
 
