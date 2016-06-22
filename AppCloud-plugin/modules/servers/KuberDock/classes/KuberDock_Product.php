@@ -429,6 +429,23 @@ class KuberDock_Product extends CL_Product {
         return  sprintf('<strong>%s </strong><br/>', $html);
     }
 
+
+    /**
+     * @param $userId
+     * @return array
+     * @throws Exception
+     */
+    public function orderService($userId)
+    {
+        $result = \base\models\CL_Order::model()->createOrder($userId, $this->id);
+        \base\models\CL_Order::model()->acceptOrder($result['orderid'], false);
+
+        $service = \KuberDock_Hosting::model()->loadById($result['productids']);
+        $service->createModule();
+
+        return $service;
+    }
+
     /**
      * Add current product to cart
      */

@@ -55,6 +55,19 @@ class KuberDock_Addon extends CL_Component {
             throw new CException('Cannot connect to KuberDock server. Please check server credentials.');
         }
 
+        $config = \base\models\CL_Configuration::model()->get();
+        $part = substr($_SERVER['SCRIPT_NAME'], 0, strrpos($_SERVER['SCRIPT_NAME'], '/'));
+        $url = $config->SystemURL . $part . '/configservers.php?action=manage&id=' . $server->id;
+
+        $ipAddress = current(explode(':', $server->ipaddress));
+        if ($ipAddress && !filter_var($ipAddress, FILTER_VALIDATE_IP)) {
+            throw new CException('KuberDock server IP address is wrong. Please edit it on ' . $url);
+        }
+        $hostname = current(explode(':', $server->hostname));
+        if ($hostname && !filter_var(gethostbyname($hostname), FILTER_VALIDATE_IP)) {
+            throw new CException('KuberDock server hostname is wrong. Please edit it on ' . $url);
+        }
+
         $group = CL_Query::model()->query('SELECT * FROM `tblproductgroups`
             WHERE name = "KuberDock" ORDER BY `order` ASC LIMIT 1')
             ->getRow();
@@ -157,7 +170,7 @@ class KuberDock_Addon extends CL_Component {
                 PRIMARY KEY (id)
             ) ENGINE=INNODB');
 
-            $db->query("CREATE TABLE `KuberDock_migrations` (
+            $db->query("CREATE TABLE IF NOT EXISTS `KuberDock_migrations` (
                 `version` int NOT NULL,
                 `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (`version`)

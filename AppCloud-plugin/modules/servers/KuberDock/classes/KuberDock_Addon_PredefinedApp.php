@@ -128,6 +128,27 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
     }
 
     /**
+     * Order predefined application.
+     * Runs from hooks (KuberDock_AfterModuleCreate & KuberDock_ShoppingCartValidateCheckout)
+     * @param KuberDock_Product $product
+     * @param KuberDock_Hosting|null $service
+     * @param int $userId
+     * @param bool $paid
+     */
+    public function order(KuberDock_Product $product, $service, $userId, $paid = false)
+    {
+        self::loadBySessionId();
+        $this->user_id = $userId;
+        $this->save();
+
+        if ($product->isFixedPrice()) {
+            $this->orderFixed($product, $service, $paid);
+        } else {
+            $this->orderPAYG($product, $service);
+        }
+    }
+
+    /**
      * @param int $serviceId
      * @param string $status
      * @return array
@@ -427,5 +448,95 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         }
 
         return $items;
+    }
+
+    /**
+     * Order PA with fixed price billing
+     * @param KuberDock_Product $product
+     * @param KuberDock_Hosting | null $service
+     * @param bool $paid
+     */
+    private function orderFixed(KuberDock_Product $product, $service, $paid)
+    {
+        if (!$service) {
+            if ($product->isSetupPayment()) {
+                return;
+            }
+            $service = $product->orderService($this->user_id);
+        }
+        // Trying to re-create module
+        if ($service->domainstatus == KuberDock_User::STATUS_PENDING) {
+            $service->createModule();
+        }
+
+        if (!$service->isActive() || !$this->data) {
+            return;
+        }
+
+        try {
+            if ($this->isPodExists($service->id)) {
+                throw new Exception("Pod with name '" . $this->getName() . "' already exists");
+            }
+            $pod = $this->create($service->id, 'unpaid');
+        } catch (Exception $e) {
+            throw $e;
+            // TODO: uncomment
+            //$product->jsRedirect($this->referer . '&error=' . urlencode($e->getMessage()));
+        }
+
+        $item = $product->addBillableApp($this->user_id, $this, $paid);
+        $item->pod_id = $pod['id'];
+        $item->save();
+        $this->referer = null;
+        $this->pod_id = $pod['id'];
+        $this->save();
+
+        $product->removeFromCart();
+
+        if ($item->isPayed()) {
+            $product->startPodAndRedirect($item->service_id, $item->pod_id, true);
+        } else {
+            $product->jsRedirect('viewinvoice.php?id=' . $item->invoice_id);
+        }
+    }
+
+    /**
+     * Order PA with PAYG billing
+     * @param KuberDock_Product $product
+     * @param KuberDock_Hosting | null $service
+     */
+    private function orderPAYG(KuberDock_Product $product, $service)
+    {
+        if (!$service) {
+            $service = $product->orderService($this->user_id);
+        }
+        // Trying to re-create module
+        if ($service->domainstatus == KuberDock_User::STATUS_PENDING) {
+            $service->createModule();
+        }
+
+        $product->removeFromCart();
+
+        $service = \KuberDock_Hosting::model()->loadById($service->id);
+
+        if (!$service->isActive() || !$this->data) {
+            return;
+        }
+
+        try {
+            if ($this->isPodExists($service->id)) {
+                throw new Exception("Pod with name '" . $this->getName() . "' already exists");
+            }
+
+            $pod = $this->create($service->id);
+            $this->pod_id = $pod['id'];
+            $this->referer = null;
+            $this->save();
+            $product->startPodAndRedirect($service->id, $pod['id'], true);
+        } catch (Exception $e) {
+            throw $e;
+            // TODO: uncomment
+            //$product->jsRedirect($this->referer . '&error=' . urlencode($e->getMessage()));
+        }
     }
 } 

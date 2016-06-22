@@ -140,7 +140,6 @@ function KuberDock_ShoppingCartValidateCheckout($params)
     $errors = array();
     $userId = $params['userid'];
 
-
     if (isset($_SESSION['cart']) && $userId) {
         foreach ($_SESSION['cart']['products'] as $product) {
             $product = KuberDock_Product::model()->loadById($product['pid']);
@@ -150,64 +149,21 @@ function KuberDock_ShoppingCartValidateCheckout($params)
                 continue;
             }
 
+            $server = $product->getServer();
+            $userProducts = KuberDock_Product::model()->getByUser($userId, $server->id);
+            $userProduct = current($userProducts);
+
             try {
-                $server = $product->getServer();
-                $userProducts = KuberDock_Product::model()->getByUser($userId, $server->id);
-
-                $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-                if ($predefinedApp) {
-                    $service = \KuberDock_Hosting::model()->loadByParams(current($userProducts));
-                    $predefinedApp->user_id = $userId;
-                    $predefinedApp->save();
-
-                    if ($product->isFixedPrice()) {
-                        if (!$service) {
-                            if ($product->isSetupPayment()) {
-                                continue;
-                            }
-                            $result = \base\models\CL_Order::model()->createOrder($userId, $product->id);
-                            \base\models\CL_Order::model()->acceptOrder($result['orderid'], false);
-                            $service = \KuberDock_Hosting::model()->loadById($result['productids']);
-                            $service->createModule();
-                        }
-                        $item = $product->addBillableApp($userId, $predefinedApp);
-                        if (!($pod = $predefinedApp->isPodExists($service->id))) {
-                            $pod = $predefinedApp->create($service->id, 'unpaid');
-                        }
-                        $predefinedApp->pod_id = $pod['id'];
-                        $predefinedApp->save();
-                        $item->pod_id = $pod['id'];
-                        $item->save();
-                        $product->removeFromCart();
-
-                        if ($item->isPayed()) {
-                            $product->startPodAndRedirect($item->service_id, $item->pod_id, true);
-                        } else {
-                            $product->jsRedirect('viewinvoice.php?id=' . $item->invoice_id);
-                        }
-                    } else {
-                        if (!$service) {
-                            $result = \base\models\CL_Order::model()->createOrder($userId, $product->id);
-                            \base\models\CL_Order::model()->acceptOrder($result['orderid'], false);
-                            $service = \KuberDock_Hosting::model()->loadById($result['productids']);
-                            $service->createModule();
-                            $product->removeFromCart();
-                            $product->createPodAndRedirect($service->id, true);
-                        } else {
-                            $product->removeFromCart();
-                            $product->createPodAndRedirect($service->id, true);
-                        }
-                    }
-                }
+                $service = \KuberDock_Hosting::model()->loadById($userProduct['hosting_id']);
+                \KuberDock_Addon_PredefinedApp::model()->order($product, $service, $userId);
             } catch (Exception $e) {
                 CException::log($e);
-                //CException::displayError($e, true);
                 $errors[] = str_replace('ERROR: ', '', $e->getMessage());
                 $product->addToCart();
             }
 
             $errorMessage = 'You can not buy more than 1 KuberDock product.';
-            if ($userProducts && !in_array($errorMessage, $userProducts)) {
+            if (count($userProducts) && !in_array($errorMessage, $errors)) {
                 $errors[] = $errorMessage;
             }
 
@@ -966,34 +922,18 @@ function KuberDock_ClientLogin($params)
 //add_hook('ClientLogin', 1, 'KuberDock_ClientLogin');
 
 function KuberDock_AfterModuleCreate($params) {
+
+    // Needed if in module settiings is selected 'Do not automatically setup this product"
+    // and user tries to buy PA, admin must accept his order, and after he accepts order, we must
+    // create this PA.
     $userId = $params['params']['userid'];
-
     $product = \KuberDock_Product::model()->loadById($params['params']['packageid']);
-    $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadByUserId($userId);
-    if ($predefinedApp) {
-        $service = \KuberDock_Hosting::model()->loadById($params['params']['serviceid']);
+    $service = \KuberDock_Hosting::model()->loadById($params['params']['serviceid']);
 
-        if ($product->isFixedPrice()) {
-            $paid = $product->isSetupPayment() ? true : false;
-            $item = $product->addBillableApp($userId, $predefinedApp, $paid);
-            if (!($pod = $predefinedApp->isPodExists($service->id))) {
-                $pod = $predefinedApp->create($service->id);
-            }
-            $predefinedApp->pod_id = $pod['id'];
-            $predefinedApp->save();
-            $item->pod_id = $pod['id'];
-            $item->save();
-            $product->removeFromCart();
-
-            if ($item->isPayed()) {
-                $product->startPodAndRedirect($item->service_id, $item->pod_id, true);
-            } else {
-                $product->jsRedirect('viewinvoice.php?id=' . $item->invoice_id);
-            }
-        } else {
-            $product->removeFromCart();
-            $product->createPodAndRedirect($service->id, true);
-        }
+    try {
+        \KuberDock_Addon_PredefinedApp::model()->order($product, $service, $userId, $product->isSetupPayment());
+    } catch (Exception $e) {
+        CException::log($e);
     }
 }
 add_hook('AfterModuleCreate', 1, 'KuberDock_AfterModuleCreate');
