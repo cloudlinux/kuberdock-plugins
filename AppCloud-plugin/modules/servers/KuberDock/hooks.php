@@ -164,7 +164,7 @@ function KuberDock_ShoppingCartValidateCheckout($params)
             }
 
             $errorMessage = 'You can not buy more than 1 KuberDock product.';
-            if (count($userProducts) && !in_array($errorMessage, $errors)) {
+	    if (count($userProducts) && !in_array($errorMessage, $errors) && !$errors) {
                 $errors[] = $errorMessage;
             }
 
