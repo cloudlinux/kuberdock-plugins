@@ -234,6 +234,17 @@ function KuberDock_ClientArea($params) {
 function KuberDock_AdminLink($params) {
     $server = KuberDock_Server::model()->loadById($params['serverid']);
 
+    // Don't know why, but sometimes hook KuberDock_ServerEdit don't runs
+    $server->accesshash = '';
+
+    try {
+        $server->accesshash = $server->getApi()->getToken();
+        $server->save();
+    } catch (Exception $e) {
+        CException::log($e);
+        $server->save();
+    }
+
     try {
         if (USE_JWT_TOKENS) {
             $tokenField = 'token2';
