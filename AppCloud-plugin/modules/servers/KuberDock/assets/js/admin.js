@@ -55,8 +55,23 @@ $(document).ready(function() {
         }
     };
 
+    var billingTypeManage = function () {
+        var billingType = $('input[name="packageconfigoption[9]"]:checked'),
+            firstDeposit = $('input[type=text][name="packageconfigoption[8]"]');
+
+        if (billingType.val() == 'PAYG') {
+            firstDeposit.prop('disabled', false);
+        } else {
+            firstDeposit.prop('disabled', true).val('');
+        }
+    };
+
     $(document).on('change', 'input[type=checkbox][name="packageconfigoption[1]"]', function() {
         trialManage();
+    });
+
+    $(document).on('change', 'input[name="packageconfigoption[9]"]', function() {
+        billingTypeManage();
     });
 
     if(window.location.href.indexOf('configproducts') >= 0) {
@@ -64,7 +79,7 @@ $(document).ready(function() {
             url: 'addonmodules.php?module=KuberDock',
             data: {
                 a: 'isKuberProduct',
-                productId: $.url('?id'),
+                productId: $.url('?id')
             },
             dataType: 'json'
         }).done(function(data) {
@@ -72,6 +87,7 @@ $(document).ready(function() {
                 return false;
             }
             trialManage();
+            billingTypeManage();
         });
     }
 
