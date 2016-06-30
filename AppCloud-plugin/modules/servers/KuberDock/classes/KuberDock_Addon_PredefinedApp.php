@@ -479,9 +479,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
             }
             $pod = $this->create($service->id, 'unpaid');
         } catch (Exception $e) {
-            throw $e;
-            // TODO: uncomment
-            //$product->jsRedirect($this->referer . '&error=' . urlencode($e->getMessage()));
+            $product->jsRedirect($this->referer . '&error=' . urlencode($e->getMessage()));
         }
 
         $item = $product->addBillableApp($this->user_id, $this, $paid);
@@ -534,9 +532,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
             $this->save();
             $product->startPodAndRedirect($service->id, $pod['id'], true);
         } catch (Exception $e) {
-            throw $e;
-            // TODO: uncomment
-            //$product->jsRedirect($this->referer . '&error=' . urlencode($e->getMessage()));
+            $product->jsRedirect($this->referer . '&error=' . urlencode($e->getMessage()));
         }
     }
 } 
