@@ -13,6 +13,9 @@ use base\CL_Model;
 use components\KuberDock_InvoiceItem;
 
 class CL_Invoice extends CL_Model {
+    /**
+     * It seems, it is used if user upgrades or downgrades a product and there is a deposit in new product
+     */
     const CUSTOM_INVOICE_DESCRIPTION = 'Custom invoice';
 
     const STATUS_PAID = 'Paid';
@@ -222,7 +225,21 @@ class CL_Invoice extends CL_Model {
      */
     public function isSetupInvoice()
     {
-        return stripos($this->invoiceitems['description'], 'setup fee') !== false || $this->invoiceitems['type'] == 'Upgrade';
+        if (!$this->isKuberDockHostingInvoice()) {
+            return false;
+        }
+
+        $items = CL_InvoiceItems::model()->loadByAttributes(array('invoiceid'=>$this->id));
+        foreach ($items as $item) {
+            $isSetupFee = stripos($item['description'], 'setup fee') !== false;
+            $isUpgrade = $item['type'] == 'Upgrade';
+
+            if ($isSetupFee || $isUpgrade) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -239,5 +256,24 @@ class CL_Invoice extends CL_Model {
     public function isBillableItemInvoice()
     {
         return ($this->invoiceitems['type'] == CL_BillableItems::TYPE && $this->invoiceitems['relid'] > 0);
+    }
+
+    /**
+     * Works only for invoices with items, which type='Setup' or 'Hosting'
+     * @return bool
+     */
+    public function isKuberDockHostingInvoice()
+    {
+        $sql = "
+            SELECT h.packageid, p.servertype 
+            FROM tblinvoiceitems i 
+            INNER JOIN tblhosting h ON i.relid = h.id 
+            INNER JOIN tblproducts p ON h.packageid = p.id 
+            WHERE 
+                (i.type = 'Setup' OR i.type='Hosting') 
+                AND i.invoiceid = '{$this->id}' 
+                AND p.servertype='KuberDock';";
+
+        return count($this->_db->query($sql)->getRows());
     }
 } 
