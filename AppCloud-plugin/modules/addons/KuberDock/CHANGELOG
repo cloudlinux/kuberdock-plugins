@@ -1,3 +1,7 @@
+* 1.0.7.2
+- AC-3708 - A credit is getting added to any new order
+- WHMCS. Fixed order error
+
 * 1.0.7.1
 - AC-3549 WHMCS. First deposit amount cannot be saved
 - AC-3692 WHMCS. Inappropriate error message when trying to activate WHMCS KD plugin with no settings on KD side
