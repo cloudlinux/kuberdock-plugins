@@ -11,11 +11,11 @@ class AdminController extends pm_Controller_Action
         require_once pm_Context::getPlibDir() . 'library/KuberDock/init.php';
 
         $this->view->assets = \Kuberdock\classes\Base::model()->getStaticPanel()->getAssets();
-        $this->view->pageTitle = 'KuberDock Extension';
+        $this->view->pageTitle = 'KuberDock';
 
         $this->view->tabs = array(
             array(
-                'title' => 'Existing apps',
+                'title' => 'Applications',
                 'action' => 'index',
             ),
             array(

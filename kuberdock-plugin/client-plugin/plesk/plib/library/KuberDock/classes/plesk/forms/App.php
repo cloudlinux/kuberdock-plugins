@@ -38,7 +38,7 @@ class App extends \pm_Form_Simple
         ));
 
         $this->addControlButtons(array(
-            'sendTitle' => 'Save',
+            'sendTitle' => 'Add application',
             'cancelLink' => \pm_Context::getActionUrl('admin', 'index'),
             'hideLegend' => true,
             'presubmitHandler' => 'return validate_form();',
