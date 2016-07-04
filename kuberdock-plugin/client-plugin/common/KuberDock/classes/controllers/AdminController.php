@@ -51,9 +51,7 @@ class AdminController extends KuberDock_Controller
             $defaultsModel->save($this->preparePost(array('packageId', 'kubeType')));
         }
 
-        $defaults = $defaultsModel->read();
         $kubeCli = $kubeCliModel->read();
-
         if (!$kubeCli['token']) {
             $msg = 'Cannot connect to KuberDock server, invalid credentials or server url in ' . $kubeCliModel->getRootPath();
             $this->render('index', array(
@@ -63,6 +61,8 @@ class AdminController extends KuberDock_Controller
             ));
             die;
         }
+
+        $defaults = $defaultsModel->read();
 
         $appModel = new \Kuberdock\classes\models\App($this->panelName);
         $apps = $appModel->getAll();
