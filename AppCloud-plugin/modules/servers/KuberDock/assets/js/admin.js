@@ -59,10 +59,17 @@ $(document).ready(function() {
         var billingType = $('input[name="packageconfigoption[9]"]:checked'),
             firstDeposit = $('input[type=text][name="packageconfigoption[8]"]');
 
+        var paymentType = $('select[name="packageconfigoption[3]"]');
+        var hourly = paymentType.find('option[value="hourly"]');
+
         if (billingType.val() == 'PAYG') {
             firstDeposit.prop('disabled', false);
+            if (typeof hourly.val()=='undefined') {
+                paymentType.append($('<option>', {value:'hourly', text:'hourly'}));
+            }
         } else {
             firstDeposit.prop('disabled', true).val('');
+            hourly.remove();
         }
     };
 
