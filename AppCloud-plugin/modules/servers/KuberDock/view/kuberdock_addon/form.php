@@ -42,12 +42,15 @@
             </div>
         </div>
 
+        <?php /* // AC-3783
         <div class="form-group">
             <label for="traffic_limit" class="col-md-4 control-label">Traffic limit (<?php echo \components\KuberDock_Units::getTrafficUnits()?>)</label>
             <div class="col-md-8">
                 <input type="text" class="form-control" name="traffic_limit" id="traffic_limit" value="<?php echo $kube->traffic_limit?>" data-validation="required">
             </div>
         </div>
+        */ ?>
+
     </div>
 
     <div class="row" style="margin-left: 0; margin-right: 0;">

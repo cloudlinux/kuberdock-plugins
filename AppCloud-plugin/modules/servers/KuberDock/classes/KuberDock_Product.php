@@ -64,7 +64,7 @@ class KuberDock_Product extends CL_Product {
     public function getConfig()
     {
         $psUnit = KuberDock_Units::getPSUnits();
-        $trafficUnit = KuberDock_Units::getTrafficUnits();
+//        $trafficUnit = KuberDock_Units::getTrafficUnits(); // AC-3783
 
         $config = array(
             'enableTrial' => array(
@@ -99,20 +99,6 @@ class KuberDock_Product extends CL_Product {
                 'Default' => '0',
                 'Description' => '<span>per IP/hour</span>',
             ),
-            'pricePersistentStorage' => array(
-                'FriendlyName' => 'Price for persistent storage',
-                'Type' => 'text',
-                'Size' => '10',
-                'Default' => '0',
-                'Description' => '<span data-unit="' . $psUnit . '">per ' . $psUnit . '/hour</span>',
-            ),
-            'priceOverTraffic' => array(
-                'FriendlyName' => 'Price for additional traffic',
-                'Type' => 'text',
-                'Size' => '10',
-                'Default' => '0',
-                'Description' => '<span data-unit="' . $trafficUnit . '">per ' . $trafficUnit . '/hour</span>',
-            ),
             'firstDeposit' => array(
                 'FriendlyName' => 'First Deposit',
                 'Type' => 'text',
@@ -120,16 +106,31 @@ class KuberDock_Product extends CL_Product {
                 'Default' => '0',
                 'Description' => '',
             ),
+            'pricePersistentStorage' => array(
+                'FriendlyName' => 'Price for persistent storage',
+                'Type' => 'text',
+                'Size' => '10',
+                'Default' => '0',
+                'Description' => '<span data-unit="' . $psUnit . '">per ' . $psUnit . '/hour</span>',
+            ),
+//            AC-3783
+//            'priceOverTraffic' => array(
+//                'FriendlyName' => 'Price for additional traffic',
+//                'Type' => 'text',
+//                'Size' => '10',
+//                'Default' => '0',
+//                'Description' => '<span data-unit="' . $trafficUnit . '">per ' . $trafficUnit . '/hour</span>',
+//            ),
+            'restrictedUser' => array(
+                'FriendlyName' => 'Restricted users',
+                'Type' => 'yesno',
+                'Description' => '',
+            ),
             'billingType' => array(
                 'FriendlyName' => 'Billing type',
                 'Type' => 'radio',
                 'Options' => 'PAYG,Fixed price',
                 'Default' => 'Fixed price',
-                'Description' => '',
-            ),
-            'restrictedUser' => array(
-                'FriendlyName' => 'Restricted users',
-                'Type' => 'yesno',
                 'Description' => '',
             ),
         );
@@ -353,21 +354,23 @@ class KuberDock_Product extends CL_Product {
             $description['Persistent Storage'] = $this->formatFeature($pricePS, '1 ' . KuberDock_Units::getHDDUnits());
         }
 
-        if (0 != $priceOT = (float) $this->getConfigOption('priceOverTraffic')) {
-            $description['Additional Traffic'] = $this->formatFeature($priceOT, '1 ' . KuberDock_Units::getTrafficUnits());
-        }
+//        AC-3783
+//        if (0 != $priceOT = (float) $this->getConfigOption('priceOverTraffic')) {
+//            $description['Additional Traffic'] = $this->formatFeature($priceOT, '1 ' . KuberDock_Units::getTrafficUnits());
+//        }
 
         foreach($this->getKubes() as $kube) {
             if (!$kube['kube_price']) continue;
             $description['Kube '.$kube['kube_name']] = vsprintf(
-                '<strong>%s / %s</strong><br/><em>CPU %s, Memory %s, <br/>Disk Usage %s, Traffic %s</em>',
+                '<strong>%s / %s</strong><br/><em>CPU %s, Memory %s, <br/>Disk Usage %s</em>',
+//                '<strong>%s / %s</strong><br/><em>CPU %s, Memory %s, <br/>Disk Usage %s, Traffic %s</em>', // AC-3783
                 array(
                     $currency->getFullPrice($kube['kube_price']),
                     $this->getReadablePaymentType(),
                     number_format($kube['cpu_limit'], 2) . ' '.KuberDock_Units::getCPUUnits(),
                     $kube['memory_limit'].' '.KuberDock_Units::getMemoryUnits(),
                     $kube['hdd_limit'].' '.KuberDock_Units::getHDDUnits(),
-                    $kube['traffic_limit'].' '.KuberDock_Units::getTrafficUnits()
+//                    $kube['traffic_limit'].' '.KuberDock_Units::getTrafficUnits() // AC-3783
                 )
             );
         }

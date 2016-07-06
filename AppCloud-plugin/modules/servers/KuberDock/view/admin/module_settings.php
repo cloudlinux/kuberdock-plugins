@@ -19,7 +19,8 @@
 
     <tr>
         <?php echo $product->renderConfigOption('pricePersistentStorage', $product->getConfigOption('pricePersistentStorage'))?>
-        <?php echo $product->renderConfigOption('priceOverTraffic', $product->getConfigOption('priceOverTraffic'))?>
+
+        <?php // echo $product->renderConfigOption('priceOverTraffic', $product->getConfigOption('priceOverTraffic')) // AC-3783 ?>
     </tr>
 </table>
 

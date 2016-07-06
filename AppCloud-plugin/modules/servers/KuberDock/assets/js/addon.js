@@ -176,7 +176,7 @@ $(function() {
             0 : {
                 sorter: 'kubeTypeParser'
             },
-            5: {
+            4: {
                 sorter: false
             }
         }

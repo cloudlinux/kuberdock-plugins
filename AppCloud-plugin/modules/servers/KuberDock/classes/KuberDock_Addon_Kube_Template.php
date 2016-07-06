@@ -45,7 +45,7 @@ class KuberDock_Addon_Kube_Template extends CL_Model
             'disk_space' => $this->hdd_limit,
             'memory' => $this->memory_limit,
             'memory_units' => 'MB',
-            'included_traffic' => (int) $this->traffic_limit,
+            'included_traffic' => 0, // AC-3783: (int) $this->traffic_limit
         );
 
         try {

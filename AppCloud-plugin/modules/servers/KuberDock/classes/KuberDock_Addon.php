@@ -218,7 +218,7 @@ class KuberDock_Addon extends CL_Component {
 
                 $product->setConfigOption('enableTrial', 0);
                 $product->setConfigOption('firstDeposit', $package['first_deposit']);
-                $product->setConfigOption('priceOverTraffic', $package['price_over_traffic']);
+//                $product->setConfigOption('priceOverTraffic', $package['price_over_traffic']); // AC-3783
                 $product->setConfigOption('pricePersistentStorage', $package['price_pstorage']);
                 $product->setConfigOption('priceIP', $package['price_ip']);
                 $product->setConfigOption('paymentType', KuberDock_Product::$payment_periods[$package['period']]);

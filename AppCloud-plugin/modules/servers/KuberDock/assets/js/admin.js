@@ -124,8 +124,9 @@ $(document).ready(function() {
         var pricePsSpan = $('input[name="packageconfigoption[6]"] + span');
         pricePsSpan.text('per ' + pricePsSpan.data('unit') + '/' + paymentType);
 
-        var priceTrafficSpan = $('input[name="packageconfigoption[7]"] + span');
-        priceTrafficSpan.text('per ' + priceTrafficSpan.data('unit') + '/' + paymentType);
+        // AC-3783
+        // var priceTrafficSpan = $('input[name="packageconfigoption[7]"] + span');
+        // priceTrafficSpan.text('per ' + priceTrafficSpan.data('unit') + '/' + paymentType);
     };
 
     $(document).on('change', 'select[name="packageconfigoption[3]"]', function() {

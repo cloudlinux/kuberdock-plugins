@@ -430,17 +430,19 @@ function KuberDock_ClientAreaPage($params)
                 );
             }
 
-            if ((float) $product->getConfigOption('priceOverTraffic')) {
-                $customFields[] = array(
-                    'input' => '',
-                    'name' => 'Additional Traffic',
-                    'description' => $currency->getFullPrice($product->getConfigOption('priceOverTraffic'))
-                        . ' / 1 ' . KuberDock_Units::getTrafficUnits(),
-                );
-            }
+//            AC-3783
+//            if ((float) $product->getConfigOption('priceOverTraffic')) {
+//                $customFields[] = array(
+//                    'input' => '',
+//                    'name' => 'Additional Traffic',
+//                    'description' => $currency->getFullPrice($product->getConfigOption('priceOverTraffic'))
+//                        . ' / 1 ' . KuberDock_Units::getTrafficUnits(),
+//                );
+//            }
             $values['customfields'] = array_merge($values['customfields'], $customFields);
 
-            $desc = 'Per Kube - %s, CPU - %s, Memory - %s %s, HDD - %s %s, Traffic - %s %s';
+            $desc = 'Per Kube - %s, CPU - %s, Memory - %s %s, HDD - %s %s';
+//            $desc = 'Per Kube - %s, CPU - %s, Memory - %s %s, HDD - %s %s, Traffic - %s %s'; // AC-3783
             $resources = false;
 
             foreach($kubes as $kube) {
@@ -459,8 +461,8 @@ function KuberDock_ClientAreaPage($params)
                         KuberDock_Units::getMemoryUnits(),
                         $kube['hdd_limit'],
                         KuberDock_Units::getHDDUnits(),
-                        $kube['traffic_limit'],
-                        KuberDock_Units::getTrafficUnits(),
+//                        $kube['traffic_limit'], // AC-3783
+//                        KuberDock_Units::getTrafficUnits(), // AC-3783
                     )),
                 );
             }
