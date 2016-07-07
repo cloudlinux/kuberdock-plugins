@@ -402,6 +402,16 @@ sub getPackageKubesAction {
     print $json->encode($response);
 }
 
+sub validateYamlAction {
+    my ($self) = @_;
+    my $api = KuberDock::API->new;
+    my $json = KuberDock::JSON->new;
+    my $template = $self->{_cgi}->param('template');
+
+    my $response = $api->validateYaml($template);
+    print $json->encode($response);
+}
+
 sub setDefaultsAction {
     my ($self) = @_;
     my $api = KuberDock::API->new;
