@@ -1033,6 +1033,33 @@ class KuberDock_Api {
     }
 
     /**
+     * Start or redeploy pod and apply edit changes
+     *
+     * @param $podId
+     * @param null $status
+     * @return KuberDock_ApiResponse
+     * @throws CException
+     * @throws Exception
+     * @throws NotFoundException
+     */
+    public function applyEdit($podId, $status)
+    {
+        $attributes['command'] = $status == 'stopped' ? 'start' : 'redeploy';
+        $attributes['commandOptions']['applyEdit'] = true;
+
+        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
+
+        $response = $this->call($attributes, 'PUT');
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    /**
      * @return KuberDock_ApiResponse
      * @throws Exception
      */

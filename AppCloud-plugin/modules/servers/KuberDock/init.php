@@ -18,15 +18,6 @@ defined(USE_JWT_TOKENS) or define(USE_JWT_TOKENS, true);
 if(KUBERDOCK_DEBUG) {
     ini_set('display_errors', true);
     error_reporting(E_ERROR);
-    $log = function ($value) {
-        $hl = fopen('/tmp/whmcs.log', 'a');
-        ob_start();
-        var_dump($value);
-        $content = ob_get_contents();
-        ob_end_clean();
-        fwrite($hl, $content);
-        fclose($hl);
-    };
 } else {
     ini_set('display_errors', false);
     error_reporting(E_ERROR);

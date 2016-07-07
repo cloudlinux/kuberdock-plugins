@@ -591,8 +591,17 @@ function KuberDock_InvoicePaid($params)
                 $billableItem->save();
 
                 $service = KuberDock_Hosting::model()->loadByParams(current($data));
+
                 $params = json_decode($invoice->invoiceitems['notes'], true);
-                $service->getAdminApi()->redeployPod($params['id'], $params);
+                if (isset($params['containers'])) {
+                    // upgrade pod
+                    $service->getAdminApi()->redeployPod($params['id'], $params);
+                } else {
+                    // edit pod
+                    $pod = $service->getApi()->getPod($params['id']);
+                    $service->getAdminApi()->applyEdit($params['id'], $pod['status']);
+                }
+
                 // Update app
                 $data = KuberDock_Addon_Items::model()->loadByAttributes(array(
                     'billable_item_id' => $billableItem->id
