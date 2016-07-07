@@ -12,6 +12,8 @@ class KubeCli
     const KUBE_CLI_CONF_ROOT_FILE = '/root/.kubecli.conf';
     const KUBE_CLI_CONF_ETC_FILE = '/etc/kubecli.conf';
 
+    const DEFAULT_REGISTRY = 'registry.hub.docker.com';
+
     public function read()
     {
         $contentRoot = $this->readFile(self::KUBE_CLI_CONF_ROOT_FILE);
@@ -19,7 +21,7 @@ class KubeCli
 
         return array(
             'url' => $this->getKey($contentEtc, 'url'),
-            'registry' => $this->getKey($contentEtc, 'registry'),
+            'registry' => $this->getKey($contentEtc, 'registry') ?: self::DEFAULT_REGISTRY,
             'user' => $this->getKey($contentRoot, 'user'),
             'password' => $this->getKey($contentRoot, 'password'),
             'token' => $this->getKey($contentRoot, 'token'),
