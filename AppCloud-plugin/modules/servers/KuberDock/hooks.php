@@ -140,7 +140,6 @@ function KuberDock_ShoppingCartValidateCheckout($params)
     $errors = array();
     $userId = $params['userid'];
 
-
     if (isset($_SESSION['cart']) && $userId) {
         foreach ($_SESSION['cart']['products'] as $product) {
             $product = KuberDock_Product::model()->loadById($product['pid']);

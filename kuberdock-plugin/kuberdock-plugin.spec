@@ -1,7 +1,7 @@
 Version: 1.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 1%{?dist}.cloudlinux
+Release: 0%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -58,7 +58,9 @@ fi
 
 %changelog
 
-* Fri Jun 03 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.1-1
+* Mon Jun 13 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.1-0
+- Hosting panels. Fixed availbale kubes, user creation
+- AC-2939 Plesk. Enable rewrite engine in .htaccess
 - Changed getInfo, orderProduct args
 - Fixed kdcommon get user domains, catch errors on AdminLink
 - AC-3354 Hosting plugin. Generate token for admin
@@ -79,7 +81,7 @@ fi
 - AC-2930 Plesk. Update plugin install script according to new structure
 - AC-2928 Plesk. Add Plesk assets component
 - AC-2932 Plesk. Admin tab - Update kubecli.conf settings
-- cPanel. Plesk base structure
+- cPanel. Plesk. Base structure
 
 * Thu Apr 28 2016 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.0-4
 - cPanel. Fixed Validation.pm error for cPanel v.56. Fixed no billing logic
