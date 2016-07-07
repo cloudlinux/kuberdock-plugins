@@ -34,7 +34,7 @@ jQuery(function () {
         .parent().addClass(jQuery.support.fileInput ? undefined : 'disabled');
 
     jQuery('#button-confirm').on('click', function (e) {
-        jQuery('button[type="submit"]').data('submit', true).trigger('click');
+        jQuery('.check-yaml').data('submit', true).trigger('click');
     });
 
     jQuery('.check-yaml').on('click', function(e) {
@@ -62,7 +62,7 @@ jQuery(function () {
                     flatten(container, data.data.schema.kuberdock);
                 }
             } else {
-                jQuery('button[type="submit"]').data('submit', true).trigger('click');
+                jQuery('.check-yaml').data('submit', true).trigger('click');
             }
         });
 
