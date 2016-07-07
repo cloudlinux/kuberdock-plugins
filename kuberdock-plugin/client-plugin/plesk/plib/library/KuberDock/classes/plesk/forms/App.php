@@ -41,6 +41,7 @@ class App extends \pm_Form_Simple
             'sendTitle' => 'Save',
             'cancelLink' => \pm_Context::getActionUrl('admin', 'index'),
             'hideLegend' => true,
+            'presubmitHandler' => 'return validate_form();',
         ));
     }
 }
