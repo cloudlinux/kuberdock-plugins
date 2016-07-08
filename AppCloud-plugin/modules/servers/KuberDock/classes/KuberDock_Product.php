@@ -68,11 +68,14 @@ class KuberDock_Product extends CL_Product {
 
         $config = array(
             'enableTrial' => array(
+                'Number' => 1, // not used. Just to remember, that list order must not be changed,
+                               // in db this options are stored in tblproducts.configoption{Number}
                 'FriendlyName' => 'Trial package',
                 'Type' => 'yesno',
                 'Description' => '&nbsp;',
             ),
             'trialTime' => array(
+                'Number' => 2,
                 'FriendlyName' => 'User Free Trial period',
                 'Type' => 'text',
                 'Size' => '10',
@@ -80,6 +83,7 @@ class KuberDock_Product extends CL_Product {
                 'Description' => 'Days',
             ),
             'paymentType' => array(
+                'Number' => 3,
                 'FriendlyName' => 'Service payment type',
                 'Type' => 'dropdown',
                 'Options' => implode(',', $this->getPaymentTypes()),
@@ -87,50 +91,58 @@ class KuberDock_Product extends CL_Product {
                 'Description' => '',
             ),
             'debug' => array(
+                'Number' => 4,
                 'FriendlyName' => 'Debug Mode',
                 'Type' => 'yesno',
                 'Default' => 'yes',
                 'Description' => 'Logs on "Module Log"',
             ),
             'priceIP' => array(
+                'Number' => 5,
                 'FriendlyName' => 'Price for IP',
                 'Type' => 'text',
                 'Size' => '10',
                 'Default' => '0',
                 'Description' => '<span>per IP/hour</span>',
             ),
-            'firstDeposit' => array(
-                'FriendlyName' => 'First Deposit',
-                'Type' => 'text',
-                'Size' => '10',
-                'Default' => '0',
-                'Description' => '',
-            ),
             'pricePersistentStorage' => array(
+                'Number' => 6,
                 'FriendlyName' => 'Price for persistent storage',
                 'Type' => 'text',
                 'Size' => '10',
                 'Default' => '0',
                 'Description' => '<span data-unit="' . $psUnit . '">per ' . $psUnit . '/hour</span>',
             ),
+            'priceOverTraffic' => array(
+                'Number' => 7,
+                'FriendlyName' => ' ',
 //            AC-3783
-//            'priceOverTraffic' => array(
 //                'FriendlyName' => 'Price for additional traffic',
 //                'Type' => 'text',
 //                'Size' => '10',
 //                'Default' => '0',
 //                'Description' => '<span data-unit="' . $trafficUnit . '">per ' . $trafficUnit . '/hour</span>',
-//            ),
-            'restrictedUser' => array(
-                'FriendlyName' => 'Restricted users',
-                'Type' => 'yesno',
+            ),
+            'firstDeposit' => array(
+                'Number' => 8,
+                'FriendlyName' => 'First Deposit',
+                'Type' => 'text',
+                'Size' => '10',
+                'Default' => '0',
                 'Description' => '',
             ),
             'billingType' => array(
+                'Number' => 9,
                 'FriendlyName' => 'Billing type',
                 'Type' => 'radio',
                 'Options' => 'PAYG,Fixed price',
                 'Default' => 'Fixed price',
+                'Description' => '',
+            ),
+            'restrictedUser' => array(
+                'Number' => 10,
+                'FriendlyName' => 'Restricted users',
+                'Type' => 'yesno',
                 'Description' => '',
             ),
         );
