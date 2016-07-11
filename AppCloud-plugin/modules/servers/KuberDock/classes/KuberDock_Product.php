@@ -80,7 +80,7 @@ class KuberDock_Product extends CL_Product {
                 'Type' => 'text',
                 'Size' => '10',
                 'Default' => '0',
-                'Description' => 'Days',
+                'Description' => 'days',
             ),
             'paymentType' => array(
                 'Number' => 3,
@@ -144,6 +144,23 @@ class KuberDock_Product extends CL_Product {
                 'FriendlyName' => 'Restricted users',
                 'Type' => 'yesno',
                 'Description' => '',
+            ),
+            'trialNoticeEvery' => array(
+                'Number' => 11,
+                'FriendlyName' => 'Send "trial notice" letter every',
+                'Type' => 'text',
+                'Size' => '10',
+                'Default' => '0',
+                'Description' => 'days (0 - don\'t send)',
+            ),
+            'trialExpireEvery' => array(
+                'Number' => 12,
+                'FriendlyName' => 'Send "trial expired" letter every',
+                'Type' => 'text',
+                'Size' => '10',
+                'data-type' => 'trial',
+                'Default' => '0',
+                'Description' => 'days (0 - don\'t send)',
             ),
         );
 

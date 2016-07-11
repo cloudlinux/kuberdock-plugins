@@ -84,24 +84,33 @@ class KuberDock_Hosting extends CL_Hosting
         $date = new DateTime();
         $date->setTime(0, 0, 0);
         $product = \KuberDock_Product::model()->loadById($this->product_id);
-        $clientDetails = CL_Client::model()->getClientDetails($this->userid);
 
-        // trial time
-        $enableTrial = $product->getConfigOption('enableTrial');
-        $trialTime = $product->getConfigOption('trialTime');
+        $trialTime = (int) $product->getConfigOption('trialTime');
         $regDate = CL_Tools::sqlDateToDateTime($this->regdate);
 
-        if($enableTrial) {
-            if(!$this->isTrialExpired($regDate, $trialTime)) {
-                CL_MailTemplate::model()->sendPreDefinedEmail($this->id, CL_MailTemplate::TRIAL_NOTICE_NAME, array(
-                    'trial_end_date' => $regDate->modify('+'.$trialTime.' day')->format('Y-m-d'),
-                ));
+        if($product->getConfigOption('enableTrial')) {
+            if($this->isTrialExpired($regDate, $trialTime)) {
+                $trialExpireEvery = $product->getConfigOption('trialExpireEvery') != ''
+                    ? (int) $product->getConfigOption('trialExpireEvery')
+                    : 7;
+                $expireDate = $regDate->modify('+'.$trialTime.' day');
+                if ($trialExpireEvery!=0 && ($expireDate->diff($date)->days % $trialExpireEvery == 0)) {
+                    CL_MailTemplate::model()->sendPreDefinedEmail($this->id, CL_MailTemplate::TRIAL_EXPIRED_NAME, array(
+                        'trial_end_date' => $expireDate->format('Y-m-d'),
+                    ));
+                }
+
+                $this->getAdminApi()->updateUser(array('suspended' => true), $this->username);
             } else {
-                CL_MailTemplate::model()->sendPreDefinedEmail($this->id, CL_MailTemplate::TRIAL_EXPIRED_NAME, array(
-                    'trial_end_date' => $regDate->modify('+'.$trialTime.' day')->format('Y-m-d'),
-                ));
-                $api = $this->getAdminApi();
-                $api->updateUser(array('suspended' => true), $this->username);
+                $trialNoticeEvery = $product->getConfigOption('trialNoticeEvery') != ''
+                    ? (int) $product->getConfigOption('trialNoticeEvery')
+                    : 7;
+
+                if ($trialNoticeEvery!=0 && ($regDate->diff($date)->days % $trialNoticeEvery == 0)) {
+                    CL_MailTemplate::model()->sendPreDefinedEmail($this->id, CL_MailTemplate::TRIAL_NOTICE_NAME, array(
+                        'trial_end_date' => $regDate->modify('+'.$trialTime.' day')->format('Y-m-d'),
+                    ));
+                }
             }
 
             return true;
@@ -123,6 +132,7 @@ class KuberDock_Hosting extends CL_Hosting
 
             $totalPrice = $this->getItemsTotalPrice($items);
             if($totalPrice) {
+                $clientDetails = CL_Client::model()->getClientDetails($this->userid);
                 if($clientDetails['client']['credit'] < $totalPrice) {
                     $this->addInvoice($this->userid, $date, $items, false);
                     $this->suspendModule('Not enough funds');

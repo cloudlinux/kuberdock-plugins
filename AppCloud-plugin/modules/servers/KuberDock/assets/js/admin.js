@@ -43,16 +43,14 @@ $(document).ready(function() {
 
     var trialManage = function() {
         var trial = $('input[type=checkbox][name="packageconfigoption[1]"]'),
-            trialPeriod = trial.closest('tr').find('input[name="packageconfigoption[2]"]'),
             trialTr = trial.closest('tr');
 
-        if(trial.prop('checked')) {
-            trialTr.nextAll('tr').hide();
-            trialTr.find('td:gt(1)').show();
-        } else {
-            trialTr.nextAll('tr').show();
-            trialTr.find('td:gt(1)').hide();
-        }
+        $.each(trialTr.siblings(), function(index, element) {
+            var isTrial = trial.prop('checked');
+            var trialRow = $.inArray(index, [4]) !== -1;
+            $(element).toggle(isTrial == trialRow);
+            trialTr.find('td:gt(1)').toggle(isTrial);
+        });
     };
 
     var billingTypeManage = function () {
