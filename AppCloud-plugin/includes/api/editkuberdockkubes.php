@@ -66,6 +66,5 @@ try {
 
     $apiresults = array('result' => 'success', 'results' => $results);
 } catch (Exception $e) {
-    $log($e->getMessage());
     $apiresults = array('result' => 'error', 'message' => $e->getMessage());
 }
