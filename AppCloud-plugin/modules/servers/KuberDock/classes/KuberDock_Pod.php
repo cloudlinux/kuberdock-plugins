@@ -329,9 +329,21 @@ class KuberDock_Pod
 
         $list = array_keys(array_merge($oldKontainers, $newKontainers));
 
+        $newPublicIpUsed = false;
+        $oldPublicIpUsed = false;
         foreach ($list as $name) {
             // ports
-            $this->comparePorts($oldKontainers, $newKontainers, $name);
+            $oldPorts = self::sortPorts($oldKontainers, $name);
+            $newPorts = self::sortPorts($newKontainers, $name);
+            $listPorts = array_keys(array_merge($oldPorts, $newPorts));
+            foreach ($listPorts as $portAttrs) {
+                if (isset($oldPorts[$portAttrs])) {
+                    $oldPublicIpUsed = true;
+                }
+                if (isset($newPorts[$portAttrs])) {
+                    $newPublicIpUsed = true;
+                }
+            }
 
             // kubes
             $newKubesIsset = isset($newKontainers[$name]['kubes']);
@@ -365,28 +377,6 @@ class KuberDock_Pod
             $this->editInvoiceItems[] = KuberDock_InvoiceItem::create($description, $price, 'kube', $delta);
         }
 
-        // volumes
-        $this->compareVolumes($old['volumes'], $new['volumes']);
-    }
-
-
-    private function comparePorts($old, $new, $containerName)
-    {
-        $oldPorts = self::sortPorts($old, $containerName);
-        $newPorts = self::sortPorts($new, $containerName);
-        $ipPrice = (float) $this->product->getConfigOption('priceIP') * $this->proRate;
-        $listPorts = array_keys(array_merge($oldPorts, $newPorts));
-        $newPublicIpUsed = false;
-        $oldPublicIpUsed = false;
-        foreach ($listPorts as $portAttrs) {
-            if (isset($oldPorts[$portAttrs])) {
-                $oldPublicIpUsed = true;
-            }
-            if (isset($newPorts[$portAttrs])) {
-                $newPublicIpUsed = true;
-            }
-        }
-
         if ($oldPublicIpUsed != $newPublicIpUsed) {
             if ($newPublicIpUsed && !$oldPublicIpUsed) {
                 $count = 1;
@@ -396,8 +386,12 @@ class KuberDock_Pod
                 $action = 'removed';
             }
             $description = self::UPDATE_KUBES_DESCRIPTION . ', public IP ' . $action;
+            $ipPrice = (float) $this->product->getConfigOption('priceIP') * $this->proRate;
             $this->editInvoiceItems[] = KuberDock_InvoiceItem::create($description, $ipPrice, 'IP', $count);
         }
+
+        // volumes
+        $this->compareVolumes($old['volumes'], $new['volumes']);
     }
 
     private static function sortPorts($array, $name)
