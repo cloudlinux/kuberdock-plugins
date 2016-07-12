@@ -1044,7 +1044,11 @@ class KuberDock_Api {
      */
     public function applyEdit($podId, $status)
     {
-        $attributes['command'] = $status == 'stopped' ? 'start' : 'redeploy';
+        if ($status != 'stopped') {
+            $this->stopPod($podId);
+        }
+
+        $attributes['command'] = 'start';
         $attributes['commandOptions']['applyEdit'] = true;
 
         $this->url = $this->serverUrl . '/api/podapi/' . $podId;
