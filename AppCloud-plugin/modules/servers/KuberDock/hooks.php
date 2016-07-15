@@ -6,12 +6,11 @@
 
 use base\CL_Base;
 use base\CL_Tools;
-use base\models\CL_Currency;
 use base\models\CL_Invoice;
 use base\models\CL_User;
 use base\models\CL_BillableItems;
-use components\KuberDock_Units;
 use exceptions\CException;
+use components\Deposit;
 
 include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
 
@@ -177,12 +176,6 @@ function KuberDock_ShoppingCartValidateCheckout($params)
 }
 add_hook('ShoppingCartValidateCheckout', 1, 'KuberDock_ShoppingCartValidateCheckout');
 
-function KuberDock_PreShoppingCartCheckout($params)
-{
-
-}
-//add_hook('PreShoppingCartCheckout', 1, 'KuberDock_PreShoppingCartCheckout');
-
 /**
  * Run: This hook runs on every client area page load and can accept a return of information
  * to be added to the <head> of your output.
@@ -222,28 +215,6 @@ function KuberDock_AdminAreaHeadOutput()
 add_hook('AdminAreaHeadOutput', 0, 'KuberDock_AdminAreaHeadOutput');
 
 /**
- * Run: after an upgrade invoice has been paid, but before the ChangePackage command is sent to the server.
- *
- * @param int $upgradeId
- */
-function KuberDock_AfterConfigOptionsUpgrade($upgradeId)
-{
-    // future
-}
-//add_hook('AfterConfigOptionsUpgrade', 1, 'KuberDock_AfterConfigOptionsUpgrade');
-
-/**
- * Run: As the cart complete page is displayed to the client
- *
- * @param array $params
- */
-function KuberDock_ShoppingCartCheckoutCompletePage($params)
-{
-
-}
-//add_hook('ShoppingCartCheckoutCompletePage', 1, 'KuberDock_ShoppingCartCheckoutCompletePage');
-
-/**
  * @param $params
  */
 function KuberDock_AfterShoppingCartCheckout($params)
@@ -254,22 +225,6 @@ function KuberDock_AfterShoppingCartCheckout($params)
         $predefinedApp->user_id = $order->userid;
         $predefinedApp->save();
     }
-
-    /*$client = \base\models\CL_Client::model()->loadById($order->userid);
-    $client->filterValues();
-
-    $service_id = reset($params['ServiceIDs']);
-    $service = \KuberDock_Hosting::model()->loadById($service_id);
-
-    $service->username = $client->email;
-
-    $product = \KuberDock_Product::model()->loadById($service->packageid);
-    if ($product->servertype != 'KuberDock') {
-        return;
-    }
-    $product->setClient($client);
-
-    $product->createUser($service);*/
 }
 add_hook('AfterShoppingCartCheckout', 1, 'KuberDock_AfterShoppingCartCheckout');
 
@@ -277,28 +232,12 @@ add_hook('AfterShoppingCartCheckout', 1, 'KuberDock_AfterShoppingCartCheckout');
  * Run: As the cart page is being displayed, this hook is run separately for each product added to the cart.
  *
  * @param $params
- * @return array
+ * @return array|null
  */
 function KuberDock_OrderProductPricingOverride($params)
 {
-    $product = KuberDock_Product::model()->loadById($params['pid']);
-    if (!$product->isKuberProduct()) return;
+    return Deposit::model()->pricingOverride($params);
 
-    $setup = $product->getConfigOption('firstDeposit') ? $product->getConfigOption('firstDeposit') : 0;
-    $recurring = 0;
-
-    $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-    // Price for yaml PA
-    if ($predefinedApp && !$predefinedApp->getPod() && $product->isFixedPrice()) {
-        $recurring = $predefinedApp->getTotalPrice(true);
-    }
-
-    $productPrice = array(
-        'setup' => $setup,
-        'recurring' => $recurring,
-    );
-
-    return $productPrice;
 }
 add_hook('OrderProductPricingOverride', 1, 'KuberDock_OrderProductPricingOverride');
 
@@ -313,212 +252,17 @@ add_hook('OrderProductPricingOverride', 1, 'KuberDock_OrderProductPricingOverrid
  */
 function KuberDock_ClientAreaPage($params)
 {
-    global $smarty;
-
-    $values = $smarty->get_template_vars();
-    $currency = CL_Currency::model()->getDefaultCurrency();
-
-    // Client area
-    if(!isset($values['products']) && in_array($values['filename'], array('clientarea'))) {
-        $products = CL_Tools::getKeyAsField(KuberDock_Product::model()->loadByAttributes(array(
-            'servertype' => KUBERDOCK_MODULE_NAME,
-        )), 'id');
-        $services = CL_Tools::getKeyAsField(KuberDock_Hosting::model()->getByUserStatus());
-
-        // Service list
-        if(isset($values['services'])) {
-            foreach($values['services'] as $k=>$service) {
-                if($service['module'] != KUBERDOCK_MODULE_NAME) {
-                    continue;
-                }
-
-                $productId = $services[$service['id']]['product_id'];
-                $product = KuberDock_Product::model()->loadByParams($products[$productId]);
-                $serviceModel = KuberDock_Hosting::model()->loadByParams($service);
-
-                $values['services'][$k]['billingcycle'] = $product->getReadablePaymentType();
-                $values['services'][$k]['nextduedate'] = CL_Tools::getFormattedDate(new DateTime());
-
-                $enableTrial = $product->getConfigOption('enableTrial');
-                $trialTime = $product->getConfigOption('trialTime');
-                $regDate = DateTime::createFromFormat(CL_Tools::getDateFormat(), $serviceModel->regdate);
-
-                if($enableTrial && $serviceModel->isTrialExpired($regDate, $trialTime)) {
-                    $values['services'][$k]['statustext'] = 'Expired';
-                }
-            }
-        } elseif(isset($products[$values['pid']])) {
-            $product = KuberDock_Product::model()->loadByParams($products[$values['pid']]);
-
-            $enableTrial = $product->getConfigOption('enableTrial');
-            $trialTime = $product->getConfigOption('trialTime');
-            $regDate = DateTime::createFromFormat(CL_Tools::getDateFormat(), $values['regdate']);
-
-            if($enableTrial && KuberDock_Hosting::model()->isTrialExpired($regDate, $trialTime)) {
-                $values['status'] = 'Expired';
-            }
-
-            $values['firstpaymentamount'] = $currency->getFullPrice($product->getConfigOption('firstDeposit'));
-            $values['billingcycle'] = $product->getReadablePaymentType();
-            $values['nextduedate'] = CL_Tools::getFormattedDate(new DateTime());
-        }
-    }
-
-    // Client cart area
-    if(in_array($values['filename'], array('cart'))) {
-        $products = CL_Tools::getKeyAsField(KuberDock_Product::model()->loadByAttributes(array(
-            'servertype' => KUBERDOCK_MODULE_NAME,
-        )), 'id');
-
-        if(isset($values['products'])) {
-            foreach($values['products'] as $k => &$product) {
-                if(!isset($products[$product['pid']])) {
-                    continue;
-                }
-
-                $p = KuberDock_Product::model()->loadById($product['pid']);
-                if(!$p->isKuberProduct()) continue;
-                $product['features'] = $p->getDescription();
-
-                if($depositPrice = $p->getConfigOption('firstDeposit')) {
-                    $product['pricing']['minprice']['price'] = ' First Deposit '.$currency->getFullPrice($depositPrice);
-
-                    if(isset($product['pricingtext'])) {
-                        $product['pricingtext'] .= ' + First Deposit '.$currency->getFullPrice($depositPrice);
-                    }
-                }
-
-                if(($predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId()) && isset($product['pricingtext'])) {
-                    $price =  $currency->getFullPrice($predefinedApp->getTotalPrice(true));
-                    $product['pricingtext'] = $price . '/' . $p->getReadablePaymentType();
-                    $product['pricing']['totaltodayexcltax'] = $price;
-                    $product['pricing']['totalTodayExcludingTaxSetup'] = $price;
-                    $product['billingcyclefriendly'] = $p->getReadablePaymentType();
-                    $product['productinfo']['groupname'] = 'Package ' . $predefinedApp->getAppPackageName();
-                    $product['productinfo']['name'] = ucfirst($predefinedApp->getName());
-                }
-            }
-        }
-
-        if(isset($values['productinfo']) && isset($products[$values['productinfo']['pid']])) {
-            $product = KuberDock_Product::model()->loadById($values['productinfo']['pid']);
-            $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-            $kubes = KuberDock_Addon_Kube_Link::loadByProductId($values['productinfo']['pid']);
-
-            if ($predefinedApp) {
-                $values['productinfo']['name'] = ucfirst($predefinedApp->getName());
-                $values['productinfo']['description'] = 'Package ' . $predefinedApp->getAppPackageName();
-            }
-
-            $customFields = array();
-
-            if ((float) $product->getConfigOption('priceIP')) {
-                $customFields[] = array(
-                    'input' => '',
-                    'name' => 'Public IP',
-                    'description' => $currency->getFullPrice($product->getConfigOption('priceIP'))
-                        . ' / ' . $product->getReadablePaymentType(),
-                );
-            }
-
-            if ((float) $product->getConfigOption('pricePersistentStorage')) {
-                $customFields[] = array(
-                    'input' => '',
-                    'name' => 'Persistent Storage',
-                    'description' => $currency->getFullPrice($product->getConfigOption('pricePersistentStorage'))
-                        . ' / 1 ' . KuberDock_Units::getHDDUnits(),
-                );
-            }
-
-//            AC-3783
-//            if ((float) $product->getConfigOption('priceOverTraffic')) {
-//                $customFields[] = array(
-//                    'input' => '',
-//                    'name' => 'Additional Traffic',
-//                    'description' => $currency->getFullPrice($product->getConfigOption('priceOverTraffic'))
-//                        . ' / 1 ' . KuberDock_Units::getTrafficUnits(),
-//                );
-//            }
-            $values['customfields'] = array_merge($values['customfields'], $customFields);
-
-            $desc = 'Per Kube - %s, CPU - %s, Memory - %s %s, HDD - %s %s';
-//            $desc = 'Per Kube - %s, CPU - %s, Memory - %s %s, HDD - %s %s, Traffic - %s %s'; // AC-3783
-            $resources = false;
-
-            foreach($kubes as $kube) {
-                if ($predefinedApp) {
-                    $kubeType = $predefinedApp->getKubeType();
-                    if ($kubeType != $kube['kuber_kube_id']) continue;
-                    $resources = true;
-                }
-                $values['customfields'][] = array(
-                    'input' => '',
-                    'name' => $resources ? 'Additional Resources' : 'Kube ' . $kube['kube_name'],
-                    'description' => vsprintf($desc, array(
-                        $currency->getFullPrice($kube['kube_price']) .' / '. $product->getReadablePaymentType(),
-                        (float) $kube['cpu_limit'],
-                        $kube['memory_limit'],
-                        KuberDock_Units::getMemoryUnits(),
-                        $kube['hdd_limit'],
-                        KuberDock_Units::getHDDUnits(),
-//                        $kube['traffic_limit'], // AC-3783
-//                        KuberDock_Units::getTrafficUnits(), // AC-3783
-                    )),
-                );
-            }
-        }
-    }
-
-    // Upgrade area
-    if(in_array($values['filename'], array('upgrade'))) {
-        if(is_array($values['upgradepackages'])) {
-            $service = KuberDock_Hosting::model()->loadById($values['id']);
-            $product = KuberDock_Product::model()->loadById($service->packageid);
-            if($product->isKuberProduct() && $product->getConfigOption('enableTrial')) {
-                $service->amount = 0;
-                $service->save();
-            }
-
-            foreach($values['upgradepackages'] as &$row) {
-                $product = KuberDock_Product::model()->loadById($row['pid']);
-
-                if(($firstDeposit = $product->getConfigOption('firstDeposit')) && $product->isKuberProduct()) {
-                    $values['LANG']['orderfree'] = $currency->getFullPrice($firstDeposit).' First Deposit';
-                    $row['pricing']['onetime'] = $currency->getFullPrice($firstDeposit).' First Deposit';
-                    $row['pricing']['minprice']['price'] = $currency->getFullPrice($firstDeposit);
-                }
-            }
-        } elseif(is_array($values['upgrades'])) {
-            $upgrade = current($values['upgrades']);
-            $model = new KuberDock_Product();
-            $oldProduct = $model->loadById($upgrade['oldproductid']);
-            $model = new KuberDock_Product();
-            $newProduct = $model->loadById($upgrade['newproductid']);
-
-            if(($firstDeposit = $newProduct->getConfigOption('firstDeposit')) && $oldProduct->isKuberProduct()) {
-                $values['subtotal'] = $values['total'] = $currency->getFullPrice($firstDeposit);
-                if(isset($values['upgrades'][0])) {
-                    $values['upgrades'][0]['price'] = $currency->getFullPrice($firstDeposit);
-                }
-            }
-        }
-    }
-
-    $smarty->assign($values);
-
-    return $values;
+    return \components\ClientArea::model()->prepare();
 }
 add_hook('ClientAreaPage', 1, 'KuberDock_ClientAreaPage');
 
-/**
- * @return string
- *
- * Run: As the main client area page is being displayed - clientarea.php without any action.
- */
-function KuberDock_ClientAreaHomepage()
+function KuberDock_InvoiceCreation($params)
 {
+    if ($params['source'] == 'autogen') {
+        Deposit::model()->createInvoiceItem($params['invoiceid']);
+    }
 }
-//add_hook('ClientAreaHomepage', 1, 'KuberDock_ClientAreaHomepage');
+add_hook('InvoiceCreation', 1, 'KuberDock_InvoiceCreation');
 
 /**
  * @param $params
@@ -557,20 +301,14 @@ add_hook('InvoiceCreated', 1, 'KuberDock_InvoiceCreated');
 function KuberDock_InvoicePaid($params)
 {
     $invoiceId = $params['invoiceid'];
-    $model = CL_Invoice::model();
-    $invoice = $model->loadById($invoiceId);
+
+    Deposit::model()->addToBalance($invoiceId);
 
     try {
-        if($invoice->isCustomInvoice()) {
-            $model->addCredit($invoice->userid, $invoice->subtotal, 'Adding funds via custom invoice '.$invoice->id);
-        }
-
-        if($invoice->isSetupInvoice()) {
-            $model->addCredit($invoice->userid, $invoice->subtotal, 'Adding funds for setup fee '.$invoice->id);
-        }
+        $invoice = CL_Invoice::model()->loadById($invoiceId);
 
         // Start pod
-        if($item = KuberDock_Addon_Items::model()->loadByInvoice($invoiceId)) {
+        if ($item = KuberDock_Addon_Items::model()->loadByInvoice($invoiceId)) {
             $item->status = CL_Invoice::STATUS_PAID;
             $item->save();
 
@@ -622,6 +360,18 @@ function KuberDock_InvoicePaid($params)
 add_hook('InvoicePaid', 1, 'KuberDock_InvoicePaid');
 
 /**
+ * Run: This hook runs as an invoice status is changing to Unpaid via the Admin area. This can be from a single invoice,
+ * or a mass action. The hook runs for each invoice being processed.
+ *
+ * @param $params
+ */
+function KuberDock_InvoiceUnpaid($params)
+{
+    Deposit::model()->removeFromBalance($params['invoiceid']);
+}
+add_hook('InvoiceUnpaid', 1, 'KuberDock_InvoiceUnpaid');
+
+/**
  * Run: This hook runs as an invoice status is changing to Cancelled. This can be from the invoice in the admin area,
  * a mass update action, cancelling an order, a submitted cancellation request or a client disabling the auto
  * renewal of a domain.
@@ -630,117 +380,29 @@ add_hook('InvoicePaid', 1, 'KuberDock_InvoicePaid');
  */
 function KuberDock_InvoiceCancelled($params)
 {
-    $invoiceId = $params['invoiceid'];
-    $model = CL_Invoice::model();
-    $invoice = $model->loadById($invoiceId);
-
-    if(!$invoice) {
-        return;
-    }
-
-    try {
-        if($invoice->isCustomInvoice()) {
-            $model->addCredit($invoice->userid, -$invoice->subtotal, 'Remove funds via custom invoice '.$invoice->id);
-        }
-
-        if($invoice->isSetupInvoice()) {
-            $model->addCredit($invoice->userid, -$invoice->subtotal, 'Remove funds for setup fee '.$invoice->id);
-        }
-    } catch(Exception $e) {
-        CException::log($e);
-    }
+    Deposit::model()->removeFromBalance($params['invoiceid']);
 }
 add_hook('InvoiceCancelled', 1, 'KuberDock_InvoiceCancelled');
 
-/**
- * Run: This hook runs as an invoice status is changing to Unpaid via the Admin area. This can be from a single invoice,
- * or a mass action. The hook runs for each invoice being processed.
- *
- * @param $params
- */
-function KuberDock_InvoiceUnpaid($params)
+function KuberDock_AcceptOrder($params)
 {
-    $invoiceId = $params['invoiceid'];
-    $model = CL_Invoice::model();
-    $invoice = $model->loadById($invoiceId);
+    $orderId = $params['orderid'];
 
-    try {
-        if($invoice->isCustomInvoice()) {
-            $model->addCredit($invoice->userid, -$invoice->subtotal, 'Remove funds via custom invoice '.$invoice->id);
-        }
+    $order = \base\models\CL_Order::model()->loadById($orderId);
+    $invoice = CL_Invoice::model()->loadById($order->invoiceid);
 
-        if($invoice->isSetupInvoice()) {
-            $model->addCredit($invoice->userid, -$invoice->subtotal, 'Remove funds for setup fee '.$invoice->id);
-        }
-    } catch(Exception $e) {
-        CException::log($e);
+    // Setup fee or product price
+    $invoice->activateProductByInvoice();
+
+    $product = $invoice->getProductBySetupInvoice();
+    $service_id = $product['service_id'];
+    $service = \KuberDock_Hosting::model()->loadById($service_id);
+    if (!$service) {
+        return;
     }
+    $service->createModule();
 }
-add_hook('InvoiceUnpaid', 1, 'KuberDock_InvoiceUnpaid');
-
-/**
- * This hook runs after the Invoice Payment Reminder or Invoice Overdue Notices are sent to the client for an invoice.
- * @param $params
- */
-function KuberDock_InvoicePaymentReminder($params)
-{
-    $invoiceId = $params['invoiceid'];
-    $type = $params['type'];
-    $model = CL_Invoice::model();
-    $invoice = $model->loadById($invoiceId);
-
-    try {
-        //
-    } catch(Exception $e) {
-        CException::log($e);
-    }
-}
-//add_hook('InvoicePaymentReminder', 1, 'KuberDock_InvoicePaymentReminder');
-
-/**
- * Run: When a product is being edited in Setup -> Products/Services -> Products/Services
- *
- * @param $params
- */
-function KuberDock_AdminProductConfigFields($params)
-{
-}
-//add_hook('AdminProductConfigFields', 1, 'KuberDock_AdminProductConfigFields');
-
-
-/**
- * Run: After the module Create function has run successfully.
- * The $_REQUEST array can be accessed in order to save the fields output by the AdminProductConfigFields hook.
- *
- * @param $pid
- */
-function KuberDock_AdminProductConfigFieldsSave($pid)
-{
-    
-}
-//add_hook('AdminProductConfigFieldsSave', 1, 'KuberDock_AdminProductConfigFieldsSave');
-
-/**
- * Runs when the ChangePackage function is being run, before any command is sent, but after the variables are loaded.
- *
- * @param $params
- */
-function KuberDock_PreModuleChangePackage($params)
-{
-    //
-}
-//add_hook('PreModuleChangePackage', 1, 'KuberDock_PreModuleChangePackage');
-
-/**
- * Runs after the ChangePackage function has been successfully run
- * @param $params
- */
-function KuberDock_AfterModuleChangePackage($params)
-{
-    //
-}
-//add_hook('AfterModuleChangePackage', 1, 'KuberDock_AfterModuleChangePackage');
-
+add_hook('AcceptOrder', 1, 'KuberDock_AcceptOrder');
 
 /**
  * Runs Immediately after a new server is added to the database
@@ -934,7 +596,7 @@ function KuberDock_ClientLogin($params)
 
 function KuberDock_AfterModuleCreate($params) {
 
-    // Needed if in module settiings is selected 'Do not automatically setup this product"
+    // Needed if in module settings is selected 'Do not automatically setup this product"
     // and user tries to buy PA, admin must accept his order, and after he accepts order, we must
     // create this PA.
     $userId = $params['params']['userid'];

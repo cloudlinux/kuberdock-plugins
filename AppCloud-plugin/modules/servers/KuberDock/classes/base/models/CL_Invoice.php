@@ -215,36 +215,6 @@ class CL_Invoice extends CL_Model {
     /**
      * @return bool
      */
-    public function isCustomInvoice()
-    {
-        return $this->invoiceitems['description'] == self::CUSTOM_INVOICE_DESCRIPTION;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isSetupInvoice()
-    {
-        if (!$this->isKuberDockHostingInvoice()) {
-            return false;
-        }
-
-        $items = CL_InvoiceItems::model()->loadByAttributes(array('invoiceid'=>$this->id));
-        foreach ($items as $item) {
-            $isSetupFee = stripos($item['description'], 'setup fee') !== false;
-            $isUpgrade = $item['type'] == 'Upgrade';
-
-            if ($isSetupFee || $isUpgrade) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @return bool
-     */
     public function isUpdateKubesInvoice()
     {
         return stripos($this->invoiceitems['description'], \KuberDock_Pod::UPDATE_KUBES_DESCRIPTION) === 0;
@@ -258,22 +228,29 @@ class CL_Invoice extends CL_Model {
         return ($this->invoiceitems['type'] == CL_BillableItems::TYPE && $this->invoiceitems['relid'] > 0);
     }
 
-    /**
-     * Works only for invoices with items, which type='Setup' or 'Hosting'
-     * @return bool
-     */
-    public function isKuberDockHostingInvoice()
+    public function getProductBySetupInvoice()
     {
         $sql = "
-            SELECT h.packageid, p.servertype 
+            SELECT p.*, h.id as service_id
             FROM tblinvoiceitems i 
             INNER JOIN tblhosting h ON i.relid = h.id 
             INNER JOIN tblproducts p ON h.packageid = p.id 
-            WHERE 
-                (i.type = 'Setup' OR i.type='Hosting') 
+            WHERE i.type = 'Setup' 
                 AND i.invoiceid = '{$this->id}' 
-                AND p.servertype='KuberDock';";
-
-        return count($this->_db->query($sql)->getRows());
+                AND p.servertype = 'KuberDock';";
+        
+        return current($this->_db->query($sql)->getRows());
     }
-} 
+
+    public function activateProductByInvoice()
+    {
+        $sql = "
+            UPDATE tblhosting h 
+            INNER JOIN tblproducts p ON h.packageid = p.id 
+            INNER JOIN tblinvoiceitems i ON h.id = i.relid 
+            SET h.domainstatus='Active' 
+            WHERE (i.type = 'Setup' OR i.type='Hosting')  AND i.invoiceid = '{$this->id}' AND p.servertype='KuberDock';";
+
+        return $this->_db->query($sql);
+    }
+}

@@ -174,7 +174,7 @@ class KuberDock_Product extends CL_Product {
     public function create($serviceId)
     {
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
-        $created = $this->createUser($service);
+        $this->createUser($service);
 
         // Send module create email
         CL_MailTemplate::model()->sendPreDefinedEmail($serviceId, CL_MailTemplate::MODULE_CREATE_NAME, array(
@@ -540,6 +540,16 @@ class KuberDock_Product extends CL_Product {
             throw new Exception('Service not found');
         }
         $service = KuberDock_Hosting::model()->loadByParams(current($data));
+        $product = KuberDock_Product::model()->loadById($service->packageid);
+        $pricing = $product->getPricing();
+        // AC-3839 Add recurring price to invoice
+        if ($pricing['setup']) {
+            $items[] = \components\KuberDock_InvoiceItem::create('Setup', $pricing['setup']);
+        }
+
+        if ($pricing['recurring']) {
+            $items[] = \components\KuberDock_InvoiceItem::create('Recurring ('. $pricing['cycle'] .')', $pricing['recurring']);
+        }
 
         if ($totalPrice == 0) {
             $item = new KuberDock_Addon_Items();
@@ -673,7 +683,7 @@ class KuberDock_Product extends CL_Product {
 
     public function isSetupPayment()
     {
-        return $this->autosetup == self::AUTO_SETUP_PAYMENT;
+        return $this->autosetup == self::AUTO_SETUP_PAYMENT || !$this->autosetup;
     }
 
     /**
@@ -762,7 +772,7 @@ class KuberDock_Product extends CL_Product {
 
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
-        if($service->isActive()) {
+        if ($service->isActive()) {
             $configuration = \base\models\CL_Configuration::model()->get();
             try {
                 $predefinedApp->payAndStart($podId, $service->id);
@@ -834,5 +844,51 @@ SCRIPT;
         } else {
             return \KuberDock_User::ROLE_USER;
         }
+    }
+
+    /**
+     * Return format
+     * array(
+     *  'cycle' => string
+     *  'recurring' => float
+     *  'setup' => float
+     * )
+     * @return array
+     */
+    public function getPricing()
+    {
+        if ($this->paytype == 'free') {
+            return array(
+                'cycle' => 'free',
+                'recurring' => -1,
+                'setup' => -1,
+            );
+        }
+
+        $periods = array(
+            'monthly',
+            'quarterly',
+            'semiannually',
+            'annually',
+            'biennially',
+            'triennially',
+        );
+
+        $recurring = -1;
+        $setup = -1;
+
+        foreach ($periods as $row) {
+            if ($this->pricing[$row] != -1) {
+                $recurring = $this->pricing[$row];
+                $setup = $this->pricing[substr($row, 0, 1) . 'setupfee'];
+                break;
+            }
+        }
+
+        return array(
+            'cycle' => $row,
+            'recurring' => $recurring,
+            'setup' => $setup,
+        );
     }
 } 

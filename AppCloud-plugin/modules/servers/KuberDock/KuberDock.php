@@ -37,9 +37,9 @@ function KuberDock_CreateAccount($params) {
         $product->setClient($client);
         $product->create($params['serviceid']);
 
-        if($product->getConfigOption('enableTrial')) {
+        if ($product->getConfigOption('enableTrial')) {
             $trial = KuberDock_Addon_Trial::model();
-            if(!$trial->loadById($params['userid'])) {
+            if (!$trial->loadById($params['userid'])) {
                 $trial->insert(array(
                     'user_id' => $params['userid'],
                     'service_id' => $params['serviceid'],
@@ -48,23 +48,13 @@ function KuberDock_CreateAccount($params) {
         }
 
         return 'success';
-    } catch(Exception $e) {
+    } catch (Exception $e) {
         $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
         $service->updateById($params['serviceid'], array(
             'domainstatus' => 'Pending',
         ));
 
         CException::log($e);
-
-        // TODO: Don't work properly for admin, if admin logged as user
-        // to distinguish a common user from admin
-        /*if (isset($_SESSION['uid'])) {
-            // sending user to error page
-            CException::displayError($e);
-        } else {
-            // show error to admin
-            return 'ERROR: ' . $e->getMessage();
-        }*/
 
         return 'ERROR: ' . $e->getMessage();
     }

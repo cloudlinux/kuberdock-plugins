@@ -228,13 +228,13 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
     {
         $pod= $this->getPod();
 
-        if($pod) {
+        if ($pod) {
             $items = $this->getTotalPricePod($pod);
         } else {
             $items = $this->getTotalPriceYAML(Spyc::YAMLLoadString($this->data));
         }
 
-        if($total) {
+        if ($total) {
             return array_reduce($items, function ($carry, $item) {
                 $carry += $item->getTotal();
                 return $carry;
@@ -470,6 +470,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
             }
             $service = $product->orderService($this->user_id);
         }
+
         // Trying to re-create module
         if ($service->domainstatus == KuberDock_User::STATUS_PENDING) {
             $service->createModule();
