@@ -9,6 +9,7 @@ namespace base\models;
 use Exception;
 use KuberDock_User;
 use base\CL_Model;
+use models\billing\Admin;
 
 class CL_Currency extends CL_Model
 {
@@ -89,9 +90,9 @@ class CL_Currency extends CL_Model
      */
     public function getPaymentGateways()
     {
-        $admin = KuberDock_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
 
-        $results = localAPI('getpaymentmethods', array(), $admin['username']);
+        $results = localAPI('getpaymentmethods', array(), $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);

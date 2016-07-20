@@ -10,6 +10,7 @@ use DateTime;
 use Exception;
 use KuberDock_User;
 use base\CL_Model;
+use models\billing\Admin;
 
 class CL_Hosting extends CL_Model {
 
@@ -28,9 +29,9 @@ class CL_Hosting extends CL_Model {
      */
     public function updateByApi($id, $values = array())
     {
-        $admin = CL_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $values['serviceid'] = $id;
-        $results = localAPI('updateclientproduct', $values, $admin['username']);
+        $results = localAPI('updateclientproduct', $values, $admin->username);
 
         if(($results['result'] != 'success')) {
             throw new Exception($results['message']);
@@ -54,10 +55,10 @@ class CL_Hosting extends CL_Model {
      */
     public function decryptPassword($password = null)
     {
-        $admin = CL_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $values['password2'] = $password ? $password : $this->password;
 
-        $results = localAPI('decryptpassword', $values, $admin['username']);
+        $results = localAPI('decryptpassword', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -73,10 +74,10 @@ class CL_Hosting extends CL_Model {
      */
     public function encryptPassword($password)
     {
-        $admin = CL_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $values['password2'] = $password;
 
-        $results = localAPI('encryptpassword', $values, $admin['username']);
+        $results = localAPI('encryptpassword', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -120,12 +121,11 @@ class CL_Hosting extends CL_Model {
      */
     public function addPayment($invoiceId, $amount)
     {
-        $admin = CL_User::model()->getCurrentAdmin();
-        $adminuser = $admin['username'];
+        $admin = Admin::getCurrent();
         $values['amount'] = $amount;
         $values['invoiceid'] = $invoiceId;
 
-        $results = localAPI('addinvoicepayment', $values, $adminuser);
+        $results = localAPI('addinvoicepayment', $values, $admin->username);
 
         return ($results['result'] == 'success');
     }
@@ -136,10 +136,10 @@ class CL_Hosting extends CL_Model {
      */
     public function createModule()
     {
-        $admin = CL_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $values['accountid'] = $this->id;
 
-        $results = localAPI('modulecreate', $values, $admin['username']);
+        $results = localAPI('modulecreate', $values, $admin->username);
 
         if ($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -155,11 +155,11 @@ class CL_Hosting extends CL_Model {
      */
     public function suspendModule($reason = '')
     {
-        $admin = CL_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $values['accountid'] = $this->id;
         $values['suspendreason'] = $reason;
 
-        $results = localAPI('modulesuspend', $values, $admin['username']);
+        $results = localAPI('modulesuspend', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -174,10 +174,10 @@ class CL_Hosting extends CL_Model {
      */
     public function unSuspendModule()
     {
-        $admin = CL_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $values['accountid'] = $this->id;
 
-        $results = localAPI('moduleunsuspend', $values, $admin['username']);
+        $results = localAPI('moduleunsuspend', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -192,10 +192,10 @@ class CL_Hosting extends CL_Model {
      */
     public function terminateModule()
     {
-        $admin = CL_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $values['accountid'] = $this->id;
 
-        $results = localAPI('moduleterminate', $values, $admin['username']);
+        $results = localAPI('moduleterminate', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);

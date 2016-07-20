@@ -7,6 +7,7 @@ use Exception;
 use base\CL_Model;
 use base\models\CL_Invoice;
 use base\models\CL_InvoiceItems;
+use models\billing\Admin;
 
 /**
  * Class CL_BillableItems
@@ -46,12 +47,12 @@ class CL_BillableItems extends CL_Model
      */
     public function addItem()
     {
-        $admin = \KuberDock_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
 
         unset($this->id);
         $values = $this->getAttributes();
 
-        $results = localAPI('addbillableitem', $values, $admin['username']);
+        $results = localAPI('addbillableitem', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);

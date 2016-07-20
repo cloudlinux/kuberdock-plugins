@@ -12,6 +12,7 @@ use exceptions\CException;
 use KuberDock_User;
 use base\CL_Model;
 use components\KuberDock_InvoiceItem;
+use models\billing\Admin;
 
 /**
  * Class CL_Invoice
@@ -92,8 +93,8 @@ class CL_Invoice extends CL_Model {
 
         $values['autoapplycredit'] = $autoApply;
 
-        $admin = KuberDock_User::model()->getCurrentAdmin();
-        $results = localAPI('createinvoice', $values, $admin['username']);
+        $admin = Admin::getCurrent();
+        $results = localAPI('createinvoice', $values, $admin->username);
 
         if ($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -139,8 +140,8 @@ class CL_Invoice extends CL_Model {
             }
         }
 
-        $admin = KuberDock_User::model()->getCurrentAdmin();
-        $results = localAPI('updateinvoice', $values, $admin['username']);
+        $admin = Admin::getCurrent();
+        $results = localAPI('updateinvoice', $values, $admin->username);
 
         if ($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -161,7 +162,7 @@ class CL_Invoice extends CL_Model {
      */
     public function createTransaction($userId, $invoiceId, $amountIn, $amountOut, $gateway, DateTime $date = null, $description)
     {
-        $admin = KuberDock_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
 
         $values['userid'] = $userId;
         $values['invoiceid'] = $invoiceId;
@@ -171,7 +172,7 @@ class CL_Invoice extends CL_Model {
         $values['paymentmethod'] = $gateway;
         $values['date'] = $date ? $date->format('d/m/Y') : date('d/m/Y', time());
 
-        $results = localAPI('addtransaction', $values, $admin['username']);
+        $results = localAPI('addtransaction', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -187,13 +188,13 @@ class CL_Invoice extends CL_Model {
      */
     public function addCredit($clientId, $amount, $description = '')
     {
-        $admin = KuberDock_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         
         $values['clientid'] = $clientId;
         $values['description'] = $description;
         $values['amount'] = $amount;
 
-        $results = localAPI('addcredit', $values, $admin['username']);
+        $results = localAPI('addcredit', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -210,12 +211,12 @@ class CL_Invoice extends CL_Model {
      */
     public function applyCredit($invoiceId, $amount)
     {
-        $admin = KuberDock_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         
         $values['invoiceid'] = $invoiceId;
         $values['amount'] = $amount;
 
-        $results = localAPI('applycredit', $values, $admin['username']);
+        $results = localAPI('applycredit', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -231,11 +232,11 @@ class CL_Invoice extends CL_Model {
      */
     public function getInvoice($invoiceId)
     {
-        $admin = KuberDock_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
 
         $values['invoiceid'] = $invoiceId;
 
-        $results = localAPI('getinvoice', $values, $admin['username']);
+        $results = localAPI('getinvoice', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -251,11 +252,11 @@ class CL_Invoice extends CL_Model {
      */
     public function generateInvoices($userId)
     {
-        $admin = KuberDock_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
 
         $values['clientid'] = $userId;
 
-        $results = localAPI('geninvoices', $values, $admin['username']);
+        $results = localAPI('geninvoices', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);

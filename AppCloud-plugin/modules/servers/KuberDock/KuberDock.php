@@ -169,9 +169,7 @@ function KuberDock_ClientArea($params) {
     $server = KuberDock_Server::model()->loadById($service->server);
     $trialTime = (int) $product->getConfigOption('trialTime');
     $enableTrial = $product->getConfigOption('enableTrial');
-    $items = KuberDock_Addon_Items::model()->loadByAttributes(array(
-        'user_id' => $params['userid'],
-    ));
+    $items = \models\addon\Items::where('user_id', $params['userid'])->get()->toArray();
     $items = \base\CL_Tools::model()->getKeyAsField($items, 'pod_id');
     $regDate = new DateTime($service->regdate);
     $trialExpired = '';
@@ -264,7 +262,11 @@ function KuberDock_AdminLink($params) {
 function KuberDock_LoginLink($params) {
     $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
 
-    return sprintf('<a href="%s" target="_blank">Login to KuberDock</a>', $service->getLoginByTokenLink());
+    try {
+        return sprintf('<a href="%s" target="_blank">Login to KuberDock</a>', $service->getLoginByTokenLink());
+    } catch (Exception $e) {
+        return '';
+    }
 }
 
 /**

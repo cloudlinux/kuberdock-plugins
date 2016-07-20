@@ -6,6 +6,7 @@
 namespace base\models;
 
 use base\CL_Model;
+use models\billing\Admin;
 
 class CL_Order extends CL_Model
 {
@@ -26,7 +27,7 @@ class CL_Order extends CL_Model
      */
     public function createOrder($userId, $productId, $price = null)
     {
-        $admin = \KuberDock_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $user = \KuberDock_User::model()->loadById($userId);
 
         if ($user->defaultgateway) {
@@ -44,7 +45,7 @@ class CL_Order extends CL_Model
             $values['priceoverride'] = $price;
         }
 
-        $results = localAPI('addorder', $values, $admin['username']);
+        $results = localAPI('addorder', $values, $admin->username);
 
         if ($results['result'] != 'success') {
             throw new \Exception($results['message']);
@@ -62,7 +63,7 @@ class CL_Order extends CL_Model
      */
     public function acceptOrder($orderId, $autoSetup = true, $sendEmail = true)
     {
-        $admin = \KuberDock_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
 
         $values = array(
             'orderid' => $orderId,
@@ -70,7 +71,7 @@ class CL_Order extends CL_Model
             'sendemail' => $sendEmail,
         );
 
-        $results = localAPI('acceptorder', $values, $admin['username']);
+        $results = localAPI('acceptorder', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new \Exception($results['message']);
@@ -86,13 +87,13 @@ class CL_Order extends CL_Model
      */
     public function getOrders($orderId)
     {
-        $admin = \KuberDock_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
 
         $values = array(
             'id' => $orderId,
         );
 
-        $results = localAPI('getorders', $values, $admin['username']);
+        $results = localAPI('getorders', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new \Exception($results['message']);

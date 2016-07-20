@@ -10,26 +10,26 @@ try {
     $vars = get_defined_vars();
     $postFields = \base\CL_Tools::getApiParams($vars);
 
-    foreach(array('client_id', 'pod') as $attr) {
-        if(!isset($postFields->params->{$attr}) || !$postFields->params->{$attr}) {
+    foreach (array('client_id', 'pod') as $attr) {
+        if (!isset($postFields->params->{$attr}) || !$postFields->params->{$attr}) {
             throw new \exceptions\CException(sprintf("Field '%s' required", $attr));
         }
     }
 
     $clientId = $postFields->params->client_id;
-    $pod= $postFields->params->pod;
+    $pod = $postFields->params->pod;
     $pod = json_decode(html_entity_decode(urldecode($pod), ENT_QUOTES));
 
     $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
     $predefinedApp = $predefinedApp->loadByPodId($pod->id);
 
-    if(!$predefinedApp) {
+    if (!$predefinedApp) {
         $predefinedApp = new \KuberDock_Addon_PredefinedApp();
     }
 
     $data = KuberDock_Hosting::model()->getByUser($clientId);
 
-    if(!$data) {
+    if (!$data) {
         throw new Exception('User has no active KuberDock product');
     }
 
@@ -40,11 +40,11 @@ try {
     $addonProduct = \KuberDock_Addon_Product::model()->loadByParams(current($data));
     $product = \KuberDock_Product::model()->loadById($service->packageid);
 
-    if(!$product->isFixedPrice()) {
+    if (!$product->isFixedPrice()) {
         throw new Exception('Product is not fixed price type');
     }
 
-    if(!isset($product->id)) {
+    if (!isset($product->id)) {
         throw new Exception('Product not found');
     }
 
@@ -60,27 +60,22 @@ try {
     ));
     $predefinedApp->save();
 
-    $data = \KuberDock_Addon_Items::model()->loadByAttributes(array(
-        'pod_id' => $pod->id,
-        'status' => \base\models\CL_Invoice::STATUS_UNPAID,
-    ));
+    $item = \models\addon\Items::unpaid()->where('pod_id', $pod->id)->first();
+    /* @var \models\addon\Items $item */
 
     // Billable item deleted
-    if($data) {
-        $data = current($data);
-        $billableItem = \base\models\CL_BillableItems::model()->loadById($data['billable_item_id']);
-        if(!$billableItem) {
-            $data = null;
-        }
+    if ($item && !$item->billableItem) {
+        $item = null;
     }
 
-    if(!$data) {
-        $item = $product->addBillableApp($clientId, $predefinedApp);
-    } else {
-        $item = \KuberDock_Addon_Items::model()->loadByParams($data);
+    if (!$item) {
+        $item = $product->addBillableApp($service, $predefinedApp);
     }
 
-    if($item->isPayed()) {
+    // Get unpaid invoice of divided resources
+    $unpaidInvoiceId = (new \models\addon\Resources)->getUnpaidInvoices($pod->id);
+
+    if ($item->isPaid() && !$unpaidInvoiceId) {
         $results = array(
             'status' => $item->status,
             'invoice_id' => $item->invoice_id,
@@ -89,10 +84,19 @@ try {
         $predefinedApp->payAndStart($item->pod_id, $item->service_id);
     } else {
         $user = KuberDock_User::model()->loadById($clientId);
+
+        if ($unpaidInvoiceId) {
+            $status = \base\models\CL_Invoice::STATUS_UNPAID;
+            $invoiceId = $unpaidInvoiceId;
+        } else {
+            $status = $item->status;
+            $invoiceId = $item->invoice_id;
+        }
+
         $results = array(
-            'status' => $item->status,
-            'invoice_id' => $item->invoice_id,
-            'redirect' => \base\CL_Tools::generateAutoAuthLink('viewinvoice.php?id=' . $item->invoice_id, $user->email),
+            'status' => $status,
+            'invoice_id' => $invoiceId,
+            'redirect' => \base\CL_Tools::generateAutoAuthLink('viewinvoice.php?id=' . $invoiceId, $user->email),
         );
     }
 

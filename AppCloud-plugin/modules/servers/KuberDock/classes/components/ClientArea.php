@@ -194,7 +194,7 @@ class ClientArea extends \base\CL_Component
                     'input' => '',
                     'name' => 'Persistent Storage',
                     'description' => $this->currency->getFullPrice($product->getConfigOption('pricePersistentStorage'))
-                        . ' / 1 ' . KuberDock_Units::getHDDUnits(),
+                        . ' / 1 ' . Units::getHDDUnits(),
                 );
             }
 
@@ -204,7 +204,7 @@ class ClientArea extends \base\CL_Component
                     'input' => '',
                     'name' => 'Additional Traffic',
                     'description' => $this->currency->getFullPrice($product->getConfigOption('priceOverTraffic'))
-                        . ' / 1 ' . KuberDock_Units::getTrafficUnits(),
+                        . ' / 1 ' . Units::getTrafficUnits(),
                 );
             }*/
             $this->values['customfields'] = array_merge($this->values['customfields'], $customFields);
@@ -228,12 +228,12 @@ class ClientArea extends \base\CL_Component
                         $this->currency->getFullPrice($kube['kube_price']) .' / '. $product->getReadablePaymentType(),
                         (float) $kube['cpu_limit'],
                         $kube['memory_limit'],
-                        KuberDock_Units::getMemoryUnits(),
+                        Units::getMemoryUnits(),
                         $kube['hdd_limit'],
-                        KuberDock_Units::getHDDUnits(),
+                        Units::getHDDUnits(),
                         /* AC-3783
                         $kube['traffic_limit'],
-                        KuberDock_Units::getTrafficUnits(),*/
+                        Units::getTrafficUnits(),*/
                     )),
                 );
             }

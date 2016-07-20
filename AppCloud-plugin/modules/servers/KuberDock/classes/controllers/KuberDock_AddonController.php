@@ -11,6 +11,7 @@ use base\CL_Base;
 use base\CL_Csrf;
 use base\CL_Tools;
 use Exception;
+use models\billing\Admin;
 
 class KuberDock_AddonController extends CL_Controller {
     public $action = 'index';
@@ -25,8 +26,8 @@ class KuberDock_AddonController extends CL_Controller {
         $this->assets->registerScriptFiles(array('jquery.min', 'bootstrap.min', 'addon'));
         $this->assets->registerStyleFiles(array('bootstrap.min', 'addon'));
 
-        $admin = \KuberDock_User::model()->getCurrentAdmin();
-        if ($admin['template'] == 'blend') {
+        $admin = Admin::getCurrent();
+        if ($admin->template == 'blend') {
             $this->assets->registerStyleFiles(array('addon_blend'));
         }
     }

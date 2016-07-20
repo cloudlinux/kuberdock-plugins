@@ -9,8 +9,9 @@ use base\CL_Tools;
 use base\models\CL_MailTemplate;
 use base\models\CL_Client;
 use base\models\CL_Hosting;
-use components\KuberDock_Units;
+use components\Units;
 use components\KuberDock_InvoiceItem;
+use models\addon\Resources;
 
 class KuberDock_Hosting extends CL_Hosting
 {
@@ -151,16 +152,14 @@ class KuberDock_Hosting extends CL_Hosting
         return true;
     }
 
+    /**
+     * Process unpaid items
+     */
     public function calculateFixed()
     {
-        $items = KuberDock_Addon_Items::model()->loadByAttributes(array(
-            'status' => \base\models\CL_Invoice::STATUS_UNPAID,
-            'user_id' => $this->userid,
-        ));
-
-        foreach($items as $row) {
-            $item = KuberDock_Addon_Items::model()->loadByParams($row);
-            $item->checkStatus();
+        $items = \models\addon\Items::unpaid()->where('user_id', $this->userid)->get();
+        foreach ($items as $item) {
+            $item->setUnpaid();
         }
     }
 
@@ -231,7 +230,7 @@ class KuberDock_Hosting extends CL_Hosting
             }
 
             $price = $kubes[$pod['kube_id']]['kube_price'] * $pod['kubes'];
-            $items[] = $product->createInvoice('Pod: ' . $pod['name'], $price, 'hour', count($usageHours));
+            $items[] = $product->createInvoice('Pod: ' . $pod['name'], $price, 'hour', count($usageHours), Resources::TYPE_POD);
         }
 
         foreach($usage['ip_usage'] as $data) {
@@ -242,7 +241,7 @@ class KuberDock_Hosting extends CL_Hosting
             }
 
             $price = (float) $product->getConfigOption('priceIP');
-            $items[] = $product->createInvoice('IP: ' . $data['ip_address'], $price, 'hour', count($usageHours));
+            $items[] = $product->createInvoice('IP: ' . $data['ip_address'], $price, 'hour', count($usageHours), Resources::TYPE_IP);
         }
 
         foreach($usage['pd_usage'] as $data) {
@@ -253,7 +252,7 @@ class KuberDock_Hosting extends CL_Hosting
             }
 
             $price = (float) $product->getConfigOption('pricePersistentStorage') * $data['size'];
-            $items[] = $product->createInvoice('Storage: ' . $data['pd_name'], $price, 'hour', count($usageHours));
+            $items[] = $product->createInvoice('Storage: ' . $data['pd_name'], $price, 'hour', count($usageHours), Resources::TYPE_PD);
         }
 
         $this->updateByApi($this->id, array('nextduedate' => $currentDate->modify('+1 day')->format('Y-m-d')));
@@ -321,7 +320,7 @@ class KuberDock_Hosting extends CL_Hosting
                 $totalKubeCount += $pod['kubes'];
 
                 $price = $kubes[$pod['kube_id']]['kube_price'];
-                $items[] = $product->createInvoice('Pod: ' . $title, $price, 'pod', $pod['kubes']);
+                $items[] = $product->createInvoice('Pod: ' . $title, $price, 'pod', $pod['kubes'], Resources::TYPE_POD);
             }
         }
 
@@ -330,7 +329,7 @@ class KuberDock_Hosting extends CL_Hosting
             if (!in_array($data['ip_address'], $totalIPs)) {
                 $totalIPs[] = $data['ip_address'];
                 $price = (float) $product->getConfigOption('priceIP');
-                $items[] = $product->createInvoice('IP: ' . $data['ip_address'], 'IP', $price);
+                $items[] = $product->createInvoice('IP: ' . $data['ip_address'], $price, 'IP', 1, Resources::TYPE_IP);
             }
         }
 
@@ -338,8 +337,8 @@ class KuberDock_Hosting extends CL_Hosting
         foreach($usage['pd_usage'] as $data) {
             $totalPdSize += $data['size'];
             $price = (float) $product->getConfigOption('pricePersistentStorage');
-            $unit = KuberDock_Units::getPSUnits();
-            $items[] = $product->createInvoice('Storage: ' . $data['pd_name'], $price, $unit, $data['size']);
+            $unit = Units::getPSUnits();
+            $items[] = $product->createInvoice('Storage: ' . $data['pd_name'], $price, $unit, $data['size'], Resources::TYPE_PD);
         }
 
         // Предыдущая оплата в этом периоде

@@ -25,6 +25,10 @@ if(KUBERDOCK_DEBUG) {
 
 require_once KUBERDOCK_CLASS_DIR . DS . 'KuberDock_AutoLoader.php';
 
+if (ini_get('data.timezone') == '') {
+    date_default_timezone_set('Europe/London');
+}
+
 try {
     $loader = new KuberDock_AutoLoader();
 } catch(Exception $e) {

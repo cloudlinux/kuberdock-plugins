@@ -272,7 +272,7 @@ add_hook('InvoiceCreationPreEmail', 1, 'KuberDock_InvoiceCreationPreEmail');
  */
 function KuberDock_InvoiceCreated($params)
 {
-    KuberDock_Addon_Items::model()->handleInvoiceCreation($params['invoiceid']);
+    (new \models\addon\Items())->handleInvoicing($params['invoiceid']);
 }
 add_hook('InvoiceCreated', 1, 'KuberDock_InvoiceCreated');
 
@@ -292,15 +292,6 @@ function KuberDock_InvoicePaid($params)
             return;
         }
         $invoice->addFirstDeposit();
-
-        // Start pod
-        if ($item = KuberDock_Addon_Items::model()->loadByInvoice($invoiceId)) {
-            $item->status = CL_Invoice::STATUS_PAID;
-            $item->save();
-
-            $product = KuberDock_Product::model();
-            $product->startPodAndRedirect($item->service_id, $item->pod_id, true);
-        }
 
         // TODO: check is needed. pod edit added
         // Add additional kubes
@@ -329,16 +320,15 @@ function KuberDock_InvoicePaid($params)
                 }
 
                 // Update app
-                $data = KuberDock_Addon_Items::model()->loadByAttributes(array(
-                    'billable_item_id' => $billableItem->id
-                ));
-                if ($addonItem = current($data)) {
-                    $pod = $service->getApi()->getPod($params['id']);
-                    $app = KuberDock_Addon_PredefinedApp::model()->loadById($addonItem['app_id']);
-                    $app->data = json_encode($pod);
-                    $app->save();
+                $item = \models\addon\Items::where('billable_item_id', $billableItem->id)->first();
+                if ($item) {
+                    $pod = $item->service->getPod()->load($params['id']);
+                    $item->app->data = $pod->toJSON();
+                    $item->app->save();
                 }
             }
+        } else {
+            \models\addon\Items::startPodAfterPayment($invoiceId);
         }
     } catch(Exception $e) {
         CException::log($e);
@@ -501,7 +491,7 @@ function KuberDock_ClientAreaRegister($params)
             }
 
             if($product->isFixedPrice()) {
-                $item = $product->addBillableApp($userId, $predefinedApp);
+                $item = $product->addBillableApp($service, $predefinedApp);
                 if(!($pod = $predefinedApp->isPodExists($service->id))) {
                     $pod = $predefinedApp->create($service->id, 'unpaid');
                 }
@@ -510,7 +500,7 @@ function KuberDock_ClientAreaRegister($params)
                 $item->pod_id = $pod['id'];
                 $item->save();
 
-                if($item->isPayed()) {
+                if($item->isPaid()) {
                     $product->startPodAndRedirect($item->service_id, $item->pod_id, true);
                 } else {
                     $product->jsRedirect('viewinvoice.php?id=' . $item->invoice_id);
@@ -565,32 +555,6 @@ function KuberDock_ClientAdd($params)
     }
 }
 add_hook('ClientAdd', 1, 'KuberDock_ClientAdd');
-
-
-/**
- * As the Client Login is being completed, either from the client area, or an admin user utilising "Login as Client"
- * @param $params
- * @throws Exception
- */
-function KuberDock_ClientLogin($params)
-{
-    // Create service if user created from KD
-    $user = KuberDock_User::model()->loadById($params['userid']);
-    if($user->notes && ($notes = json_decode($user->notes))) {
-        $service = KuberDock_Hosting::model()->loadById($notes->KDService);
-        $service->username = $notes->KDUser;
-        $service->save();
-        \base\models\CL_Order::model()->acceptOrder($notes->KDOrder);
-        $user->notes = '';
-        $user->save();
-    }
-
-    if ($predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId()) {
-        $predefinedApp->user_id = $params['userid'];
-        $predefinedApp->save();
-    }
-}
-//add_hook('ClientLogin', 1, 'KuberDock_ClientLogin');
 
 /**
  * Runs when 1st KD product bought, if that was PA - create it

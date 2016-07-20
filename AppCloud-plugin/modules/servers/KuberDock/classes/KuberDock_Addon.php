@@ -162,10 +162,11 @@ class KuberDock_Addon extends CL_Component {
                 user_id INT NOT NULL,
                 app_id INT NOT NULL,
                 service_id INT NOT NULL,
-                pod_id varchar(64) NOT NULL,
+                pod_id varchar(64) NULL,
                 billable_item_id INT NOT NULL,
                 invoice_id INT NOT NULL,
                 status VARCHAR(16),
+                `type` VARCHAR (64) DEFAULT "'. \models\addon\Resources::TYPE_POD  .'",
                 INDEX (pod_id, app_id),
                 PRIMARY KEY (id)
             ) ENGINE=INNODB DEFAULT CHARSET=utf8');
@@ -175,6 +176,25 @@ class KuberDock_Addon extends CL_Component {
                 `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (`version`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+
+            $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_resources` (
+                id INT AUTO_INCREMENT,
+                user_id INT,
+                billable_item_id INT,
+                name VARCHAR (255),
+                type ENUM("'. \models\addon\Resources::TYPE_IP .'", "'. \models\addon\Resources::TYPE_PD .'"),
+                status VARCHAR(32) DEFAULT "'. \models\addon\Resources::STATUS_ACTIVE .'",
+                PRIMARY KEY (id),
+                INDEX (name)
+            ) ENGINE=INNODB');
+
+            $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_resource_pods` (
+                pod_id VARCHAR (255),
+                resource_id INT,
+                FOREIGN KEY (resource_id)
+                    REFERENCES KuberDock_resources(id)
+                    ON UPDATE CASCADE ON DELETE CASCADE
+            ) ENGINE=INNODB');
 
             // Add existing migrations
             $migrations = \migrations\Migration::getAvailable('');
@@ -280,6 +300,8 @@ class KuberDock_Addon extends CL_Component {
             $db->query('DROP TABLE IF EXISTS `KuberDock_price_changes`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_items`');
             $db->query('DROP TABLE IF EXISTS `KuberDock_migrations`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_resource_pods`');
+            $db->query('DROP TABLE IF EXISTS `KuberDock_resources`');
             throw $e;
         }
     }
@@ -328,6 +350,8 @@ class KuberDock_Addon extends CL_Component {
         $db->query('DROP TABLE IF EXISTS `KuberDock_price_changes`');
         $db->query('DROP TABLE IF EXISTS `KuberDock_items`');
         $db->query('DROP TABLE IF EXISTS `KuberDock_migrations`');
+        $db->query('DROP TABLE IF EXISTS `KuberDock_resource_pods`');
+        $db->query('DROP TABLE IF EXISTS `KuberDock_resources`');
 
         // Delete email templates
         $mailTemplate = CL_MailTemplate::model();

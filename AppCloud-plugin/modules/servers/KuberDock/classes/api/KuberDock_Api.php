@@ -782,7 +782,12 @@ class KuberDock_Api {
         $attributes['command'] = 'start';
         $attributes['commandOptions']['applyEdit'] = true;
 
-        return $this->makeCall('/api/podapi/' . $podId, $attributes, 'PUT');
+        $response = $this->makeCall('/api/podapi/' . $podId, $attributes, 'PUT');
+
+        // Add resources
+        \models\addon\Resources::add($podId);
+
+        return $response;
     }
 
     /**
@@ -792,6 +797,41 @@ class KuberDock_Api {
     public function getNodes()
     {
         return $this->makeCall('/api/nodes');
+    }
+
+    /**
+     * @return KuberDock_ApiResponse
+     * @throws CException
+     * @throws Exception
+     * @throws NotFoundException
+     */
+    public function getPD()
+    {
+        return $this->makeCall('/api/pstorage');
+    }
+
+    /**
+     * @param int $id
+     * @return KuberDock_ApiResponse
+     * @throws CException
+     * @throws Exception
+     * @throws NotFoundException
+     */
+    public function deletePD($id)
+    {
+        return $this->makeCall('/api/pstorage/' . $id, 'DELETE');
+    }
+
+    /**
+     * @param string $podId
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function unbindIP($podId)
+    {
+        return $this->makeCall('/api/podapi/' . $podId, array(
+            'command' => 'unbind-ip',
+        ), 'PUT');
     }
 
     /**

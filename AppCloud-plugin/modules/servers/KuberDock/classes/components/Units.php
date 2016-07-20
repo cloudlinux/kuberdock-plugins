@@ -6,7 +6,7 @@
 
 namespace components;
 
-class KuberDock_Units {
+class Units {
     /**
      * Package: persistent storage
      */

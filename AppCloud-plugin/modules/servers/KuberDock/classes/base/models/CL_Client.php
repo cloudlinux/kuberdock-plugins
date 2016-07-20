@@ -9,6 +9,7 @@ namespace base\models;
 use base\CL_Tools;
 use exceptions\CException;
 use base\CL_Model;
+use models\billing\Admin;
 
 class CL_Client extends CL_Model
 {
@@ -27,9 +28,9 @@ class CL_Client extends CL_Model
      */
     public function getClientsByApi($attributes = array())
     {
-        $admin = CL_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
 
-        $results = localAPI('getclients', $attributes, $admin['username']);
+        $results = localAPI('getclients', $attributes, $admin->username);
 
         return ($results['result'] == 'success') ? $results['clients']['client'] : array();
     }
@@ -40,12 +41,11 @@ class CL_Client extends CL_Model
      */
     public function getClientDetails($userId)
     {
-        $admin = CL_User::model()->getCurrentAdmin();
-        $adminuser = $admin['username'];
+        $admin = Admin::getCurrent();
         $values['clientid'] = $userId;
         $values['stats'] = true;
 
-        $results = localAPI('getclientsdetails', $values, $adminuser);
+        $results = localAPI('getclientsdetails', $values, $admin->username);
 
         return ($results['result'] == 'success') ? $results : array();
     }
@@ -92,9 +92,9 @@ class CL_Client extends CL_Model
      */
     public function getClientByCpanelUser($username, $userDomains)
     {
-        $admin = CL_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $values['username2'] = $username;
-        $results = localAPI('getclientsproducts', $values, $admin['username']);
+        $results = localAPI('getclientsproducts', $values, $admin->username);
 
         if($results['result'] == 'error') {
             throw new CException($results['message']);
