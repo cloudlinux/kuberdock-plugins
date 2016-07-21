@@ -37,6 +37,7 @@ class DefaultController extends KuberDock_Controller {
         $this->render('index', array(
             'package' => json_encode($panel->billing->getPackage()),
             'packages' => json_encode($panel->billing->getPackages()),
+            'packageDefaults' => json_encode($panel->billing->getDefaults()),
             'maxKubes' => $maxKubes,
             'assetsURL' => $panel->getAssets()->getRelativePath(''),
             'rootURL' => $panel->getApiUrl(),
