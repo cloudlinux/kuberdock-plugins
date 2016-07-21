@@ -112,11 +112,11 @@ class KuberDock_AddonController extends CL_Controller {
         $products = \KuberDock_Product::model()->getActive();
         $servers = \KuberDock_Server::model()->getServers();
 
-        if(!$products) {
+        if (!$products) {
             throw new Exception('Products has no relations');
         }
 
-        if($_POST) {
+        if ($_POST) {
             CL_Csrf::check();
             unset($_POST['csrf_token']);
             unset($_POST['token']);
@@ -126,7 +126,7 @@ class KuberDock_AddonController extends CL_Controller {
             try {
                 $kube->save();
                 $base->redirect($base->baseUrl);
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $replace = array(
                     'server_id' => 'Server',
                     'name' => 'Kube type name',

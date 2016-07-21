@@ -233,31 +233,36 @@ function KuberDock_ClientArea($params) {
  */
 function KuberDock_AdminLink($params) {
     $server = KuberDock_Server::model()->loadById($params['serverid']);
+    $api = $server->getApi();
+    $api->setTimeout(5);
 
     // Don't know why, but sometimes hook KuberDock_ServerEdit don't runs
-    $server->accesshash = '';
-
     try {
-        $server->accesshash = $server->getApi()->getToken();
-        $server->save();
+        if (!$server->accesshash) {
+            $server->accesshash = $api->getToken();
+            $server->save();
+        }
     } catch (Exception $e) {
         CException::log($e);
+        $server->accesshash = '';
         $server->save();
     }
 
     try {
         if (USE_JWT_TOKENS) {
             $tokenField = 'token2';
-            $token = $server->getApi()->getJWTToken(array(), true);
+            $token = $api->getJWTToken(array(), true);
         } else {
             $tokenField = 'token';
-            $token = $server->getApi()->getToken();
+            $token = $server->accesshash;
         }
 
         $url = sprintf('%s/?%s=%s', $server->getApiServerUrl(), $tokenField, $token);
+        $api->setTimeout($api::API_CONNECTION_TIMEOUT);
 
         return sprintf('<a href="%s" target="_blank" class="btn btn-sm btn-default" >Login to KuberDock</a>', $url);
     } catch (Exception $e) {
+        $api->setTimeout($api::API_CONNECTION_TIMEOUT);
         return '';
     }
 }

@@ -236,80 +236,6 @@ abstract class CL_Product extends CL_Model {
     }
 
     /**
-     * @param string $name
-     * @param mixed $value
-     * @param array $attributes
-     * @return string
-     */
-    public function renderConfigOption($name, $value = null, $attributes = array())
-    {
-        list($key, $params) = $this->getConfigOptionParams($name);
-        $value = $value ? $value : (isset($params['Default']) ? $params['Default'] : null);
-
-        if(isset($params['Size'])) {
-            $attributes['size'] = $params['Size'];
-        }
-
-        $template = '<td class="fieldlabel">'.$params['FriendlyName'].'</td>
-            <td class="fieldarea"><label>%s '.$params['Description'].'</label></td>';
-
-        switch($params['Type']) {
-            case 'yesno':
-                return sprintf($template, $this->renderCheckbox($key, $value, $attributes));
-                break;
-            case 'dropdown':
-                return sprintf($template, $this->renderSelect($key, $params, $value, $attributes));
-                break;
-            case 'text':
-                return sprintf($template, $this->renderText($key, $value, $attributes));
-                break;
-        }
-    }
-
-    /**
-     * @param array $key
-     * @param bool $value
-     * @param array $attributes
-     * @return string
-     */
-    public function renderCheckbox($key, $value = false, $attributes = array())
-    {
-        $html = sprintf('<input type="checkbox" name="packageconfigoption[%d]"%s%s', $key, $this->getHtmlTags($attributes), $value ? ' checked>' : '>');
-        return $html;
-    }
-
-    /**
-     * @param array $key
-     * @param string $value
-     * @param array $attributes
-     * @return string
-     */
-    public function renderText($key, $value = '', $attributes = array())
-    {
-        $html = sprintf('<input type="text" name="packageconfigoption[%d]" value="%s"%s>', $key, $value, $this->getHtmlTags($attributes));
-        return $html;
-    }
-
-    /**
-     * @param array $key
-     * @param array $params
-     * @param string $value
-     * @param array $attributes
-     * @return string
-     */
-    public function renderSelect($key, $params, $value = '', $attributes = array())
-    {
-        $values = explode(',', $params['Options']);
-        $html = sprintf('<select name="packageconfigoption[%d]"%s>', $key, $this->getHtmlTags($attributes));
-        foreach($values as $row) {
-            $html .= sprintf('<option value="%s"%s>%s</option>', $row, $row == $value ? ' selected' : '', $row);
-        }
-        $html .= '</select>';
-
-        return $html;
-    }
-
-    /**
      * @return mixed
      */
     public function getClient()
@@ -325,37 +251,5 @@ abstract class CL_Product extends CL_Model {
     {
         $this->client = $client;
         return $this;
-    }
-
-    /**
-     * Get custom field types
-     *
-     * @return array
-     */
-    private function getAvailableFieldTypes()
-    {
-        return array(
-            self::FIELD_TYPE_TEXT,
-            self::FIELD_TYPE_LINK,
-            self::FIELD_TYPE_PASSWORD,
-            self::FIELD_TYPE_DROPDOWN,
-            self::FIELD_TYPE_TICKBOX,
-            self::FIELD_TYPE_TEXTAREA,
-        );
-    }
-
-    /**
-     * @param array $attributes
-     * @return string
-     */
-    private function getHtmlTags($attributes = array())
-    {
-        $html = '';
-
-        foreach($attributes as $attribute => $value) {
-            $html .= sprintf(' %s="%s"', $attribute, $value);
-        }
-
-        return $html;
     }
 } 

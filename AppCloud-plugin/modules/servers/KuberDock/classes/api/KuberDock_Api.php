@@ -92,6 +92,10 @@ class KuberDock_Api {
      * @var bool
      */
     protected $debug = false;
+    /**
+     * @var int
+     */
+    protected $timeout = self::API_CONNECTION_TIMEOUT;
 
     /**
      * @param string $username
@@ -206,10 +210,22 @@ class KuberDock_Api {
     }
 
     /**
+     * @param int $timeout
+     * @return $this
+     */
+    public function setTimeout($timeout)
+    {
+        $this->timeout = $timeout;
+
+        return $this;
+    }
+
+    /**
      * @param array $params
      * @param string $type
      * @return KuberDock_ApiResponse
      * @throws CException
+     * @throws NotFoundException
      */
     public function call($params = array(), $type = 'GET')
     {
@@ -251,9 +267,9 @@ class KuberDock_Api {
         }
 
         curl_setopt($ch, CURLOPT_URL, $this->requestUrl);
-        curl_setopt($ch, CURLOPT_TIMEOUT, self::API_CONNECTION_TIMEOUT);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $type);
-        if(!$this->token) {
+        if (!$this->token) {
             curl_setopt($ch, CURLOPT_USERPWD, "$this->username:$this->password");
         }
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -296,35 +312,31 @@ class KuberDock_Api {
     }
 
     /**
-     * @param $response
+     * @param string $apiRoute
+     * @param array $values
+     * @param string $type
      * @return KuberDock_ApiResponse
+     * @throws CException
      * @throws Exception
+     * @throws NotFoundException
      */
-    private function parseResponse($response)
+    public function makeCall($apiRoute, $values = array(), $type = 'GET')
     {
-        $this->response = new KuberDock_ApiResponse();
-        $this->response->raw = $response;
+        $args = func_get_args();
 
-        if($this->dataType == self::DATA_TYPE_JSON) {
-            $this->response->parsed = json_decode($response, true);
-        } elseif($this->dataType == self::DATA_TYPE_PLAIN) {
-            if(preg_match_all('/(.+)/m', $response, $match)) {
-                foreach($match[1] as $row) {
-                    list($key, $value) = explode(':', $row);
-                    $this->response->parsed[$key] = $value;
-                }
-            } else {
-                $error = 'Unable to parse plain data';
-                $this->logError($error);
-                throw new Exception($error);
-            }
-        } else {
-            $error = 'Unknown API data type';
-            $this->logError($error);
-            throw new Exception($error);
+        if (count($args) == 2 && is_string($args[1])) {
+            return $this->makeCall($apiRoute, array(), $args[1]);
         }
 
-        return $this->response;
+        $this->url = $this->serverUrl . $apiRoute;
+        $response = $this->call($values, $type);
+
+        if (!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
     }
 
     /**
@@ -337,10 +349,10 @@ class KuberDock_Api {
         $this->url = $this->serverUrl . '/api/users/all';
         $response = $this->call($values, 'POST');
 
-        if(!$response->getStatus()) {
+        if (!$response->getStatus()) {
             $this->logError($response->getMessage());
 
-            if(strpos($response->getMessage(), 'email - has already been taken') !== false) {
+            if (strpos($response->getMessage(), 'email - has already been taken') !== false) {
                 throw new Exception(sprintf('Cannot create KuberDock user with username: %s because email - has already been taken',
                     $values['username']));
             } else {
@@ -359,15 +371,7 @@ class KuberDock_Api {
      */
     public function updateUser($values, $user)
     {
-        $this->url = $this->serverUrl . '/api/users/all/' . $user;
-        $response = $this->call($values, 'PUT');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/users/all/' . $user, $values, 'PUT');
     }
 
     /**
@@ -376,15 +380,7 @@ class KuberDock_Api {
      */
     public function getDefaultKubeType()
     {
-        $this->url = $this->serverUrl . '/api/pricing/kubes/default';
-        $response = $this->call();
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/pricing/kubes/default');
     }
 
     /**
@@ -393,15 +389,7 @@ class KuberDock_Api {
      */
     public function getDefaultPackageId()
     {
-        $this->url = $this->serverUrl . '/api/pricing/packages/default';
-        $response = $this->call();
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/pricing/packages/default');
     }
 
     /**
@@ -412,15 +400,7 @@ class KuberDock_Api {
      */
     public function deleteUser($user, $force = false)
     {
-        $this->url = $this->serverUrl . '/api/users/all/' . $user;
-        $response = $this->call(array('force' => $force), 'DELETE');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/users/all/' . $user, array('force' => $force), 'DELETE');
     }
 
     /**
@@ -430,15 +410,7 @@ class KuberDock_Api {
      */
     public function unDeleteUser($user)
     {
-        $this->url = $this->serverUrl . '/api/users/undelete/' . $user;
-        $response = $this->call(array(), 'POST');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/users/undelete/' . $user, 'POST');
     }
 
     /**
@@ -473,15 +445,7 @@ class KuberDock_Api {
      */
     public function getUsers()
     {
-        $this->url = $this->serverUrl . '/api/users/all';
-        $response = $this->call();
-
-        if (!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/users/all', 'GET');
     }
 
     /**
@@ -493,19 +457,10 @@ class KuberDock_Api {
      */
     public function getUsage($user, \DateTime $dateFrom, \DateTime $dateTo)
     {
-        $this->url = $this->serverUrl . "/api/usage/$user";
-
-        $response = $this->call(array(
+        return $this->makeCall("/api/usage/$user", array(
             'date_from' => $dateFrom->format(\DateTime::ISO8601),
             'date_to' => $dateTo->format(\DateTime::ISO8601),
         ));
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
     }
 
     /**
@@ -515,15 +470,7 @@ class KuberDock_Api {
      */
     public function getAllUsage($date)
     {
-        $this->url = $this->serverUrl . "/api/usage-all/$date";
-        $response = $this->call();
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall("/api/usage-all/$date");
     }
 
     /**
@@ -533,15 +480,7 @@ class KuberDock_Api {
      */
     public function getKube($id)
     {
-        $this->url = sprintf($this->serverUrl . '/api/pricing/kubes/%d', $id);
-        $response = $this->call(array(), 'GET');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/pricing/kubes/' . $id);
     }
 
     /**
@@ -550,15 +489,7 @@ class KuberDock_Api {
      */
     public function getKubes()
     {
-        $this->url = $this->serverUrl . '/api/pricing/kubes';
-        $response = $this->call(array(), 'GET');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/pricing/kubes');
     }
 
     /**
@@ -569,8 +500,9 @@ class KuberDock_Api {
     public function getKubesByName($name)
     {
         $kubes = $this->getKubes()->getData();
-        foreach($kubes as $row) {
-            if(strtolower($row['name']) == strtolower($name)) {
+
+        foreach ($kubes as $row) {
+            if (strtolower($row['name']) == strtolower($name)) {
                 return $row;
             }
         }
@@ -585,15 +517,7 @@ class KuberDock_Api {
      */
     public function getPackageKubesById($packageId)
     {
-        $this->url = sprintf($this->serverUrl . '/api/pricing/packages/%d/kubes-by-id', $packageId);
-        $response = $this->call(array(), 'GET');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall(sprintf('/api/pricing/packages/%d/kubes-by-id', $packageId));
     }
 
     /**
@@ -603,15 +527,7 @@ class KuberDock_Api {
      */
     public function getPackageKubesByName($packageId)
     {
-        $this->url = sprintf($this->serverUrl . '/api/pricing/packages/%d/kubes-by-name', $packageId);
-        $response = $this->call(array(), 'GET');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall(sprintf('/api/pricing/packages/%d/kubes-by-name', $packageId));
     }
 
     /**
@@ -621,15 +537,7 @@ class KuberDock_Api {
      */
     public function getPackageKubes($packageId)
     {
-        $this->url = sprintf($this->serverUrl . '/api/pricing/packages/%d/kubes', $packageId);
-        $response = $this->call(array(), 'GET');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall(sprintf('/api/pricing/packages/%d/kubes', $packageId));
     }
 
     /**
@@ -640,15 +548,7 @@ class KuberDock_Api {
      */
     public function createPackageKube($packageId, $values)
     {
-        $this->url = sprintf($this->serverUrl . '/api/pricing/packages/%d/kubes', $packageId);
-        $response = $this->call($values, 'POST');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new CException($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall(sprintf('/api/pricing/packages/%d/kubes', $packageId), $values, 'POST');
     }
 
     /**
@@ -659,15 +559,7 @@ class KuberDock_Api {
      */
     public function deletePackageKube($packageId, $kubeId)
     {
-        $this->url = sprintf($this->serverUrl . '/api/pricing/packages/%d/kubes/%d', $packageId, $kubeId);
-        $response = $this->call(array(), 'DELETE');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall(sprintf('/api/pricing/packages/%d/kubes/%d', $packageId, $kubeId), 'DELETE');
     }
 
     /**
@@ -679,17 +571,9 @@ class KuberDock_Api {
      */
     public function addKubeToPackage($packageId, $kubeId, $kubePrice = 0.0)
     {
-        $this->url = sprintf($this->serverUrl . '/api/pricing/packages/%d/kubes/%d', $packageId, $kubeId);
-        $response = $this->call(array(
+        return $this->makeCall(sprintf('/api/pricing/packages/%d/kubes/%d', $packageId, $kubeId), array(
             'kube_price' => $kubePrice,
         ), 'PUT');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
     }
 
     /**
@@ -699,15 +583,7 @@ class KuberDock_Api {
      */
     public function createKube($values)
     {
-        $this->url = $this->serverUrl . '/api/pricing/kubes';
-        $response = $this->call($values, 'POST');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new CException($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/pricing/kubes', $values, 'POST');
     }
 
     /**
@@ -718,16 +594,7 @@ class KuberDock_Api {
      */
     public function updateKube($id, $values)
     {
-        $this->url = $this->serverUrl . '/api/pricing/kubes/' . $id;
-        $params = http_build_query($values);
-        $response = $this->call($values, 'PUT');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/pricing/kubes/' . $id, $values, 'PUT');
     }
 
     /**
@@ -737,15 +604,7 @@ class KuberDock_Api {
      */
     public function deleteKube($id)
     {
-        $this->url = $this->serverUrl . '/api/pricing/kubes/' . $id;
-        $response = $this->call(array(), 'DELETE');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/pricing/kubes/' . $id, 'DELETE');
     }
 
     /**
@@ -755,17 +614,9 @@ class KuberDock_Api {
      */
     public function getPackages($withKubes = false)
     {
-        $this->url = $this->serverUrl . '/api/pricing/packages';
-        $response = $this->call(array(
+        return $this->makeCall('/api/pricing/packages', array(
             'with_kubes' => $withKubes,
-        ), 'GET');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        ));
     }
 
     /**
@@ -776,21 +627,13 @@ class KuberDock_Api {
      */
     public function getPackageById($id, $withKubes = false)
     {
-        $this->url = $this->serverUrl . '/api/pricing/packages/' . $id;
-        $response = $this->call(array(
+        return $this->makeCall('/api/pricing/packages/' . $id, array(
             'with_kubes' => $withKubes,
-        ), 'GET');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        ));
     }
 
     /**
-     * @param name $name
+     * @param string $name
      * @return array|bool
      * @throws Exception
      */
@@ -798,8 +641,8 @@ class KuberDock_Api {
     {
         $packages = $this->getPackages()->getData();
 
-        foreach($packages as $row) {
-            if($row['name'] == $name) {
+        foreach ($packages as $row) {
+            if ($row['name'] == $name) {
                 return $row;
             }
         }
@@ -814,15 +657,7 @@ class KuberDock_Api {
      */
     public function createPackage($values)
     {
-        $this->url = $this->serverUrl . '/api/pricing/packages';
-        $response = $this->call($values, 'POST');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new CException($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/pricing/packages', $values, 'POST');
     }
 
     /**
@@ -833,15 +668,7 @@ class KuberDock_Api {
      */
     public function updatePackage($id, $values)
     {
-        $this->url = $this->serverUrl . '/api/pricing/packages/' . $id;
-        $response = $this->call($values, 'PUT');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/pricing/packages/' . $id, $values, 'PUT');
     }
 
     /**
@@ -851,50 +678,7 @@ class KuberDock_Api {
      */
     public function deletePackage($id)
     {
-        $this->url = $this->serverUrl . '/api/pricing/packages/' . $id;
-        $response = $this->call(array(), 'DELETE');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
-    }
-
-    /**
-     * @param $values
-     * @return KuberDock_ApiResponse
-     * @throws Exception
-     */
-    public function setKubeWeight($values)
-    {
-        $this->url = $this->serverUrl . '/api/set-kube/weight';
-        $response = $this->call($values, 'POST');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
-    }
-
-    /**
-     * @return KuberDock_ApiResponse
-     * @throws Exception
-     */
-    public function getUserRoles()
-    {
-        $this->url = $this->serverUrl . '/api/users/roles';
-        $response = $this->call();
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/pricing/packages/' . $id, 'DELETE');
     }
 
     /**
@@ -904,17 +688,9 @@ class KuberDock_Api {
      */
     public function createPodFromYaml($yaml)
     {
-        $this->url = $this->serverUrl . '/api/yamlapi';
-        $response = $this->call(array(
+        return $this->makeCall('/api/yamlapi', array(
             'data' => $yaml,
         ), 'POST');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
     }
 
     /**
@@ -923,15 +699,7 @@ class KuberDock_Api {
      */
     public function getPods()
     {
-        $this->url = $this->serverUrl . '/api/podapi';
-        $response = $this->call(array(), 'GET');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/podapi');
     }
 
     /**
@@ -940,15 +708,7 @@ class KuberDock_Api {
      */
     public function getPod($id)
     {
-        $response = $this->getPods();
-
-        foreach($response->getData() as $row) {
-            if($row['id'] == $id) {
-                return $row;
-            }
-        }
-
-        return false;
+        return $this->makeCall('/api/podapi/' . $id)->getData();
     }
 
     /**
@@ -958,17 +718,9 @@ class KuberDock_Api {
      */
     public function startPod($podId)
     {
-        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
-        $response = $this->call(array(
+        return $this->makeCall('/api/podapi/' . $podId, array(
             'command' => 'start',
         ), 'PUT');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
     }
 
     /**
@@ -978,17 +730,9 @@ class KuberDock_Api {
      */
     public function stopPod($podId)
     {
-        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
-        $response = $this->call(array(
+        return $this->makeCall('/api/podapi/' . $podId, array(
             'command' => 'stop',
         ), 'PUT');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
     }
 
     /**
@@ -1001,15 +745,8 @@ class KuberDock_Api {
     {
         $data['command'] = 'set';
         $data['commandOptions'] = $attributes;
-        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
-        $response = $this->call($data, 'PUT');
 
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/podapi/' . $podId, $data, 'PUT');
     }
 
     /**
@@ -1020,16 +757,9 @@ class KuberDock_Api {
      */
     public function redeployPod($podId, $attributes)
     {
-        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
         $attributes['command'] = 'redeploy';
-        $response = $this->call($attributes, 'PUT');
 
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/podapi/' . $podId, $attributes, 'PUT');
     }
 
     /**
@@ -1051,16 +781,7 @@ class KuberDock_Api {
         $attributes['command'] = 'start';
         $attributes['commandOptions']['applyEdit'] = true;
 
-        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
-
-        $response = $this->call($attributes, 'PUT');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/podapi/' . $podId, $attributes, 'PUT');
     }
 
     /**
@@ -1069,15 +790,7 @@ class KuberDock_Api {
      */
     public function getNodes()
     {
-        $this->url = $this->serverUrl . '/api/nodes';
-        $response = $this->call(array(), 'GET');
-
-        if(!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/nodes');
     }
 
     /**
@@ -1111,7 +824,7 @@ class KuberDock_Api {
      */
     private function logError($error)
     {
-        if($this->debug) {
+        if ($this->debug) {
             $this->log($error);
         }
     }
@@ -1121,9 +834,41 @@ class KuberDock_Api {
      */
     private function log($message = '')
     {
-        if(function_exists('logModuleCall')) {
+        if (function_exists('logModuleCall')) {
             logModuleCall(KUBERDOCK_MODULE_NAME, strtoupper($this->requestType).': '.$this->url,
                 print_r($this->arguments, true), '', $message, array($this->username, $this->password));
         }
+    }
+
+    /**
+     * @param $response
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    private function parseResponse($response)
+    {
+        $this->response = new KuberDock_ApiResponse();
+        $this->response->raw = $response;
+
+        if ($this->dataType == self::DATA_TYPE_JSON) {
+            $this->response->parsed = json_decode($response, true);
+        } elseif ($this->dataType == self::DATA_TYPE_PLAIN) {
+            if (preg_match_all('/(.+)/m', $response, $match)) {
+                foreach ($match[1] as $row) {
+                    list($key, $value) = explode(':', $row);
+                    $this->response->parsed[$key] = $value;
+                }
+            } else {
+                $error = 'Unable to parse plain data';
+                $this->logError($error);
+                throw new Exception($error);
+            }
+        } else {
+            $error = 'Unknown API data type';
+            $this->logError($error);
+            throw new Exception($error);
+        }
+
+        return $this->response;
     }
 }

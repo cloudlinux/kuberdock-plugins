@@ -32,11 +32,6 @@ class KuberDock_Addon_Kube_Template extends CL_Model
     public function createKube() {
         $api = $this->getApi();
         $kubeName = $this->getKubeName();
-        $addonProduct = KuberDock_Addon_Product::model()->loadById($this->product_id);
-
-        if($addonProduct) {
-            $this->setAttributes($addonProduct->getAttributes());
-        }
 
         $attributes = array(
             'name' => $kubeName,
@@ -48,28 +43,9 @@ class KuberDock_Addon_Kube_Template extends CL_Model
             'included_traffic' => 0, // AC-3783: (int) $this->traffic_limit
         );
 
-        try {
-            $response = $api->createKube($attributes);
-            $data = $response->getData();
-            $this->kuber_kube_id = $data['id'];
-        } catch(ExistException $e) {
-            $kube = $api->getKubesByName($kubeName);
-            $existingKube = $this->loadByAttributes(array(
-                'server_id' => $this->server_id,
-                'kuber_kube_id' => $kube['id'],
-            ), 'product_id IS NULL AND kuber_product_id IS NULL');
-
-            if($existingKube) {
-                throw new CException(sprintf('Kube "%s" already exists', $this->kube_name));
-            }
-
-            if(!$kube) {
-                throw new CException(sprintf('Kube "%s" not found in KuberDock', $this->kube_name));
-            }
-
-            $this->kube_name = $kube['name'];
-            $this->kuber_kube_id = $kube['id'];
-        }
+        $response = $api->createKube($attributes);
+        $data = $response->getData();
+        $this->kuber_kube_id = $data['id'];
 
         return true;
     }
