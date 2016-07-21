@@ -8,7 +8,7 @@ License: CloudLinux Commercial License
 URL: http://www.cloudlinux.com
 Source0: %{name}-%{version}.tar.bz2
 
-Requires: kuberdock-cli >= 1.0-1
+Requires: kuberdock-cli >= 1.0-4
 
 AutoReq: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
