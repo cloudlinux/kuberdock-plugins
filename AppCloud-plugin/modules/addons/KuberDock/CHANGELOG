@@ -1,9 +1,10 @@
 * 1.0.7.3
+- AC-3513 WHMCS. Bugfix: when all IP occupied, error not displayed
 - WHMCS. Bugfix: several public ips billed in one pod
 - WHMCS. Bugfix: $log caused an error
 - WHMSC. Bugfix: module settings mixed
-- AC-3783 - Hide traffic input for packages and kube type settings
-- AC-3710 - Remove hourly package for fixed price
+- AC-3783 WHMCS. Hide traffic input for packages and kube type settings
+- AC-3710 WHMCS. Remove hourly package for fixed price
 
 * 1.0.7.2
 - AC-3708 - A credit is getting added to any new order

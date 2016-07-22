@@ -58,10 +58,17 @@ fi
 
 %changelog
 
-* Tue Jul 12 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.1-1
+* Fri Jul 22 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.1-1
+- AC-3871 Plugin > User panel > Endless preloader when default kube settings
+- Hosting panels. Rised required kcli version to 1.0-4
 - cPanel. Bugfix: deleting kubecli.conf when saving apps
 - AC-2935 - Plesk. Admin page. Design. Styles
 - AC-3473 - Hosting admin: Registry by default
+- AC-3640 - Create yaml validation for cPanel
+- AC-3639 - Create yaml validation for Plesk
+- Plesk. Text changes. Hosting panel. Fixed edit link
+- AC-3450 cPanel. PA icons that no exist, are displayed in the list of available applications.
+- Hosting panels. Use token2 for SSE translator
 
 * Mon Jun 13 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.1-0
 - Hosting panels. Fixed availbale kubes, user creation
