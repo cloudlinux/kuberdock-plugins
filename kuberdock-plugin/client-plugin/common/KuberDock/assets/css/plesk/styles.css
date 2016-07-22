@@ -651,6 +651,22 @@ p {
     background: #fff;
     padding: 2px;
 }
+.image-search,
+#main_content .form-control,
+#main_content input[type="text"].form-control{
+    padding: 6px 12px;
+    height: 34px;
+}
+.btn{
+    border-radius: 0;
+}
+.btn-group-sm>.btn, .btn-sm{
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+    box-shadow: 0 2px 5px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12);
+}
 
 .table > tbody > tr > td {
     vertical-align: middle;
