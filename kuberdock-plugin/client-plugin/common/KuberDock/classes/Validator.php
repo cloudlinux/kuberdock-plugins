@@ -35,6 +35,11 @@ class Validator
         return implode('<br>', $this->errors);
     }
 
+    public function getErrorsAsArray()
+    {
+        return $this->errors;
+    }
+
     private function minAction($field, $value, $mustBe)
     {
         if ((strlen($value) < $mustBe)) {
@@ -61,6 +66,14 @@ class Validator
         $validSymbols = array('-', '_', ' ');
         if(!ctype_alnum(str_replace($validSymbols, '', $value))) {
             throw new \Exception(sprintf('Only alphanum characters, minus and underscore allowed in "%s"', $field));
+        }
+    }
+
+    private function alphaAction($field, $value, $mustBe)
+    {
+        $validSymbols = array('-', '_', ' ');
+        if(!ctype_alpha(str_replace($validSymbols, '', $value))) {
+            throw new \Exception(sprintf('Only alphabetic characters, minus and underscore allowed in "%s"', $field));
         }
     }
 }

@@ -1,0 +1,20 @@
+<div id="default-app-setting" class="container-fluid top-offset">
+    <div class="row">
+        <form method="post">
+            <input type="hidden" name="tab" value="defaults">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="packageId">Default package</label>
+                    <select name="packageId" id="packageId"></select>
+                </div>
+                <div class="form-group" class="kube-count-div">
+                    <label for="kubeType">Default Kube Type</label>
+                    <select name="kubeType" id="kubeType"></select>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <button type="submit" class="btn btn-primary save-defaults">Save</button>
+            </div>
+        </form>
+    </div>
+</div>

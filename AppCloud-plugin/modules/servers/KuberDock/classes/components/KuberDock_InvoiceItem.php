@@ -13,7 +13,6 @@ class KuberDock_InvoiceItem
     private $description;
     private $price;
     private $qty;
-    private $currency;
 
     public function __construct($description, $price, $units, $qty)
     {
@@ -21,8 +20,6 @@ class KuberDock_InvoiceItem
         $this->price = $price;
         $this->units = $units;
         $this->qty = $qty;
-
-        $this->currency = CL_Currency::model()->getDefaultCurrency();
     }
 
     public static function create($description, $price, $units = null, $qty = 1)
@@ -58,14 +55,16 @@ class KuberDock_InvoiceItem
 
     public function getHtml($number)
     {
+        $currency = CL_Currency::model()->getDefaultCurrency();
+
         return '
             <tr bgcolor="#fff">
                 <td align="center">' . $number . '</td>
                 <td align="left">'   . $this->getDescription() . '</td>
                 <td align="center">' . $this->qty . '</td>
                 <td align="center">' . $this->units . '</td>
-                <td align="center">' . $this->currency->getFullPrice($this->price) . '</td>
-                <td align="center">' . $this->currency->getFullPrice($this->getTotal()) . '</td>
+                <td align="center">' . $currency->getFullPrice($this->price) . '</td>
+                <td align="center">' . $currency->getFullPrice($this->getTotal()) . '</td>
             </tr>
         ';
     }

@@ -2,6 +2,7 @@
 
 namespace Kuberdock\classes\components;
 
+use Kuberdock\classes\exceptions\YamlValidationException;
 use Kuberdock\classes\extensions\yaml\Spyc;
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\exceptions\CException;
@@ -319,6 +320,11 @@ class KuberDock_Api {
         return $this->apiCall('api/pricing/packages/' . $packageId . '/kubes');
     }
 
+    public function validateTemplate($template)
+    {
+        return $this->apiCall('/api/predefined-apps/validate-template', array('template' => $template), 'POST');
+    }
+
     /**
      * @param array $params
      * @param string $type
@@ -390,6 +396,8 @@ class KuberDock_Api {
                                 , $responseData, $responseData));
                     } elseif ($responseData == 'Without billing') {
                         throw new WithoutBillingException();
+                    } else if (isset($this->response->parsed['type']) && $this->response->parsed['type']=='ValidationError') {
+                        throw new YamlValidationException($this->response->parsed['data']);
                     } else {
                         throw new CException($responseData);
                     }

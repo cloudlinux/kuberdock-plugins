@@ -1,8 +1,15 @@
 <html>
     <body onload="redirect()">
-        <form id="redirect" method="post" action="<?php echo $serverLink . '/#pods/' . $podId?>">
+        <form id="redirect" method="post" action="<?php echo $action?>">
             <input type="hidden" name="token" value="<?php echo $token?>">
-            <input type="hidden" name="postDescription" value="<?php echo $postDescription?>">
+
+            <?php if (isset($postDescription)) : ?>
+                <input type="hidden" name="postDescription" value="<?php echo $postDescription?>">
+            <?php endif; ?>
+
+            <?php if (isset($error)) : ?>
+                    <input type="hidden" name="error" value="<?php echo $error?>">
+            <?php endif; ?>
         </form>
 
         <script>

@@ -1,11 +1,13 @@
+var editor = null;
+
 jQuery(function () {
     'use strict';
 
     jQuery.validate();
 
-    var editor = CodeMirror.fromTextArea(document.getElementById('template'), {
+    editor = CodeMirror.fromTextArea(document.getElementById('template'), {
         mode: "yaml",
-        lineNumbers: false,
+        lineNumbers: true,
         lineWrapping: true
     });
 
@@ -43,4 +45,33 @@ jQuery(function () {
         }
     }).prop('disabled', !jQuery.support.fileInput)
         .parent().addClass(jQuery.support.fileInput ? undefined : 'disabled');
+
+    jQuery('#button-confirm').on('click', function (e) {
+        jQuery('form').data('submit', true).trigger('submit');
+    })
 });
+
+
+function validate_form()
+{
+    if (jQuery('form').data('submit')) {
+        return true;
+    }
+
+    jQuery.ajax({
+        url: '/modules/KuberDock/index.php/admin/validate-yaml',
+        type: 'POST',
+        data: {
+            'template': editor.getDoc().getValue()
+        },
+        dataType: 'json'
+    }).done(function(data) {
+        if (data.errors) {
+            jQuery('#validationConfirm').modal('show').find('.modal-body').html(data.errors);
+        } else {
+            jQuery('form').data('submit', true).trigger('submit');
+        }
+    });
+
+    return false;
+}

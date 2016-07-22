@@ -17,10 +17,12 @@
         <thead>
         <tr class="active sorted">
             <th class="col-md-3">Kube type (id)</th>
-            <th class="col-md-2">CPU limit (<?php echo \components\KuberDock_Units::getCPUUnits()?>)</th>
+            <th class="col-md-3">CPU limit (<?php echo \components\KuberDock_Units::getCPUUnits()?>)</th>
             <th class="col-md-3">Memory limit (<?php echo \components\KuberDock_Units::getMemoryUnits()?>)</th>
             <th class="col-md-2">HDD limit (<?php echo \components\KuberDock_Units::getHDDUnits()?>)</th>
+            <?php /* AC-3783
             <th class="col-md-1">Traffic limit (<?php echo \components\KuberDock_Units::getTrafficUnits()?>)</th>
+            */ ?>
             <th class="col-md-1"></th>
         </tr>
         </thead>

@@ -4,6 +4,8 @@ namespace Kuberdock\classes\models;
 
 class KubeCli
 {
+    const DEFAULT_REGISTRY = 'registry.hub.docker.com';
+
     private $fileManager;
     private $rootPath;
 
@@ -27,7 +29,7 @@ class KubeCli
 
         return array(
             'url' => $this->getKey($contentRoot, 'url'),
-            'registry' => $this->getKey($contentRoot, 'registry'),
+            'registry' => $this->getKey($contentRoot, 'registry') ?: self::DEFAULT_REGISTRY,
             'user' => $this->getKey($contentRoot, 'user'),
             'password' => $this->getKey($contentRoot, 'password'),
             'token' => $this->getKey($contentRoot, 'token'),
@@ -44,6 +46,11 @@ class KubeCli
 
         $renderRoot = $view->renderPartial('admin/template_root', $data, false);
         $this->saveFile($this->rootPath, $renderRoot, 0600);
+    }
+
+    public function getRootPath()
+    {
+        return $this->rootPath;
     }
 
     private function getKey($content, $key)

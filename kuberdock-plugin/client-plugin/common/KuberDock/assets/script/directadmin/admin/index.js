@@ -61,4 +61,16 @@ $(document).ready(function() {
     $('a[data-toggle="tab"]').on('click', function (e) {
         location.hash = $(this).attr('href');
     });
+
+    if (typeof(Storage) !== "undefined") {
+        var messages = localStorage.getItem("flash");
+        if (messages) {
+            localStorage.setItem("flash", "");
+            messages = $.parseJSON(messages);
+
+            $.each(messages, function (key, value) {
+                $('#admin-plugin').prepend('<div role="alert" class="alert alert-'+value+'">'+key+'</div>');
+            });
+        }
+    }
 });

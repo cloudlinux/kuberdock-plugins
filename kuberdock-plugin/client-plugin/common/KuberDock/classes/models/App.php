@@ -3,7 +3,6 @@
 namespace Kuberdock\classes\models;
 
 use Kuberdock\classes\components\KuberDock_Api;
-use Kuberdock\classes\Tools;
 
 class App
 {
@@ -42,29 +41,52 @@ class App
     {
         $templates = $this->api->getTemplates($this->panelName);
 
-        // todo: repair paths
-//        $updateActionPath = \pm_Context::getActionUrl('admin', 'application');
-//        $deleteActionPath = \pm_Context::getActionUrl('admin', 'delete');
-        $updateActionPath = '';
-        $deleteActionPath = '';
-
         $data = array();
-        $index = 1;
+        $index = 0;
         foreach ($templates as $template) {
-            $updateButton = '<a href="' . $updateActionPath . '?id=' . $template['id'] . '" class="btn">Update</a>';
-            $deleteButton = '<a href="' . $deleteActionPath
-                . '" data-id="'  . $template['id']
-                . '" data-name="'  . $template['name']
-                . '" class="btn btn_delete">Delete</a>';
-
             $data[] = array(
-                'id' => $index,
+                'index' => ++$index,
+                'id' => $template['id'],
                 'name' => $template['name'],
-                'actions' => $updateButton . $deleteButton,
+                'actions' => $this->getActions($template),
             );
-            $index++;
         }
 
         return $data;
+    }
+
+    private function getUpdateActionPath($template)
+    {
+        switch ($this->panelName) {
+            case 'plesk':
+                return \pm_Context::getActionUrl('admin', 'application') . '?id=' . $template['id'];
+            case 'directadmin':
+                return '?a=app&id=' . $template['id'];
+        }
+    }
+
+    private function getDeleteActionPath($template)
+    {
+        switch ($this->panelName) {
+            case 'plesk':
+                return \pm_Context::getActionUrl('admin', 'delete') . '?id=' . $template['id'];
+            case 'directadmin':
+                return '?a=appDelete&id=' . $template['id'];
+        }
+    }
+
+    private function getActions($template)
+    {
+        return '
+            <a href="' . $this->getUpdateActionPath($template) . '">
+                <button type="button" class="btn btn-primary btn-xs" title="Update">
+                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>Update
+                </button>
+            </a> <a href="' . $this->getDeleteActionPath($template) . '" data-id="' . $template['id']
+                    . '" data-name="' . $template['name'] . '">
+                <button type="button" class="btn btn-danger btn-xs" title="Delete">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>Delete
+                </button>
+            </a>';
     }
 }

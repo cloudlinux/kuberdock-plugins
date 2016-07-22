@@ -59,10 +59,17 @@ $(document).ready(function() {
         var billingType = $('input[name="packageconfigoption[9]"]:checked'),
             firstDeposit = $('input[type=text][name="packageconfigoption[8]"]');
 
+        var paymentType = $('select[name="packageconfigoption[3]"]');
+        var hourly = paymentType.find('option[value="hourly"]');
+
         if (billingType.val() == 'PAYG') {
             firstDeposit.prop('disabled', false);
+            if (typeof hourly.val()=='undefined') {
+                paymentType.append($('<option>', {value:'hourly', text:'hourly'}));
+            }
         } else {
             firstDeposit.prop('disabled', true).val('');
+            hourly.remove();
         }
     };
 
@@ -117,8 +124,9 @@ $(document).ready(function() {
         var pricePsSpan = $('input[name="packageconfigoption[6]"] + span');
         pricePsSpan.text('per ' + pricePsSpan.data('unit') + '/' + paymentType);
 
-        var priceTrafficSpan = $('input[name="packageconfigoption[7]"] + span');
-        priceTrafficSpan.text('per ' + priceTrafficSpan.data('unit') + '/' + paymentType);
+        // AC-3783
+        // var priceTrafficSpan = $('input[name="packageconfigoption[7]"] + span');
+        // priceTrafficSpan.text('per ' + priceTrafficSpan.data('unit') + '/' + paymentType);
     };
 
     $(document).on('change', 'select[name="packageconfigoption[3]"]', function() {

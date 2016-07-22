@@ -133,7 +133,7 @@ class KuberDock_AddonController extends CL_Controller {
                     'cpu' => 'CPU limit',
                     'memory' => 'Memory limit',
                     'disk_space' => 'HDD limit',
-                    'traffic_limit' => 'Traffic limit',
+                    // 'traffic_limit' => 'Traffic limit', // AC-3783
                 );
                 $this->error = str_replace(array_keys($replace), array_values($replace), $e->getMessage());
             }

@@ -262,6 +262,7 @@ abstract class KuberDock_Panel
             'package' => $package,
             'email' => $this->getUser() . '@' . $this->getDomain(),
         );
+
         try {
             $user = $this->getAdminApi()->getUser($this->getUser())->getData();
             throw new CException('User already exists');

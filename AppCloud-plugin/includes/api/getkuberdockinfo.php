@@ -38,10 +38,16 @@ try {
         }
 
         $model = KuberDock_Hosting::model()->loadByParams($row);
+        $token = $model->getToken();
+
+        if (!$token) {
+            continue;
+        }
+
         $userService = array(
             'id' => $model->id,
             'product_id' => $model->packageid,
-            'token' => $model->getToken(),
+            'token' => $token,
             'domainstatus' => $model->domainstatus,
             'orderid' => $model->orderid,
         );

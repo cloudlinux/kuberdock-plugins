@@ -57,12 +57,14 @@ try {
         'status' => $invoice->status,
         'invoice_id' => $invoice->id,
     );
-    if (!$invoice->isPayed()) {
+
+    if ($invoice->isPayed()) {
+        $service->getAdminApi()->applyEdit($pod['id'], $pod['status']);
+    } else {
         $results['redirect'] = \base\CL_Tools::generateAutoAuthLink('viewinvoice.php?id=' . $invoice->id, $user->email);
     }
 
     $apiresults = array('result' => 'success', 'results' => $results);
 } catch (Exception $e) {
-    $log($e->getMessage());
     $apiresults = array('result' => 'error', 'message' => $e->getMessage());
 }

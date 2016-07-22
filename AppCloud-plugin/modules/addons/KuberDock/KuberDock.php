@@ -10,7 +10,7 @@ function KuberDock_config()
     return array (
         'name' => 'KuberDock addon',
         'description' => '',
-        'version' => '1.0.7.2',
+        'version' => '1.0.7.3',
         'author' => '<a href="http://www.cloudlinux.com" targer="_blank">CloudLinux</a>',
         'fields' => array(),
     );

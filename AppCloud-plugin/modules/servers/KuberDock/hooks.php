@@ -430,17 +430,19 @@ function KuberDock_ClientAreaPage($params)
                 );
             }
 
-            if ((float) $product->getConfigOption('priceOverTraffic')) {
-                $customFields[] = array(
-                    'input' => '',
-                    'name' => 'Additional Traffic',
-                    'description' => $currency->getFullPrice($product->getConfigOption('priceOverTraffic'))
-                        . ' / 1 ' . KuberDock_Units::getTrafficUnits(),
-                );
-            }
+//            AC-3783
+//            if ((float) $product->getConfigOption('priceOverTraffic')) {
+//                $customFields[] = array(
+//                    'input' => '',
+//                    'name' => 'Additional Traffic',
+//                    'description' => $currency->getFullPrice($product->getConfigOption('priceOverTraffic'))
+//                        . ' / 1 ' . KuberDock_Units::getTrafficUnits(),
+//                );
+//            }
             $values['customfields'] = array_merge($values['customfields'], $customFields);
 
-            $desc = 'Per Kube - %s, CPU - %s, Memory - %s %s, HDD - %s %s, Traffic - %s %s';
+            $desc = 'Per Kube - %s, CPU - %s, Memory - %s %s, HDD - %s %s';
+//            $desc = 'Per Kube - %s, CPU - %s, Memory - %s %s, HDD - %s %s, Traffic - %s %s'; // AC-3783
             $resources = false;
 
             foreach($kubes as $kube) {
@@ -459,8 +461,8 @@ function KuberDock_ClientAreaPage($params)
                         KuberDock_Units::getMemoryUnits(),
                         $kube['hdd_limit'],
                         KuberDock_Units::getHDDUnits(),
-                        $kube['traffic_limit'],
-                        KuberDock_Units::getTrafficUnits(),
+//                        $kube['traffic_limit'], // AC-3783
+//                        KuberDock_Units::getTrafficUnits(), // AC-3783
                     )),
                 );
             }
@@ -590,8 +592,17 @@ function KuberDock_InvoicePaid($params)
                 $billableItem->save();
 
                 $service = KuberDock_Hosting::model()->loadByParams(current($data));
+
                 $params = json_decode($invoice->invoiceitems['notes'], true);
-                $service->getAdminApi()->redeployPod($params['id'], $params);
+                if (isset($params['containers'])) {
+                    // upgrade pod
+                    $service->getAdminApi()->redeployPod($params['id'], $params);
+                } else {
+                    // edit pod
+                    $pod = $service->getApi()->getPod($params['id']);
+                    $service->getAdminApi()->applyEdit($params['id'], $pod['status']);
+                }
+
                 // Update app
                 $data = KuberDock_Addon_Items::model()->loadByAttributes(array(
                     'billable_item_id' => $billableItem->id

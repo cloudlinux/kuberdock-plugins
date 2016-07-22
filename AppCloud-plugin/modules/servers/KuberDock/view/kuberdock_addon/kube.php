@@ -3,10 +3,12 @@
         <strong><?php echo $kube['kube_name'];?> (<?php echo $kube['kuber_kube_id'];?>)</strong>
         <span class="pricing pull-right">$ Pricing settings</span>
     </td>
-    <td class="col-md-2"><?php echo (float) number_format($kube['cpu_limit'], 2)?></td>
+    <td class="col-md-3"><?php echo (float) number_format($kube['cpu_limit'], 2)?></td>
     <td class="col-md-3"><?php echo $kube['memory_limit']?></td>
-    <td class="col-md-2"><?php echo $kube['hdd_limit']?></td>
+    <td class="col-md-3"><?php echo $kube['hdd_limit']?></td>
+    <?php /* AC-3783
     <td class="col-md-2"><?php echo $kube['traffic_limit']?></td>
+    */ ?>
     <td>
         <button type="button" class="btn btn-default btn-xs kube-delete<?php echo $kube['deletable']? '' : ' hidden'?>"
                 data-kube-id="<?php echo $kube['id']?>">

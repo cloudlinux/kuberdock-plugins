@@ -199,4 +199,19 @@ class CL_Tools extends CL_Component {
 
         return strtolower(implode($pass));
     }
+
+    public static function log($value)
+    {
+        if (!KUBERDOCK_DEBUG) {
+            return;
+        }
+
+        $hl = fopen('/tmp/whmcs.log', 'a');
+        ob_start();
+        var_dump($value);
+        $content = ob_get_contents();
+        ob_end_clean();
+        fwrite($hl, $content);
+        fclose($hl);
+    }
 } 

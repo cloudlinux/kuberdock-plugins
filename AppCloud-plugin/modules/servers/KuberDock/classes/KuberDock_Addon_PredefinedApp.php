@@ -421,19 +421,25 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         $kubeType = isset($data->kube_type) ? $data->kube_type : 0;
         $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
 
+        $ips = array();
         foreach($data->containers as $row) {
             if(isset($row->kubes)) {
-                $items[] = KuberDock_InvoiceItem::create('Pod: ' . $data->name, $kubePrice, 'pod', $row->kubes);
+                $description = 'Pod: ' . $data->name . ' (' . $row->image . ')';
+                $items[] = KuberDock_InvoiceItem::create($description, $kubePrice, 'pod', $row->kubes);
             }
 
             if(isset($row->ports)) {
                 foreach($row->ports as $port) {
                     if(isset($port->isPublic) && $port->isPublic) {
-                        $ipPrice = (float) $product->getConfigOption('priceIP');
-                        $items[] = KuberDock_InvoiceItem::create('IP: ' . $data->public_ip, $ipPrice, 'IP');
+                        $ips[$data->public_ip] = true;
                     }
                 }
             }
+        }
+
+        $ipPrice = (float) $product->getConfigOption('priceIP');
+        foreach ($ips as $ip => $true) {
+            $items[] = KuberDock_InvoiceItem::create('IP: ' . $ip, $ipPrice, 'IP');
         }
 
         if(isset($data->volumes)) {
@@ -479,9 +485,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
             }
             $pod = $this->create($service->id, 'unpaid');
         } catch (Exception $e) {
-            throw $e;
-            // TODO: uncomment
-            //$product->jsRedirect($this->referer . '&error=' . urlencode($e->getMessage()));
+            $product->jsRedirect($this->referer . '&error=' . urlencode($e->getMessage()));
         }
 
         $item = $product->addBillableApp($this->user_id, $this, $paid);
@@ -534,9 +538,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
             $this->save();
             $product->startPodAndRedirect($service->id, $pod['id'], true);
         } catch (Exception $e) {
-            throw $e;
-            // TODO: uncomment
-            //$product->jsRedirect($this->referer . '&error=' . urlencode($e->getMessage()));
+            $product->jsRedirect($this->referer . '&error=' . urlencode($e->getMessage()));
         }
     }
 } 

@@ -247,7 +247,7 @@ class CL_Invoice extends CL_Model {
      */
     public function isUpdateKubesInvoice()
     {
-        return stripos($this->invoiceitems['description'], \KuberDock_Pod::UPDATE_KUBES_DESCRIPTION) !== false;
+        return stripos($this->invoiceitems['description'], \KuberDock_Pod::UPDATE_KUBES_DESCRIPTION) === 0;
     }
 
     /**

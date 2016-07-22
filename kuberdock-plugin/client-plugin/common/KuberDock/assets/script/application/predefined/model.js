@@ -121,9 +121,11 @@ define(['backbone', 'application/utils', 'application/pods/model'], function (Ba
 
         getKube: function (planKey) {
             var plan = this.getPlan(planKey);
-
             // TODO: fix it for few pods
-            return Utils.getKube(this.getPackageId(), plan.pods[0].kubeType);
+            var kubeType = plan.pods[0].kubeType === undefined
+                ? packageDefaults.kubeType : plan.pods[0].kubeType;
+
+            return Utils.getKube(this.getPackageId(), kubeType);
         },
 
         getTotalPrice: function (planKey) {
@@ -147,7 +149,8 @@ define(['backbone', 'application/utils', 'application/pods/model'], function (Ba
         },
 
         getPackageId: function () {
-            return this.getKDSection().packageID;
+            var packageId = this.getKDSection().packageID;
+            return packageId === undefined ? packageDefaults.packageId : packageId;
         },
 
         getPackage: function () {

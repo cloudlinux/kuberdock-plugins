@@ -64,15 +64,18 @@ class KuberDock_Product extends CL_Product {
     public function getConfig()
     {
         $psUnit = KuberDock_Units::getPSUnits();
-        $trafficUnit = KuberDock_Units::getTrafficUnits();
+//        $trafficUnit = KuberDock_Units::getTrafficUnits(); // AC-3783
 
         $config = array(
             'enableTrial' => array(
+                'Number' => 1, // not used. Just to remember, that list order must not be changed,
+                               // in db this options are stored in tblproducts.configoption{Number}
                 'FriendlyName' => 'Trial package',
                 'Type' => 'yesno',
                 'Description' => '&nbsp;',
             ),
             'trialTime' => array(
+                'Number' => 2,
                 'FriendlyName' => 'User Free Trial period',
                 'Type' => 'text',
                 'Size' => '10',
@@ -80,6 +83,7 @@ class KuberDock_Product extends CL_Product {
                 'Description' => 'Days',
             ),
             'paymentType' => array(
+                'Number' => 3,
                 'FriendlyName' => 'Service payment type',
                 'Type' => 'dropdown',
                 'Options' => implode(',', $this->getPaymentTypes()),
@@ -87,12 +91,14 @@ class KuberDock_Product extends CL_Product {
                 'Description' => '',
             ),
             'debug' => array(
+                'Number' => 4,
                 'FriendlyName' => 'Debug Mode',
                 'Type' => 'yesno',
                 'Default' => 'yes',
                 'Description' => 'Logs on "Module Log"',
             ),
             'priceIP' => array(
+                'Number' => 5,
                 'FriendlyName' => 'Price for IP',
                 'Type' => 'text',
                 'Size' => '10',
@@ -100,6 +106,7 @@ class KuberDock_Product extends CL_Product {
                 'Description' => '<span>per IP/hour</span>',
             ),
             'pricePersistentStorage' => array(
+                'Number' => 6,
                 'FriendlyName' => 'Price for persistent storage',
                 'Type' => 'text',
                 'Size' => '10',
@@ -107,13 +114,17 @@ class KuberDock_Product extends CL_Product {
                 'Description' => '<span data-unit="' . $psUnit . '">per ' . $psUnit . '/hour</span>',
             ),
             'priceOverTraffic' => array(
-                'FriendlyName' => 'Price for additional traffic',
-                'Type' => 'text',
-                'Size' => '10',
-                'Default' => '0',
-                'Description' => '<span data-unit="' . $trafficUnit . '">per ' . $trafficUnit . '/hour</span>',
+                'Number' => 7,
+                'FriendlyName' => ' ',
+//            AC-3783
+//                'FriendlyName' => 'Price for additional traffic',
+//                'Type' => 'text',
+//                'Size' => '10',
+//                'Default' => '0',
+//                'Description' => '<span data-unit="' . $trafficUnit . '">per ' . $trafficUnit . '/hour</span>',
             ),
             'firstDeposit' => array(
+                'Number' => 8,
                 'FriendlyName' => 'First Deposit',
                 'Type' => 'text',
                 'Size' => '10',
@@ -121,6 +132,7 @@ class KuberDock_Product extends CL_Product {
                 'Description' => '',
             ),
             'billingType' => array(
+                'Number' => 9,
                 'FriendlyName' => 'Billing type',
                 'Type' => 'radio',
                 'Options' => 'PAYG,Fixed price',
@@ -128,6 +140,7 @@ class KuberDock_Product extends CL_Product {
                 'Description' => '',
             ),
             'restrictedUser' => array(
+                'Number' => 10,
                 'FriendlyName' => 'Restricted users',
                 'Type' => 'yesno',
                 'Description' => '',
@@ -353,21 +366,23 @@ class KuberDock_Product extends CL_Product {
             $description['Persistent Storage'] = $this->formatFeature($pricePS, '1 ' . KuberDock_Units::getHDDUnits());
         }
 
-        if (0 != $priceOT = (float) $this->getConfigOption('priceOverTraffic')) {
-            $description['Additional Traffic'] = $this->formatFeature($priceOT, '1 ' . KuberDock_Units::getTrafficUnits());
-        }
+//        AC-3783
+//        if (0 != $priceOT = (float) $this->getConfigOption('priceOverTraffic')) {
+//            $description['Additional Traffic'] = $this->formatFeature($priceOT, '1 ' . KuberDock_Units::getTrafficUnits());
+//        }
 
         foreach($this->getKubes() as $kube) {
             if (!$kube['kube_price']) continue;
             $description['Kube '.$kube['kube_name']] = vsprintf(
-                '<strong>%s / %s</strong><br/><em>CPU %s, Memory %s, <br/>Disk Usage %s, Traffic %s</em>',
+                '<strong>%s / %s</strong><br/><em>CPU %s, Memory %s, <br/>Disk Usage %s</em>',
+//                '<strong>%s / %s</strong><br/><em>CPU %s, Memory %s, <br/>Disk Usage %s, Traffic %s</em>', // AC-3783
                 array(
                     $currency->getFullPrice($kube['kube_price']),
                     $this->getReadablePaymentType(),
                     number_format($kube['cpu_limit'], 2) . ' '.KuberDock_Units::getCPUUnits(),
                     $kube['memory_limit'].' '.KuberDock_Units::getMemoryUnits(),
                     $kube['hdd_limit'].' '.KuberDock_Units::getHDDUnits(),
-                    $kube['traffic_limit'].' '.KuberDock_Units::getTrafficUnits()
+//                    $kube['traffic_limit'].' '.KuberDock_Units::getTrafficUnits() // AC-3783
                 )
             );
         }

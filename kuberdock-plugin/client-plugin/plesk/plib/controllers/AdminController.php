@@ -11,14 +11,11 @@ class AdminController extends pm_Controller_Action
         require_once pm_Context::getPlibDir() . 'library/KuberDock/init.php';
 
         $this->view->assets = \Kuberdock\classes\Base::model()->getStaticPanel()->getAssets();
-        $this->view->pageTitle = 'KuberDock Extension';
-
-        $version = shell_exec('rpm -q kuberdock-plugin');
-        $this->view->version = preg_replace('/kuberdock-plugin-/i', '', $version);
+        $this->view->pageTitle = 'KuberDock';
 
         $this->view->tabs = array(
             array(
-                'title' => 'Existing apps',
+                'title' => 'Applications',
                 'action' => 'index',
             ),
             array(
@@ -52,6 +49,7 @@ class AdminController extends pm_Controller_Action
 
         $this->view->assets->registerStyles(array(
             'css/plesk/admin',
+            'css/bootstrap.min',
             'script/lib/codemirror/codemirror',
         ));
 
@@ -61,6 +59,7 @@ class AdminController extends pm_Controller_Action
             'script/lib/codemirror/mode/yaml/yaml',
             'script/lib/jquery.form-validator.min',
             'script/lib/fileupload/js/vendor/jquery.ui.widget',
+            'script/lib/bootstrap.min',
             'script/lib/fileupload/js/jquery.iframe-transport',
             'script/lib/fileupload/js/jquery.fileupload',
             'script/plesk/admin/application',
@@ -74,8 +73,7 @@ class AdminController extends pm_Controller_Action
 
             try{
                 $model->save($values);
-
-                $this->_status->addMessage('info', 'Template was successfully saved.');
+                $this->_status->addMessage('info', 'Template "' . $values['name'] . '" was successfully saved.');
                 $this->_redirect(pm_Context::getBaseUrl());
             } catch (Exception $e) {
                 $this->view->error = $e->getMessage();
@@ -108,6 +106,21 @@ class AdminController extends pm_Controller_Action
             ));
         }
 
+        exit;
+    }
+
+    public function validateYamlAction()
+    {
+        $model = new \Kuberdock\classes\plesk\models\App();
+        $template = $_POST['template'];
+        $errors = 0;
+        try{
+            $model->validate($template);
+        } catch (\Kuberdock\classes\exceptions\YamlValidationException $e) {
+            $errors = $e->getMessage();
+        }
+
+        echo json_encode(array('errors' => $errors));
         exit;
     }
 

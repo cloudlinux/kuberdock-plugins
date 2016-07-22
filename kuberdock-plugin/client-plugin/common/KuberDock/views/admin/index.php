@@ -7,13 +7,14 @@ $variables = compact(array_diff(
 ));
 ?>
 
-<?php foreach ($messages as $message => $type) : ?>
-    <div role="alert" class="alert alert-<?php echo $type;?>">
-        <?php echo $message;?>
-    </div>
-<?php endforeach;?>
-
 <div id="admin-plugin">
+
+    <?php foreach ($messages as $message => $type) : ?>
+        <div role="alert" class="alert alert-<?php echo $type;?>">
+            <?php echo $message;?>
+        </div>
+    <?php endforeach;?>
+
     <?php if (isset($error) && $error == true) :?>
         <?php $this->renderPartial('kubecli', array('kubeCli' => $kubeCli, 'error' => $error));?>
     <?php else : ?>
@@ -33,4 +34,3 @@ $variables = compact(array_diff(
         Plugin version: <?php echo \Kuberdock\classes\models\Version::get();?>
     </div>
 </div>
-

@@ -28,6 +28,13 @@ sub new {
     return bless $self, $class;
 }
 
+sub validateYaml {
+    my ($self, $template) = @_;
+    my $json = KuberDock::JSON->new;
+
+    return $self->request('/api/predefined-apps/validate-template', 'POST', $json->encode({template => $template}));
+}
+
 sub getPackages {
     my ($self) = @_;
 

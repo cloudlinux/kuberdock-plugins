@@ -1,14 +1,14 @@
 Version: 1.1
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 0%{?dist}.cloudlinux
+Release: 1%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
 URL: http://www.cloudlinux.com
 Source0: %{name}-%{version}.tar.bz2
 
-Requires: kuberdock-cli >= 1.0-1
+Requires: kuberdock-cli >= 1.0-4
 
 AutoReq: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -57,6 +57,11 @@ fi
 %{python_sitelib}/kd_common/*
 
 %changelog
+
+* Tue Jul 12 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.1-1
+- cPanel. Bugfix: deleting kubecli.conf when saving apps
+- AC-2935 - Plesk. Admin page. Design. Styles
+- AC-3473 - Hosting admin: Registry by default
 
 * Mon Jun 13 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.1-0
 - Hosting panels. Fixed availbale kubes, user creation

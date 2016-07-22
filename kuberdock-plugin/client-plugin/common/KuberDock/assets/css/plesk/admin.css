@@ -45,3 +45,9 @@ form#form_app dt{
 .CodeMirror {
     border: 1px solid #ededed;
 }
+
+/* Bootstrap issues */
+.page-header {
+    margin: auto!important;
+    padding: 0px!important;
+}

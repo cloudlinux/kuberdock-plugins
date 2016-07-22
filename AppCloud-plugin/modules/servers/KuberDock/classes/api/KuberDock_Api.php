@@ -911,7 +911,7 @@ class KuberDock_Api {
 
         if(!$response->getStatus()) {
             $this->logError($response->getMessage());
-            throw new Exception('Error while creating pod from YAML. <br>' . $response->getMessage());
+            throw new Exception($response->getMessage());
         }
 
         return $response;
@@ -1022,6 +1022,37 @@ class KuberDock_Api {
     {
         $this->url = $this->serverUrl . '/api/podapi/' . $podId;
         $attributes['command'] = 'redeploy';
+        $response = $this->call($attributes, 'PUT');
+
+        if(!$response->getStatus()) {
+            $this->logError($response->getMessage());
+            throw new Exception($response->getMessage());
+        }
+
+        return $response;
+    }
+
+    /**
+     * Start or redeploy pod and apply edit changes
+     *
+     * @param $podId
+     * @param null $status
+     * @return KuberDock_ApiResponse
+     * @throws CException
+     * @throws Exception
+     * @throws NotFoundException
+     */
+    public function applyEdit($podId, $status)
+    {
+        if ($status != 'stopped') {
+            $this->stopPod($podId);
+        }
+
+        $attributes['command'] = 'start';
+        $attributes['commandOptions']['applyEdit'] = true;
+
+        $this->url = $this->serverUrl . '/api/podapi/' . $podId;
+
         $response = $this->call($attributes, 'PUT');
 
         if(!$response->getStatus()) {

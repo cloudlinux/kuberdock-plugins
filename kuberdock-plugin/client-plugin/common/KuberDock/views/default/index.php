@@ -4,6 +4,7 @@
     var userPackage = <?php echo $package ?>;
     var packages = <?php echo $packages ?>;
     var maxKubes = <?php echo $maxKubes ?>;
+    var packageDefaults = <?php echo $packageDefaults ?>;
     var assetsURL = '<?php echo $assetsURL ?>';
     var rootURL = '<?php echo $rootURL ?>';
     var imageRegistryURL = '<?php echo $imageRegistryURL ?>';
