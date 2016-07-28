@@ -244,7 +244,7 @@ class ClientArea extends \base\CL_Component
             $model = new KuberDock_Product();
             $newProduct = $model->loadById($upgrade['newproductid']);
 
-            if (($firstDeposit = $newProduct->getConfigOption('firstDeposit')) && $oldProduct->isKuberProduct()) {
+            if ($oldProduct->isKuberProduct() && ($firstDeposit = $newProduct->getConfigOption('firstDeposit'))) {
                 $this->values['subtotal'] = $this->values['total'] = $this->currency->getFullPrice($firstDeposit);
                 if (isset($this->values['upgrades'][0])) {
                     $this->values['upgrades'][0]['price'] = $this->currency->getFullPrice($firstDeposit);
