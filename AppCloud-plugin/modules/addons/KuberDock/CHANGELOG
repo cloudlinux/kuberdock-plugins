@@ -1,4 +1,8 @@
 * 1.0.7.3
+- WHMCS. Fixed upgrade product error
+- AC-3839 WHMCS. Pod from PA is being created even invoice is still unpaid
+- AC-3792 - Add ability to set periodic notification for trial users
+- WHMCS. Clean old code, remove duplicated code from API class AC-3551 WHMCS. Fixed throw error if kube already exists
 - AC-3513 WHMCS. Bugfix: when all IP occupied, error not displayed
 - WHMCS. Bugfix: several public ips billed in one pod
 - WHMCS. Bugfix: $log caused an error
