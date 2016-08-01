@@ -201,7 +201,7 @@ class KuberDock extends API
         }
     }
 
-    protected function get_stream($token2)
+    protected function get_stream($token2 = null)
     {
         set_time_limit(0);
 
