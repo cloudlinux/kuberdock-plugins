@@ -69,6 +69,34 @@ class KuberDock_Addon_Items extends CL_Model
     }
 
     /**
+     * After newly generated invoice for billable item, add record to KuberDock_items
+     * @param int $invoiceId
+     */
+    public function handleInvoiceCreation($invoiceId)
+    {
+        $invoiceItems = \base\models\CL_BillableItems::model()->getByInvoice($invoiceId);
+
+        foreach ($invoiceItems as $invoiceItem) {
+            $data = KuberDock_Addon_Items::model()->loadByAttributes(array(
+                'billable_item_id' => $invoiceItem['relid'],
+            ), '', array(
+                'order' => 'ID DESC',
+            ));
+
+            if ($data) {
+                $invoice = CL_Invoice::model()->loadById($invoiceId);
+                $item = KuberDock_Addon_Items::model()->loadByParams(current($data));
+                $model = new KuberDock_Addon_Items();
+                $model->setAttributes($item->getAttributes());
+                unset($model->id);
+                $model->invoice_id = $invoiceId;
+                $model->status = $invoice->status;
+                $model->save();
+            }
+        }
+    }
+
+    /**
      * @return bool
      */
     public function isPayed()

@@ -154,6 +154,7 @@ function KuberDock_ShoppingCartValidateCheckout($params)
 
             try {
                 $service = \KuberDock_Hosting::model()->loadById($userProduct['hosting_id']);
+                // Runs only if service already exists
                 \KuberDock_Addon_PredefinedApp::model()->order($product, $service, $userId);
             } catch (Exception $e) {
                 CException::log($e);
@@ -256,39 +257,24 @@ function KuberDock_ClientAreaPage($params)
 }
 add_hook('ClientAreaPage', 1, 'KuberDock_ClientAreaPage');
 
-function KuberDock_InvoiceCreation($params)
+/**
+ * Product invoice correction
+ * @param $params
+ */
+function KuberDock_InvoiceCreationPreEmail($params)
 {
     if ($params['source'] == 'autogen') {
-        Deposit::model()->createInvoiceItem($params['invoiceid']);
+        KuberDock_Product::model()->productInvoiceCorrection($params['invoiceid']);
     }
 }
-add_hook('InvoiceCreation', 1, 'KuberDock_InvoiceCreation');
+add_hook('InvoiceCreationPreEmail', 1, 'KuberDock_InvoiceCreationPreEmail');
 
 /**
  * @param $params
  */
 function KuberDock_InvoiceCreated($params)
 {
-    $invoiceItems = \base\models\CL_BillableItems::model()->getByInvoice($params['invoiceid']);
-
-    foreach($invoiceItems as $invoiceItem) {
-        $data = KuberDock_Addon_Items::model()->loadByAttributes(array(
-            'billable_item_id' => $invoiceItem['relid'],
-        ), '', array(
-            'order' => 'ID DESC',
-        ));
-
-        if($data) {
-            $invoice = CL_Invoice::model()->loadById($params['invoiceid']);
-            $item = KuberDock_Addon_Items::model()->loadByParams(current($data));
-            $model = new KuberDock_Addon_Items();
-            $model->setAttributes($item->getAttributes());
-            unset($model->id);
-            $model->invoice_id = $params['invoiceid'];
-            $model->status = $invoice->status;
-            $model->save();
-        }
-    }
+    KuberDock_Addon_Items::model()->handleInvoiceCreation($params['invoiceid']);
 }
 add_hook('InvoiceCreated', 1, 'KuberDock_InvoiceCreated');
 
@@ -302,10 +288,9 @@ function KuberDock_InvoicePaid($params)
 {
     $invoiceId = $params['invoiceid'];
 
-    Deposit::model()->addToBalance($invoiceId);
-
     try {
         $invoice = CL_Invoice::model()->loadById($invoiceId);
+        $invoice->addFirstDeposit();
 
         // Start pod
         if ($item = KuberDock_Addon_Items::model()->loadByInvoice($invoiceId)) {
@@ -316,9 +301,10 @@ function KuberDock_InvoicePaid($params)
             $product->startPodAndRedirect($item->service_id, $item->pod_id, true);
         }
 
+        // TODO: check is needed. pod edit added
         // Add additional kubes
-        if($invoice->isUpdateKubesInvoice()) {
-            if($data = KuberDock_Hosting::model()->getByUser($invoice->userid)) {
+        if ($invoice->isUpdateKubesInvoice()) {
+            if ($data = KuberDock_Hosting::model()->getByUser($invoice->userid)) {
                 $invoiceItem = \base\models\CL_InvoiceItems::model()->loadByAttributes(array(
                     'type' => CL_BillableItems::TYPE,
                     'invoiceid' => $invoice->id,
@@ -345,7 +331,7 @@ function KuberDock_InvoicePaid($params)
                 $data = KuberDock_Addon_Items::model()->loadByAttributes(array(
                     'billable_item_id' => $billableItem->id
                 ));
-                if($addonItem = current($data)) {
+                if ($addonItem = current($data)) {
                     $pod = $service->getApi()->getPod($params['id']);
                     $app = KuberDock_Addon_PredefinedApp::model()->loadById($addonItem['app_id']);
                     $app->data = json_encode($pod);
@@ -367,7 +353,7 @@ add_hook('InvoicePaid', 1, 'KuberDock_InvoicePaid');
  */
 function KuberDock_InvoiceUnpaid($params)
 {
-    Deposit::model()->removeFromBalance($params['invoiceid']);
+    CL_Invoice::model()->loadById($params['invoiceid'])->removeFirstDeposit();
 }
 add_hook('InvoiceUnpaid', 1, 'KuberDock_InvoiceUnpaid');
 
@@ -380,27 +366,32 @@ add_hook('InvoiceUnpaid', 1, 'KuberDock_InvoiceUnpaid');
  */
 function KuberDock_InvoiceCancelled($params)
 {
-    Deposit::model()->removeFromBalance($params['invoiceid']);
+    CL_Invoice::model()->loadById($params['invoiceid'])->removeFirstDeposit();
 }
 add_hook('InvoiceCancelled', 1, 'KuberDock_InvoiceCancelled');
 
+/**
+ * Runs when admin manually accept order
+ *
+ * Used when product settings is "Automatically setup the product when you manually accept a pending order" or
+ * "Do not automatically setup this product"
+ * @param $params
+ */
 function KuberDock_AcceptOrder($params)
 {
-    $orderId = $params['orderid'];
+    $data = KuberDock_Hosting::model()->loadByAttributes(array(
+        'orderid' => $params['orderid'],
+    ));
 
-    $order = \base\models\CL_Order::model()->loadById($orderId);
-    $invoice = CL_Invoice::model()->loadById($order->invoiceid);
-
-    // Setup fee or product price
-    $invoice->activateProductByInvoice();
-
-    $product = $invoice->getProductBySetupInvoice();
-    $service_id = $product['service_id'];
-    $service = \KuberDock_Hosting::model()->loadById($service_id);
-    if (!$service) {
+    if (!$data) {
         return;
     }
-    $service->createModule();
+
+    $service = KuberDock_Hosting::model()->loadByParams(current($data));
+    $product =  KuberDock_Product::model()->loadById($service->packageid);
+    if ($product && $product->isKuberProduct() && !$product->autosetup) {
+        $service->createModule();
+    }
 }
 add_hook('AcceptOrder', 1, 'KuberDock_AcceptOrder');
 
@@ -594,17 +585,19 @@ function KuberDock_ClientLogin($params)
 }
 //add_hook('ClientLogin', 1, 'KuberDock_ClientLogin');
 
-function KuberDock_AfterModuleCreate($params) {
-
-    // Needed if in module settings is selected 'Do not automatically setup this product"
-    // and user tries to buy PA, admin must accept his order, and after he accepts order, we must
-    // create this PA.
+/**
+ * Runs when 1st KD product bought, if that was PA - create it
+ * @param $params
+ */
+function KuberDock_AfterModuleCreate($params)
+{
     $userId = $params['params']['userid'];
     $product = \KuberDock_Product::model()->loadById($params['params']['packageid']);
     $service = \KuberDock_Hosting::model()->loadById($params['params']['serviceid']);
 
     try {
-        \KuberDock_Addon_PredefinedApp::model()->order($product, $service, $userId, $product->isSetupPayment());
+        $invoice = CL_Invoice::model()->loadByOrderId($service->orderid);
+        \KuberDock_Addon_PredefinedApp::model()->order($product, $service, $userId, $invoice->id);
     } catch (Exception $e) {
         CException::log($e);
     }

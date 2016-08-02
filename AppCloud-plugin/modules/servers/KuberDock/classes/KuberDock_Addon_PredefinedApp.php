@@ -133,16 +133,20 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
      * @param KuberDock_Product $product
      * @param KuberDock_Hosting|null $service
      * @param int $userId
-     * @param bool $paid
+     * @param int $invoiceId
      */
-    public function order(KuberDock_Product $product, $service, $userId, $paid = false)
+    public function order(KuberDock_Product $product, $service, $userId, $invoiceId = null)
     {
         self::loadBySessionId();
         $this->user_id = $userId;
         $this->save();
 
+        if (!$service) {
+            return;
+        }
+
         if ($product->isFixedPrice()) {
-            $this->orderFixed($product, $service, $paid);
+            $this->orderFixed($product, $service, $invoiceId);
         } else {
             $this->orderPAYG($product, $service);
         }
@@ -163,6 +167,8 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
             $adminApi = KuberDock_Hosting::model()->loadById($serviceId)->getAdminApi();
 
             $data = $response->getData();
+            $this->pod_id = $data['id'];
+            $this->save();
             $adminApi->updatePod($data['id'], array(
                 'status' => $status,
             ));
@@ -262,6 +268,10 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
      */
     public function getPodId()
     {
+        if ($this->pod_id) {
+            return $this->pod_id;
+        }
+
         $pod = $this->getPod();
 
         return $pod ? $pod->id : '';
@@ -459,18 +469,11 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
     /**
      * Order PA with fixed price billing
      * @param KuberDock_Product $product
-     * @param KuberDock_Hosting | null $service
-     * @param bool $paid
+     * @param KuberDock_Hosting $service
+     * @param int $invoiceId
      */
-    private function orderFixed(KuberDock_Product $product, $service, $paid)
+    private function orderFixed(KuberDock_Product $product, $service, $invoiceId = null)
     {
-        if (!$service) {
-            if ($product->isSetupPayment()) {
-                return;
-            }
-            $service = $product->orderService($this->user_id);
-        }
-
         // Trying to re-create module
         if ($service->domainstatus == KuberDock_User::STATUS_PENDING) {
             $service->createModule();
@@ -489,7 +492,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
             $product->jsRedirect($this->referer . '&error=' . urlencode($e->getMessage()));
         }
 
-        $item = $product->addBillableApp($this->user_id, $this, $paid);
+        $item = $product->addBillableApp($this->user_id, $this, $invoiceId);
         $item->pod_id = $pod['id'];
         $item->save();
         $this->referer = null;
@@ -508,13 +511,10 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
     /**
      * Order PA with PAYG billing
      * @param KuberDock_Product $product
-     * @param KuberDock_Hosting | null $service
+     * @param KuberDock_Hosting $service
      */
     private function orderPAYG(KuberDock_Product $product, $service)
     {
-        if (!$service) {
-            $service = $product->orderService($this->user_id);
-        }
         // Trying to re-create module
         if ($service->domainstatus == KuberDock_User::STATUS_PENDING) {
             $service->createModule();

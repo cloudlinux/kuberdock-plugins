@@ -4,7 +4,6 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
-use base\CL_View;
 use base\CL_Query;
 use base\CL_Tools;
 use base\models\CL_Currency;
@@ -15,6 +14,7 @@ use base\models\CL_MailTemplate;
 use base\models\CL_BillableItems;
 use base\models\CL_Invoice;
 use components\KuberDock_Units;
+use components\KuberDock_InvoiceItem;
 use exceptions\CException;
 use exceptions\UserNotFoundException;
 
@@ -515,13 +515,14 @@ class KuberDock_Product extends CL_Product {
     }
 
     /**
+     * Add billable item for Pod
      * @param int $userId
      * @param KuberDock_Addon_PredefinedApp $app
-     * @param bool $paid
+     * @param int $invoiceId
      * @return KuberDock_Addon_Items
      * @throws Exception
      */
-    public function addBillableApp($userId, KuberDock_Addon_PredefinedApp $app, $paid = false)
+    public function addBillableApp($userId, KuberDock_Addon_PredefinedApp $app, $invoiceId = null)
     {
         if (!$this->isFixedPrice()) {
             throw new Exception('Fixed price - billable items not needed.');
@@ -539,18 +540,14 @@ class KuberDock_Product extends CL_Product {
         if (!$data) {
             throw new Exception('Service not found');
         }
+
         $service = KuberDock_Hosting::model()->loadByParams(current($data));
-        $product = KuberDock_Product::model()->loadById($service->packageid);
-        $pricing = $product->getPricing();
-        // AC-3839 Add recurring price to invoice
-        if ($pricing['setup']) {
-            $items[] = \components\KuberDock_InvoiceItem::create('Setup', $pricing['setup']);
+
+        if ($invoiceId) {
+            $invoice = CL_Invoice::model()->loadById($invoiceId);
         }
 
-        if ($pricing['recurring']) {
-            $items[] = \components\KuberDock_InvoiceItem::create('Recurring ('. $pricing['cycle'] .')', $pricing['recurring']);
-        }
-
+        // TODO: create billable item even if price 0
         if ($totalPrice == 0) {
             $item = new KuberDock_Addon_Items();
             $item->setAttributes(array(
@@ -566,8 +563,9 @@ class KuberDock_Product extends CL_Product {
         }
 
         list($recur, $recurCycle) = $this->getRecurType();
-        $model = CL_BillableItems::model();
+
         $description = $this->getName() . ' - Pod ' . $app->getName();
+        $model = CL_BillableItems::model();
         $model->setAttributes(array(
             'userid' => $userId,
             'description' => $description,
@@ -580,16 +578,21 @@ class KuberDock_Product extends CL_Product {
 
         $model->duedate = CL_Tools::getMySQLFormattedDate($model->getNextDueDate());
 
-        $client = KuberDock_User::model()->getClientDetails($userId);
-        $gateway = $client['client']['defaultgateway']
-            ? $client['client']['defaultgateway']
-            : $service->paymentmethod;
-        $invoice = CL_Invoice::model();
+        if (isset($invoice)) {
+            $invoice_id = $invoice->id;
+        } else {
+            $client = KuberDock_User::model()->getClientDetails($userId);
+            $gateway = $client['client']['defaultgateway']
+                ? $client['client']['defaultgateway']
+                : $service->paymentmethod;
 
-        $invoice_id = $invoice->createInvoice($userId, $items, $gateway);
+            $invoice = CL_Invoice::model();
+            $invoice_id = $invoice->createInvoice($userId, $items, $gateway);
+        }
+
         $invoiceItem = \base\models\CL_Invoice::model()->loadById($invoice_id);
 
-        if ($paid) {
+        if ($invoice->isPayed()) {
             $invoiceItem->status = CL_Invoice::STATUS_PAID;
             $invoiceItem->save();
         }
@@ -614,6 +617,7 @@ class KuberDock_Product extends CL_Product {
             'invoice_id' => $invoiceItem->id,
             'status' => $status,
         ));
+
         $item->save();
 
         return $item;
@@ -624,7 +628,7 @@ class KuberDock_Product extends CL_Product {
      */
     public function isKuberProduct()
     {
-        return $this->servertype == KUBERDOCK_MODULE_NAME;
+        return $this->id && $this->servertype == KUBERDOCK_MODULE_NAME;
     }
 
     /**
@@ -777,7 +781,6 @@ class KuberDock_Product extends CL_Product {
             try {
                 $predefinedApp->payAndStart($podId, $service->id);
                 // Mark paid by admin, redirect only user.
-
                 if($whmcs && $whmcs->isAdminAreaRequest()) {
                     return;
                 }
@@ -824,6 +827,12 @@ class KuberDock_Product extends CL_Product {
      */
     public function jsRedirect($url)
     {
+        global $whmcs;
+        // Redirect only user
+        if($whmcs && $whmcs->isAdminAreaRequest()) {
+            return;
+        }
+
         echo <<<SCRIPT
 <script>
     window.location.href = '{$url}';
@@ -886,9 +895,69 @@ SCRIPT;
         }
 
         return array(
-            'cycle' => $row,
-            'recurring' => $recurring,
-            'setup' => $setup,
+            'cycle' => ($this->paytype == 'onetime') ? $this->paytype : $row,
+            'recurring' => (float) $recurring,
+            'setup' => (float) $setup,
         );
+    }
+
+    /**
+     * @return float
+     */
+    public function getFirstDeposit()
+    {
+        return $this->isFixedPrice() ? 0 : (float) $this->getConfigOption('firstDeposit');
+    }
+
+    /**
+     * For product order invoice upgrade items accordingly to PA
+     * @param int $invoiceId
+     */
+    public function productInvoiceCorrection($invoiceId)
+    {
+        $service = KuberDock_Hosting::model()->loadByInvoiceId($invoiceId);
+        $product = KuberDock_Product::model()->loadById($service->packageid);
+        $app = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+
+        if ($product && $product->isKuberProduct() && $app) {
+            if ($product->isFixedPrice()) {
+                $items = $app->getTotalPrice();
+            } else {
+                $items = array();
+            }
+
+            // AC-3839 Add recurring price to invoice
+            // Add setup\recurring funds only for newly created service
+            $pricing = $product->getPricing();
+
+            if ($pricing['setup'] > 0) {
+                $items[] = KuberDock_InvoiceItem::create('Setup', $pricing['setup']);
+            }
+
+            if ($pricing['recurring'] > 0) {
+                $items[] = KuberDock_InvoiceItem::create('Recurring ('. $pricing['cycle'] .')', $pricing['recurring']);
+            }
+
+
+            if ($firstDeposit = $product->getFirstDeposit()) {
+                $items[] = KuberDock_InvoiceItem::create('First deposit', $firstDeposit);
+            }
+
+            if (!$items) {
+                return;
+            }
+
+            $invoice = CL_Invoice::model()->loadById($invoiceId);
+            $invoice->updateInvoice($items);
+
+            $invoice = CL_Invoice::model()->loadById($invoiceId);
+            $invoiceItems = \base\models\CL_InvoiceItems::model()->loadById($invoice->invoiceitems['id']);
+            // In order to system know that it is product order invoice
+            $invoiceItems->setAttributes(array(
+                'type' => 'Hosting',
+                'relid' => $service->id,
+            ));
+            $invoiceItems->save();
+        }
     }
 } 

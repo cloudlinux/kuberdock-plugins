@@ -87,7 +87,7 @@ class ClientArea extends \base\CL_Component
     }
 
     /**
-     * Review & Checkout page
+     * Client side - Review & Checkout page
      *
      * @throws \Exception
      */
@@ -135,6 +135,7 @@ class ClientArea extends \base\CL_Component
         }
     }
 
+    // Client side - cart product details page
     public function prepareCartDetails()
     {
         $products = $this->getProducts();
@@ -218,6 +219,7 @@ class ClientArea extends \base\CL_Component
         }
     }
 
+    // Client side - product upgrade page
     public function prepareUpgrade()
     {
         if (is_array($this->values['upgradepackages'])) {
@@ -243,6 +245,10 @@ class ClientArea extends \base\CL_Component
             $oldProduct = $model->loadById($upgrade['oldproductid']);
             $model = new KuberDock_Product();
             $newProduct = $model->loadById($upgrade['newproductid']);
+
+            if (!$newProduct || !$oldProduct) {
+                return;
+            }
 
             if ($oldProduct->isKuberProduct() && ($firstDeposit = $newProduct->getConfigOption('firstDeposit'))) {
                 $this->values['subtotal'] = $this->values['total'] = $this->currency->getFullPrice($firstDeposit);

@@ -8,15 +8,24 @@ namespace base\models;
 
 use DateTime;
 use Exception;
+use exceptions\CException;
 use KuberDock_User;
 use base\CL_Model;
 use components\KuberDock_InvoiceItem;
 
+/**
+ * Class CL_Invoice
+ * @package base\models
+ */
 class CL_Invoice extends CL_Model {
     /**
      * It seems, it is used if user upgrades or downgrades a product and there is a deposit in new product
      */
     const CUSTOM_INVOICE_DESCRIPTION = 'Custom invoice';
+    /**
+     *
+     */
+    const FIRST_DEPOSIT_DESCRIPTION = 'First deposit';
 
     const STATUS_PAID = 'Paid';
     const STATUS_UNPAID = 'Unpaid';
@@ -82,7 +91,53 @@ class CL_Invoice extends CL_Model {
         $admin = KuberDock_User::model()->getCurrentAdmin();
         $results = localAPI('createinvoice', $values, $admin['username']);
 
-        if($results['result'] != 'success') {
+        if ($results['result'] != 'success') {
+            throw new Exception($results['message']);
+        }
+
+        return $results['invoiceid'];
+    }
+
+    /**
+     * @param KuberDock_InvoiceItem[] $items
+     * @param DateTime $dueDate
+     * @return mixed
+     * @throws Exception
+     */
+    public function updateInvoice($items, DateTime $dueDate = null)
+    {
+        $template = \base\models\CL_Configuration::model()->get()->Template;
+
+        $values['invoiceid'] = $this->id;
+        $values['date'] = date('Ymd', time());
+        $values['duedate'] = $dueDate ? $dueDate->format('Ymd') : date('Ymd', time());
+
+        $values['notes'] = '';
+
+        $data = CL_InvoiceItems::model()->loadByAttributes(array(
+            'invoiceid' => $this->id,
+        ));
+        array_map(function ($e) use (&$values) {
+            $values['deletelineids'][$e['id']] = $e['id'];
+        }, $data);
+
+        foreach ($items as $k => $item) {
+            if ($item->getTotal() == 0) {
+                continue;
+            }
+
+            $values['newitemdescription'][$k] = $item->getDescription();
+            $values['newitemamount'][$k] = $item->getTotal();
+
+            if (!$item->isShort() && $template == 'kuberdock') {
+                $values['notes'] .= $item->getHtml($k);
+            }
+        }
+
+        $admin = KuberDock_User::model()->getCurrentAdmin();
+        $results = localAPI('updateinvoice', $values, $admin['username']);
+
+        if ($results['result'] != 'success') {
             throw new Exception($results['message']);
         }
 
@@ -205,6 +260,24 @@ class CL_Invoice extends CL_Model {
     }
 
     /**
+     * @param int $orderId
+     * @return $this
+     * @throws CException
+     */
+    public function loadByOrderId($orderId)
+    {
+        $data = $this->_db->query('select i.* from tblinvoices i left join tblorders o on o.invoiceid=i.id where o.id = ?', array(
+            $orderId,
+        ))->getRows();
+
+        if (!$data) {
+            throw new CException('Unable load invoice by orderID = ' . $orderId);
+        }
+
+        return $this->loadByParams(current($data));
+    }
+
+    /**
      * @return bool
      */
     public function isPayed()
@@ -226,6 +299,66 @@ class CL_Invoice extends CL_Model {
     public function isBillableItemInvoice()
     {
         return ($this->invoiceitems['type'] == CL_BillableItems::TYPE && $this->invoiceitems['relid'] > 0);
+    }
+
+    /**
+     * Add first deposit
+     * @param bool $remove
+     */
+    public function addFirstDeposit($remove = false)
+    {
+        if (!$this->getProduct()) {
+            return;
+        }
+
+        foreach ($this->getInvoiceItems() as $row) {
+            if ($row['description'] == self::FIRST_DEPOSIT_DESCRIPTION && $row['amount']) {
+                if ($remove) {
+                    $this->addCredit($this->userid, -$row['amount'], 'Remove funds for first deposit');
+                } else {
+                    $this->addCredit($this->userid, $row['amount'], 'Add funds for first deposit');
+                }
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    public function removeFirstDeposit()
+    {
+        $this->addFirstDeposit(true);
+    }
+
+    /**
+     * @return array
+     */
+    public function getInvoiceItems()
+    {
+        return CL_InvoiceItems::model()->loadByAttributes(array(
+            'invoiceid' => $this->id,
+        ));
+    }
+
+    /**
+     * @return \KuberDock_Product|null
+     */
+    public function getProduct()
+    {
+        $sql = "SELECT p.* FROM tblhosting h 
+            LEFT JOIN tblinvoiceitems it ON it.relid=h.id 
+            LEFT JOIN tblproducts p ON p.id=h.packageid 
+            WHERE it.type = 'Hosting' AND p.servertype = 'KuberDock' AND it.invoiceid = :invoice_id";
+
+        $data = $this->_db->query($sql, array(
+            ':invoice_id' => $this->id,
+        ))->getRow();
+
+        if ($data) {
+            return \KuberDock_Product::model()->loadByParams($data);
+        } else {
+            return null;
+        }
     }
 
     public function getProductBySetupInvoice()

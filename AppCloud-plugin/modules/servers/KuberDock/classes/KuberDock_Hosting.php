@@ -77,6 +77,14 @@ class KuberDock_Hosting extends CL_Hosting
     }
 
     /**
+     * @return KuberDock_Product
+     */
+    public function getProduct()
+    {
+        return KuberDock_Product::model()->loadById($this->packageid);
+    }
+
+    /**
      * @return bool
      */
     public function calculate()
@@ -519,6 +527,25 @@ class KuberDock_Hosting extends CL_Hosting
         return sprintf('%s/?%s=%s', $serverLink, $tokenField, $token);
     }
 
+    public function loadByInvoiceId($invoiceId)
+    {
+        $sql = "SELECT h.* FROM tblhosting h 
+            LEFT JOIN tblinvoiceitems it ON it.relid=h.id 
+            LEFT JOIN tblproducts p ON p.id=h.packageid 
+            WHERE it.type = 'Hosting' AND p.servertype = 'KuberDock' AND it.invoiceid = :invoice_id";
+
+        $data = $this->_db->query($sql, array(
+            ':invoice_id' => $invoiceId,
+        ))->getRow();
+
+        if ($data) {
+            $this->loadByParams($data);
+            return $this;
+        } else {
+            return null;
+        }
+    }
+
     /**
      * @param timestamp $timeStart
      * @param timestamp $timeEnd
@@ -561,14 +588,5 @@ class KuberDock_Hosting extends CL_Hosting
             $carry += $item->getTotal();
             return $carry;
         });
-    }
-
-    /**
-     * @param $name
-     * @return bool
-     */
-    private function isPodDeleted($name)
-    {
-        return strpos($name, self::DELETED_POD_SIGN) !== false;
     }
 } 
