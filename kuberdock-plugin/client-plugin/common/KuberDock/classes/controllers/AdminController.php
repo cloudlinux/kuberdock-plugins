@@ -193,4 +193,12 @@ class AdminController extends KuberDock_Controller
             localStorage.setItem("' . $key . '", JSON.stringify(' . json_encode($value) .'));
         }</script>';
     }
+
+    public function validateYamlAjaxAction()
+    {
+        $model = new \Kuberdock\classes\models\App($this->panelName);
+        $errors = $model->validate($_POST['template']);
+
+        echo json_encode(array('errors' => $errors));
+    }
 }

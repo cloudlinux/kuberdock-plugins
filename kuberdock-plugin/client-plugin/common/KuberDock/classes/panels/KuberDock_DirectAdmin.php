@@ -132,4 +132,23 @@ class KuberDock_DirectAdmin extends KuberDock_Panel
 
         return $data;
     }
+
+    public static function getAdminUpdateAppButton($template)
+    {
+        return '<a href="?a=app&id=' . $template['id'] . '">
+                <button type="button" class="btn btn-primary btn-xs" title="Update">
+                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>Update
+                </button>
+            </a>';
+    }
+
+    public static function getAdminDeleteAppButton($template)
+    {
+        return '<a href="?a=appDelete&id=' . $template['id'] . '" data-id="' . $template['id']
+                    . '" data-name="' . $template['name'] . '">
+                <button type="button" class="btn btn-danger btn-xs" title="Delete">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>Delete
+                </button>
+            </a>';
+    }
 }

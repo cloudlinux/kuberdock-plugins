@@ -28,7 +28,8 @@ class App extends \pm_View_List_Simple
             ),
         ]);
 
-        $model = new \Kuberdock\classes\plesk\models\App();
+        $model = new \Kuberdock\classes\models\App('Plesk');
+
         $this->setData($model->getAll());
     }
 }

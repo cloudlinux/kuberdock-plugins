@@ -145,6 +145,21 @@ class KuberDock_Plesk extends KuberDock_Panel
         return $data;
     }
 
+    public static function getAdminUpdateAppButton($template)
+    {
+        return '<a href="' . \pm_Context::getActionUrl('admin', 'application')
+            . '?id=' . $template['id']
+            . '" class="btn">Update</a>';
+    }
+
+    public static function getAdminDeleteAppButton($template)
+    {
+        return '<a href="' . \pm_Context::getActionUrl('admin', 'delete')
+            . '" data-id="'  . $template['id']
+            . '" data-name="'  . $template['name']
+            . '" class="btn btn_delete">Delete</a>';
+    }
+
     /**
      * @return array
      */
