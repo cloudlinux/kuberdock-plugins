@@ -34,25 +34,27 @@ class AdminController extends KuberDock_Controller
             'index' => 'script/' . strtolower($this->panelName) . '/admin/index',
         ));
 
-        $kubeCliModel = new \Kuberdock\classes\models\KubeCli($this->panelName);
-        $defaultsModel = new \Kuberdock\classes\models\Defaults($this->panelName);
-
-        if (isset($_POST['tab']) && $_POST['tab']=='kubecli') {
-            $kubeCli = $this->preparePost(array('url', 'user', 'password', 'registry'));
-
-            try{
-                $kubeCliModel->save($kubeCli);
-            } catch (\Exception $e){
-                $messages = array($e->getMessage() => 'danger');
+        try {
+            $kubeCliModel = new \Kuberdock\classes\models\KubeCli($this->panelName);
+            if (isset($_POST['tab']) && $_POST['tab']=='kubecli') {
+                $kubeCliModel->save($this->preparePost(array('url', 'user', 'password', 'registry')));
             }
-        }
 
-        if (isset($_POST['tab']) && $_POST['tab']=='defaults') {
-            $defaultsModel->save($this->preparePost(array('packageId', 'kubeType')));
-        }
+            $kubeCli = $kubeCliModel->read();
+            if (!$kubeCli['token']) {
+                throw new \Exception();
+            }
 
-        $kubeCli = $kubeCliModel->read();
-        if (!$kubeCli['token']) {
+            $defaultsModel = new \Kuberdock\classes\models\Defaults($this->panelName);
+            if (isset($_POST['tab']) && $_POST['tab']=='defaults') {
+                $defaultsModel->save($this->preparePost(array('packageId', 'kubeType')));
+            }
+            $defaults = $defaultsModel->read();
+
+            $appModel = new \Kuberdock\classes\models\App($this->panelName);
+            $apps = $appModel->getAll();
+
+        } catch (\Exception $e){
             $msg = 'Cannot connect to KuberDock server, invalid credentials or server url in ' . $kubeCliModel->getRootPath();
             $this->render('index', array(
                 'kubeCli' => $kubeCli,
@@ -61,11 +63,6 @@ class AdminController extends KuberDock_Controller
             ));
             die;
         }
-
-        $defaults = $defaultsModel->read();
-
-        $appModel = new \Kuberdock\classes\models\App($this->panelName);
-        $apps = $appModel->getAll();
 
         $this->render('index', array(
             'apps' => $apps,
