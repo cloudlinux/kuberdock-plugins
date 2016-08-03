@@ -98,11 +98,9 @@ class KuberDock_Hosting extends CL_Hosting
 
         if($product->getConfigOption('enableTrial')) {
             if($this->isTrialExpired($regDate, $trialTime)) {
-                $trialExpireEvery = $product->getConfigOption('trialExpireEvery') != ''
-                    ? (int) $product->getConfigOption('trialExpireEvery')
-                    : 7;
+                $sendExpireLetter = $product->getConfigOption('sendTrialExpire');
                 $expireDate = $regDate->modify('+'.$trialTime.' day');
-                if ($trialExpireEvery!=0 && ($expireDate->diff($date)->days % $trialExpireEvery == 0)) {
+                if ($sendExpireLetter && $expireDate->format('Y-m-d') == $date->format('Y-m-d')) {
                     CL_MailTemplate::model()->sendPreDefinedEmail($this->id, CL_MailTemplate::TRIAL_EXPIRED_NAME, array(
                         'trial_end_date' => $expireDate->format('Y-m-d'),
                     ));
