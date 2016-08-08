@@ -195,7 +195,7 @@ class KuberDock_Addon extends CL_Component {
 
             $product = new KuberDock_Product();
 
-            if(!KuberDock_Product::model()->loadByAttributes(array(
+            if (!KuberDock_Product::model()->loadByAttributes(array(
                 'name' => self::STANDARD_PRODUCT,
                 'servertype' => KUBERDOCK_MODULE_NAME
             ))) {
@@ -204,7 +204,7 @@ class KuberDock_Addon extends CL_Component {
                     'gid' => $group['id'],
                     'type' => 'other',
                     'name' => self::STANDARD_PRODUCT,
-                    'paytype' => 'free',
+                    'paytype' => 'onetime',
                     'autosetup' => 'order',
                     'servertype' => KUBERDOCK_MODULE_NAME,
                     'servergroup' => $server->getGroupId(),
@@ -227,6 +227,13 @@ class KuberDock_Addon extends CL_Component {
                 $product->setConfigOption('debug', 0);
 
                 $product->save();
+                $db->query("INSERT INTO tblpricing (`type`, `currency`, `relid`, `msetupfee`, `qsetupfee`, `asetupfee`, 
+                    `bsetupfee`, `tsetupfee`, `monthly`, `quarterly`, `semiannually`, `annually`, `biennially`, `triennially`) 
+                      VALUES ('product', :currency_id, :product_id, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1)",
+                array(
+                    ':currency_id' => \base\models\CL_Currency::model()->getDefaultCurrency()->id,
+                    ':product_id' => $product->id,
+                ));
                 $product->createCustomField($product->id, 'Token', $product::FIELD_TYPE_TEXT);
 
                 $db->query('INSERT INTO KuberDock_products VALUES (?, ?)', array($product->id, 0));
