@@ -231,7 +231,7 @@ class KuberDock_Hosting extends CL_Hosting
             }
 
             $price = $kubes[$pod['kube_id']]['kube_price'] * $pod['kubes'];
-            $items[] = KuberDock_InvoiceItem::create('Pod: ' . $pod['name'], $price, 'hour', count($usageHours));
+            $items[] = $product->createInvoice('Pod: ' . $pod['name'], $price, 'hour', count($usageHours));
         }
 
         foreach($usage['ip_usage'] as $data) {
@@ -242,7 +242,7 @@ class KuberDock_Hosting extends CL_Hosting
             }
 
             $price = (float) $product->getConfigOption('priceIP');
-            $items[] = KuberDock_InvoiceItem::create('IP: ' . $data['ip_address'], $price, 'hour', count($usageHours));
+            $items[] = $product->createInvoice('IP: ' . $data['ip_address'], $price, 'hour', count($usageHours));
         }
 
         foreach($usage['pd_usage'] as $data) {
@@ -253,7 +253,7 @@ class KuberDock_Hosting extends CL_Hosting
             }
 
             $price = (float) $product->getConfigOption('pricePersistentStorage') * $data['size'];
-            $items[] = KuberDock_InvoiceItem::create('Storage: ' . $data['pd_name'], $price, 'hour', count($usageHours));
+            $items[] = $product->createInvoice('Storage: ' . $data['pd_name'], $price, 'hour', count($usageHours));
         }
 
         $this->updateByApi($this->id, array('nextduedate' => $currentDate->modify('+1 day')->format('Y-m-d')));
@@ -321,7 +321,7 @@ class KuberDock_Hosting extends CL_Hosting
                 $totalKubeCount += $pod['kubes'];
 
                 $price = $kubes[$pod['kube_id']]['kube_price'];
-                $items[] = KuberDock_InvoiceItem::create('Pod: ' . $title, $price, 'pod', $pod['kubes']);
+                $items[] = $product->createInvoice('Pod: ' . $title, $price, 'pod', $pod['kubes']);
             }
         }
 
@@ -330,7 +330,7 @@ class KuberDock_Hosting extends CL_Hosting
             if (!in_array($data['ip_address'], $totalIPs)) {
                 $totalIPs[] = $data['ip_address'];
                 $price = (float) $product->getConfigOption('priceIP');
-                $items[] = KuberDock_InvoiceItem::create('IP: ' . $data['ip_address'], 'IP', $price);
+                $items[] = $product->createInvoice('IP: ' . $data['ip_address'], 'IP', $price);
             }
         }
 
@@ -339,7 +339,7 @@ class KuberDock_Hosting extends CL_Hosting
             $totalPdSize += $data['size'];
             $price = (float) $product->getConfigOption('pricePersistentStorage');
             $unit = KuberDock_Units::getPSUnits();
-            $items[] = KuberDock_InvoiceItem::create('Storage: ' . $data['pd_name'], $price, $unit, $data['size']);
+            $items[] = $product->createInvoice('Storage: ' . $data['pd_name'], $price, $unit, $data['size']);
         }
 
         // Предыдущая оплата в этом периоде

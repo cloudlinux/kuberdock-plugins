@@ -1,7 +1,5 @@
 <?php
 
-use components\KuberDock_InvoiceItem;
-
 class KuberDock_Pod
 {
     /**
@@ -212,7 +210,7 @@ class KuberDock_Pod
                             . '"' . $newContainer['name'] . '"'
                             . ')';
 
-                        $items[] = KuberDock_InvoiceItem::create($description, $price, 'kube', $delta);
+                        $items[] = $this->product->createInvoice($description, $price, 'kube', $delta);
                     }
                 }
 
@@ -226,7 +224,7 @@ class KuberDock_Pod
                 ))->save();
 
                 try {
-                    $invoice->applyCredit($invoice->id, $invoice->subtotal);
+                    $invoice->applyCredit($invoice->id, $invoice->getSum());
                 } catch (Exception $e) {
                     if ($e->getMessage() == 'Amount exceeds customer credit balance') {
                         return $invoice;
@@ -296,7 +294,7 @@ class KuberDock_Pod
             ))->save();
 
             try {
-                $invoice->applyCredit($invoice->id, $invoice->subtotal);
+                $invoice->applyCredit($invoice->id, $invoice->getSum());
             } catch (Exception $e) {
                 if ($e->getMessage() == 'Amount exceeds customer credit balance') {
                     return $invoice;
@@ -371,7 +369,7 @@ class KuberDock_Pod
                 . '"' . $name . '"'
                 . ')';
 
-            $this->editInvoiceItems[] = KuberDock_InvoiceItem::create($description, $price, 'kube', $delta);
+            $this->editInvoiceItems[] = $this->product->createInvoice($description, $price, 'kube', $delta);
         }
 
         if ($oldPublicIpUsed != $newPublicIpUsed) {
@@ -384,7 +382,7 @@ class KuberDock_Pod
             }
             $description = self::UPDATE_KUBES_DESCRIPTION . ', public IP ' . $action;
             $ipPrice = (float) $this->product->getConfigOption('priceIP') * $this->proRate;
-            $this->editInvoiceItems[] = KuberDock_InvoiceItem::create($description, $ipPrice, 'IP', $count);
+            $this->editInvoiceItems[] = $this->product->createInvoice($description, $ipPrice, 'IP', $count);
         }
 
         // volumes
@@ -425,7 +423,7 @@ class KuberDock_Pod
                 . ' ('
                 . $name
                 . ')';
-            $this->editInvoiceItems[] = KuberDock_InvoiceItem::create($description, $psPrice, $unit, $count);
+            $this->editInvoiceItems[] = $this->product->createInvoice($description, $psPrice, $unit, $count);
         }
     }
 

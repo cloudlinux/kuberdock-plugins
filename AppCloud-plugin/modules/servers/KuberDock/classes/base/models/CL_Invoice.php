@@ -81,6 +81,10 @@ class CL_Invoice extends CL_Model {
             $values['itemdescription' . $count] = $item->getDescription();
             $values['itemamount' . $count] = $item->getTotal();
 
+            if ($item->getTaxed()) {
+                $values['itemtaxed' . $count] = true;
+            }
+
             if (!$item->isShort() && $template == 'kuberdock') {
                 $values['notes'] .= $item->getHtml($count);
             }
@@ -128,6 +132,7 @@ class CL_Invoice extends CL_Model {
 
             $values['newitemdescription'][$k] = $item->getDescription();
             $values['newitemamount'][$k] = $item->getTotal();
+            $values['newitemtaxed'][$k] = (int) $item->getTaxed();
 
             if (!$item->isShort() && $template == 'kuberdock') {
                 $values['notes'] .= $item->getHtml($k);
@@ -282,7 +287,17 @@ class CL_Invoice extends CL_Model {
      */
     public function isPayed()
     {
-        return ($this->status == self::STATUS_PAID || $this->subtotal == $this->credit);
+        return ($this->status == self::STATUS_PAID || $this->getSum() == $this->credit);
+    }
+
+    /**
+     * Sum, which user have to pay for invoice. Consists of subtotal plus all taxes
+     *
+     * @return float
+     */
+    public function getSum()
+    {
+        return $this->subtotal + $this->tax + $this->tax2;
     }
 
     /**

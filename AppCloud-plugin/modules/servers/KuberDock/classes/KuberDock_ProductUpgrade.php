@@ -54,7 +54,7 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade
         if($deposit) {
             $service = KuberDock_Hosting::model()->loadById($this->relid);
             $clientDetails = CL_Client::model()->getClientDetails($service->userid);
-            $items[] = KuberDock_InvoiceItem::create(CL_Invoice::CUSTOM_INVOICE_DESCRIPTION, $deposit);
+            $items[] = $newProduct->createInvoice(CL_Invoice::CUSTOM_INVOICE_DESCRIPTION, $deposit)->setTaxed(false);
 
             if($clientDetails['client']['credit'] < $deposit) {
                 $service->addInvoice($service->userid, new \DateTime(), $items, false);
