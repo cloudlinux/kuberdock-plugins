@@ -290,6 +290,9 @@ function KuberDock_InvoicePaid($params)
 
     try {
         $invoice = CL_Invoice::model()->loadById($invoiceId);
+        if (!$invoice) {
+            return;
+        }
         $invoice->addFirstDeposit();
 
         // Start pod
@@ -353,7 +356,10 @@ add_hook('InvoicePaid', 1, 'KuberDock_InvoicePaid');
  */
 function KuberDock_InvoiceUnpaid($params)
 {
-    CL_Invoice::model()->loadById($params['invoiceid'])->removeFirstDeposit();
+    $invoice = CL_Invoice::model()->loadById($params['invoiceid']);
+    if ($invoice) {
+        $invoice->removeFirstDeposit();
+    }
 }
 add_hook('InvoiceUnpaid', 1, 'KuberDock_InvoiceUnpaid');
 
@@ -366,7 +372,10 @@ add_hook('InvoiceUnpaid', 1, 'KuberDock_InvoiceUnpaid');
  */
 function KuberDock_InvoiceCancelled($params)
 {
-    CL_Invoice::model()->loadById($params['invoiceid'])->removeFirstDeposit();
+    $invoice = CL_Invoice::model()->loadById($params['invoiceid']);
+    if ($invoice) {
+        $invoice->removeFirstDeposit();
+    }
 }
 add_hook('InvoiceCancelled', 1, 'KuberDock_InvoiceCancelled');
 
