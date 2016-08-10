@@ -29,15 +29,16 @@ class KuberDock_OrderController extends CL_Controller {
     public function toCartAction()
     {
         $sessionId = CL_Base::model()->getParam('sessionId');
-        $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadByAttributes(array(
+        $data = \KuberDock_Addon_PredefinedApp::model()->loadByAttributes(array(
             'session_id' => $sessionId,
         ));
 
         try {
-            if (!$predefinedApp) {
+            if (!$data) {
                 throw new CException('App not found.');
             }
 
+            $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadByParams(current($data));
             $product = \KuberDock_Product::model()->loadById($predefinedApp->product_id);
 
             if (!$product) {

@@ -35,7 +35,7 @@ try {
         } elseif ($server = \KuberDock_Server::model()->getActive()) {
             $referer = $server->getApiServerUrl();
         } else {
-            throw new CException('Cannot get KuberDock server url');
+            throw new \exceptions\CException('Cannot get KuberDock server url');
         }
     }
 
