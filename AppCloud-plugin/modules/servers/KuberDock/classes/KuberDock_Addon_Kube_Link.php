@@ -92,8 +92,8 @@ class KuberDock_Addon_Kube_Link extends CL_Model
      */
     private function getApi()
     {
-        if (isset($this->product_id)) {
-            return KuberDock_Product::model()->loadById($this->product_id)->getApi();
+        if (isset($this->product_id) && $product = KuberDock_Product::model()->loadById($this->product_id)) {
+            return $product->getApi();
         }
 
         return KuberDock_Server::model()->getActive()->getApi();
