@@ -30,6 +30,10 @@ class ClientArea extends \base\CL_Component
         if (in_array($this->values['filename'], array('cart'))) {
             $this->prepareCartDetails();
             $this->prepareCart();
+
+            if ($this->values['cartitemcount'] == 0) {
+                $this->clearPA();
+            }
         }
 
         // Upgrade area
@@ -271,5 +275,13 @@ class ClientArea extends \base\CL_Component
         }
 
         return $this->products;
+    }
+
+    /**
+     *
+     */
+    private function clearPA()
+    {
+        \KuberDock_Addon_PredefinedApp::model()->clear();
     }
 }

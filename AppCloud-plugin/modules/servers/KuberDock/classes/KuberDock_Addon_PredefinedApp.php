@@ -356,6 +356,16 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
     }
 
     /**
+     *
+     */
+    public function clear()
+    {
+        $this->_db->query('DELETE FROM KuberDock_preapps WHERE session_id = :session_id AND pod_id IS NULL', array(
+            ':session_id' => \base\CL_Base::model()->getSession(),
+        ));
+    }
+
+    /**
      * @param array $pod
      * @return array
      */
