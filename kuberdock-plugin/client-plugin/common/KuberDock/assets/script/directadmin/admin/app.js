@@ -28,4 +28,31 @@ $(document).ready(function() {
 
         reader.readAsText(file);
     });
+
+    $('#button-confirm').on('click', function (e) {
+        $('.check-yaml').data('submit', true).trigger('click');
+    });
+
+    $('.check-yaml').on('click', function(e) {
+        if ($(this).data('submit')) {
+            return true;
+        }
+
+        $.ajax({
+            url: 'KuberDock/ajax.raw?a=validateYaml',
+            type: 'POST',
+            data: {
+                'template': editor.getDoc().getValue()
+            },
+            dataType: 'json'
+        }).done(function(data) {
+            if (data.errors) {
+                jQuery('#validationConfirm').modal('show').find('.modal-body').html(data.errors);
+            } else {
+                $('.check-yaml').data('submit', true).trigger('click');
+            }
+        });
+
+        return false;
+    });
 });

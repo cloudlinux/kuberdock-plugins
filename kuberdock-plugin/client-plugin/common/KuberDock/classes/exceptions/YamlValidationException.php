@@ -4,13 +4,25 @@ namespace Kuberdock\classes\exceptions;
 
 class YamlValidationException extends \Exception
 {
-    private $errors;
+    private $errors = array();
 
     public function __construct(array $errors){
-        $this->flattenCustomFields($errors['customFields']);
-        $this->flatten($errors['appPackages']);
-        $this->flatten($errors['common']);
-        $this->flatten($errors['schema']['kuberdock']);
+        if (isset($errors['customFields'])) {
+            $this->flattenCustomFields($errors['customFields']);
+        }
+
+        if (isset($errors['appPackages'])) {
+            $this->flatten($errors['appPackages']);
+        }
+
+        if (isset($errors['common'])) {
+            $this->flatten($errors['common']);
+        }
+
+        if (isset($errors['schema']['kuberdock'])) {
+            $this->flatten($errors['schema']['kuberdock']);
+        }
+
         parent::__construct(implode('<br>', $this->errors), 0);
     }
 

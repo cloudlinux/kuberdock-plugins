@@ -65,7 +65,7 @@ class AdminController extends pm_Controller_Action
             'script/plesk/admin/application',
         ));
 
-        $model = new \Kuberdock\classes\plesk\models\App();
+        $model = new \Kuberdock\classes\models\App('Plesk');
         $form = new \Kuberdock\classes\plesk\forms\App;
 
         if ($this->getRequest()->isPost() && $form->isValid($this->getRequest()->getPost())) {
@@ -111,14 +111,8 @@ class AdminController extends pm_Controller_Action
 
     public function validateYamlAction()
     {
-        $model = new \Kuberdock\classes\plesk\models\App();
-        $template = $_POST['template'];
-        $errors = 0;
-        try{
-            $model->validate($template);
-        } catch (\Kuberdock\classes\exceptions\YamlValidationException $e) {
-            $errors = $e->getMessage();
-        }
+        $model = new \Kuberdock\classes\models\App('Plesk');
+        $errors = $model->validate($_POST['template']);
 
         echo json_encode(array('errors' => $errors));
         exit;
@@ -132,7 +126,7 @@ class AdminController extends pm_Controller_Action
         ));
         $this->view->assets->registerStyles(array('css/plesk/admin'));
 
-        $model = new \Kuberdock\classes\plesk\models\Defaults;
+        $model = new \Kuberdock\classes\models\Defaults('Plesk');
 
         if ($this->getRequest()->isPost()) {
             $model->save($this->getRequest()->getPost());
@@ -154,7 +148,8 @@ class AdminController extends pm_Controller_Action
         $this->view->assets->registerStyles(array('css/plesk/admin'));
 
         $form = new \Kuberdock\classes\plesk\forms\KubeCli;
-        $model = new \Kuberdock\classes\plesk\models\KubeCli;
+        $model = new \Kuberdock\classes\models\KubeCli('Plesk');
+
 
         if ($this->getRequest()->isPost() && $form->isValid($this->getRequest()->getPost())) {
             try {
@@ -180,7 +175,7 @@ class AdminController extends pm_Controller_Action
         $name = $this->getRequest()->getPost('name');
 
         try {
-            $model = new \Kuberdock\classes\plesk\models\App();
+            $model = new \Kuberdock\classes\models\App('Plesk');
             $model->delete($id);
 
             $this->_status->addMessage('info', 'Template ' . $name . ' was successfully deleted.');
