@@ -329,21 +329,18 @@ class KuberDock_Pod
 
         $list = array_keys(array_merge($oldKontainers, $newKontainers));
 
+        $filterPorts = function($array) {
+            return array_filter($array['ports'], function($item) {
+                return $item['isPublic'];
+            });
+        };
+
         $newPublicIpUsed = false;
         $oldPublicIpUsed = false;
         foreach ($list as $name) {
             // ports
-            $oldPorts = self::sortPorts($oldKontainers, $name);
-            $newPorts = self::sortPorts($newKontainers, $name);
-            $listPorts = array_keys(array_merge($oldPorts, $newPorts));
-            foreach ($listPorts as $portAttrs) {
-                if (isset($oldPorts[$portAttrs])) {
-                    $oldPublicIpUsed = true;
-                }
-                if (isset($newPorts[$portAttrs])) {
-                    $newPublicIpUsed = true;
-                }
-            }
+            $oldPublicIpUsed = $oldPublicIpUsed || (bool) count($filterPorts($oldKontainers[$name]));
+            $newPublicIpUsed = $newPublicIpUsed || (bool) count($filterPorts($newKontainers[$name]));
 
             // kubes
             $newKubesIsset = isset($newKontainers[$name]['kubes']);
@@ -392,27 +389,6 @@ class KuberDock_Pod
 
         // volumes
         $this->compareVolumes($old['volumes'], $new['volumes']);
-    }
-
-    private static function sortPorts($array, $name)
-    {
-        $sort = function($array, $name){
-            $values = array();
-            if (isset($array[$name]['ports'])) {
-                foreach ($array[$name]['ports'] as $arr) {
-                    if (isset($arr['containerPort']) && isset($arr['protocol'])) {
-                        $values[$arr['containerPort'] . $arr['protocol']] = $arr;
-                    }
-                }
-            }
-            return $values;
-        };
-
-        $ports = $sort($array, $name);
-
-        return array_filter($ports, function($item) {
-            return $item['isPublic'];
-        });
     }
 
     private function compareVolumes($old, $new)
