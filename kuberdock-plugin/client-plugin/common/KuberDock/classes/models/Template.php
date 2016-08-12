@@ -55,6 +55,8 @@ class Template
         $this->data = Spyc::YAMLLoadString($template['template']);
         $this->data['kuberdock']['name'] = $template['name'];
 
+        $this->setDefaults();
+
         return $this->data;
     }
 
@@ -302,5 +304,22 @@ class Template
     public function addPackagePostDescription($description)
     {
         $this->data['kuberdock']['postDescription'] .= "\n" . $description;
+    }
+
+    private function setDefaults()
+    {
+        $defaults = $this->panel->billing->getDefaults();
+
+        if (!isset($this->data['kuberdock']['packageID'])) {
+            $this->data['kuberdock']['packageID'] = isset($defaults['packageId']) ? $defaults['packageId'] : 0;
+        }
+
+        foreach ($this->data['kuberdock']['appPackages'] as &$appPackage) {
+            foreach ($appPackage['pods'] as &$pod) {
+                if (!isset ($pod['kubeType'])) {
+                    $pod['kubeType'] = isset($defaults['kubeType']) ? $defaults['kubeType'] : 0;
+                }
+            }
+        }
     }
 }
