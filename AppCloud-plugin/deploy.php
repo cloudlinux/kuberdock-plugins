@@ -7,7 +7,97 @@ if (PHP_SAPI !== 'cli') {
     die('Command line execution only');
 }
 
-$help = <<<HELP
+// By adding another billing system: this must be called only in whmcs
+require 'init.php';
+
+BillingPlugin::deploy(WHMCS_BILLING);
+
+/*
+ * end script
+ */
+
+class BillingPlugin
+{
+    protected $options;
+    protected $billingName;
+    protected $link;
+
+    protected function __construct($billingName)
+    {
+        $opts_short = 'h::u::f::m::';
+        $opts_long = array(
+            'help::',
+            'user::',
+            'forced::',
+            'migrate::',
+            'kd_hostname::',
+            'kd_ip::',
+            'kd_login::',
+            'kd_password::',
+        );
+
+        $this->options = getopt($opts_short, $opts_long);
+        $this->billingName = $billingName;
+
+        if ($this->issetOption('help')) {
+            $this->showHelp();
+        }
+    }
+
+    public static function deploy($billingName)
+    {
+        if ($billingName === WHMCS_BILLING) {
+            $billing = new WhmcsPlugin($billingName);
+        } else {
+            die('Wrong billing');
+        }
+
+        if (!$billing->command_exist('unzip')) {
+            die("Unzip command not found.\nPlease install unzip\n\n");
+        };
+
+        $billing->setServer();
+
+        $versionTo = $billing->getLastVersionAndLink();
+
+        $versionFrom = $billing->getCurrentVersion();
+
+        if ($billing->issetOption('migrate')) {
+            $billing->migrate();
+            die("Db migration performed. Files not copied\n\n");
+        }
+
+        if ($versionFrom==$versionTo && !$billing->issetOption('forced')) {
+            die("KuberDock plugin is already up-to-date.\n\n");
+        }
+
+        $tmpName = '/tmp/' . $billing->link;
+        $billing->downloadFile(SITE_URL . $billing->link, $tmpName);
+        $result = $billing->unZip($tmpName);
+
+        $billing->changeOwner($result);
+        unlink($tmpName);
+
+        if (!is_null($versionFrom)) {
+            $billing->migrate();
+        }
+
+        if (is_null($versionFrom)) {
+            $billing->say("Installed version $versionTo of KuberDock plugin.\n");
+        } else {
+            $billing->say("KuberDock plugin upgraded from version $versionFrom to version $versionTo\n");
+        }
+
+    }
+
+    protected function say($msg)
+    {
+        echo $msg . PHP_EOL;
+    }
+
+    protected function showHelp()
+    {
+        $help = <<<HELP
 
 Using deploy script:
 
@@ -21,6 +111,11 @@ Possible keys:
 --help, -h - print this help
     php deploy.php --help
 
+--kd_hostname,
+--kd_ip,
+--kd_login,
+--kd_password - use these keys to add KuberDock server to WHMCS
+
 --forced -f - Execute script even if current version is last.
     By default script stops if user has last version.
 
@@ -33,96 +128,193 @@ Possible keys:
 
 HELP;
 
-$options = getopt('h::u::f::m::', array('help::', 'user::', 'forced::', 'migrate::'));
-
-if (issetOption($options, 'help')) {
-    die($help);
-}
-
-if (!command_exist('unzip')) {
-    die("Unzip command not found.\nPlease install unzip\n\n");
-};
-
-$billing = WHMCS_BILLING;
-
-list($link, $versionTo) = getLastLink($billing);
-
-// null if this is first installation
-$versionFrom = getCurrentVersion($billing);
-
-if (issetOption($options, 'migrate')) {
-    migrate();
-    die("Db migration performed. Files not copied\n\n");
-}
-
-if ($versionFrom==$versionTo && !issetOption($options, 'forced')) {
-    die("KuberDock plugin is already up-to-date.\n\n");
-}
-
-$user = getOptionValue($options, 'user');
-
-perform($link, $user);
-
-if (!is_null($versionFrom)) {
-    migrate();
-}
-
-if (is_null($versionFrom)) {
-    echo "Installed version $versionTo of KuberDock plugin.\n\n";
-} else {
-    echo "KuberDock plugin upgraded from version $versionFrom to version $versionTo\n\n";
-}
-
-/*
- * end script
- */
-
-function perform($link, $user)
-{
-    $tmpName = '/tmp/' . $link;
-    downloadFile(SITE_URL . $link, $tmpName);
-    $result = unZip($tmpName);
-
-    changeOwner($result, $user);
-    unlink($tmpName);
-}
-
-function getOptionValue($options, $option)
-{
-    if (isset($options[$option])) {
-        return $options[$option];
+        die($help);
     }
 
-    $short = $option[0];
-    if (isset($options[$short])) {
-        return $options[$short];
+    protected function getOption($option, $default = null)
+    {
+        if (isset($this->options[$option])) {
+            return $this->options[$option];
+        }
+
+        $short = $option[0];
+        if (isset($this->options[$short])) {
+            return $this->options[$short];
+        }
+
+        return $default;
     }
 
-    return null;
+    protected function issetOption($option)
+    {
+        $short = $option[0];
+        return isset($this->options[$option]) || isset($this->options[$short]);
+    }
+
+    protected function getLastVersionAndLink()
+    {
+        // get site
+        $site = file_get_contents(SITE_URL);
+        $regexp = "href=[\'\"](" . $this->billingName . "\-kuberdock\-plugin\-([\d\.]*)\.zip)[\'\"]";
+
+        // get last link
+        $versionTo = null;
+        if(preg_match_all("/$regexp/siU", $site, $matches)) {
+            foreach ($matches[1] as $index => $currentUrl) {
+                $versionTo = $this->getMax($versionTo, $matches[2][$index]);
+                if ($versionTo==$matches[2][$index]) {
+                    $this->link = $currentUrl;
+                }
+            }
+        }
+
+        return $versionTo;
+    }
+
+    public function warningHandler($errno, $errstr)
+    {
+        // do nothing
+    }
+
+    protected function unZip($file)
+    {
+        return shell_exec('unzip -o ' . $file);
+    }
+
+    protected function changeOwner($string)
+    {
+        if (!$this->issetOption('user')) {
+            return;
+        }
+
+        $user = $this->getOption('user');
+
+        if (!stripos($user, ':')) {
+            $user = $user . ':' . $user;
+        }
+
+        $lines = explode("\n", $string);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (stripos($line, 'Archive:') === 0) {
+                continue;
+            }
+
+            $line = preg_replace('/(inflating\:\s|extracting\:\s)/', '', $line);
+            if (!$line) {
+                continue;
+            }
+
+            shell_exec("chown $user $line");
+        }
+    }
+
+    protected function getMax($a, $b)
+    {
+        $aArr = explode('.', $a);
+        $bArr = explode('.', $b);
+
+        for ($i=0; $i<=min(count($aArr), count($bArr)); $i++) {
+            $aChunk = each($aArr);
+            $bChunk = each($bArr);
+
+            if ($bChunk === $aChunk) {
+                continue;
+            }
+
+            return $bChunk > $aChunk
+                ? $b
+                : $a;
+        }
+    }
+
+    protected function downloadFile($url, $path)
+    {
+        if ($from = fopen ($url, 'rb')) {
+            if ($to = fopen ($path, 'wb')) {
+                while(!feof($from)) {
+                    fwrite($to, fread($from, 1024 * 8), 1024 * 8);
+                }
+            } else {
+                die("Can not write file: $path\n");
+            }
+        } else {
+            die("Can not open url: $url\n");
+        }
+
+        if ($from) {
+            fclose($from);
+        }
+
+        if ($to) {
+            fclose($to);
+        }
+    }
+
+    protected function command_exist($cmd)
+    {
+        return (bool) shell_exec("which $cmd 2>/dev/null");
+    }
 }
 
-function issetOption($options, $option)
+class WhmcsPlugin extends BillingPlugin
 {
-    $short = $option[0];
-    return isset($options[$option]) || isset($options[$short]);
-}
+    protected function setServer()
+    {
+        if (
+            (!$this->issetOption('kd_hostname') && !$this->issetOption('kd_ip'))
+                || !$this->issetOption('kd_login')
+                || !$this->issetOption('kd_password')
+        ) {
+            return;
+        }
 
-function migrate()
-{
-    // todo: remove deprecated
-    $simpleMigration = new \components\KuberDock_Migration();
-    $simpleMigration->migrate();
+        $servers = $this->getTable('tblservers')->where('type', '=', 'KuberDock')->get();
+        if (count($servers)) {
+            return;
+        }
 
-    \migrations\Migration::up();
-}
+        $accessHash = $this->getToken();
 
-function getCurrentVersion($billing)
-{
-    if ($billing === WHMCS_BILLING) {
-        require 'init.php';
+        $secret = $this->getSecret($accessHash);
+        $this->setSecret($secret);
 
+        $serverId = $this->getTable('tblservers')->insertGetId([
+            'name' => 'KuberDock master',
+            'ipaddress' => $this->getOption('kd_ip', ''),
+            'hostname' => $this->getOption('kd_hostname', ''),
+            'maxaccounts' => 200,
+            'type' => 'KuberDock',
+            'username' => $this->getOption('kd_login'),
+            'password' => $this->encryptPassword(),
+            'accesshash' => $accessHash,
+            'secure' => 'on',
+            'active' => 1,
+            'disabled' => 0,
+        ]);
+        $this->say('KuberDock server added');
+
+        $serverGroupId = $this->getTable('tblservergroups')->insertGetId([
+            'name' => 'KuberDock group',
+            'filltype' => 1,
+        ]);
+        $this->say('KuberDock group added');
+
+        $this->getTable('tblservergroupsrel')->insert([
+            'serverid' => $serverId,
+            'groupid' => $serverGroupId,
+        ]);
+    }
+
+    /**
+     * Returns null if this is first installation, otherwise string like '1.0.7.3'
+     *
+     * @return null|string
+     */
+    protected function getCurrentVersion()
+    {
         // try to load KuberDock.php, if failure - plugin not installed
-        set_error_handler("warningHandler", E_WARNING);
+        set_error_handler(array($this, "warningHandler"), E_WARNING);
         if ((include 'modules/addons/KuberDock/KuberDock.php') === false) {
             return null;
         }
@@ -132,108 +324,74 @@ function getCurrentVersion($billing)
 
         return $config['version'];
     }
-}
 
-function warningHandler($errno, $errstr)
-{
-    // do nothing
-}
+    protected function getToken()
+    {
+        $user = $this->getOption('kd_login') . ':' . $this->getOption('kd_password');
+        $hostname = $this->getOption('kd_hostname', $this->getOption('kd_ip'));
 
-function unZip($file)
-{
-    return shell_exec('unzip -o ' . $file);
-}
+        $result = shell_exec("curl -k --user " . $user . " https://" . $hostname . "/api/auth/token 2>/dev/null");
+        $result = json_decode($result, true);
 
-function changeOwner($string, $user = null)
-{
-    if (is_null($user)) {
-        return;
-    }
-
-    if (!stripos($user, ':')) {
-        $user = $user . ':' . $user;
-    }
-
-    $lines = explode("\n", $string);
-    foreach ($lines as $line) {
-        $line = trim($line);
-        if (stripos($line, 'Archive:') === 0) {
-            continue;
+        if ($result['status']!= 'OK') {
+            die('Error: ' . $result['data']);
         }
 
-        $line = preg_replace('/(inflating\:\s|extracting\:\s)/', '', $line);
-        if (!$line) {
-            continue;
+        return $result['token'];
+    }
+
+    protected function getSecret($token)
+    {
+        $hostname = $this->getOption('kd_hostname', $this->getOption('kd_ip'));
+        $result = shell_exec("curl -k 'https://" . $hostname . "/api/settings/sysapi?token=" . $token . "' 2>/dev/null");
+        $result = json_decode($result, true);
+
+        if ($result['status']!= 'OK') {
+            die('Error: ' . $result['data']);
         }
 
-        shell_exec("chown $user $line");
-    }
-}
-
-function getLastLink($billing)
-{
-    // get site
-    $site = file_get_contents(SITE_URL);
-    $regexp = "href=[\'\"](" . $billing . "\-kuberdock\-plugin\-([\d\.]*)\.zip)[\'\"]";
-
-    // get last link
-    if(preg_match_all("/$regexp/siU", $site, $matches)) {
-        $version = null;
-        $url = '';
-        foreach ($matches[1] as $index => $currentUrl) {
-            $version = getMax($version, $matches[2][$index]);
-            if ($version==$matches[2][$index]) {
-                $url = $currentUrl;
+        foreach ($result['data'] as $item) {
+            if ($item['name'] == 'sso_secret_key') {
+                return $item['value'];
             }
         }
     }
 
-    return array($url, $version);
-}
+    protected function setSecret($secret)
+    {
+        $configFile = "configuration.php";
 
-function getMax($a, $b)
-{
-    $aArr = explode('.', $a);
-    $bArr = explode('.', $b);
-
-    for ($i=0; $i<=min(count($aArr), count($bArr)); $i++) {
-        $aChunk = each($aArr);
-        $bChunk = each($bArr);
-
-        if ($bChunk === $aChunk) {
-            continue;
+        if (preg_match('/\$autoauthkey = \".+\"/i', file_get_contents($configFile)) == 0) {
+            $hl = fopen($configFile, "a+");
+            fwrite($hl, '$autoauthkey = "' . $secret . '";' . PHP_EOL);
+            fclose($hl);
+            $this->say('Secret key added');
         }
-
-        return $bChunk > $aChunk
-            ? $b
-            : $a;
-    }
-}
-
-function downloadFile($url, $path)
-{
-    if ($from = fopen ($url, 'rb')) {
-        if ($to = fopen ($path, 'wb')) {
-            while(!feof($from)) {
-                fwrite($to, fread($from, 1024 * 8), 1024 * 8);
-            }
-        } else {
-            die("Can not write file: $path\n");
-        }
-    } else {
-        die("Can not open url: $url\n");
     }
 
-    if ($from) {
-        fclose($from);
+    protected function migrate()
+    {
+        // todo: remove deprecated
+        $simpleMigration = new \components\KuberDock_Migration();
+        $simpleMigration->migrate();
+
+        \migrations\Migration::up();
     }
 
-    if ($to) {
-        fclose($to);
-    }
-}
+    private function encryptPassword()
+    {
+        $password = $this->getOption('kd_password');
+        $data = $this->apiCall('encryptpassword', array('password2' => $password));
 
-function command_exist($cmd)
-{
-    return (bool) shell_exec("which $cmd 2>/dev/null");
+        return $data['password'];
+    }
+
+    private function apiCall($command, $params = array())
+    {
+        return localAPI($command, $params, "admin");
+    }
+
+    private function getTable($table) {
+        return Illuminate\Database\Capsule\Manager::table($table);
+    }
 }
