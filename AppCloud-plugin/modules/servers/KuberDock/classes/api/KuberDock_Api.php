@@ -285,6 +285,7 @@ class KuberDock_Api {
 
             switch ($status['http_code']) {
                 case KuberDock_ApiStatusCode::HTTP_BAD_REQUEST:
+                case KuberDock_ApiStatusCode::HTTP_CONFLICT:
                     break;
                 case KuberDock_ApiStatusCode::HTTP_FORBIDDEN:
                     throw new CException(sprintf('Invalid credential for KuberDock server %s', $this->url));
