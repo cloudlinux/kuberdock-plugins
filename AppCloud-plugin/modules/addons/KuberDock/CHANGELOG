@@ -1,3 +1,18 @@
+* 1.0.7.5
+- AC-3657 WHMCS. Improve deploy script to do installation process easier
+- AC-4020 WHMCS. Ability to apply tax to the KD products in WHMCS
+- WHMCS. Bugfix: Error while deactivating plugin
+- AC-4119 WHMCS. Fatal error while trying to cancel an order
+- AC-4128 WHMCS. upgrade pod adds public ip fee again
+- WHMCS. Fixed orderapp
+- AC-4086 WHMCS. On addon activation, creates product with 'One Time' price settings
+- AC-3977 WHMCS. Perform wipe out after cancel
+- AC-4016 WHMCS. Unclear error message from WHMCS plugin if ordering more Kubes than allowed for TrialUser
+
+* 1.0.7.4
+- WHMCS. Trial period expired notice
+- AC-3999 WHMCS. Order process improvements and bug fixes
+
 * 1.0.7.3
 - WHMCS. Fixed upgrade product error
 - AC-3839 WHMCS. Pod from PA is being created even invoice is still unpaid
