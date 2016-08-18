@@ -11,6 +11,7 @@ class KuberDock_InvoiceItem
 
     private $units;
     private $description;
+    private $taxed = false;
     private $price;
     private $qty;
 
@@ -36,11 +37,29 @@ class KuberDock_InvoiceItem
     public function setShort($short = true)
     {
         $this->short = $short;
+
+        return $this;
     }
 
     public function isShort()
     {
         return $this->short;
+    }
+
+    /**
+     * @param $taxed bool
+     * @return $this
+     */
+    public function setTaxed($taxed)
+    {
+        $this->taxed = $taxed;
+
+        return $this;
+    }
+
+    public function getTaxed()
+    {
+        return $this->taxed;
     }
 
     public function getTotal()

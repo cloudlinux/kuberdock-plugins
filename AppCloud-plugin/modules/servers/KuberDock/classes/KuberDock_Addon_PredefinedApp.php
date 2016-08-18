@@ -6,8 +6,6 @@
 
 use base\CL_Model;
 use base\CL_Tools;
-use base\models\CL_Invoice;
-use \components\KuberDock_InvoiceItem;
 
 /**
  * Class KuberDock_Addon_PredefinedApp
@@ -401,14 +399,14 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         $containers = $spec['containers'] ? $spec['containers'] : $spec;
         foreach($containers as $row) {
             if(isset($row['kubes'])) {
-                $items[] = KuberDock_InvoiceItem::create('Pod: ' . $row['name'], $kubePrice, 'pod', $row['kubes']);
+                $items[] = $product->createInvoice('Pod: ' . $row['name'], $kubePrice, 'pod', $row['kubes']);
             }
 
             if(isset($row['ports'])) {
                 foreach($row['ports'] as $port) {
                     if(isset($port['isPublic']) && $port['isPublic']) {
                         $ipPrice = (float) $product->getConfigOption('priceIP');
-                        $items[] = KuberDock_InvoiceItem::create('IP: ' . $data->public_ip, $ipPrice, 'IP');
+                        $items[] = $product->createInvoice('IP: ' . $data->public_ip, $ipPrice, 'IP');
                     }
                 }
             }
@@ -420,7 +418,8 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
                     $unit = \components\KuberDock_Units::getPSUnits();
                     $psPrice = (float)$product->getConfigOption('pricePersistentStorage');
                     $title = 'Storage: ' . $row['persistentDisk']['pdName'];
-                    $items[] = KuberDock_InvoiceItem::create($title, $psPrice, $unit, $row['persistentDisk']['pdSize']);
+                    $qty = $row['persistentDisk']['pdSize'];
+                    $items[] = $product->createInvoice($title, $psPrice, $unit, $qty);
                 }
             }
         }
@@ -445,7 +444,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         foreach($data->containers as $row) {
             if(isset($row->kubes)) {
                 $description = 'Pod: ' . $data->name . ' (' . $row->image . ')';
-                $items[] = KuberDock_InvoiceItem::create($description, $kubePrice, 'pod', $row->kubes);
+                $items[] = $product->createInvoice($description, $kubePrice, 'pod', $row->kubes);
             }
 
             if(isset($row->ports)) {
@@ -459,7 +458,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
 
         $ipPrice = (float) $product->getConfigOption('priceIP');
         foreach ($ips as $ip => $true) {
-            $items[] = KuberDock_InvoiceItem::create('IP: ' . $ip, $ipPrice, 'IP');
+            $items[] = $product->createInvoice('IP: ' . $ip, $ipPrice, 'IP');
         }
 
         if(isset($data->volumes)) {
@@ -468,7 +467,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
                     $psPrice = (float)$product->getConfigOption('pricePersistentStorage');
                     $unit = \components\KuberDock_Units::getPSUnits();
                     $title = 'Storage: ' . $row->persistentDisk->pdName;
-                    $items[] = KuberDock_InvoiceItem::create($title, $psPrice, $unit, $row->persistentDisk->pdSize);
+                    $items[] = $product->createInvoice($title, $psPrice, $unit, $row->persistentDisk->pdSize);
                 }
             }
         }

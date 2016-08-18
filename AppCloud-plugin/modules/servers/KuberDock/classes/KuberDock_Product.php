@@ -930,16 +930,16 @@ SCRIPT;
             $pricing = $product->getPricing();
 
             if ($pricing['setup'] > 0) {
-                $items[] = KuberDock_InvoiceItem::create('Setup', $pricing['setup']);
+                $items[] = $product->createInvoice('Setup', $pricing['setup']);
             }
 
             if ($pricing['recurring'] > 0) {
-                $items[] = KuberDock_InvoiceItem::create('Recurring ('. $pricing['cycle'] .')', $pricing['recurring']);
+                $items[] = $product->createInvoice('Recurring ('. $pricing['cycle'] .')', $pricing['recurring']);
             }
 
 
             if ($firstDeposit = $product->getFirstDeposit()) {
-                $items[] = KuberDock_InvoiceItem::create('First deposit', $firstDeposit);
+                $items[] = $product->createInvoice('First deposit', $firstDeposit)->setTaxed(false);
             }
 
             if (!$items) {
@@ -958,5 +958,16 @@ SCRIPT;
             ));
             $invoiceItems->save();
         }
+    }
+
+    public function createInvoice($description, $price, $units = null, $qty = 1)
+    {
+        $invoice = KuberDock_InvoiceItem::create($description, $price, $units, $qty);
+
+        if ($this->tax) {
+            $invoice->setTaxed(true);
+        }
+
+        return $invoice;
     }
 } 
