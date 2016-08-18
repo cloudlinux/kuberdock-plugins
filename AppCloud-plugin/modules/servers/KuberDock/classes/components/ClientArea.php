@@ -127,6 +127,9 @@ class ClientArea extends \base\CL_Component
                 $product['billingcyclefriendly'] = $p->getReadablePaymentType();
                 $product['productinfo']['groupname'] = 'Package ' . $predefinedApp->getAppPackageName();
                 $product['productinfo']['name'] = ucfirst($predefinedApp->getName());
+                if ($pricing['setup'] && $pricing['setup']!=-1) {
+                    $product['pricing']['setupfeeonly'] = $this->currency->getFullPrice($pricing['setup']);
+                }
             }
 
             if ($depositPrice = $p->getConfigOption('firstDeposit')) {
