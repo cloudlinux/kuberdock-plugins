@@ -60,7 +60,7 @@ class KuberDock_OrderController extends CL_Controller {
         $kdProductId = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_PRODUCT_ID_FIELD);
         $yaml = html_entity_decode(urldecode(CL_Base::model()->getParam($predefinedApp::KUBERDOCK_YAML_FIELD)), ENT_QUOTES);
         $referer = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_REFERER_FIELD);
-        $parsedYaml = \Spyc::YAMLLoadString($yaml);
+        $parsedYaml = \base\CL_Tools::parseYaml($yaml);
 
         try {
             if(isset($parsedYaml['kuberdock']['packageID'])) {

@@ -214,4 +214,13 @@ class CL_Tools extends CL_Component {
         fwrite($hl, $content);
         fclose($hl);
     }
+
+    /**
+     * @param string $data
+     * @return mixed
+     */
+    public static function parseYaml($data)
+    {
+        return \extensions\Yaml\Yaml::parse($data);
+    }
 } 

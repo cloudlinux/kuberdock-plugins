@@ -209,7 +209,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
      */
     public function isPodExists($serviceId)
     {
-        $yaml = Spyc::YAMLLoadString($this->data);
+        $yaml = CL_Tools::parseYaml($this->data);
         $podName = isset($yaml['metadata']['name']) ? $yaml['metadata']['name'] : '';
 
         $api = KuberDock_Hosting::model()->loadById($serviceId)->getApi();
@@ -230,12 +230,12 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
      */
     public function getTotalPrice($total = false)
     {
-        $pod= $this->getPod();
+        $pod = $this->getPod();
 
         if ($pod) {
             $items = $this->getTotalPricePod($pod);
         } else {
-            $items = $this->getTotalPriceYAML(Spyc::YAMLLoadString($this->data));
+            $items = $this->getTotalPriceYAML(CL_Tools::parseYaml($this->data));
         }
 
         if ($total) {
@@ -256,7 +256,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         if($pod = $this->getPod()) {
             return $pod->name;
         } else {
-            $yaml = Spyc::YAMLLoadString($this->data);
+            $yaml = CL_Tools::parseYaml($this->data);
             return isset($yaml['metadata']['name']) ? $yaml['metadata']['name'] : 'Undefined';
         }
     }
@@ -309,7 +309,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
      */
     public function getPostDescription()
     {
-        $data = Spyc::YAMLLoadString($this->data);
+        $data = CL_Tools::parseYaml($this->data);
         $postDescription = isset($data['kuberdock'][self::KUBERDOCK_YAML_POST_DESCRIPTION_FIELD]) ?
             $data['kuberdock'][self::KUBERDOCK_YAML_POST_DESCRIPTION_FIELD] : '';
 
@@ -324,7 +324,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         if ($pod = $this->getPod()) {
             return $pod->kube_type;
         } else {
-            $data = Spyc::YAMLLoadString($this->data);
+            $data = CL_Tools::parseYaml($this->data);
             return $data['kuberdock']['kube_type'];
         }
     }
@@ -336,7 +336,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
     {
         if ($this->getPod())  return '';
 
-        $data = Spyc::YAMLLoadString($this->data);
+        $data = CL_Tools::parseYaml($this->data);
         return isset($data['kuberdock']['appPackage']['name'])
             ? $data['kuberdock']['appPackage']['name']: 'Undefined';
     }
@@ -348,7 +348,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
     {
         if ($this->getPod())  return '';
 
-        $data = Spyc::YAMLLoadString($this->data);
+        $data = CL_Tools::parseYaml($this->data);
         return isset($data['kuberdock']['appPackage']['goodFor'])
             ? $data['kuberdock']['appPackage']['goodFor']: 'Undefined';
     }
