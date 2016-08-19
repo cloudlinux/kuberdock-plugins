@@ -377,7 +377,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
 
     /**
      * @param $data
-     * @return int
+     * @return array KuberDock_InvoiceItem[]
      * @throws Exception
      */
     private function getTotalPriceYAML($data)
@@ -389,32 +389,35 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
 
         $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
         $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
+        $hasPublicIP = false;
 
-        if(isset($data['spec']['template']['spec'])) {
+        if (isset($data['spec']['template']['spec'])) {
             $spec = $data['spec']['template']['spec'];
         } else {
             $spec = $data['spec'];
         }
 
         $containers = $spec['containers'] ? $spec['containers'] : $spec;
-        foreach($containers as $row) {
-            if(isset($row['kubes'])) {
+        foreach ($containers as $row) {
+            if (isset($row['kubes'])) {
                 $items[] = $product->createInvoice('Pod: ' . $row['name'], $kubePrice, 'pod', $row['kubes']);
             }
 
-            if(isset($row['ports'])) {
-                foreach($row['ports'] as $port) {
-                    if(isset($port['isPublic']) && $port['isPublic']) {
+            if (isset($row['ports'])) {
+                foreach ($row['ports'] as $port) {
+                    if (isset($port['isPublic']) && $port['isPublic'] && !$hasPublicIP) {
                         $ipPrice = (float) $product->getConfigOption('priceIP');
-                        $items[] = $product->createInvoice('IP: ' . $data->public_ip, $ipPrice, 'IP');
+                        $ip = isset($data->public_ip) ? $data->public_ip : '';
+                        $items[] = $product->createInvoice('IP: ' . $ip, $ipPrice, 'IP');
+                        $hasPublicIP = true;
                     }
                 }
             }
         }
 
-        if(isset($spec['volumes'])) {
-            foreach($spec['volumes'] as $row) {
-                if(isset($row['persistentDisk']['pdSize'])) {
+        if (isset($spec['volumes'])) {
+            foreach ($spec['volumes'] as $row) {
+                if (isset($row['persistentDisk']['pdSize'])) {
                     $unit = \components\KuberDock_Units::getPSUnits();
                     $psPrice = (float)$product->getConfigOption('pricePersistentStorage');
                     $title = 'Storage: ' . $row['persistentDisk']['pdName'];
@@ -429,7 +432,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
 
     /**
      * @param $data
-     * @return int
+     * @return array KuberDock_InvoiceItem[]
      * @throws Exception
      */
     private function getTotalPricePod($data)
@@ -440,30 +443,29 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         $kubeType = isset($data->kube_type) ? $data->kube_type : 0;
         $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
 
-        $ips = array();
-        foreach($data->containers as $row) {
-            if(isset($row->kubes)) {
+        $hasPublicIP = false;
+
+        foreach ($data->containers as $row) {
+            if (isset($row->kubes)) {
                 $description = 'Pod: ' . $data->name . ' (' . $row->image . ')';
                 $items[] = $product->createInvoice($description, $kubePrice, 'pod', $row->kubes);
             }
 
-            if(isset($row->ports)) {
-                foreach($row->ports as $port) {
-                    if(isset($port->isPublic) && $port->isPublic) {
-                        $ips[$data->public_ip] = true;
+            if (isset($row->ports)) {
+                foreach ($row->ports as $port) {
+                    if (isset($port->isPublic) && $port->isPublic && !$hasPublicIP) {
+                        $ipPrice = (float) $product->getConfigOption('priceIP');
+                        $ip = isset($data->public_ip) ? $data->public_ip : '';
+                        $items[] = $product->createInvoice('IP: ' . $ip, $ipPrice, 'IP');
+                        $hasPublicIP = true;
                     }
                 }
             }
         }
 
-        $ipPrice = (float) $product->getConfigOption('priceIP');
-        foreach ($ips as $ip => $true) {
-            $items[] = $product->createInvoice('IP: ' . $ip, $ipPrice, 'IP');
-        }
-
-        if(isset($data->volumes)) {
-            foreach($data->volumes as $row) {
-                if(isset($row->persistentDisk->pdSize)) {
+        if (isset($data->volumes)) {
+            foreach ($data->volumes as $row) {
+                if (isset($row->persistentDisk->pdSize)) {
                     $psPrice = (float)$product->getConfigOption('pricePersistentStorage');
                     $unit = \components\KuberDock_Units::getPSUnits();
                     $title = 'Storage: ' . $row->persistentDisk->pdName;
