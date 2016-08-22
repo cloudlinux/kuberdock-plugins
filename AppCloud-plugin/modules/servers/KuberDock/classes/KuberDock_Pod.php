@@ -322,6 +322,17 @@ class KuberDock_Pod
 
     private function collectInvoiceItems($old, $new)
     {
+        $kubeTypeChanged = false;
+        $oldKubeType = $old['kube_type'];
+        $newKubeType = $new['kube_type'];
+
+        if ($oldKubeType != $newKubeType) {
+            $oldKube = $this->kube;
+            $kubes = \base\CL_Tools::getKeyAsField($this->kubes, 'kuber_kube_id');
+            $this->kube = $kubes[$newKubeType];
+            $kubeTypeChanged = true;
+        }
+
         $oldKontainers = \base\CL_Tools::getKeyAsField($old['containers'], 'name');
         $newKontainers = \base\CL_Tools::getKeyAsField($new['containers'], 'name');
 
@@ -345,6 +356,18 @@ class KuberDock_Pod
             $oldKubesIsset = isset($oldKontainers[$name]['kubes']);
             if ($newKubesIsset && $oldKubesIsset) {
                 $delta = $newKontainers[$name]['kubes'] - $oldKontainers[$name]['kubes'];
+                if ($kubeTypeChanged) {
+                    $oldKubePrice = $oldKube['kube_price'] * $this->proRate;
+                    $newKubePrice = $this->kube['kube_price'] * $this->proRate;
+
+                    if ($oldKubeType != $newKubeType) {
+                        $description = sprintf('Change kube type from %s to %s (%s)',
+                            $oldKube['kube_name'], $this->kube['kube_name'], $newKontainers[$name]['image']);
+                        $price = $newKontainers[$name]['kubes'] * $newKubePrice
+                            - $newKontainers[$name]['kubes'] * $oldKubePrice;
+                        $this->editInvoiceItems[] = $this->product->createInvoice($description, $price, 'kube', 1);
+                    }
+                }
                 if ($delta == 0) {
                     continue;
                 }
