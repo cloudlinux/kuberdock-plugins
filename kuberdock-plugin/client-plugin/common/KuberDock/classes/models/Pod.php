@@ -373,7 +373,7 @@ class Pod {
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @return $this
      */
     public function loadByName($name)
@@ -387,6 +387,18 @@ class Pod {
             $this->_data['postDescription'] = isset($template['kuberdock']['postDescription']) ?
                 $template['kuberdock']['postDescription'] : '';
         }
+
+        return $this;
+    }
+
+    /**
+     * @param string $id
+     * @return $this
+     */
+    public function loadById($id)
+    {
+        $details = $this->panel->getApi()->getPod($id);
+        $this->_data = $details;
 
         return $this;
     }
@@ -427,10 +439,6 @@ class Pod {
             throw new PaymentRequiredException($response);
         } else {
             $this->status = 'pending';
-            if ($this->template_id) {
-                $proxy = new Proxy();
-                $proxy->addRuleToPod($this);
-            }
         }
 
         return $response;
@@ -480,13 +488,8 @@ class Pod {
         if ($this->isUnPaid()) {
             $this->order();
             $message = 'Application started';
-        } elseif(in_array($this->status, array('stopped', 'terminated', 'failed', 'succeeded'))) {
+        } elseif (in_array($this->status, array('stopped', 'terminated', 'failed', 'succeeded'))) {
             $this->command->startContainer($this->name);
-
-            if($this->template_id) {
-                $proxy = new Proxy();
-                $proxy->addRuleToPod($this);
-            }
             $message = 'Application started';
         } else {
             $message = 'Application is already running';
@@ -503,7 +506,7 @@ class Pod {
         if (in_array($this->status, array('running', 'pending'))) {
             $this->command->stopContainer($this->name);
 
-            if($this->template_id) {
+            if ($this->template_id) {
                 $proxy = new Proxy();
                 $proxy->removeRuleFromPod($this);
             }

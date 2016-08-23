@@ -869,4 +869,13 @@ class KuberDock_Api {
 
         return $response->parsed['token'];
     }
+
+    /**
+     * @param string $id
+     * @return array
+     */
+    public function getPod($id)
+    {
+        return $this->apiCall('/api/podapi/' . $id);
+    }
 }

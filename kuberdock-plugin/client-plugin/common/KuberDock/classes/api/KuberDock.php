@@ -19,10 +19,6 @@ class KuberDock extends API
         if ($name) {
             $pod = $this->getPod()->loadByName($name);
 
-            // Add proxy rule
-            if ($pod->template_id && in_array($pod->status, array('pending', 'running'))) {
-                (new Proxy())->addRuleToPod($pod);
-            }
             return $pod->asArray();
         } else {
             return array_map(function($pod) {
@@ -227,6 +223,21 @@ class KuberDock extends API
 
         while (!connection_aborted()) {
             $response = fgets($handle);
+
+            // Add rule to .htaccess, because immediately after pod start can't get pod IP
+            if (preg_match('/data:(.*)\n/', $response, $match)) {
+                $data = json_decode($match[1]);
+                if ($data->id) {
+                    $pod = new Pod();
+                    $pod = $pod->loadById($data->id);
+
+                    if ($pod->template_id && in_array($pod->status, array('running'))) {
+                        $proxy = new Proxy();
+                        $proxy->addRuleToPod($pod);
+                    }
+                }
+            }
+
             echo sprintf("%s", $response);
             ob_flush();
             flush();

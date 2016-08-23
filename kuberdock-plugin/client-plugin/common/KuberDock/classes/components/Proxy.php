@@ -68,7 +68,7 @@ class Proxy {
         } else {
             $htaccess = preg_replace_callback($this->getHtaccessRegexp(), function($e) use ($rule) {
                 $rules = array_filter(explode("\n", $e[1]));
-                if(!in_array(trim($rule), $rules)) {
+                if (!in_array(trim($rule), $rules)) {
                     $rules[] = $rule;
                 }
                 return implode("\n", array_merge(array(self::HTACCESS_START_SECTION), $rules, array(self::HTACCESS_END_SECTION)));
@@ -126,61 +126,22 @@ class Proxy {
     }
 
     /**
-     * @param $dir
-     * @param $domain
-     * @return bool
-     */
-    public function removeRuleByDirName($dir, $domain)
-    {
-        $path = $this->getHtaccessPathByDomain($domain);
-
-        if (!file_exists($path)) {
-            return false;
-        }
-
-        $fileManager = Base::model()->getStaticPanel()->getFileManager();
-        $htaccess = $fileManager->getFileContent($path);
-
-        if (preg_match($this->getHtaccessRegexp(), $htaccess)) {
-            $htaccess = preg_replace_callback($this->getHtaccessRegexp(), function ($e) use ($dir) {
-                $rules = array_filter(explode("\n", $e[1]), function ($r) use ($dir) {
-                    $dir = ($dir == self::ROOT_DIR) ? '' : $dir . '/';
-                    if (strpos($r, $dir . '(.*)') === false) {
-                        return $r;
-                    }
-                });
-                return implode("\n", array_merge(array(self::HTACCESS_START_SECTION), $rules, array(self::HTACCESS_END_SECTION)));
-            }, $htaccess);
-        }
-
-        if ($fileManager->file_exists($path)) {
-            $fileManager->chown($path);
-            $fileManager->chmod($path, 0664);
-            file_put_contents($path, $htaccess);
-        }
-    }
-
-    /**
      * @param Pod $pod
      * @throws CException
      */
     public function addRuleToPod(Pod $pod)
     {
+        $directory = $domain = $port = '';
         $template = PredefinedApp::getTemplateById($pod->template_id, $pod->name);
         $pod = (new Pod)->loadByName($pod->name);
 
-        if (isset($template['kuberdock']['proxy'])) {
-            foreach ($template['kuberdock']['proxy'] as $dir => $proxy) {
-                if (isset($proxy['domain']) && isset($proxy['container'])) {
-                    $container = $pod->getContainerByName($proxy['container']);
-                    if ($ports = $container['ports']) {
-                        foreach ($ports as $port) {
-                            $port = isset($port['hostPort']) ? $port['hostPort'] : $port['containerPort'];
-                            $this->addProxy($pod->name, $dir, $proxy['domain'], $port);
-                        }
-                    }
-                }
-            }
+        try {
+            $data = $this->getProxyData($pod, $template);
+            extract($data);
+            // vars from extract
+            $this->addProxy($pod->name, $directory, $domain, $port);
+        } catch (\Exception $e) {
+            // pass
         }
     }
 
@@ -190,14 +151,19 @@ class Proxy {
      */
     public function removeRuleFromPod(Pod $pod)
     {
+        $directory = $domain = $port = '';
         $template = PredefinedApp::getTemplateById($pod->template_id, $pod->name);
+        $pod = (new Pod)->loadByName($pod->name);
 
-        if (isset($template['kuberdock']['proxy'])) {
-            foreach ($template['kuberdock']['proxy'] as $dir => $proxy) {
-                if (isset($proxy['domain']) && isset($proxy['container'])) {
-                    $this->removeRuleByDirName($dir, $proxy['domain']);
-                }
-            }
+        try {
+            $data = $this->getProxyData($pod, $template);
+            extract($data);
+            // vars from extract
+            $htaccessPath = $this->getHtaccessPathByDomain($domain);
+            $rule = $this->getRewriteRule($directory, '%s', $port);
+            $this->removeRule($htaccessPath, sprintf($rule, $pod->podIP));
+        } catch (\Exception $e) {
+            //pass
         }
     }
 
@@ -251,10 +217,35 @@ class Proxy {
     }
 
     /**
-     * @return string
+     * @param Pod $pod
+     * @param array $template
+     * @return array (
+            'directory' => proxy dir,
+            'domain' => proxy domain,
+            'port' => proxy port
+     * )
+     * @throws CException
      */
-    private function getProxyCommand()
+    private function getProxyData(Pod $pod, $template)
     {
-        return KUBERDOCK_BIN_DIR . DS . 'addProxy.php';
+        if (isset($template['kuberdock']['proxy'])) {
+            foreach ($template['kuberdock']['proxy'] as $dir => $proxy) {
+                if (isset($proxy['domain']) && isset($proxy['container'])) {
+                    $container = $pod->getContainerByName($proxy['container']);
+                    if ($ports = $container['ports']) {
+                        foreach ($ports as $port) {
+                            $port = isset($port['hostPort']) ? $port['hostPort'] : $port['containerPort'];
+                            return array(
+                                'directory' => $dir,
+                                'domain' => $proxy['domain'],
+                                'port' => $port
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        throw new CException('Can\'t get proxy data');
     }
 }
