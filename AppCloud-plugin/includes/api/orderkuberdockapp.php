@@ -23,20 +23,8 @@ try {
     $referer = $postFields->params->{$predefinedApp::KUBERDOCK_REFERER_FIELD};
     $parsedYaml = \base\CL_Tools::parseYaml($yaml);
 
-    if(isset($parsedYaml['kuberdock']['packageID'])) {
+    if (isset($parsedYaml['kuberdock']['packageID'])) {
         $kdProductId = $parsedYaml['kuberdock']['packageID'];
-    }
-
-    if (!$referer) {
-        if (isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER']) {
-            $referer = $_SERVER['HTTP_REFERER'];
-        } elseif (isset($parsedYaml['kuberdock']['server'])) {
-            $referer = $parsedYaml['kuberdock']['server'];
-        } elseif ($server = \KuberDock_Server::model()->getActive()) {
-            $referer = $server->getApiServerUrl();
-        } else {
-            throw new \exceptions\CException('Cannot get KuberDock server url');
-        }
     }
 
     $kdProduct = \KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $referer);
@@ -55,6 +43,7 @@ try {
         'kuber_product_id' => $kdProductId,
         'product_id' => $product->id,
         'data' => $yaml,
+        'referer' => $referer,
     ));
 
     $predefinedApp->save();
