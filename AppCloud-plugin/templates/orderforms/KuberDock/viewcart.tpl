@@ -149,6 +149,11 @@ window.langPasswordStrong = "{$LANG.pwstrengthstrong}";
             </tbody>
         </table>
         <div class="container-padding-default">
+            {if $product.pricing.setupfeeonly}
+                <div class="subtotal textright">
+                    {$LANG.cartsetupfees}: &nbsp; {$product.pricing.setupfeeonly}
+                </div>
+            {/if}
             <div class="subtotal textright">{$LANG.ordersubtotal}: &nbsp; {$subtotal}</div>
             {if $promotioncode}
                 <div class="promotion textright">
