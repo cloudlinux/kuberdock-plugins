@@ -1,7 +1,7 @@
-Version: 1.1
+Version: 1.2
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 1%{?dist}.cloudlinux
+Release: 0%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -57,6 +57,21 @@ fi
 %{python_sitelib}/kd_common/*
 
 %changelog
+
+* Tue Aug 30 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-0
+- DA. Remove yaml extension validation when upload file
+- AC-3717 DA. Admin have no access to admin side
+- AC-3641 DA. Create yaml validation
+- AC-3214 DA. Admin tab - Set defaults page
+- AC-3833 Plesk. UI improvements
+- AC-3230 DA. Add suid wrapper to read admin config. Fixed available kubes.
+- AC-3214 DA. Admin tab - Set defaults page
+- AC-3213 DA. Admin tab - Applications CRUD
+- AC-3215 DA. Admin tab - Update kubecli.conf settings
+- AC-3216 DA. Client tab - Client controller Plesk change get login query
+- AC-3212 DA. Add DA support to plugins install script
+- AC-3211 DA. KDcommon changes to support DA
+- DA. Base structure
 
 * Fri Jul 22 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.1-1
 - AC-3871 Plugin > User panel > Endless preloader when default kube settings
