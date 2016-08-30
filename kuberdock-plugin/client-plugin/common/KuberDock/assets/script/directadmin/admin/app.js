@@ -18,10 +18,6 @@ $(document).ready(function() {
 
         $(this).val('');
 
-        if (file.type && !file.type.match(mimeRegEx)){
-            utils.notifyWindow('Please, upload an yaml file.');
-            return;
-        }
         reader.onload = function(e){
             editor.getDoc().setValue(e.target.result);
         };
