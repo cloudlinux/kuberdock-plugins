@@ -104,7 +104,7 @@ class Template
         foreach($templates as &$row) {
             $row['template'] = Spyc::YAMLLoadString($row['template']);
 
-            if($this->isPackageExists($row['template']) && (!isset($row['kuberdock']) || !$row['kuberdock'])) {
+            if($this->isPackageExists() && (!isset($row['kuberdock']) || !$row['kuberdock'])) {
                 $data[] = $row;
             }
         }
@@ -175,12 +175,19 @@ class Template
     }
 
     /**
-     * @return mixed
+     * @return array
      */
     public function getVolumes()
     {
-        return isset($this->data['spec']['template']['spec']['volumes']) ?
-            $this->data['spec']['template']['spec']['volumes'] : $this->data['spec']['volumes'];
+        if (isset($this->data['spec']['template']['spec']['volumes'])) {
+            return $this->data['spec']['template']['spec']['volumes'];
+        }
+
+        if (isset($this->data['spec']['volumes'])) {
+            return $this->data['spec']['volumes'];
+        }
+
+        return array();
     }
 
     /**

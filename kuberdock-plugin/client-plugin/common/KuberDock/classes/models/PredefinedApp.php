@@ -548,10 +548,12 @@ class PredefinedApp {
                         }
                     }
                 }
-                foreach($pod['persistentDisks'] as $pd) {
-                    foreach($volumes as &$row) {
-                        if($row['name'] == $pd['name']) {
-                            $row['persistentDisk']['pdSize'] = isset($pd['pdSize']) ? $pd['pdSize'] : 1;
+                if (isset($pod['persistentDisks'])) {
+                    foreach ($pod['persistentDisks'] as $pd) {
+                        foreach ($volumes as &$row) {
+                            if ($row['name'] == $pd['name']) {
+                                $row['persistentDisk']['pdSize'] = isset($pd['pdSize']) ? $pd['pdSize'] : 1;
+                            }
                         }
                     }
                 }
