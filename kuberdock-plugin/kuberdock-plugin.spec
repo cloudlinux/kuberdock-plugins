@@ -59,6 +59,7 @@ fi
 %changelog
 
 * Tue Aug 30 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-0
+- AC-4248 Hosting panels. Incorrect behavior .htaccess when user create/delete PA with proxy
 - DA. Remove yaml extension validation when upload file
 - AC-3717 DA. Admin have no access to admin side
 - AC-3641 DA. Create yaml validation
