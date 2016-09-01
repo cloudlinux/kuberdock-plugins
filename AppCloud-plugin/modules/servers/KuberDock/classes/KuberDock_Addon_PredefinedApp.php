@@ -325,7 +325,8 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
             return $pod->kube_type;
         } else {
             $data = CL_Tools::parseYaml($this->data);
-            return $data['kuberdock']['kube_type'];
+            return isset($data['kuberdock']['kube_type']) ? $data['kuberdock']['kube_type'] :
+                (isset($data['kuberdock']['appPackage']['kubeType']) ? $data['kuberdock']['appPackage']['kubeType'] : 0);
         }
     }
 
@@ -385,7 +386,8 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         $items = array();
         $product = KuberDock_Product::model()->loadById($this->product_id) ;
 
-        $kubeType = isset($data['kuberdock']['kube_type']) ? $data['kuberdock']['kube_type'] : 0;
+        $kubeType = isset($data['kuberdock']['kube_type']) ? $data['kuberdock']['kube_type'] :
+            (isset($data['kuberdock']['appPackage']['kubeType']) ? $data['kuberdock']['appPackage']['kubeType'] : 0);
 
         $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
         $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
