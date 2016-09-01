@@ -270,7 +270,7 @@ class KcliCommand extends Command {
      */
     public function setMountPath($name, $image, $index, $params, $kubes)
     {
-        if(empty($params['mountPath'])) {
+        if (empty($params['mountPath'])) {
             throw new CException('Mount path is empty.');
         }
 
@@ -284,8 +284,12 @@ class KcliCommand extends Command {
             '--kubes' => $kubes,
         );
 
-        if(isset($params['name']) && isset($params['size']) && $params['name'] && $params['size']) {
-            if(!$this->findPersistentDriveByName($params['name'])) {
+        if (isset($params['persistent']) && $params['persistent'] && (!$params['name'] || !$params['size'])) {
+            throw new CException('Persistent storage name or size is empty.');
+        }
+
+        if (isset($params['name'])) {
+            if (!$this->findPersistentDriveByName($params['name'])) {
                 $this->addPersistentDrive($params['name'], $params['size']);
             }
 

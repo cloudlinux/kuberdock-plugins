@@ -59,6 +59,8 @@ fi
 %changelog
 
 * Tue Aug 30 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-0
+- AC-4353 DA. User side > User can't buy pod after payed invoice
+- AC-4354 DA. User side > No validation for PV in pod settings
 - AC-4248 Hosting panels. Incorrect behavior .htaccess when user create/delete PA with proxy
 - DA. Remove yaml extension validation when upload file
 - AC-3717 DA. Admin have no access to admin side

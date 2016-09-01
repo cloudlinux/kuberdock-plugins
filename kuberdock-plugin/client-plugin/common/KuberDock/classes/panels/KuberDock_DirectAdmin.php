@@ -3,6 +3,8 @@
 namespace Kuberdock\classes\panels;
 
 use Kuberdock\classes\api\Response;
+use Kuberdock\classes\Base;
+use Kuberdock\classes\KDCommonCommand;
 use Kuberdock\classes\panels\assets\DirectAdmin_Assets;
 use Kuberdock\classes\panels\fileManager\DirectAdmin_FileManager;
 use Kuberdock\classes\exceptions\CException;
@@ -52,7 +54,18 @@ class KuberDock_DirectAdmin extends KuberDock_Panel
      */
     public function getDomain()
     {
-        return getenv('SESSION_SELECTED_DOMAIN');
+        $selectedDomain = getenv('SESSION_SELECTED_DOMAIN');
+
+        // User comes on KD page after login
+        if (!$selectedDomain) {
+            $command = new KDCommonCommand();
+            $data = current($command->getUserDomains());
+            if ($data) {
+                return $data[0];
+            }
+        }
+
+        return $selectedDomain;
     }
 
     /**
@@ -77,6 +90,19 @@ class KuberDock_DirectAdmin extends KuberDock_Panel
     public function getApiUrl()
     {
         return 'KuberDock/api.raw';
+    }
+
+    /**
+     * @param bool $root
+     * @return string
+     */
+    public function getURL($root = true)
+    {
+        $scheme = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? 'https' : 'http';
+        $host = $_SERVER['SERVER_NAME'] ? $_SERVER['SERVER_NAME'] : $_SERVER['SERVER_ADDR'];
+        $port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : 80;
+
+        return sprintf('%s://%s:%s/CMD_PLUGINS/KuberDock', $scheme, $host, $port);
     }
 
     /**
