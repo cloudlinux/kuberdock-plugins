@@ -7,7 +7,7 @@
     <b>Persistent Storage:</b> <%- pdSize %> <%- kube.disk_space_units %><br>
 <% } %>
 
-<% if(publicIP) { %>
+<% if(publicIP && !hasDomain) { %>
     <b>Public IP:</b> yes<br>
 <% } %>
 </div>

@@ -43,6 +43,7 @@ define(['app', 'application/utils', 'application/predefined/model', 'application
                 kube: this.model.getKube(planKey),
                 kubes: this.model.getKubes(planKey),
                 publicIP: this.model.getPublicIP(planKey),
+                hasDomain: this.model.hasDomain(planKey),
                 pdSize: this.model.getPersistentSize(planKey)
             });
         },
