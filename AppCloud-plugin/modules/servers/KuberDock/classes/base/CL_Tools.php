@@ -223,4 +223,51 @@ class CL_Tools extends CL_Component {
     {
         return \extensions\Yaml\Yaml::parse($data);
     }
+
+    /**
+     * Convert object to the array.
+     * from: https://github.com/ngfw/Recipe
+     *
+     * @param object $object PHP object
+     *
+     * @return array
+     */
+    public static function objectToArray($object)
+    {
+        if (!is_object($object) && !is_array($object)) {
+            return $object;
+        }
+
+        if (is_object($object)) {
+            $object = get_object_vars($object);
+        }
+
+        return array_map(['self', 'objectToArray'], $object);
+    }
+
+    /**
+     * Convert array to the object.
+     * from: https://github.com/ngfw/Recipe
+     *
+     * @param array $array PHP array
+     *
+     * @return object|null
+     */
+    public static function arrayToObject($array)
+    {
+        if (!is_array($array)) {
+            return $array;
+        }
+
+        $object = new \stdClass();
+
+        if (is_array($array) && count($array) > 0) {
+            foreach ($array as $name => $value) {
+                $object->$name = self::arrayToObject($value);
+            }
+            return $object;
+        }
+
+        return null;
+    }
 } 
