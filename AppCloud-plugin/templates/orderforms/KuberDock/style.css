@@ -188,7 +188,7 @@ Product Listing
 }
 #order-modern .product .name:hover span{
     background-color: #6da73a;
-    -webkit-transition: 0.1s linear all
+    -webkit-transition: 0.1s linear all;
     -moz-transition: 0.1s linear all;
     -ms-transition: 0.1s linear all;
     -o-transition: 0.1s linear all;
@@ -242,7 +242,7 @@ Product Listing
 }
 #order-modern .product .ordernowbox .cart-button:hover{
     background: #4e5665;
-    -webkit-transition: 0.1s linear all
+    -webkit-transition: 0.1s linear all;
     -moz-transition: 0.1s linear all;
     -ms-transition: 0.1s linear all;
     -o-transition: 0.1s linear all;

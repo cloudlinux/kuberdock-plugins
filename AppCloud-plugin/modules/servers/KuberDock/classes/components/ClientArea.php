@@ -115,24 +115,38 @@ class ClientArea extends \base\CL_Component
 
             $product['features'] = $p->getDescription();
             $pricing = $p->getPricing();
+            $usersProduct = $this->getUsersProduct();
 
             if (($predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId()) && isset($product['pricingtext'])) {
                 $price = $this->currency->getFullPrice($predefinedApp->getTotalPrice(true));
-                if ($pricing['recurring'] > 0) {
-                    $price = $this->currency->getFullPrice($pricing['recurring']) . ' + ' . $price;
+
+                if ($usersProduct) {
+                    if ($product['pid'] != $usersProduct['packageid']) {
+                        $otherProduct = clone(KuberDock_Product::model());
+                        $userPackage = $otherProduct->loadById($usersProduct['packageid']);
+                        $msg = 'Yaml requires "' . $p->getName()
+                            . '" product. You have "' . $userPackage->getName()
+                            . '" product. Please upgrade the product.';
+                        $p->jsRedirect($predefinedApp->referer . '&error=' . urlencode($msg));
+                    }
+                } else {
+                    if ($pricing['recurring'] > 0) {
+                        $price = $this->currency->getFullPrice($pricing['recurring']) . ' + ' . $price;
+                    }
+                    $product['billingcyclefriendly'] = $p->getReadablePaymentType();
+                    if ($pricing['setup'] && $pricing['setup']!=-1) {
+                        $product['pricing']['setupfeeonly'] = $this->currency->getFullPrice($pricing['setup']);
+                    }
                 }
+
                 $product['pricingtext'] = $price . '/' . $p->getReadablePaymentType();
                 $product['pricing']['totaltodayexcltax'] = $price;
                 $product['pricing']['totalTodayExcludingTaxSetup'] = $price;
-                $product['billingcyclefriendly'] = $p->getReadablePaymentType();
                 $product['productinfo']['groupname'] = 'Package ' . $predefinedApp->getAppPackageName();
                 $product['productinfo']['name'] = ucfirst($predefinedApp->getName());
-                if ($pricing['setup'] && $pricing['setup']!=-1) {
-                    $product['pricing']['setupfeeonly'] = $this->currency->getFullPrice($pricing['setup']);
-                }
             }
 
-            if ($depositPrice = $p->getConfigOption('firstDeposit')) {
+            if ($depositPrice = $p->getConfigOption('firstDeposit') && !$usersProduct) {
                 $product['pricing']['minprice']['price'] = ' First Deposit ' . $this->currency->getFullPrice($depositPrice);
 
                 if (isset($product['pricingtext'])) {
@@ -267,6 +281,60 @@ class ClientArea extends \base\CL_Component
     }
 
     /**
+     * Adds Deposit value to setup fee if needed
+     *
+     * @param $params
+     * @return array|null
+     * @throws \Exception
+     */
+    public function pricingOverride($params)
+    {
+        global $smarty;
+
+        $this->values = $smarty->get_template_vars();
+
+        $pid = $params['pid'];
+        $product = \KuberDock_Product::model()->loadById($pid);
+
+        if (!$product->isKuberProduct()) {
+            return null;
+        }
+
+        $pricing = $product->getPricing();
+        $setupFee = ($pricing['setup'] > 0)
+            ? $pricing['setup']
+            : 0;
+
+        $recurring = 0;
+        $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+
+        if ($predefinedApp && !$predefinedApp->getPod()) {
+            if ($this->getUsersProduct()) {
+                return array(
+                    'setup' => '0.0',
+                    'recurring' => $product->isFixedPrice()
+                        ? $predefinedApp->getTotalPrice(true)
+                        : '0.0',
+                );
+            }
+
+            // Price for yaml PA
+            if ($product->isFixedPrice()) {
+                $recurring = $predefinedApp->getTotalPrice(true);
+            }
+        }
+
+        $recurring = ($pricing['recurring'] > 0)
+            ? $pricing['recurring'] + $recurring
+            : $recurring;
+
+        return array(
+            'setup' => $product->getFirstDeposit() + $setupFee,
+            'recurring' => $recurring,
+        );
+    }
+
+    /**
      * @return array
      */
     private function getProducts()
@@ -278,6 +346,20 @@ class ClientArea extends \base\CL_Component
         }
 
         return $this->products;
+    }
+
+    /**
+     * Returns user's product, if there is no user, or user has no product - false
+     *
+     * @return array|bool
+     */
+    private function getUsersProduct()
+    {
+        if (!$this->values['loggedin']) {
+            return false;
+        }
+
+        return current(\KuberDock_Hosting::model()->getByUser($this->values['clientsdetails']['id']));
     }
 
     /**
