@@ -295,7 +295,8 @@ define(['app', 'application/utils',
             setPDCheckbox: 'input.set-persistent',
             pdVolumeSize: 'input.volume-size',
             pdVolumeName: 'input.volume-name',
-            createForm: 'form.pod-install'
+            createForm: 'form.pod-install',
+            tooltip: "[data-toggle='tooltip']"
         },
 
         events: {
@@ -340,6 +341,7 @@ define(['app', 'application/utils',
         },
 
         onShow: function() {
+            this.ui.tooltip.tooltip();
             this.ui.kubeSlider.noUiSlider({
                 start: [ 1 ],
                 range: {
