@@ -82,7 +82,7 @@ class KuberDock_Addon extends CL_Component {
                 product_id INT,
                 kuber_product_id INT,
                 UNIQUE KEY (product_id)
-            ) ENGINE=INNODB');
+            ) ENGINE=INNODB DEFAULT CHARSET=utf8');
 
             $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_kubes_templates` (
                 id INT AUTO_INCREMENT,
@@ -96,7 +96,7 @@ class KuberDock_Addon extends CL_Component {
                 server_id INT,
                 PRIMARY KEY (id),
                 INDEX (kuber_kube_id)
-            ) ENGINE=INNODB');
+            ) ENGINE=INNODB DEFAULT CHARSET=utf8');
 
             $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_kubes_links` (
                 id INT AUTO_INCREMENT,
@@ -111,13 +111,13 @@ class KuberDock_Addon extends CL_Component {
                 FOREIGN KEY (template_id)
                     REFERENCES KuberDock_kubes_templates(id)
                     ON UPDATE CASCADE ON DELETE CASCADE
-            ) ENGINE=INNODB');
+            ) ENGINE=INNODB DEFAULT CHARSET=utf8');
 
             $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_trial` (
                 user_id INT,
                 service_id INT,
                 UNIQUE KEY (user_id)
-            ) ENGINE=INNODB');
+            ) ENGINE=INNODB DEFAULT CHARSET=utf8');
 
             $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_states` (
                 id INT AUTO_INCREMENT,
@@ -130,7 +130,7 @@ class KuberDock_Addon extends CL_Component {
                 total_sum FLOAT NOT NULL,
                 details TEXT,
                 PRIMARY KEY (id)
-            ) ENGINE=INNODB');
+            ) ENGINE=INNODB DEFAULT CHARSET=utf8');
 
             $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_preapps` (
                 id INT AUTO_INCREMENT,
@@ -143,7 +143,7 @@ class KuberDock_Addon extends CL_Component {
                 referer text NULL,
                 PRIMARY KEY (id),
                 INDEX (session_id)
-            ) ENGINE=INNODB');
+            ) ENGINE=INNODB DEFAULT CHARSET=utf8');
 
             $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_price_changes` (
                 `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -155,7 +155,7 @@ class KuberDock_Addon extends CL_Component {
                 `new_value` float DEFAULT NULL,
                 PRIMARY KEY (`id`),
                 KEY `new_value` (`new_value`)
-            ) ENGINE=InnoDB');
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8');
 
             $db->query('CREATE TABLE IF NOT EXISTS `KuberDock_items` (
                 id INT AUTO_INCREMENT,
@@ -168,13 +168,13 @@ class KuberDock_Addon extends CL_Component {
                 status VARCHAR(16),
                 INDEX (pod_id, app_id),
                 PRIMARY KEY (id)
-            ) ENGINE=INNODB');
+            ) ENGINE=INNODB DEFAULT CHARSET=utf8');
 
             $db->query("CREATE TABLE IF NOT EXISTS `KuberDock_migrations` (
                 `version` int NOT NULL,
                 `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (`version`)
-            ) ENGINE=InnoDB;");
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 
             // Add existing migrations
             $migrations = \migrations\Migration::getAvailable('');
