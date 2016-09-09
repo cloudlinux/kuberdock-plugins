@@ -286,7 +286,7 @@ class Template
      */
     public function setKubeType($id)
     {
-        $this->data['kuberdock']['kube_type'] = $id;
+        $this->data['kuberdock']['appPackage']['kubeType'] = $id;
     }
 
     /**
