@@ -383,9 +383,7 @@ class Pod {
 
         if (isset($details['template_id']) && $details['template_id']) {
             $app = new PredefinedApp($details['template_id']);
-            $template = $app->getTemplateByPodName($details['name']);
-            $this->_data['postDescription'] = isset($template['kuberdock']['postDescription']) ?
-                $template['kuberdock']['postDescription'] : '';
+            $this->_data['postDescription'] = $app->getPostInstallPostDescription($details);
         }
 
         return $this;

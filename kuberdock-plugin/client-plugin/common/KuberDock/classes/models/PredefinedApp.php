@@ -247,7 +247,6 @@ class PredefinedApp {
             throw new CException(preg_replace('/^kube_type:\s/i', '', $e->getMessage())); // AC-3003
         }
 
-        $this->setPostInstallVariables($response);
         $fileManager->putFileContent($this->getAppPath(), Spyc::YAMLDump($this->template->data));
         $fileManager->putFileContent($this->getAppPath($this->template->getPodName()), Spyc::YAMLDump($this->template->data));
 
@@ -255,6 +254,20 @@ class PredefinedApp {
         $fileManager->chmod($this->getAppPath($this->template->getPodName()), 0640);
 
         return $response;
+    }
+
+    public function getPostInstallPostDescription($data)
+    {
+        if (!isset($data['postDescription'])) {
+            return '';
+        }
+
+        $this->template->data['kuberdock']['postDescription'] = $data['postDescription'];
+
+        $this->setVariables($data);
+        $this->setPostInstallVariables($data);
+
+        return $this->template->data['kuberdock']['postDescription'];
     }
 
     /**
@@ -585,7 +598,8 @@ class PredefinedApp {
     {
         $variables = array();
 
-        $publicIp = isset($data['public_ip']) ? $data['public_ip'] : '"Public IP address not set"';
+        $publicIp = $this->getIpForPostDescription($data);
+
         $variables['PUBLIC_ADDRESS'] = $publicIp;
         $this->variables['PUBLIC_ADDRESS'] = $publicIp;
 
@@ -595,6 +609,23 @@ class PredefinedApp {
                 $e = $this->replaceTemplateVariable($e, $variables, self::SPECIAL_VARIABLE_REGEXP);
             }
         });
+    }
+
+    private function getIpForPostDescription($data)
+    {
+        if (isset($data['public_ip']) && $data['public_ip']!=='true') {
+            return $data['public_ip'];
+        }
+
+        if (isset($data['public_aws']) && $data['public_aws']!=='Unknown') {
+            return $data['public_aws'];
+        }
+
+        if (isset($data['domain'])) {
+            return $data['domain'];
+        }
+
+        return '"Public IP address not set"';
     }
 
     /**

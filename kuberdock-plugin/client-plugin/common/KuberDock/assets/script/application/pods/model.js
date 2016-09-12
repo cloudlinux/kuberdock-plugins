@@ -56,7 +56,19 @@ define(['backbone', 'application/utils'], function(Backbone, Utils) {
         },
 
         getPublicIp: function () {
-            return this.get('public_ip') ? this.get('public_ip') : 'none';
+            if (this.get('public_ip')) {
+                return this.get('public_ip');
+            }
+
+            if (this.get('public_aws')) {
+                return this.get('public_aws');
+            }
+
+            if (this.get('domain')) {
+                return this.get('domain');
+            }
+
+            return 'none';
         },
 
         getPodIp: function () {

@@ -47,7 +47,8 @@
                             </div>
                         </td>
                         <td>
-                            <%- model.get('public_ip') ? model.get('public_ip') : 'none' %><br>
+                            <%- model.getPublicIp() %>
+                            <br>
                             <%
                                 var ports = [];
                                 _.each(model.get('containers'), function(e) {
