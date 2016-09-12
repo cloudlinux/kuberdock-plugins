@@ -478,6 +478,12 @@ class CL_Model {
             self::$_models[$className] = new $className;
         }
 
+// todo: bad cloning while loadById
+//        $p1 = \KuberDock_Product::model()->loadById(1);
+//        var_dump($p1);
+//        $p2 = \KuberDock_Product::model()->loadById(5);
+//        var_dump($p2);
+
         return self::$_models[$className];
     }
-} 
+}

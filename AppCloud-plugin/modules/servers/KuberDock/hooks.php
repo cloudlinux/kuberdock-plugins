@@ -10,7 +10,6 @@ use base\models\CL_Invoice;
 use base\models\CL_User;
 use base\models\CL_BillableItems;
 use exceptions\CException;
-use components\Deposit;
 
 include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
 
@@ -237,8 +236,7 @@ add_hook('AfterShoppingCartCheckout', 1, 'KuberDock_AfterShoppingCartCheckout');
  */
 function KuberDock_OrderProductPricingOverride($params)
 {
-    return Deposit::model()->pricingOverride($params);
-
+    return \components\ClientArea::model()->pricingOverride($params);
 }
 add_hook('OrderProductPricingOverride', 1, 'KuberDock_OrderProductPricingOverride');
 
