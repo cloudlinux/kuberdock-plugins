@@ -80,6 +80,6 @@ class KuberDock_ApiResponse {
      */
     public function getData()
     {
-        return isset($this->parsed['data']) && is_array($this->parsed['data']) ? $this->parsed['data'] : $this->parsed['data'];
+        return isset($this->parsed['data']) ? $this->parsed['data'] : array();
     }
 } 
