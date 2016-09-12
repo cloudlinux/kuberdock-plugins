@@ -233,7 +233,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         $pod = $this->getPod();
 
         if ($pod) {
-            $items = $this->getTotalPricePod($pod);
+            $items = $this->getTotalPricePod(CL_Tools::objectToArray($pod));
         } else {
             $items = $this->getTotalPriceYAML(CL_Tools::parseYaml($this->data));
         }
@@ -405,12 +405,11 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
                 $items[] = $product->createInvoice('Pod: ' . $row['name'], $kubePrice, 'pod', $row['kubes']);
             }
 
-            if (isset($row['ports'])) {
+            if (isset($row['ports']) && !isset($data['kuberdock']['appPackage']['domain'])) {
                 foreach ($row['ports'] as $port) {
                     if (isset($port['isPublic']) && $port['isPublic'] && !$hasPublicIP) {
                         $ipPrice = (float) $product->getConfigOption('priceIP');
-                        $ip = isset($data->public_ip) ? $data->public_ip : '';
-                        $items[] = $product->createInvoice('IP: ' . $ip, $ipPrice, 'IP');
+                        $items[] = $product->createInvoice('Public IP', $ipPrice, 'IP');
                         $hasPublicIP = true;
                     }
                 }
@@ -433,7 +432,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
     }
 
     /**
-     * @param $data
+     * @param array[] $data
      * @return array KuberDock_InvoiceItem[]
      * @throws Exception
      */
@@ -442,36 +441,35 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         $items = array();
         $product = KuberDock_Product::model()->loadById($this->product_id) ;
         $kubes = CL_Tools::getKeyAsField($product->getKubes(), 'kuber_kube_id');
-        $kubeType = isset($data->kube_type) ? $data->kube_type : 0;
+        $kubeType = isset($data['kube_type']) ? $data['kube_type'] : 0;
         $kubePrice = isset($kubes[$kubeType]) ? $kubes[$kubeType]['kube_price'] : 0;
 
         $hasPublicIP = false;
 
-        foreach ($data->containers as $row) {
-            if (isset($row->kubes)) {
-                $description = 'Pod: ' . $data->name . ' (' . $row->image . ')';
-                $items[] = $product->createInvoice($description, $kubePrice, 'pod', $row->kubes);
+        foreach ($data['containers'] as $row) {
+            if (isset($row['kubes'])) {
+                $description = 'Pod: ' . $data['name'] . ' (' . $row['image'] . ')';
+                $items[] = $product->createInvoice($description, $kubePrice, 'pod', $row['kubes']);
             }
 
-            if (isset($row->ports)) {
-                foreach ($row->ports as $port) {
-                    if (isset($port->isPublic) && $port->isPublic && !$hasPublicIP) {
+            if (isset($row['ports']) && !isset($data['domain'])) {
+                foreach ($row['ports'] as $port) {
+                    if (isset($port['isPublic']) && $port['isPublic'] && !$hasPublicIP) {
                         $ipPrice = (float) $product->getConfigOption('priceIP');
-                        $ip = isset($data->public_ip) ? $data->public_ip : '';
-                        $items[] = $product->createInvoice('IP: ' . $ip, $ipPrice, 'IP');
+                        $items[] = $product->createInvoice('Public IP', $ipPrice, 'IP');
                         $hasPublicIP = true;
                     }
                 }
             }
         }
 
-        if (isset($data->volumes)) {
-            foreach ($data->volumes as $row) {
-                if (isset($row->persistentDisk->pdSize)) {
+        if (isset($data['volumes'])) {
+            foreach ($data['volumes'] as $row) {
+                if (isset($row['persistentDisk']['pdSize'])) {
                     $psPrice = (float)$product->getConfigOption('pricePersistentStorage');
                     $unit = \components\KuberDock_Units::getPSUnits();
-                    $title = 'Storage: ' . $row->persistentDisk->pdName;
-                    $items[] = $product->createInvoice($title, $psPrice, $unit, $row->persistentDisk->pdSize);
+                    $title = 'Storage: ' . $row['persistentDisk']['pdName'];
+                    $items[] = $product->createInvoice($title, $psPrice, $unit, $row['persistentDisk']['pdSize']);
                 }
             }
         }
