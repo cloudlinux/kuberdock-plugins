@@ -305,6 +305,11 @@ class Template
         }
     }
 
+    public function setBaseDomain($baseDomain)
+    {
+        $this->data['kuberdock']['appPackage']['baseDomain'] = $baseDomain;
+    }
+
     /**
      * @param string $name
      */

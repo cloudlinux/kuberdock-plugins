@@ -582,6 +582,10 @@ class PredefinedApp {
                 }
             }
 
+            if (isset($plan['baseDomain'])) {
+                $this->template->setBaseDomain($plan['baseDomain']);
+            }
+
             if(isset($plan['packagePostDescription'])) {
                 $this->template->addPackagePostDescription($plan['packagePostDescription']);
             }
