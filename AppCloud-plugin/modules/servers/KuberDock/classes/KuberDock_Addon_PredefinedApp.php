@@ -410,7 +410,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
                 $items[] = $product->createInvoice('Pod: ' . $row['name'], $kubePrice, 'pod', $row['kubes']);
             }
 
-            if (isset($row['ports']) && !isset($data['kuberdock']['appPackage']['domain'])) {
+            if (isset($row['ports']) && !isset($data['kuberdock']['appPackage']['baseDomain'])) {
                 foreach ($row['ports'] as $port) {
                     if (isset($port['isPublic']) && $port['isPublic'] && !$hasPublicIP) {
                         $ipPrice = (float) $product->getConfigOption('priceIP');
