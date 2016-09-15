@@ -482,15 +482,8 @@ class KuberDock_Product extends CL_Product {
      */
     public function addToCart()
     {
-        $sessionProducts = &$_SESSION['cart']['products'];
-
-        foreach ($sessionProducts as $row) {
-            if ($row['pid'] == $this->id) {
-                return;
-            }
-        }
-
-        $sessionProducts[] = array(
+        $_SESSION['cart']['products'] = array();
+        $_SESSION['cart']['products'][] = array(
             'pid' => $this->id,
             'domain' => '',
             'billingcycle' => null,
