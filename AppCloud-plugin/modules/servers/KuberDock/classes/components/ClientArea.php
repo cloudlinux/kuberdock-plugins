@@ -291,6 +291,10 @@ class ClientArea extends \base\CL_Component
     {
         global $smarty;
 
+        if (!$smarty) {
+            return null;
+        }
+
         $this->values = $smarty->get_template_vars();
 
         $pid = $params['pid'];
