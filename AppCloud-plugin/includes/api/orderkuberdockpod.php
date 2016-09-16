@@ -18,7 +18,7 @@ try {
 
     $clientId = $postFields->params->client_id;
     $pod= $postFields->params->pod;
-    $pod = json_decode(html_entity_decode(urldecode($pod), ENT_QUOTES));
+    $pod = json_decode(html_entity_decode(rawurldecode($pod), ENT_QUOTES));
 
     $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
     $predefinedApp = $predefinedApp->loadByPodId($pod->id);
@@ -56,7 +56,7 @@ try {
         'product_id' => $product->id,
         'user_id' => $clientId,
         'referer' => isset($postFields->params->referer) ?
-            html_entity_decode(urldecode($postFields->params->referer), ENT_QUOTES) : '',
+            html_entity_decode(rawurldecode($postFields->params->referer), ENT_QUOTES) : '',
     ));
     $predefinedApp->save();
 

@@ -47,12 +47,12 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade
      */
     public function changePackage()
     {
-        $oldProduct = KuberDock_Product::model()->loadById($this->originalvalue);
+        $oldProduct = clone KuberDock_Product::model()->loadById($this->originalvalue);
         $newProduct = $this->getNewProduct();
+        $service = KuberDock_Hosting::model()->loadById($this->relid);
 
         $deposit = KuberDock_Product::model()->getConfigOption('firstDeposit');
         if($deposit) {
-            $service = KuberDock_Hosting::model()->loadById($this->relid);
             $clientDetails = CL_Client::model()->getClientDetails($service->userid);
             $items[] = $newProduct->createInvoice(CL_Invoice::CUSTOM_INVOICE_DESCRIPTION, $deposit)->setTaxed(false);
 
@@ -69,6 +69,17 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade
             //return $this->calculateFromHourToPeriodic();
         } elseif($oldProduct->getConfigOption('paymentType') != 'hourly' && $newProduct->getConfigOption('paymentType') == 'hourly') {
             return $this->calculateFromPeriodicToHour();
+        }
+
+        $service->getAdminApi()->updateUser(array(
+            'package' => $newProduct->getName(),
+        ), $service->username);
+
+        if ($oldProduct->isTrial() && !$oldProduct->isFixedPrice()) {
+            $service->getAdminApi()->updateUser(array(
+                'rolename' => $newProduct->getRole(),
+            ), $service->username);
+            $service->unSuspendModule();
         }
     }
 

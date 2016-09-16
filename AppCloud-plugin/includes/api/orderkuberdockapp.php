@@ -19,7 +19,7 @@ try {
     }
 
     $kdProductId = $postFields->params->{$predefinedApp::KUBERDOCK_PRODUCT_ID_FIELD};
-    $yaml = html_entity_decode(urldecode($postFields->params->{$predefinedApp::KUBERDOCK_YAML_FIELD}), ENT_QUOTES);
+    $yaml = html_entity_decode(rawurldecode($postFields->params->{$predefinedApp::KUBERDOCK_YAML_FIELD}), ENT_QUOTES);
     $referer = $postFields->params->{$predefinedApp::KUBERDOCK_REFERER_FIELD};
     $parsedYaml = \base\CL_Tools::parseYaml($yaml);
 

@@ -96,7 +96,7 @@ class KuberDock_Hosting extends CL_Hosting
         $trialTime = (int) $product->getConfigOption('trialTime');
         $regDate = CL_Tools::sqlDateToDateTime($this->regdate);
 
-        if($product->getConfigOption('enableTrial')) {
+        if($product->isTrial()) {
             if($this->isTrialExpired($regDate, $trialTime)) {
                 $sendExpireLetter = $product->getConfigOption('sendTrialExpire');
                 $expireDate = $regDate->modify('+'.$trialTime.' day');

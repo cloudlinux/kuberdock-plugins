@@ -72,12 +72,12 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         } else {
             $data = $this->loadByAttributes(array(
                 'session_id' => \base\CL_Base::model()->getSession(),
-            ), 'pod_id IS NULL', array(
+            ), 'pod_id IS NULL OR pod_id = ""', array(
                 'order' => 'id DESC',
                 'limit' => 1,
             ));
         }
-
+        
         if(!$data) {
             return false;
         }

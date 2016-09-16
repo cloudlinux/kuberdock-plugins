@@ -127,7 +127,7 @@ class KuberDock_Addon extends CL_Component {
                 kube_count INT NOT NULL,
                 ps_size FLOAT NOT NULL,
                 ip_count INT NOT NULL,
-                total_sum FLOAT NOT NULL,
+                total_sum FLOAT NULL,
                 details TEXT,
                 PRIMARY KEY (id)
             ) ENGINE=INNODB DEFAULT CHARSET=utf8');

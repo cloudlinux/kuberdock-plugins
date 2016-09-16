@@ -69,6 +69,10 @@ function KuberDock_ProductEdit($params)
                 $product->setConfigOption('firstDeposit', 0);
             }
 
+            if ($product->isTrial()) {
+                $product->setConfigOption('billingType', 'PAYG');
+            }
+
             $product->save();
 
             KuberDock_Addon_Product::model()->updateKubePricing($params['pid']);
@@ -617,3 +621,45 @@ function KuberDock_AfterModuleCreate($params)
     }
 }
 add_hook('AfterModuleCreate', 1, 'KuberDock_AfterModuleCreate');
+
+
+/**
+ * ! Actually, user will change package, but KuberDock_ChangePackage not runs if returned "abortcmd" !
+ *
+ * Runs when the ChangePackage function is being run, before any command is sent, but after the variables are loaded.
+ * @param array $params
+ * @return array
+ */
+function KuberDock_PreModuleChangePackage($params)
+{
+    $response = array();
+
+    $data = KuberDock_ProductUpgrade::model()->loadByAttributes(array(
+        'relid' => $params['params']['serviceid'],
+    ), '', array(
+        'order' => 'id desc',
+        'limit' => 1,
+    ));
+
+    if (!$data) {
+        return $response;
+    }
+
+    $productUpgrade = KuberDock_ProductUpgrade::model()->loadByParams(current($data));
+
+    // Eloquent resolve this
+    $oldProduct = clone KuberDock_Product::model()->loadById($productUpgrade->originalvalue);
+    $newProduct = $productUpgrade->getNewProduct();
+
+    // User already has trial product
+    if ($newProduct->isTrial() && KuberDock_Addon_Trial::model()->loadById($params['params']['userid'])) {
+        $response[] = array('abortcmd' => true);
+    }
+    // User want another trial
+    if ($oldProduct->isTrial() && $newProduct->isTrial()) {
+        $response[] = array('abortcmd' => true);
+    }
+
+    return $response;
+}
+add_hook('PreModuleChangePackage', 1, 'KuberDock_PreModuleChangePackage');
