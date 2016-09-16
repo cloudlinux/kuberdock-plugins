@@ -5,6 +5,7 @@ namespace models\billing;
 
 
 use components\Units;
+use exceptions\CException;
 use models\Model;
 
 class Package extends Model
@@ -20,6 +21,31 @@ class Package extends Model
     public function services()
     {
         return $this->hasMany('models\billing\Service');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function pricing()
+    {
+        return $this->hasMany('models\billing\Pricing', 'relid');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function relatedKuberDock()
+    {
+        return $this->hasOne('models\addon\PackageRelation', 'product_id');
+    }
+
+    /**
+     * @param $query
+     * @return mixed
+     */
+    public function scopeTypeKuberDock($query)
+    {
+        return $query->where('servertype', KUBERDOCK_MODULE_NAME);
     }
 
     /**
@@ -52,7 +78,7 @@ class Package extends Model
                 'Number' => 3,
                 'FriendlyName' => 'Service payment type',
                 'Type' => 'dropdown',
-                'Options' => implode(',', self::getPaymentTypes()),
+                'Options' => implode(',', array_keys(self::getPaymentTypes())),
                 'Default' => 'monthly',
                 'Description' => '',
             ),
@@ -101,7 +127,7 @@ class Package extends Model
                 'Number' => 9,
                 'FriendlyName' => 'Billing type',
                 'Type' => 'radio',
-                'Options' => 'PAYG,Fixed price',
+                'Options' => implode(',', array_keys(self::getBillingTypes())),
                 'Default' => 'Fixed price',
                 'Description' => '',
             ),
@@ -255,15 +281,58 @@ class Package extends Model
     }
 
     /**
+     * @param string $name
+     * @param string $value
+     * @throws \Exception
+     */
+    public function setConfigOption($name, $value)
+    {
+        if (($key = array_search($name, array_keys($this->getConfig()))) !== false) {
+            $key += 1;
+            $this->{'configoption' . $key} = $value;
+        } else {
+            throw new \Exception('Undefined option name: ' . $name);
+        }
+    }
+
+    /**
+     * @param array $attributes
+     * @throws \Exception
+     */
+    public function setConfigOptions($attributes = [])
+    {
+        foreach ($attributes as $attribute => $value) {
+            try {
+                $this->setConfigOption($attribute, $value);
+            } catch (\Exception $e) {
+                CException::log($e);
+            }
+        }
+    }
+
+    /**
+     * Billing value => KD value
      * @return array
      */
     public static function getPaymentTypes()
     {
-        return array(
-            'annually',
-            'quarterly',
-            'monthly',
-            'hourly',
-        );
+        return [
+            'annually' => 'annual',
+            'quarterly' => 'quarter',
+            'monthly' => 'month',
+            'hourly' => 'hour',
+        ];
+    }
+
+    /**
+     * Billing value => KD value
+     * @return array
+     */
+    public static function getBillingTypes()
+    {
+        return [
+            'PAYG' => 'payg',
+            'Fixed price' => 'fixed',
+        ];
     }
 }

@@ -19,6 +19,31 @@ class Server extends Model
      */
     protected $table = 'tblservers';
 
+    public function groups()
+    {
+        return $this->hasManyThrough(
+            'models\billing\ServerGroup', 'models\billing\ServerGroupRelation', 'serverid', 'id'
+        );
+    }
+
+    /**
+     * @param $query
+     * @return mixed
+     */
+    public function scopeTypeKuberDock($query)
+    {
+        return $query->where('type', KUBERDOCK_MODULE_NAME);
+    }
+
+    /**
+     * @param $query
+     * @return mixed
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('disabled', 0)->where('active', 1);
+    }
+
     /**
      * @return string
      */

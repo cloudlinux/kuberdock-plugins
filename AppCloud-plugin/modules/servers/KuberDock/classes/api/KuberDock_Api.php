@@ -10,7 +10,7 @@ use exceptions\CException;
 use exceptions\NotFoundException;
 use exceptions\UserNotFoundException;
 use Exception;
-use extensions\jwt\JWT;
+use Firebase\JWT\JWT;
 
 /**
  * Class KuberDock_Api

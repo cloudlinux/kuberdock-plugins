@@ -102,4 +102,15 @@ class Service extends Model
 
         return $data->value;
     }
+
+    /**
+     * @return string
+     */
+    public function getLoginLink()
+    {
+        $url = $this->serverModel->getUrl();
+        $token = $this->getApi()->getJWTToken(array(), true);
+
+        return sprintf('%s/?token2=%s', $url, $token);
+    }
 }

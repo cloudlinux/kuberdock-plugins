@@ -133,12 +133,6 @@ $(document).ready(function() {
 
     priceDescriptionManage();
 
-    var support = 'If you have a problem contact our support team via <a href="mailto:helpdesk@kuberdock.com">' +
-        'helpdesk@kuberdock.com</a> or create a request in helpdesk <a href="https://helpdesk.cloudlinux.com">' +
-        'https://helpdesk.cloudlinux.com</a>';
-    // Displayed everywhere
-    //$('.btn-container').append('<div class="col-md-12 support">' + support + '</div>');
-
     // Edit product, radio buttons position
     $('td:contains("Billing type")').next('td').find('br').remove();
     $('td:contains("Restricted users")').next('td').find('input[type=checkbox]').css('position', 'relative');

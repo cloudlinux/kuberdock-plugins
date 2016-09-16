@@ -9,4 +9,4 @@ kuberdock-plugin/admin-plugin/cpanel/cgi/KuberDock/.idea/
 kuberdock-plugin/client-plugin/cpanel/KuberDock/.idea
 AppCloud-plugin/.idea
 kuberdock-plugin/kuberdock-common/.idea
-
+/AppCloud-plugin/modules/servers/KuberDock/composer.lock

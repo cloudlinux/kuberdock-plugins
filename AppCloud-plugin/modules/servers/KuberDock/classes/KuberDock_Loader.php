@@ -4,12 +4,11 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
-class KuberDock_AutoLoader {
+class KuberDock_Loader {
     /**
      * @var array
      */
-    private static $_dirMapping = array();
-
+    private static $dirMapping = array();
 
     /**
      *
@@ -28,15 +27,15 @@ class KuberDock_AutoLoader {
     {
         $className = ltrim($className, '\\');
 
-        if($pos = strrpos($className, '\\')) {
+        if ($pos = strrpos($className, '\\')) {
             $nameSpace = str_replace('\\', DS, substr($className, 0, $pos));
             $className = substr($className, $pos+1);
 
             $filePath = KUBERDOCK_CLASS_DIR . DS . $nameSpace . DS . $className . '.php';
-        } elseif($dirs = self::loadDirList()) {
-            foreach($dirs as $dir) {
+        } elseif ($dirs = self::loadDirList()) {
+            foreach ($dirs as $dir) {
                 $filePath = $dir. DS . $className . '.php';
-                if(file_exists($filePath)) {
+                if (file_exists($filePath)) {
                     break;
                 }
             }
@@ -44,7 +43,7 @@ class KuberDock_AutoLoader {
             $filePath = KUBERDOCK_CLASS_DIR . DS . $className . '.php';
         }
 
-        if(file_exists($filePath)) {
+        if (file_exists($filePath)) {
             include_once $filePath;
         }
     }
@@ -55,14 +54,14 @@ class KuberDock_AutoLoader {
      */
     public static function getDirList($dir = null)
     {
-        if(empty($dir)) {
+        if (empty($dir)) {
             $result[] = KUBERDOCK_CLASS_DIR;
         } else {
             $result = glob($dir . DS . '*', GLOB_ONLYDIR);
         }
 
-        foreach($result as $v) {
-            if($dir = self::getDirList($v)) {
+        foreach ($result as $v) {
+            if ($dir = self::getDirList($v)) {
                 $result = array_merge($result, $dir);
             }
         }
@@ -75,11 +74,11 @@ class KuberDock_AutoLoader {
      */
     public static function loadDirList()
     {
-        if(empty(self::$_dirMapping)) {
-            self::$_dirMapping = self::getDirList();
-            return self::$_dirMapping;
+        if (empty(self::$dirMapping)) {
+            self::$dirMapping = self::getDirList();
+            return self::$dirMapping;
         } else {
-            return self::$_dirMapping;
+            return self::$dirMapping;
         }
     }
 } 

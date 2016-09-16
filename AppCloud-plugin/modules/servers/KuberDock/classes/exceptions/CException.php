@@ -1,7 +1,6 @@
 <?php
 /**
  * @project whmcs-plugin
- * @author: Ruslan Rakhmanberdiev
  */
 
 namespace exceptions;
@@ -18,7 +17,7 @@ class CException extends Exception {
         parent::__construct($message, $code, $previous);
         $this->logError();
 
-        if(stripos($message, 'exist') !== false) {
+        if (stripos($message, 'exist') !== false) {
             throw new ExistException($message, $code);
         } else {
             throw new Exception($message, $code);
@@ -32,7 +31,7 @@ class CException extends Exception {
     {
         $filePath = substr($exception->getFile(), stripos($exception->getFile(), 'KuberDock'));
 
-        if(KUBERDOCK_DEBUG && function_exists('logModuleCall')) {
+        if (KUBERDOCK_DEBUG && function_exists('logModuleCall')) {
             logModuleCall(KUBERDOCK_MODULE_NAME, $filePath, sprintf('Line: %d %s', $exception->getLine(),
                 $exception->getMessage()), $exception->getTraceAsString());
         }
@@ -45,7 +44,7 @@ class CException extends Exception {
     public static function displayError(Exception $exception, $jsRedirect = false)
     {
         $_SESSION['kdError' . session_id()] = $exception->getMessage();
-        if($jsRedirect) {
+        if ($jsRedirect) {
             \KuberDock_Product::model()->jsRedirect('kdpage.php');
         } else {
             header('Location: kdpage.php');

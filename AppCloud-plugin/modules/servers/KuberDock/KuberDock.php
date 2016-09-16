@@ -260,10 +260,10 @@ function KuberDock_AdminLink($params) {
  * @return string
  */
 function KuberDock_LoginLink($params) {
-    $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
+    $service = \models\billing\Service::find($params['serviceid']);
 
     try {
-        return sprintf('<a href="%s" target="_blank">Login to KuberDock</a>', $service->getLoginByTokenLink());
+        return sprintf('<a href="%s" target="_blank">Login to KuberDock</a>', $service->getLoginLink());
     } catch (Exception $e) {
         return '';
     }

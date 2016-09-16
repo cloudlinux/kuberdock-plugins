@@ -20,6 +20,11 @@ class Config extends Model
     protected $component;
 
     /**
+     * @var string
+     */
+    protected $primaryKey = 'setting';
+
+    /**
      * Get config collection
      * @return Component
      */
@@ -39,4 +44,43 @@ class Config extends Model
         return $this->component;
     }
 
+    /**
+     *
+     * @param string $name
+     * @param string $ip
+     */
+    public static function addAllowedApiIP($name, $ip)
+    {
+        $ip = current(explode(':', $ip));   // IP with port
+        $model = self::find('APIAllowedIPs');
+        $data = unserialize($model->value);
+
+        $exist = array_uintersect($data, [$ip], function($e1, $e2) {
+            return $e1['ip'] == $e2 ? 0 : 1;
+        });
+
+        if (!$exist) {
+            $data[] = [
+                'ip' => $ip,
+                'note' => $name,
+            ];
+        }
+
+        $model->value = serialize($data);
+        $model->save();
+    }
+
+    /**
+     * @param string $ip
+     */
+    public static function removeAllowedApiIP($ip)
+    {
+        $model = self::find('APIAllowedIPs');
+        $data = array_filter(unserialize($model->value), function ($e) use ($ip) {
+            return ($e['ip'] != $ip);
+        });
+
+        $model->value = serialize($data);
+        $model->save();
+    }
 }
