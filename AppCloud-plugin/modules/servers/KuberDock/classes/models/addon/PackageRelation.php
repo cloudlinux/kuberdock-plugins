@@ -26,4 +26,20 @@ class PackageRelation extends Model
      * @var array
      */
     protected $fillable = ['kuber_product_id'];
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function kubes()
+    {
+        return $this->hasMany('models\addon\KubePrice', 'product_id', 'product_id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function package()
+    {
+        return $this->belongsTo('models\billing\Package', 'product_id', 'id');
+    }
 }

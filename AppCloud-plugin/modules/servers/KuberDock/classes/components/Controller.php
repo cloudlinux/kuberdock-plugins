@@ -5,7 +5,7 @@
 
 namespace components;
 
-class Controller {
+class Controller extends Component {
     /**
      * Default controller directory
      */
@@ -30,6 +30,14 @@ class Controller {
     /**
      * @var string
      */
+    public $defaultController = 'Default';
+    /**
+     * @var string
+     */
+    public $baseUrl;
+    /**
+     * @var string
+     */
     public $action = 'index';
     /**
      * @var string
@@ -40,7 +48,7 @@ class Controller {
      */
     public $error;
     /**
-     * @var
+     * @var Assets
      */
     public $assets;
 
@@ -111,5 +119,60 @@ class Controller {
         $this->view->renderPartial('error/' . $view, [
             'error' => $error,
         ]);
+    }
+
+    /**
+     * @param array $attributes
+     * @return string
+     */
+    public function createUrl($attributes = [])
+    {
+        return $this->baseUrl . (str_contains($this->baseUrl, '?') ? '&' : '?') . http_build_query($attributes);
+    }
+
+    /**
+     * @param string $url
+     */
+    public function redirect($url)
+    {
+        header('Location: ' . $url);
+    }
+
+    /**
+     * Run application engine
+     */
+    public function run()
+    {
+        $controller = isset($_GET[self::CONTROLLER_PARAM]) ?
+            $_GET[self::CONTROLLER_PARAM] : $this->defaultController;
+
+        try {
+            $className = ucfirst($controller) . 'Controller';
+            $controllerClass = sprintf('\controllers\%s', $className);
+            $model = new $controllerClass;
+            $action = isset($_GET[self::CONTROLLER_ACTION_PARAM]) ?
+                $_GET[self::CONTROLLER_ACTION_PARAM] : $model->action;
+            $model->controller = strtolower($controller);
+            $model->action = $action;
+            $model->setView();
+            $model->init();
+            $model->baseUrl = $this->baseUrl;
+
+            $actionMethod = lcfirst($action) . 'Action';
+
+            if (!method_exists($model, $actionMethod)) {
+                throw new \Exception('Undefined controller action: ' . $action);
+            }
+
+            $method = new \ReflectionMethod($model, $actionMethod);
+            $method->invoke($model);
+        } catch (\Exception $e) {
+            if (isset($model)) {
+                $model->error = $e->getMessage();
+                $model->renderError($e->getMessage());
+            } else {
+                throw new \Exception($e->getMessage());
+            }
+        }
     }
 }

@@ -26,9 +26,9 @@ class Items extends Model
     /**
      *
      */
-    protected function bootIfNotBooted()
+    protected static function boot()
     {
-        parent::bootIfNotBooted();
+        parent::boot();
     }
 
     /**

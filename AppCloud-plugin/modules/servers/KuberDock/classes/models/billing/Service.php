@@ -15,7 +15,10 @@ class Service extends Model
      * @var string
      */
     protected $table = 'tblhosting';
-
+    /**
+     * @var array
+     */
+    protected $dates = ['nextinvoicedate', 'nextduedate'];
     /**
      * @var Pod
      */

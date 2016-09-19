@@ -56,7 +56,7 @@ class Addon extends \components\Component {
 
         try {
             $server->getApi()->getPackages();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw new CException('Cannot connect to KuberDock server. Please check server credentials.');
         }
 
@@ -80,7 +80,7 @@ class Addon extends \components\Component {
         try {
             $this->createTables();
 
-            // TODO: use Illuminate migrations
+            // TODO: use \Illuminate migrations
             $migrations = \migrations\Migration::getAvailable('');
             foreach ($migrations as $version) {
                 \models\Model::getConnectionResolver()->connection()->table('KuberDock_migrations')
@@ -98,8 +98,9 @@ class Addon extends \components\Component {
 
             // Sync packages & kubes
             $this->syncData($group);
-        } catch(Exception $e) {
+        } catch(\Exception $e) {
             $this->dropTables();
+            CException::log($e);
             throw $e;
         }
     }
@@ -133,13 +134,13 @@ class Addon extends \components\Component {
         $scheme = \models\Model::getConnectionResolver()->connection()->getSchemaBuilder();
 
         $scheme->create('KuberDock_products', function ($table) {
-            /* @var Illuminate\Database\Schema\Blueprint $table */
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->integer('product_id')->unique();
             $table->integer('kuber_product_id')->unique();
         });
 
         $scheme->create('KuberDock_kubes_templates', function ($table) {
-            /* @var Illuminate\Database\Schema\Blueprint $table */
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
             $table->integer('kuber_kube_id');
             $table->string('kube_name');
@@ -155,7 +156,7 @@ class Addon extends \components\Component {
         });
 
         $scheme->create('KuberDock_kubes_links', function ($table) {
-            /* @var Illuminate\Database\Schema\Blueprint $table */
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
             $table->integer('template_id', false, true);
             $table->integer('product_id');
@@ -169,13 +170,13 @@ class Addon extends \components\Component {
         });
 
         $scheme->create('KuberDock_trial', function ($table) {
-            /* @var Illuminate\Database\Schema\Blueprint $table */
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->integer('user_id');
             $table->integer('service_id')->unique();
         });
 
         $scheme->create('KuberDock_states', function ($table) {
-            /* @var Illuminate\Database\Schema\Blueprint $table */
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
             $table->integer('hosting_id');
             $table->integer('product_id');
@@ -190,7 +191,7 @@ class Addon extends \components\Component {
         });
 
         $scheme->create('KuberDock_preapps', function ($table) {
-            /* @var Illuminate\Database\Schema\Blueprint $table */
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
             $table->string('session_id', 64);
             $table->integer('user_id');
@@ -207,22 +208,22 @@ class Addon extends \components\Component {
         });
 
         $scheme->create('KuberDock_price_changes', function ($table) {
-            /* @var Illuminate\Database\Schema\Blueprint $table */
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
             $table->string('login');
             $table->dateTime('change_time');
             $table->integer('type_id');
             $table->integer('package_id');
-            $table->float('old_value');
-            $table->float('new_value');
+            $table->float('old_value')->nullable();
+            $table->float('new_value')->nullable();
 
             $table->index('new_value');
 
-            $table->foreign('package_id')->references('product_id')->on('KuberDock_products')->onDelete('cascade');
+            $table->foreign('package_id')->references('kuber_product_id')->on('KuberDock_products')->onDelete('cascade');
         });
 
         $scheme->create('KuberDock_items', function ($table) {
-            /* @var Illuminate\Database\Schema\Blueprint $table */
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
             $table->integer('user_id');
             $table->integer('app_id', false, true);
@@ -240,7 +241,7 @@ class Addon extends \components\Component {
         });
 
         $scheme->create('KuberDock_migrations', function ($table) {
-            /* @var Illuminate\Database\Schema\Blueprint $table */
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->integer('version');
             $table->timestamp('timestamp');
 
@@ -248,7 +249,7 @@ class Addon extends \components\Component {
         });
 
         $scheme->create('KuberDock_resources', function ($table) {
-            /* @var Illuminate\Database\Schema\Blueprint $table */
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
             $table->integer('user_id');
             $table->integer('billable_item_id');
@@ -268,7 +269,7 @@ class Addon extends \components\Component {
         });
 
         $scheme->create('KuberDock_resource_pods', function ($table) {
-            /* @var Illuminate\Database\Schema\Blueprint $table */
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->string('pod_id', 64);
             $table->integer('resource_id', false, true);
 
@@ -311,6 +312,19 @@ class Addon extends \components\Component {
             /* @var Server $server */
             $kdPackages = $server->getApi()->getPackages(true)->getData();
             Config::addAllowedApiIP('KuberDock', $server->ipaddress);
+
+            foreach ($server->getApi()->getKubes()->getData() as $kube) {
+                KubeTemplate::firstOrCreate([
+                    'kuber_kube_id' => $kube['id'],
+                    'kube_name' => $kube['name'],
+                    'kube_type' => (int) !in_array($kube['id'], KubeTemplate::STANDARD_KUBE_IDS),
+                    'cpu_limit' => $kube['cpu'],
+                    'memory_limit' => $kube['memory'],
+                    'hdd_limit' => $kube['disk_space'],
+                    'traffic_limit' => $kube['included_traffic'],
+                    'server_id' => $server->id,
+                ]);
+            }
 
             foreach ($kdPackages as $kdPackage) {
                 $pricing = [];
@@ -376,23 +390,15 @@ class Addon extends \components\Component {
                 $package->relatedKuberDock()->save($packageRelation);
 
                 foreach ($kdPackage['kubes'] as $kube) {
-                    $kubeTemplate = KubeTemplate::firstOrCreate([
-                        'kuber_kube_id' => $kube['id'],
-                        'kube_name' => $kube['name'],
-                        'kube_type' => (int) !in_array($kube['id'], KubeTemplate::STANDARD_KUBE_IDS),
-                        'cpu_limit' => $kube['cpu'],
-                        'memory_limit' => $kube['memory'],
-                        'hdd_limit' => $kube['disk_space'],
-                        'traffic_limit' => $kube['included_traffic'],
-                        'server_id' => $server->id,
-                    ]);
-
-                    $kubeRelation = KubeRelation::firstOrNew([
+                    $kubeTemplate = KubeTemplate::where('kuber_kube_id', $kube['id'])->first();
+                    $kubePrice = KubePrice::firstOrNew([
+                        'template_id' => $kubeTemplate->id,
                         'product_id' => $package->id,
                         'kuber_product_id' => $kdPackage['id'],
                         'kube_price' => $kube['price'],
                     ]);
-                    $kubeTemplate->relatedKubes()->save($kubeRelation);
+
+                    $kubeTemplate->kubePrice()->save($kubePrice);
                 }
             }
         }

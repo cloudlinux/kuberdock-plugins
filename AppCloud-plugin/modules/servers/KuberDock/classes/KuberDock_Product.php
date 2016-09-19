@@ -838,17 +838,17 @@ class KuberDock_Product extends CL_Product {
 
     public function createDefaultKubeIfNeeded()
     {
-        $defaultTemplate = KuberDock_Addon_Kube_Template::getDefaultTemplate();
+        $defaultTemplate = \models\addon\KubeTemplate::getDefaultTemplate();
 
         $defaultKube =  KuberDock_Addon_Kube_Link::model()->loadByAttributes(array(
             'product_id' => $this->id,
-            'template_id' => $defaultTemplate['id'],
+            'template_id' => $defaultTemplate->id,
         ));
 
         if(!$defaultKube) {
             $addonProduct = KuberDock_Addon_Product::model()->loadById($this->id);
             $kube = KuberDock_Addon_Kube_Link::model()->loadByParams(array(
-                'template_id' => $defaultTemplate['id'],
+                'template_id' => $defaultTemplate->id,
                 'product_id' => $this->id,
                 'kuber_product_id' => $addonProduct->kuber_product_id,
                 'kube_price' => '0.00',

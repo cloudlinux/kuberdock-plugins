@@ -1,11 +1,15 @@
 <?php
 
 /**
- * Class KuberDock_Paginator
+ * Class Paginator
  *
  * https://github.com/maeharin/pagee
  */
-class KuberDock_Paginator
+
+namespace components;
+
+
+class Paginator
 {
     protected $base_url;
     protected $total_count;

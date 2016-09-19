@@ -40,6 +40,14 @@ class Package extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function kubePrice()
+    {
+        return $this->hasMany('models\addon\KubePrice', 'product_id');
+    }
+
+    /**
      * @param $query
      * @return mixed
      */
@@ -308,6 +316,33 @@ class Package extends Model
                 CException::log($e);
             }
         }
+    }
+
+    /**
+     * @return array
+     */
+    public function getSortedActivePackages()
+    {
+        $paymentTypes = array_flip(Package::getPaymentTypes());
+        $packages = Package::join('KuberDock_products', 'tblproducts.id', '=', 'KuberDock_products.product_id')
+            ->typeKuberDock()->orderBy('name')->get();
+
+        uasort($packages, function ($a, $b) use ($paymentTypes) {
+            if ($a->getPaymentType() == $b->getPaymentType()) {
+                return ($a->id > $b->id) ? 1 : -1;
+            }
+            return ($paymentTypes[$a->getPaymentType()] < $paymentTypes[$b->getPaymentType()]) ? 1 : -1;
+        });
+
+        return $packages;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isKuberDock()
+    {
+        return $this->servertype == KUBERDOCK_MODULE_NAME;
     }
 
     /**

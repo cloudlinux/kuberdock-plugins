@@ -52,8 +52,8 @@ function KuberDock_deactivate()
 
 function KuberDock_output($vars)
 {
-    $base = \base\CL_Base::model();
-    $base->baseUrl = $vars['modulelink'];
-    $base->defaultController = 'KuberDock_Addon';
-    $base->run();
+    $controller = \components\Controller::model();
+    $controller->baseUrl = $vars['modulelink'];
+    $controller->defaultController = 'Addon';
+    $controller->run();
 }

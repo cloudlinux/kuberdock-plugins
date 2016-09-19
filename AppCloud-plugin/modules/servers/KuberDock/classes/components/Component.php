@@ -90,7 +90,7 @@ class Component
     }
 
     /**
-     * @return mixed
+     * @return self
      */
     public static function model()
     {

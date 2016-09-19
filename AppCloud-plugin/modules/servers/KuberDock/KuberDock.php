@@ -18,10 +18,9 @@ include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
  * @throws Exception
  */
 function KuberDock_ConfigOptions() {
-    $id = CL_Base::model()->getParam('id');
-    $product = KuberDock_Product::model()->loadById($id);
+    $id = \components\Tools::model()->getParam('id');
 
-    return $product->getConfig();
+    return \models\billing\Package::find($id)->getConfig();
 }
 
 /**

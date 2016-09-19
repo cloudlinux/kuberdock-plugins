@@ -24,9 +24,9 @@
             <tbody>
             <?php foreach($logs as $item): ?>
                 <tr>
-                    <td><?php echo $item['login']?></td>
-                    <td><?php echo $item['time']?></td>
-                    <td><?php echo $item['description']?></td>
+                    <td><?php echo $item->login?></td>
+                    <td><?php echo date('H:i Y/m/d', strtotime($item->change_time));?></td>
+                    <td><?php echo $item->getDescription()?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
@@ -34,5 +34,4 @@
     </div>
 
     <?php echo $paginator->links(); ?>
-
 </div>
