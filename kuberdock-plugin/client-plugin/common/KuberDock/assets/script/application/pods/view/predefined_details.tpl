@@ -38,7 +38,7 @@
                             Number of Kubes: <%- kubes %>
 
                             <div class="top-offset">
-                                <a class="pod-change-plan">
+                                <a class="<% if (model.get('forbidSwitchingAppPackage')) { %>pod-upgrade<% } else { %>pod-change-plan<% } %>">
                                     <button title="Upgrade" class="btn btn-primary btn-xs" type="button">
                                         <span aria-hidden="true" class="glyphicon glyphicon-refresh"></span>
                                         <span>Upgrade</span>

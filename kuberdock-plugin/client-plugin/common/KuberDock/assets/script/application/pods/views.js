@@ -827,6 +827,11 @@ define(['app', 'application/utils',
         templateHelpers: function () {
             var templateModel = this.model.get('templateModel');
 
+            var currentPlan = _.findWhere(templateModel.getPlans(), {
+                name: this.model.get('template_plan_name')
+            });
+            templateModel.setCurrentPlan(currentPlan);
+
             return {
                 model: this.model,
                 templateModel: templateModel,
