@@ -8,10 +8,14 @@ License: CloudLinux Commercial License
 URL: http://www.cloudlinux.com
 Source0: %{name}-%{version}.tar.bz2
 
+BuildRequires: python
+
 Requires: kuberdock-cli >= 1.0-3
 
 AutoReq: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+%define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
 
 %description
 Kuberdock plugins
@@ -28,6 +32,7 @@ cp -r * %{buildroot}/usr/share/kuberdock-plugin
 
 %{__install} -D -d -m 755 %{buildroot}%{python_sitelib}/kd_common
 %{__install} -D -m 755 kuberdock-common/kdcommon %{buildroot}%{_bindir}/kdcommon
+mkdir -p %{buildroot}%{python_sitelib}/kd_common
 cp -r kuberdock-common/kd_common/* %{buildroot}%{python_sitelib}/kd_common
 
 %clean
