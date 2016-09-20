@@ -332,7 +332,10 @@ function KuberDock_InvoicePaid($params)
                         'status' => 'stopped',
                     ));
                     $service->getAdminApi()->switchPodPlan($params['id'], $params['plan']);
-                    $service->getProduct()->redirectToPod($service, $params['id'], true);
+                    global $whmcs;
+                    if ($whmcs->isClientAreaRequest()) {
+                        $service->getProduct()->redirectToPod($service, $params['id'], true);
+                    }
                 } else {
                     // edit pod
                     $pod = $service->getApi()->getPod($params['id']);
