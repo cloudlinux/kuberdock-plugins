@@ -330,16 +330,21 @@ class KuberDock_Hosting extends CL_Hosting
             if (!in_array($data['ip_address'], $totalIPs)) {
                 $totalIPs[] = $data['ip_address'];
                 $price = (float) $product->getConfigOption('priceIP');
-                $items[] = $product->createInvoice('IP: ' . $data['ip_address'], 'IP', $price);
+                $items[] = $product->createInvoice('IP: ' . $data['ip_address'], $price, 'IP', 1);
             }
         }
 
         $totalPdSize = 0;
+        $totalPD = array();
         foreach($usage['pd_usage'] as $data) {
-            $totalPdSize += $data['size'];
-            $price = (float) $product->getConfigOption('pricePersistentStorage');
-            $unit = KuberDock_Units::getPSUnits();
-            $items[] = $product->createInvoice('Storage: ' . $data['pd_name'], $price, $unit, $data['size']);
+            // TODO: Fix when user can change storage size
+            if (!in_array($data['pd_name'], $totalPD)) {
+                $totalPD[] = $data['pd_name'];
+                $totalPdSize += $data['size'];
+                $price = (float) $product->getConfigOption('pricePersistentStorage');
+                $unit = KuberDock_Units::getPSUnits();
+                $items[] = $product->createInvoice('Storage: ' . $data['pd_name'], $price, $unit, $data['size']);
+            }
         }
 
         // Предыдущая оплата в этом периоде
