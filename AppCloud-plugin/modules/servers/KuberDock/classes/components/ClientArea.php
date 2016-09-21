@@ -122,11 +122,7 @@ class ClientArea extends \base\CL_Component
 
                 if ($usersProduct) {
                     if ($product['pid'] != $usersProduct['packageid']) {
-                        $otherProduct = clone(KuberDock_Product::model());
-                        $userPackage = $otherProduct->loadById($usersProduct['packageid']);
-                        $msg = 'Yaml requires "' . $p->getName()
-                            . '" product. You have "' . $userPackage->getName()
-                            . '" product. Please upgrade the product.';
+                        $msg = 'Yaml requires "' . $p->getName() . '" product. Please contact the administrator.';
                         $p->jsRedirect($predefinedApp->referer . '&error=' . urlencode($msg));
                     }
                 } else {
