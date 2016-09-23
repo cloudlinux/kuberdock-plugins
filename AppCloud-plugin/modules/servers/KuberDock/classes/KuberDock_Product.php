@@ -78,6 +78,7 @@ class KuberDock_Product extends CL_Product {
                 'Number' => 2,
                 'FriendlyName' => 'User Free Trial period',
                 'Type' => 'text',
+                'Decimal' => true,
                 'Size' => '10',
                 'Default' => '0',
                 'Description' => 'days',
@@ -101,6 +102,7 @@ class KuberDock_Product extends CL_Product {
                 'Number' => 5,
                 'FriendlyName' => 'Price for IP',
                 'Type' => 'text',
+                'Decimal' => true,
                 'Size' => '10',
                 'Default' => '0',
                 'Description' => '<span>per IP/hour</span>',
@@ -109,6 +111,7 @@ class KuberDock_Product extends CL_Product {
                 'Number' => 6,
                 'FriendlyName' => 'Price for persistent storage',
                 'Type' => 'text',
+                'Decimal' => true,
                 'Size' => '10',
                 'Default' => '0',
                 'Description' => '<span data-unit="' . $psUnit . '">per ' . $psUnit . '/hour</span>',
@@ -127,6 +130,7 @@ class KuberDock_Product extends CL_Product {
                 'Number' => 8,
                 'FriendlyName' => 'First Deposit',
                 'Type' => 'text',
+                'Decimal' => true,
                 'Size' => '10',
                 'Default' => '0',
                 'Description' => '',
@@ -149,6 +153,7 @@ class KuberDock_Product extends CL_Product {
                 'Number' => 11,
                 'FriendlyName' => 'Trial period ending notice repeat',
                 'Type' => 'text',
+                'Decimal' => true,
                 'Size' => '10',
                 'Default' => '0',
                 'Description' => 'days (0 - don\'t send)',
@@ -966,5 +971,19 @@ SCRIPT;
         }
 
         return $invoice;
+    }
+
+    public function beforeSave()
+    {
+        foreach ($this->getConfig() as $item) {
+            if (isset($item['Decimal']) && $item['Decimal']===true) {
+                $value = $this->getConfigOptionByIndex($item['Number']);
+                $value = str_replace(',', '.', $value);
+                $value = preg_replace('/([^\d\.]+)/i', '', $value);
+                $this->setConfigOptionByIndex($item['Number'], $value);
+            }
+        }
+
+        return true;
     }
 } 
