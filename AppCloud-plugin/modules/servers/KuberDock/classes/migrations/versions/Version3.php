@@ -2,7 +2,7 @@
 
 namespace migrations\versions;
 
-class Version2 implements \migrations\VersionInterface
+class Version3 implements \migrations\VersionInterface
 {
     public function up()
     {
