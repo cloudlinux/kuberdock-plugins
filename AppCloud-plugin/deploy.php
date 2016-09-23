@@ -154,7 +154,15 @@ HELP;
     protected function getLastVersionAndLink()
     {
         // get site
-        $site = file_get_contents(SITE_URL);
+        $ch = curl_init(SITE_URL);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $site = curl_exec($ch);
+        $status = curl_getinfo($ch);
+        if ($status['http_code'] != 200) {
+            die('Cannot download file ' . SITE_URL . "\n\n");
+        }
+        curl_close ($ch);
+
         $regexp = "href=[\'\"](" . $this->billingName . "\-kuberdock\-plugin\-([\d\.]*)\.zip)[\'\"]";
 
         // get last link
@@ -230,25 +238,18 @@ HELP;
 
     protected function downloadFile($url, $path)
     {
-        if ($from = fopen ($url, 'rb')) {
-            if ($to = fopen ($path, 'wb')) {
-                while(!feof($from)) {
-                    fwrite($to, fread($from, 1024 * 8), 1024 * 8);
-                }
-            } else {
-                die("Can not write file: $path\n");
-            }
-        } else {
-            die("Can not open url: $url\n");
+        $ch = curl_init($url);
+        $fp = fopen($path, 'wb');
+        if (!$fp) {
+            die("Cannot write file: $path\n");
         }
 
-        if ($from) {
-            fclose($from);
-        }
+        curl_setopt($ch, CURLOPT_FILE, $fp);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_exec($ch);
+        curl_close($ch);
 
-        if ($to) {
-            fclose($to);
-        }
+        fclose($fp);
     }
 
     protected function command_exist($cmd)
