@@ -80,6 +80,10 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade
                 'rolename' => $newProduct->getRole(),
             ), $service->username);
             $service->unSuspendModule();
+
+            $date = new DateTime();
+            $service->nextduedate = CL_Tools::getMySQLFormattedDate($date->modify('+1 day'));
+            $service->save();
         }
     }
 
