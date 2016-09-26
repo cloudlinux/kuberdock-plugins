@@ -1,3 +1,5 @@
+<?php $this->renderPartial('tabs', array('active' => 'index'));?>
+
 <div id="contents"></div>
 
 <script>

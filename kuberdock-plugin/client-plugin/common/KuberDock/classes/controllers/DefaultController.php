@@ -45,4 +45,13 @@ class DefaultController extends KuberDock_Controller {
             'panelType' => Base::model()->getPanelType(),
         ));
     }
+
+    public function applicationsAction()
+    {
+        $api = \Kuberdock\classes\Base::model()->getPanel()->getAdminApi();
+
+        $this->render('applications', array(
+            'apps' => $api->getClientTemplates(),
+        ));
+    }
 }

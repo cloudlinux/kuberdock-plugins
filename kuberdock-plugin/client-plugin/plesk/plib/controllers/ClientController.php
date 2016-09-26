@@ -66,20 +66,9 @@ class ClientController extends pm_Controller_Action
 
     public function applicationsAction()
     {
-        $base = \Kuberdock\classes\Base::model();
-        $apps = $base->getPanel()->getAdminApi()->getTemplates(strtolower($base->getPanelType()));
+        $api = \Kuberdock\classes\Base::model()->getPanel()->getAdminApi();
 
-        array_walk($apps, function (&$e) {
-            $yaml = \Kuberdock\classes\extensions\yaml\Spyc::YAMLLoadString($e['template']);
-            if (isset($yaml['kuberdock']['icon'])) {
-                $e['icon'] = $yaml['kuberdock']['icon'];
-            } else {
-                $e['icon'] = \Kuberdock\classes\Base::model()->getPanel()->getAssets()
-                    ->getRelativePath('images/default_transparent.png');
-            }
-        });
-
-        $this->view->apps = $apps;
+        $this->view->apps = $api->getClientTemplates();
     }
 
     public function apiAction()

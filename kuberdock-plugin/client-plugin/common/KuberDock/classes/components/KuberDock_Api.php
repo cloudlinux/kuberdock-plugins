@@ -728,6 +728,22 @@ class KuberDock_Api {
         });
     }
 
+    public function getClientTemplates()
+    {
+        $base = \Kuberdock\classes\Base::model();
+        $apps = $base->getPanel()->getAdminApi()->getTemplates(strtolower($base->getPanelType()));
+        $panelUrl = $base->getPanel()->getClientUrl();
+        $defaultImage = $base->getPanel()->getAssets()->getRelativePath('images/default_transparent.png');
+
+        array_walk($apps, function (&$e) use ($panelUrl, $defaultImage) {
+            $yaml = \Kuberdock\classes\extensions\yaml\Spyc::YAMLLoadString($e['template']);
+            $e['path'] = $panelUrl . '#predefined/' . $e['id'];
+            $e['icon'] = isset($yaml['kuberdock']['icon']) ? $yaml['kuberdock']['icon'] : $defaultImage;
+        });
+
+        return $apps;
+    }
+
     /**
      * @param int $id
      * @return array

@@ -105,6 +105,11 @@ class KuberDock_DirectAdmin extends KuberDock_Panel
         return sprintf('%s://%s:%s/CMD_PLUGINS/KuberDock', $scheme, $host, $port);
     }
 
+    public static function getClientUrl($action = 'index')
+    {
+        return '/CMD_PLUGINS/KuberDock?a=' . $action;
+    }
+
     /**
      * @return DirectAdmin_Assets
      */
