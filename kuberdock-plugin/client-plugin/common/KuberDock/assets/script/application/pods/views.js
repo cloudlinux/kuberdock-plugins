@@ -847,7 +847,7 @@ define(['app', 'application/utils',
                 kube: templateModel.getKube(planKey),
                 kubes: templateModel.getKubes(planKey),
                 publicIP: templateModel.getPublicIP(planKey),
-                hasDomain: templateModel.hasDomain(planKey),
+                hasBaseDomain: templateModel.hasBaseDomain(planKey),
                 pdSize: templateModel.getPersistentSize(planKey)
             });
         },

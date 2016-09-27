@@ -61,16 +61,6 @@ try {
     );
 
     if (!$invoice->isPayed()) {
-        // Switch plan for PA, mark pod unpaid
-        try {
-            $service->getApi()->stopPod($pod['id']);
-        } catch (Exception $e) {
-            // pass if pod already stopped
-        }
-
-        $service->getAdminApi()->updatePod($pod['id'], array(
-            'status' => 'unpaid',
-        ));
         $results['redirect'] = \base\CL_Tools::generateAutoAuthLink('viewinvoice.php?id=' . $invoice->id, $user->email);
     }
 

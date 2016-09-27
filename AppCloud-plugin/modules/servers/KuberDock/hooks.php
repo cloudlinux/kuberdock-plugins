@@ -288,6 +288,8 @@ add_hook('InvoiceCreated', 1, 'KuberDock_InvoiceCreated');
  */
 function KuberDock_InvoicePaid($params)
 {
+    global $whmcs;
+
     $invoiceId = $params['invoiceid'];
 
     try {
@@ -328,18 +330,10 @@ function KuberDock_InvoicePaid($params)
                     $service->getAdminApi()->redeployPod($params['id'], $params);
                 } elseif (isset($params['plan'])) {
                     // Switch plan
-                    $service->getAdminApi()->updatePod($params['id'], array(
-                        'status' => 'stopped',
-                    ));
                     $service->getAdminApi()->switchPodPlan($params['id'], $params['plan']);
-                    global $whmcs;
-                    if ($whmcs->isClientAreaRequest()) {
-                        $service->getProduct()->redirectToPod($service, $params['id'], true);
-                    }
                 } else {
                     // edit pod
-                    $pod = $service->getApi()->getPod($params['id']);
-                    $service->getAdminApi()->applyEdit($params['id'], $pod['status']);
+                    $service->getAdminApi()->applyEdit($params['id']);
                 }
 
                 // Update app
@@ -351,6 +345,10 @@ function KuberDock_InvoicePaid($params)
                     $app = KuberDock_Addon_PredefinedApp::model()->loadById($addonItem['app_id']);
                     $app->data = json_encode($pod);
                     $app->save();
+                }
+
+                if ($whmcs->isClientAreaRequest()) {
+                    $service->getProduct()->redirectToPod($service, $params['id'], true);
                 }
             }
         }

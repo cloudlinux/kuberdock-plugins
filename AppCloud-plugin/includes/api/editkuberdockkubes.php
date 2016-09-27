@@ -58,9 +58,7 @@ try {
         'invoice_id' => $invoice->id,
     );
 
-    if ($invoice->isPayed()) {
-        $service->getAdminApi()->applyEdit($pod['id'], $pod['status']);
-    } else {
+    if (!$invoice->isPayed()) {
         $results['redirect'] = \base\CL_Tools::generateAutoAuthLink('viewinvoice.php?id=' . $invoice->id, $user->email);
     }
 

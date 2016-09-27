@@ -313,9 +313,13 @@ class KuberDock_Pod
             if (isset($attributes['plan'])) {
                 // Switch plan
                 $service->getAdminApi()->switchPodPlan($this->id, $attributes['plan']);
+            } elseif (isset($attributes['containers'])) {
+                // Add kubes pod
+                // TODO: remove
+                $service->getAdminApi()->redeployPod($this->id, $attributes);
             } else {
                 // Edit pod
-                $service->getAdminApi()->redeployPod($this->id, $attributes);
+                $service->getAdminApi()->applyEdit($this->id);
             }
 
             $billableItem->amount += $price;
