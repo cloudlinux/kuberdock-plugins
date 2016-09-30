@@ -265,7 +265,7 @@ class KuberDock_Hosting extends CL_Hosting
      * @param DateTime $date
      * @param array $kubes
      * @param string $paymentType (monthly, quarterly, annually)
-     * @return float
+     * @return array
      * @throws Exception
      */
     public function getPeriodicUsage(DateTime $date, $kubes, $paymentType)
@@ -293,7 +293,8 @@ class KuberDock_Hosting extends CL_Hosting
             $dateEnd = clone($date);
         } else {
             $tmpNextDueDate = clone($nextDueDate);
-            $dateStart = $tmpNextDueDate->modify('-'.$offset);
+
+            $dateStart = $tmpNextDueDate->modify('-' . $offset);
             if($dateStart < $regDate) {
                 $dateStart = clone($regDate);
             }
@@ -303,7 +304,7 @@ class KuberDock_Hosting extends CL_Hosting
         if($product->proratabilling && $product->proratadate >= 1 && $product->proratadate <= 31) {
             $dateStart->setDate($dateStart->format('Y'), $dateStart->format('m'), $product->proratadate);
             $dateEnd = clone($dateStart);
-            $dateEnd->modify('+'.$offset);
+            $dateEnd->modify('+' . $offset);
         }
 
         $response = $api->getUsage($this->username, $dateStart, $dateEnd);
@@ -353,13 +354,27 @@ class KuberDock_Hosting extends CL_Hosting
         // еще не оплачивалось или уже оплачивалось, но после этого добавились кубы
         if (!$lastState || $totalKubeCount > $lastState->kube_count) {
 
+            // In KuberDock_states we save all user's resourses
+            $itemsForState = $items;
+
             // Если оплачиваем дополнительные кубы, убираем из списка уже оплаченные
             if ($lastState) {
                 $paidItems = json_decode($lastState->details, true);
                 foreach ($paidItems as $paidItem) {
-                    $items = array_filter($items, function($item) use ($paidItem) {
-                        return !($item['title']==$paidItem['title'] && $item['type']==$paidItem['type']);
-                    });
+                    foreach ($items as $i => &$item) {
+                        /** @var $item \components\KuberDock_InvoiceItem */
+                        $sameDescription = $item->getDescription()==$paidItem['description'];
+                        $sameUnits = $item->getUnits()==$paidItem['units'];
+
+                        if ($sameDescription && $sameUnits) {
+                            if ($item->getQty()==$paidItem['qty']) {
+                                unset($items[$i]);
+                            } else {
+                                $item->setQty($item->getQty() - $paidItem['qty']);
+                            }
+                        }
+                    }
+                    unset($item);
                 }
             }
 
@@ -376,7 +391,8 @@ class KuberDock_Hosting extends CL_Hosting
                 $periodRemained = CL_Tools::model()->getIntervalDiff($checkInDate, $nextDueDate);
 
                 $items = array_map(function ($item) use ($period, $periodRemained) {
-                    $item['total'] = round($item['total'] / $period * $periodRemained, 2);
+                    /** @var $item \components\KuberDock_InvoiceItem */
+                    $item->multiplyPrice($periodRemained / $period);
                     return $item;
                 }, $items);
             } elseif (is_null($nextDueDate) || $date == $nextDueDate) {
@@ -393,8 +409,11 @@ class KuberDock_Hosting extends CL_Hosting
                 'kube_count' => $totalKubeCount,
                 'ps_size' => $totalPdSize,
                 'ip_count' => count($totalIPs),
-                'total_sum' => $this->getItemsTotalPrice($items),
-                'details' => json_encode($items),
+                'total_sum' => $this->getItemsTotalPrice($itemsForState),
+                'details' => json_encode(array_map(function ($item) {
+                    /** @var $item \components\KuberDock_InvoiceItem */
+                    return $item->jsonSerialize();
+                }, $itemsForState)),
             ));
             $states->save();
         }
