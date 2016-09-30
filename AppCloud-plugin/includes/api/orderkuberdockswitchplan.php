@@ -32,7 +32,15 @@ try {
     ));
 
     if (!$data) {
-        throw new Exception('User has no KuberDock item');
+        // order pod
+        $admin = KuberDock_User::model()->getCurrentAdmin();
+        $response = localAPI('orderkuberdockpod', array(
+            'client_id' => $clientId,
+            'pod' => $postFields->params->oldPod,
+            'referer' => $postFields->params->referer,
+        ), $admin['username']);
+
+        return $response['results'];
     }
 
     $item = \KuberDock_Addon_Items::model()->loadByParams(current($data));

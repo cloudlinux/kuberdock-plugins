@@ -10,8 +10,8 @@ try {
     $vars = get_defined_vars();
     $postFields = \base\CL_Tools::getApiParams($vars);
 
-    foreach(array('client_id', 'pod') as $attr) {
-        if(!isset($postFields->params->{$attr}) || !$postFields->params->{$attr}) {
+    foreach (array('client_id', 'pod') as $attr) {
+        if (!isset($postFields->params->{$attr}) || !$postFields->params->{$attr}) {
             throw new \exceptions\CException(sprintf("Field '%s' is required", $attr));
         }
     }
@@ -29,17 +29,25 @@ try {
         'limit' => 1,
     ));
 
-    if(!$data) {
-        throw new Exception('User has no KuberDock item');
+    if (!$data) {
+        // order pod
+        $admin = KuberDock_User::model()->getCurrentAdmin();
+        $response = localAPI('orderkuberdockpod', array(
+            'client_id' => $clientId,
+            'pod' => $postFields->params->pod,
+            'referer' => $postFields->params->referer,
+        ), $admin['username']);
+
+        return $response['results'];
+    } else {
+        $item = \KuberDock_Addon_Items::model()->loadByParams(current($data));
     }
 
-    $item = \KuberDock_Addon_Items::model()->loadByParams(current($data));
-
-    if(!$item->isPayed()) {
+    if (!$item->isPayed()) {
         throw new Exception('Pod is unpaid');
     }
 
-    if(!$item->service_id) {
+    if (!$item->service_id) {
         throw new Exception('User has no active KuberDock product');
     }
 

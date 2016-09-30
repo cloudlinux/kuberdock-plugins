@@ -10,6 +10,13 @@ try {
     $vars = get_defined_vars();
     $postFields = \base\CL_Tools::getApiParams($vars);
 
+    // Used for local api call
+    if (empty((array) $postFields->params) && isset($_POST['client_id']) && isset($_POST['pod'])) {
+        $postFields->params->client_id = (int) $_POST['client_id'];
+        $postFields->params->pod = $_POST['pod'];
+        $postFields->params->referer = isset($_POST['referer']) ? $_POST['referer'] : '';
+    }
+
     foreach(array('client_id', 'pod') as $attr) {
         if(!isset($postFields->params->{$attr}) || !$postFields->params->{$attr}) {
             throw new \exceptions\CException(sprintf("Field '%s' required", $attr));
