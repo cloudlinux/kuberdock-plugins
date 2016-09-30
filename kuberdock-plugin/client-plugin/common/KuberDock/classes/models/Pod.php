@@ -96,6 +96,9 @@ class Pod {
         return json_encode($this->_data);
     }
 
+    /**
+     * @return array
+     */
     public function asArray()
     {
         return $this->_data;
@@ -564,11 +567,18 @@ class Pod {
         $this->command->deleteContainer($this->name);
     }
 
+    /**
+     * @return string
+     */
     public function edit()
     {
         return $this->getPodUrl(true);
     }
 
+    /**
+     * @param $data
+     * @return string
+     */
     public function redeploy($data)
     {
         $commandOptions = $data->commandOptions;
@@ -577,6 +587,10 @@ class Pod {
         return 'Application restarted';
     }
 
+    /**
+     * @param array $data
+     * @return string
+     */
     public function upgrade($data)
     {
         $params['id'] = $this->id;
@@ -593,21 +607,13 @@ class Pod {
         return 'Application upgraded';
     }
 
+    /**
+     * @param array $data
+     * @return string
+     */
     public function changePlan($data)
     {
-        $params = array(
-            'id' => $data->id,
-            'template_id' => $data->template_id,
-        );
-
-        /*$app = new PredefinedApp($data->template_id);
-        $podParams = $app->getTemplate()->getPodStructureFromPlan($data->plan);
-        $params['plan'] = $podParams['plan'];
-        $params['edited_config'] = $podParams;*/
-
         $package = Base::model()->getPanel()->billing->getPackage();
-
-        //Base::model()->getPanel()->getAdminApi()->switchPlan($data->id, $data->plan);
 
         if (Base::model()->getPanel()->billing->isFixedPrice($package['id'])) {
             $this->orderSwitchPlan($data->id, $data->plan, $this->getLink());
@@ -618,9 +624,15 @@ class Pod {
         return 'Plan changed';
     }
 
+    /**
+     * @param string $command
+     * @param array $data
+     * @return mixed
+     * @throws CException
+     */
     public function processCommand($command, $data = array())
     {
-        if(method_exists($this, $command)) {
+        if (method_exists($this, $command)) {
             $rm = new \ReflectionMethod($this, $command);
             return $rm->invoke($this, $data);
         }
@@ -703,6 +715,10 @@ class Pod {
         return Base::model()->getPanel()->getURL() . '#pod/' . $this->name;
     }
 
+    /**
+     * @param $kubeCount
+     * @throws ApiException
+     */
     public function checkMaxKubes($kubeCount)
     {
         $sysapi = Base::model()->getPanel()->getAdminApi()->getSysApi('name');

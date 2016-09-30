@@ -767,19 +767,14 @@ class KuberDock_Api {
      * Start or redeploy pod and apply edit changes
      *
      * @param $podId
-     * @param null $status
      * @return KuberDock_ApiResponse
      * @throws CException
      * @throws Exception
      * @throws NotFoundException
      */
-    public function applyEdit($podId, $status)
+    public function applyEdit($podId)
     {
-        if ($status != 'stopped') {
-            $this->stopPod($podId);
-        }
-
-        $attributes['command'] = 'start';
+        $attributes['command'] = 'redeploy';
         $attributes['commandOptions']['applyEdit'] = true;
 
         return $this->makeCall('/api/podapi/' . $podId, $attributes, 'PUT');
