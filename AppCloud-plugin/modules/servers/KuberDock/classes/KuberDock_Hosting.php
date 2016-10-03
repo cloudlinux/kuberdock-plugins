@@ -311,96 +311,103 @@ class KuberDock_Hosting extends CL_Hosting
         $usage = $response->getData();
 
         $items = array();
-        $totalKubeCount = 0;
 
+        // Kubes
         // TODO: kube price depends from package. waiting api
-        $allPods = array();
-        foreach($usage['pods_usage'] as $pod) {
-            $title = preg_replace('/__[a-z0-9]+/i', '', $pod['name']);
-            if (!in_array($title, $allPods)) {
-                $allPods[] = $title;
+        $totalPod = array();
+        $totalKubeCount = 0;
+        foreach ($usage['pods_usage'] as $pod) {
+            $name = preg_replace('/__[a-z0-9]+/i', '', $pod['name']);
+            if (!in_array($name, $totalPod)) {
+                $totalPod[] = $name;
                 $totalKubeCount += $pod['kubes'];
-
-                $price = $kubes[$pod['kube_id']]['kube_price'];
-                $items[] = $product->createInvoice('Pod: ' . $title, $price, 'pod', $pod['kubes']);
             }
         }
 
-        $totalIPs = array();
+        if ($totalKubeCount) {
+            $price = $kubes[$pod['kube_id']]['kube_price'];
+            $items[] = $product->createInvoice('Kube', $price, 'pod', $totalKubeCount);
+        }
+
+        // Public IPs
+        $totalIp = array();
         foreach ($usage['ip_usage'] as $data) {
-            if (!in_array($data['ip_address'], $totalIPs)) {
-                $totalIPs[] = $data['ip_address'];
-                $price = (float) $product->getConfigOption('priceIP');
-                $items[] = $product->createInvoice('IP: ' . $data['ip_address'], $price, 'IP', 1);
+            if (!in_array($data['ip_address'], $totalIp)) {
+                $totalIp[] = $data['ip_address'];
             }
         }
+        if ($totalIp) {
+            $price = (float) $product->getConfigOption('priceIP');
+            $items[] = $product->createInvoice('IP', $price, 'IP', count($totalIp));
+        }
 
+        // Persistent storage
         $totalPdSize = 0;
-        $totalPD = array();
-        foreach($usage['pd_usage'] as $data) {
-            // TODO: Fix when user can change storage size
-            if (!in_array($data['pd_name'], $totalPD)) {
-                $totalPD[] = $data['pd_name'];
+        $totalPd = array();
+        foreach ($usage['pd_usage'] as $data) {
+            if (!in_array($data['pd_name'], $totalPd)) {
+                $totalPd[] = $data['pd_name'];
                 $totalPdSize += $data['size'];
-                $price = (float) $product->getConfigOption('pricePersistentStorage');
-                $unit = KuberDock_Units::getPSUnits();
-                $items[] = $product->createInvoice('Storage: ' . $data['pd_name'], $price, $unit, $data['size']);
+
             }
+        }
+        if ($totalPdSize) {
+            $price = (float) $product->getConfigOption('pricePersistentStorage');
+            $unit = KuberDock_Units::getPSUnits();
+            $items[] = $product->createInvoice('Storage', $price, $unit, $totalPdSize);
         }
 
         // Предыдущая оплата в этом периоде
         $lastState = KuberDock_Addon_States::model()->getLastState($this->id, $dateStart, $dateEnd);
+        if ($lastState) {
+            $checkInDate = CL_Tools::sqlDateToDateTime($lastState->checkin_date);
+            if ($checkInDate == $date)  {
+                return array();
+            }
+        }
 
-        // еще не оплачивалось или уже оплачивалось, но после этого добавились кубы
-        if (!$lastState || $totalKubeCount > $lastState->kube_count) {
+        // In KuberDock_states we save all user's resources
+        $itemsForState = array_map(function ($e) {
+            return clone $e;
+        }, $items);
 
-            // In KuberDock_states we save all user's resourses
-            $itemsForState = $items;
+        // Если оплачиваем дополнительные кубы, убираем из списка уже оплаченные
+        if ($lastState && !is_null($nextDueDate) && $date < $nextDueDate) {
+            $paidItems = json_decode($lastState->details, true);
+            foreach ($paidItems as $paidItem) {
+                foreach ($items as $i => &$item) {
+                    /** @var $item \components\KuberDock_InvoiceItem */
+                    $sameDescription = $item->getDescription()==$paidItem['description'];
+                    $sameUnits = $item->getUnits()==$paidItem['units'];
 
-            // Если оплачиваем дополнительные кубы, убираем из списка уже оплаченные
-            if ($lastState) {
-                $paidItems = json_decode($lastState->details, true);
-                foreach ($paidItems as $paidItem) {
-                    foreach ($items as $i => &$item) {
-                        /** @var $item \components\KuberDock_InvoiceItem */
-                        $sameDescription = $item->getDescription()==$paidItem['description'];
-                        $sameUnits = $item->getUnits()==$paidItem['units'];
-
-                        if ($sameDescription && $sameUnits) {
-                            if ($item->getQty()==$paidItem['qty']) {
-                                unset($items[$i]);
-                            } else {
-                                $item->setQty($item->getQty() - $paidItem['qty']);
-                            }
+                    if ($sameDescription && $sameUnits) {
+                        if ($item->getQty() <= $paidItem['qty']) {
+                            unset($items[$i]);
+                        } else {
+                            $item->setQty($item->getQty() - $paidItem['qty']);
                         }
                     }
-                    unset($item);
                 }
+                unset($item);
             }
 
-            // Если оплачиваем дополнительные кубы и дата оплаты еще не наступила
-            if ($lastState && !is_null($nextDueDate) && $date < $nextDueDate) {
+            // оплачиваем только остаток периода
+            $period = CL_Tools::model()->getIntervalDiff($dateStart, $dateEnd);
+            $periodRemained = CL_Tools::model()->getIntervalDiff($date, $nextDueDate);
 
-                $checkInDate = CL_Tools::sqlDateToDateTime($lastState->checkin_date);
+            $items = array_map(function ($item) use ($period, $periodRemained) {
+                /** @var $item \components\KuberDock_InvoiceItem */
+                $item->multiplyPrice($periodRemained / $period);
+                return $item;
+            }, $items);
+        }
 
-                // $checkInDate сегодня, оплачивать ничего не надо
-                if ($checkInDate == $date) return array();
+        if (is_null($nextDueDate) || $date == $nextDueDate) {
+            $currentDate = clone($date);
+            $this->updateByApi($this->id, array('nextduedate' => $currentDate->modify('+' . $offset)->format('Y-m-d')));
+        }
 
-                // оплачиваем только остаток периода
-                $period = CL_Tools::model()->getIntervalDiff($dateStart, $dateEnd);
-                $periodRemained = CL_Tools::model()->getIntervalDiff($checkInDate, $nextDueDate);
-
-                $items = array_map(function ($item) use ($period, $periodRemained) {
-                    /** @var $item \components\KuberDock_InvoiceItem */
-                    $item->multiplyPrice($periodRemained / $period);
-                    return $item;
-                }, $items);
-            } elseif (is_null($nextDueDate) || $date == $nextDueDate) {
-                // устанавливаем новый день оплаты
-                $currentDate = clone($date);
-                $this->updateByApi($this->id, array('nextduedate' => $currentDate->modify('+' . $offset)->format('Y-m-d')));
-            }
-
+        if ($items) {
             $states = new KuberDock_Addon_States();
             $states->setAttributes(array(
                 'hosting_id' => $this->id,
@@ -408,7 +415,7 @@ class KuberDock_Hosting extends CL_Hosting
                 'checkin_date' => CL_Tools::getMySQLFormattedDate($date),
                 'kube_count' => $totalKubeCount,
                 'ps_size' => $totalPdSize,
-                'ip_count' => count($totalIPs),
+                'ip_count' => count($totalIp),
                 'total_sum' => $this->getItemsTotalPrice($itemsForState),
                 'details' => json_encode(array_map(function ($item) {
                     /** @var $item \components\KuberDock_InvoiceItem */
@@ -514,22 +521,6 @@ class KuberDock_Hosting extends CL_Hosting
     {
         KuberDock_Product::model()->updateCustomField($this->packageid, $this->id, 'Token', $token);
         return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getMainProduct()
-    {
-        $values = array(KUBERDOCK_MODULE_NAME, 'Active', $this->id, $this->userid);
-
-        $sql = "SELECT hosting.*, product.id AS product_id
-            FROM `".$this->tableName."` hosting
-                LEFT JOIN `".KuberDock_Product::model()->tableName."` product ON hosting.packageid = product.id
-            WHERE product.servertype = ? AND hosting.domainstatus = ? AND hosting.id != ?
-                AND hosting.userid = ? ORDER BY hosting.regdate ASC LIMIT 1";
-
-        return $this->_db->query($sql, $values)->getRow();
     }
 
     /**

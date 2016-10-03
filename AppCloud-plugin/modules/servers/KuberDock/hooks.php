@@ -614,7 +614,15 @@ function KuberDock_AfterModuleCreate($params)
     $product = \KuberDock_Product::model()->loadById($params['params']['packageid']);
     $service = \KuberDock_Hosting::model()->loadById($params['params']['serviceid']);
 
+    if (!$product->isKuberProduct()) {
+        return;
+    }
+
     try {
+        // If service not free, each month WHMCS make invoice for product
+        $service->billingcycle = 'Free Account';
+        $service->save();
+
         $invoice = CL_Invoice::model()->loadByOrderId($service->orderid);
         \KuberDock_Addon_PredefinedApp::model()->order($product, $service, $userId, $invoice->id);
     } catch (Exception $e) {
