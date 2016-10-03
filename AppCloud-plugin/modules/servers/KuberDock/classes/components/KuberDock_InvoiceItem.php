@@ -34,6 +34,16 @@ class KuberDock_InvoiceItem
         return $object;
     }
 
+    /**
+     * todo: when we move to php 5.4 replace all occurencies with json_encode($items), add "implements \JsonSerializable"
+     *
+     * @return array
+     */
+    public function jsonSerialize()
+    {
+        return get_object_vars($this);
+    }
+
     public function setShort($short = true)
     {
         $this->short = $short;
@@ -57,9 +67,24 @@ class KuberDock_InvoiceItem
         return $this;
     }
 
+    public function setQty($qty)
+    {
+        $this->qty = $qty;
+    }
+
     public function getTaxed()
     {
         return $this->taxed;
+    }
+
+    public function getPrice()
+    {
+        return $this->price;
+    }
+
+    public function multiplyPrice($multiplier)
+    {
+        $this->price *= $multiplier;
     }
 
     public function getTotal()
@@ -67,9 +92,19 @@ class KuberDock_InvoiceItem
         return $this->price * $this->qty;
     }
 
+    public function getQty()
+    {
+        return $this->qty;
+    }
+
     public function getDescription()
     {
         return $this->description;
+    }
+
+    public function getUnits()
+    {
+        return $this->units;
     }
 
     public function getHtml($number)
