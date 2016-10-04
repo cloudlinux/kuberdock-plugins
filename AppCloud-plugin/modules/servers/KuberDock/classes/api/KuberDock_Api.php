@@ -731,9 +731,13 @@ class KuberDock_Api {
      */
     public function stopPod($podId)
     {
-        return $this->makeCall('/api/podapi/' . $podId, array(
-            'command' => 'stop',
-        ), 'PUT');
+        try {
+            return $this->makeCall('/api/podapi/' . $podId, array(
+                'command' => 'stop',
+            ), 'PUT');
+        } catch(\Exception $e) {
+            //
+        }
     }
 
     /**

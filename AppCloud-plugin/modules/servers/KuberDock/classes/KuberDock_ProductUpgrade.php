@@ -27,9 +27,7 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade
     {
         $data = $this->loadByAttributes(array(
             'relid' => $serviceId,
-            'status' => self::STATUS_PENDING,
             'type' => 'package',
-            'orderid' => 0,
         ), '', array(
             'order' => 'id DESC',
             'limit' => 1
@@ -84,6 +82,28 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade
             $date = new DateTime();
             $service->nextduedate = CL_Tools::getMySQLFormattedDate($date->modify('+1 day'));
             $service->save();
+        }
+
+        // upgrade from payG to fixedPrice
+        if (!$oldProduct->isFixedPrice() && $newProduct->isFixedPrice()) {
+            // get all client's pods
+            $pods = $service->getApi()->getPods()->getData();
+            $admin = KuberDock_User::model()->getCurrentAdmin();
+
+            // order them all (create billable items and invoices)
+            foreach ($pods as $pod) {
+                $response = localAPI('orderkuberdockpod', array(
+                    'client_id' => $service->userid,
+                    'pod' => json_encode($pod),
+                ), $admin['username']);
+
+                if ($response['results']['status'] == CL_Invoice::STATUS_UNPAID) {
+                    $service->getApi()->stopPod($pod['id']);
+                    $service->getAdminApi()->updatePod($pod['id'], array(
+                        'status' => 'unpaid',
+                    ));
+                }
+            }
         }
     }
 
