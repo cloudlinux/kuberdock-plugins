@@ -279,10 +279,10 @@ class KuberDock_Api {
         $response = curl_exec($ch);
         $status = curl_getinfo($ch);
 
-        if ($status['http_code'] != KuberDock_ApiStatusCode::HTTP_OK) {
-            $err = ucwords(curl_error($ch));
-            curl_close($ch);
+        $err = ucwords(curl_error($ch));
+        curl_close($ch);
 
+        if ($status['http_code'] != KuberDock_ApiStatusCode::HTTP_OK) {
             switch ($status['http_code']) {
                 case KuberDock_ApiStatusCode::HTTP_BAD_REQUEST:
                 case KuberDock_ApiStatusCode::HTTP_CONFLICT:
@@ -302,7 +302,6 @@ class KuberDock_Api {
             }
         }
 
-        curl_close($ch);
         $this->parseResponse($response);
 
         if (KUBERDOCK_DEBUG_API) {
@@ -411,7 +410,7 @@ class KuberDock_Api {
      */
     public function unDeleteUser($user)
     {
-        return $this->makeCall('/api/users/undelete/' . $user, 'POST');
+        return $this->makeCall('/api/users/undelete', ['email' => $user], 'POST');
     }
 
     /**
@@ -764,30 +763,14 @@ class KuberDock_Api {
     }
 
     /**
-     * Start or redeploy pod and apply edit changes
-     *
-     * @param $podId
-     * @param null $status
+     * @param string $podId
      * @return KuberDock_ApiResponse
-     * @throws CException
-     * @throws Exception
-     * @throws NotFoundException
      */
-    public function applyEdit($podId, $status)
+    public function applyEdit($podId)
     {
-        if ($status != 'stopped') {
-            $this->stopPod($podId);
-        }
-
-        $attributes['command'] = 'start';
         $attributes['commandOptions']['applyEdit'] = true;
 
-        $response = $this->makeCall('/api/podapi/' . $podId, $attributes, 'PUT');
-
-        // Add resources
-        \models\addon\Resources::add($podId);
-
-        return $response;
+        return $this->redeployPod($podId, $attributes);
     }
 
     /**
@@ -832,6 +815,14 @@ class KuberDock_Api {
         return $this->makeCall('/api/podapi/' . $podId, array(
             'command' => 'unbind-ip',
         ), 'PUT');
+    }
+
+    /**
+     * @return KuberDock_ApiResponse
+     */
+    public function getIpPoolStat()
+    {
+        return $this->makeCall('/api/ippool/userstat');
     }
 
     /**

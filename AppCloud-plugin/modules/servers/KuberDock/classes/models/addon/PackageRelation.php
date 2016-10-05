@@ -42,4 +42,21 @@ class PackageRelation extends Model
     {
         return $this->belongsTo('models\billing\Package', 'product_id', 'id');
     }
+
+    /**
+     * @param $query
+     * @param string $referer
+     * @return mixed
+     */
+    public function scopeByReferer($query, $referer)
+    {
+        return $query->select('KuberDock_products.*')
+            ->join('tblproducts', 'tblproducts.id', '=', 'KuberDock_products.product_id')
+            ->join('tblservergroups', 'tblservergroups.id', '=', 'tblproducts.servergroup')
+            ->join('tblservergroupsrel', 'tblservergroupsrel.groupid', '=', 'tblservergroups.id')
+            ->join('tblservers', 'tblservers.id', '=', 'tblservergroupsrel.serverid')
+            ->where('tblproducts.hidden', '!=', 1)
+            ->whereRaw('INSTR(?, tblservers.ipaddress) > 0', [$referer])
+            ->orWhereRaw('INSTR(?, tblservers.hostname) > 0', [$referer]);
+    }
 }

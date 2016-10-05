@@ -17,7 +17,7 @@ class Config extends Model
     /**
      * @var Component
      */
-    protected $component;
+    protected static $component;
 
     /**
      * @var string
@@ -28,20 +28,20 @@ class Config extends Model
      * Get config collection
      * @return Component
      */
-    public function get()
+    public static function get()
     {
         global $CONFIG;
 
-        if (!$this->component) {
-            $this->component = new Component();
+        if (!self::$component) {
+            self::$component = new Component();
             if (isset($CONFIG) && $CONFIG) {
-                $this->component->setAttributes($CONFIG);
+                self::$component->setAttributes($CONFIG);
             } else {
-                $this->component->setAttributes(Config::all()->toArray());
+                self::$component->setAttributes(Config::all()->toArray());
             }
         }
 
-        return $this->component;
+        return self::$component;
     }
 
     /**

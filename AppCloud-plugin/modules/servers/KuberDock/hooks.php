@@ -8,7 +8,6 @@ use base\CL_Base;
 use base\CL_Tools;
 use base\models\CL_Invoice;
 use base\models\CL_User;
-use base\models\CL_BillableItems;
 use exceptions\CException;
 
 include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
@@ -20,11 +19,21 @@ include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
 function KuberDock_DailyCronJob() {
     echo "Starting '".KUBERDOCK_MODULE_NAME."' hook\n";
 
+    try {
+        $fixedBilling = new \models\addon\billingTypes\Fixed();
+        $fixedBilling->processCron();
+    } catch (Exception $e) {
+        echo 'ERROR: '. $e->getMessage() . "\n";
+        CException::log($e);
+    }
+
     $model = KuberDock_Hosting::model();
     $services = $model->getByUserStatus(CL_User::STATUS_ACTIVE);
 
     foreach($services as $service) {
         $service = $model->loadByParams($service);
+
+        if (!$service->getProduct()->isFixedPrice()) continue;
 
         try {
             $service->calculate();
@@ -133,40 +142,47 @@ add_hook('ServiceDelete', 1, 'KuberDock_ServiceDelete');
  */
 function KuberDock_ShoppingCartValidateCheckout($params)
 {
-    global $CONFIG;
-
-    $errors = array();
+    $config = \models\billing\Config::get();
+    $errors = [];
     $userId = $params['userid'];
 
     if (isset($_SESSION['cart']) && $userId) {
         foreach ($_SESSION['cart']['products'] as $product) {
-            $product = KuberDock_Product::model()->loadById($product['pid']);
+            $package = \models\billing\Package::find($product['pid']);
+
             // TOS enabled but not accepted
-            if (!$product->isKuberProduct()
-                || ((bool) $CONFIG['EnableTOSAccept'] && !isset($_POST['accepttos']))) {
+            if (!$package->isKuberDock() || ((bool) $config->EnableTOSAccept && !isset($_POST['accepttos']))) {
                 continue;
             }
 
-            $server = $product->getServer();
-            $userProducts = KuberDock_Product::model()->getByUser($userId, $server->id);
-            $userProduct = current($userProducts);
+            $service = \models\billing\Service::typeKuberDock()
+                ->where('userid', $userId)->where('packageid', $package->id)->first();
 
             try {
-                $service = \KuberDock_Hosting::model()->loadById($userProduct['hosting_id']);
-                // Runs only if service already exists
-                \KuberDock_Addon_PredefinedApp::model()->order($product, $service, $userId);
+                $app = new \models\addon\App();
+                $app = $app->getFromSession();
+
+                if ($app && $service) {
+                    $invoice = $package->getBilling()->order($app->getResource(), $service);
+
+                    try {
+                        \components\BillingApi::model()->applyCredit($invoice);
+                    } catch (\exceptions\NotEnoughFundsException $e) {
+                        \components\Tools::model()->jsRedirect($invoice->getUrl());
+                    }
+                }
             } catch (Exception $e) {
                 CException::log($e);
-                $errors[] = str_replace('ERROR: ', '', $e->getMessage());
-                $product->addToCart();
+                \components\Tools::model()->jsRedirect($app->referer . '&error=' . urlencode($e->getMessage()));
             }
 
-            $errorMessage = 'You can not buy more than 1 KuberDock product.';
-	    if (count($userProducts) && !in_array($errorMessage, $errors) && !$errors) {
+            $errorMessage = 'You can\'t buy more than 1 KuberDock product.';
+
+            if ($service && !in_array($errorMessage, $errors) && !$errors) {
                 $errors[] = $errorMessage;
             }
 
-            if ($product->getConfigOption('enableTrial') && KuberDock_Addon_Trial::model()->loadById($userId)) {
+            if ($package->getEnableTrial() && \models\addon\Trial::where('user_id', $userId)->first()) {
                 $errors[] = 'You are already have trial KuberDock product.';
             }
         }
@@ -184,7 +200,7 @@ add_hook('ShoppingCartValidateCheckout', 1, 'KuberDock_ShoppingCartValidateCheck
  */
 function KuberDock_ClientAreaHeadOutput()
 {
-    $assets = new KuberDock_Assets();
+    $assets = new \components\Assets();
     $assets->registerStyleFiles(array(
         'styles',
     ));
@@ -201,7 +217,7 @@ add_hook('ClientAreaHeadOutput', 1, 'KuberDock_ClientAreaHeadOutput');
  */
 function KuberDock_AdminAreaHeadOutput()
 {
-    $assets = new KuberDock_Assets();
+    $assets = new \components\Assets();
     $assets->registerStyleFiles(array(
         'styles',
     ));
@@ -215,20 +231,6 @@ function KuberDock_AdminAreaHeadOutput()
 add_hook('AdminAreaHeadOutput', 0, 'KuberDock_AdminAreaHeadOutput');
 
 /**
- * @param $params
- */
-function KuberDock_AfterShoppingCartCheckout($params)
-{
-    $order = \base\models\CL_Order::model()->loadById($params['OrderID']);
-    $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-    if ($predefinedApp) {
-        $predefinedApp->user_id = $order->userid;
-        $predefinedApp->save();
-    }
-}
-add_hook('AfterShoppingCartCheckout', 1, 'KuberDock_AfterShoppingCartCheckout');
-
-/**
  * Run: As the cart page is being displayed, this hook is run separately for each product added to the cart.
  *
  * @param $params
@@ -236,7 +238,8 @@ add_hook('AfterShoppingCartCheckout', 1, 'KuberDock_AfterShoppingCartCheckout');
  */
 function KuberDock_OrderProductPricingOverride($params)
 {
-    return \components\ClientArea::model()->pricingOverride($params);
+    $ca = new \components\ClientArea();
+    return $ca->productPricingOverride($params['pid']);
 }
 add_hook('OrderProductPricingOverride', 1, 'KuberDock_OrderProductPricingOverride');
 
@@ -251,7 +254,8 @@ add_hook('OrderProductPricingOverride', 1, 'KuberDock_OrderProductPricingOverrid
  */
 function KuberDock_ClientAreaPage($params)
 {
-    return \components\ClientArea::model()->prepare();
+    $ca = new \components\ClientArea();
+    $ca->redraw();
 }
 add_hook('ClientAreaPage', 1, 'KuberDock_ClientAreaPage');
 
@@ -262,7 +266,8 @@ add_hook('ClientAreaPage', 1, 'KuberDock_ClientAreaPage');
 function KuberDock_InvoiceCreationPreEmail($params)
 {
     if ($params['source'] == 'autogen') {
-        KuberDock_Product::model()->productInvoiceCorrection($params['invoiceid']);
+        $invoice = \models\billing\Invoice::find($params['invoiceid']);
+        (new \models\addon\Item())->invoiceCorrection($invoice);
     }
 }
 add_hook('InvoiceCreationPreEmail', 1, 'KuberDock_InvoiceCreationPreEmail');
@@ -272,7 +277,7 @@ add_hook('InvoiceCreationPreEmail', 1, 'KuberDock_InvoiceCreationPreEmail');
  */
 function KuberDock_InvoiceCreated($params)
 {
-    (new \models\addon\Items())->handleInvoicing($params['invoiceid']);
+    (new \models\addon\Item())->handleInvoicing($params['invoiceid']);
 }
 add_hook('InvoiceCreated', 1, 'KuberDock_InvoiceCreated');
 
@@ -284,54 +289,32 @@ add_hook('InvoiceCreated', 1, 'KuberDock_InvoiceCreated');
  */
 function KuberDock_InvoicePaid($params)
 {
-    $invoiceId = $params['invoiceid'];
+    $itemInvoices = \models\addon\ItemInvoice::where('invoice_id', $params['invoiceid'])->get();
 
-    try {
-        $invoice = CL_Invoice::model()->loadById($invoiceId);
-        if (!$invoice) {
-            return;
-        }
-        $invoice->addFirstDeposit();
+    if (!$itemInvoices->count()) {
+        return;
+    }
 
-        // TODO: check is needed. pod edit added
-        // Add additional kubes
-        if ($invoice->isUpdateKubesInvoice()) {
-            if ($data = KuberDock_Hosting::model()->getByUser($invoice->userid)) {
-                $invoiceItem = \base\models\CL_InvoiceItems::model()->loadByAttributes(array(
-                    'type' => CL_BillableItems::TYPE,
-                    'invoiceid' => $invoice->id,
-                ), 'relid > 0');
+    foreach ($itemInvoices as $itemInvoice) {
+        try {
+            $itemInvoice->invoice->addFirstDeposit();
+            $resources = new \models\addon\Resources();
 
-                $invoiceItem = current($invoiceItem);
-                $billableItem = CL_BillableItems::model()->loadById($invoiceItem['relid']);
-                $billableItem->amount += $invoice->subtotal;
-                $billableItem->save();
-
-                $service = KuberDock_Hosting::model()->loadByParams(current($data));
-
-                $params = json_decode($invoice->invoiceitems['notes'], true);
-                if (isset($params['containers'])) {
-                    // upgrade pod
-                    $service->getAdminApi()->redeployPod($params['id'], $params);
-                } else {
-                    // edit pod
-                    $pod = $service->getApi()->getPod($params['id']);
-                    $service->getAdminApi()->applyEdit($params['id'], $pod['status']);
-                }
-
-                // Update app
-                $item = \models\addon\Items::where('billable_item_id', $billableItem->id)->first();
-                if ($item) {
-                    $pod = $item->service->getPod()->load($params['id']);
-                    $item->app->data = $pod->toJSON();
-                    $item->app->save();
-                }
+            $unpaidItemInvoices = $resources->getUnpaidItemInvoices($itemInvoice->item);
+            if ($unpaidItemInvoices) {
+                \components\Controller::model()->redirect($unpaidItemInvoices->first()->invoice->getUrl());
             }
-        } else {
-            \models\addon\Items::startPodAfterPayment($invoiceId);
+
+            $pod = $itemInvoice->afterPayment();
+        } catch (Exception $e) {
+            CException::log($e);
         }
-    } catch(Exception $e) {
-        CException::log($e);
+    }
+
+    global $whmcs;
+
+    if ($whmcs && $whmcs->isClientAreaRequest()) {
+        $pod->redirect();
     }
 }
 add_hook('InvoicePaid', 1, 'KuberDock_InvoicePaid');
@@ -562,13 +545,16 @@ add_hook('ClientAdd', 1, 'KuberDock_ClientAdd');
  */
 function KuberDock_AfterModuleCreate($params)
 {
-    $userId = $params['params']['userid'];
-    $product = \KuberDock_Product::model()->loadById($params['params']['packageid']);
-    $service = \KuberDock_Hosting::model()->loadById($params['params']['serviceid']);
+    $service = \models\billing\Service::find($params['params']['serviceid']);
 
     try {
-        $invoice = CL_Invoice::model()->loadByOrderId($service->orderid);
-        \KuberDock_Addon_PredefinedApp::model()->order($product, $service, $userId, $invoice->id);
+        $app = new \models\addon\App();
+        $app = $app->getFromSession();
+
+        if ($app) {
+            $service->moduleCreate = true;
+            $service->package->getBilling()->order($app->getResource(), $service);
+        }
     } catch (Exception $e) {
         CException::log($e);
     }

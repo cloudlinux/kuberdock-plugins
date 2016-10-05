@@ -51,12 +51,6 @@ class Controller extends Component {
      * @var Assets
      */
     public $assets;
-
-    /**
-     * @var WHMCS_ClientArea
-     */
-    public $clientArea;
-
     /**
      * View object
      *

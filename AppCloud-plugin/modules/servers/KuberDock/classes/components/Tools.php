@@ -6,39 +6,17 @@ namespace components;
 
 use DateTime;
 use models\billing\Config;
+use models\billing\Package;
+use Symfony\Component\Yaml\Yaml;
 
 class Tools extends Component
 {
-    /**
-     * Get param from $_GET variable
-     *
-     * @param $key
-     * @param null $default
-     * @return null
-     */
-    public function getParam($key, $default = null)
-    {
-        return isset($_GET[$key]) ? $_GET[$key] : $default;
-    }
-
-    /**
-     * Get param from $_POST variable
-     *
-     * @param $key
-     * @param null $default
-     * @return null
-     */
-    public function getPost($key, $default = null)
-    {
-        return isset($_POST[$key]) ? $_POST[$key] : $default;
-    }
-
     /**
      * @return bool
      */
     public static function isAjaxRequest()
     {
-        return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH']==='XMLHttpRequest';
+        return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest';
     }
 
     /**
@@ -59,6 +37,15 @@ class Tools extends Component
             $date = new DateTime($date);
             return $date->format($format);
         }
+    }
+
+    /**
+     * @param string $data
+     * @return mixed
+     */
+    public static function parseYaml($data)
+    {
+        return Yaml::parse($data);
     }
 
     /**
@@ -92,5 +79,95 @@ class Tools extends Component
         }
 
         return $format;
+    }
+
+    /**
+     * Get param from $_GET variable
+     *
+     * @param $key
+     * @param null $default
+     * @return null
+     */
+    public function getParam($key, $default = null)
+    {
+        return isset($_GET[$key]) ? $_GET[$key] : $default;
+    }
+
+    /**
+     * Get param from $_POST variable
+     *
+     * @param $key
+     * @param null $default
+     * @return null
+     */
+    public function getPost($key, $default = null)
+    {
+        return isset($_POST[$key]) ? $_POST[$key] : $default;
+    }
+
+    /**
+     * @param string $url
+     * @param array $data
+     */
+    public function jsRedirect($url, $data = [])
+    {
+        if ($data) {
+            echo <<<HTML
+<html>
+    <body onload="redirect()">
+        <form id="redirect" method="post" action="{$url}">
+HTML;
+            foreach ($data as $attribute => $value) {
+                echo '<input type="hidden" name="' . $attribute . '" value="' . $value . '">';
+            }
+            echo <<<HTML
+        </form>
+
+        <script>
+            function redirect() {
+                document.getElementById('redirect').submit();
+            }
+        </script>
+    </body>
+</html>
+HTML;
+        } else {
+            echo <<<SCRIPT
+<script>
+    window.location.href = '{$url}';
+</script>
+SCRIPT;
+        }
+        exit();
+    }
+
+    /**
+     * Temporary ported eloquent method keyBy
+     * @param object|array
+     * @param string $keyBy
+     * @return array
+     */
+    public function keyBy($collection, $keyBy)
+    {
+        $results = [];
+
+        foreach ($collection as $item) {
+            if (is_object($collection)) {
+                $attributes = explode('.', $keyBy);
+                if (count($attributes) > 1) {
+                    array_walk($attributes, function ($v) use ($item, &$key) {
+                        $key = is_object($key) ? $key->{$v} : $item->{$v};
+                    });
+                } else {
+                    $key = $item->{$keyBy};
+                }
+            } else {
+                $key = $item[$keyBy];
+            }
+
+            $results[$key] = $item;
+        }
+
+        return $results;
     }
 }

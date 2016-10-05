@@ -10,3 +10,4 @@ kuberdock-plugin/client-plugin/cpanel/KuberDock/.idea
 AppCloud-plugin/.idea
 kuberdock-plugin/kuberdock-common/.idea
 /AppCloud-plugin/modules/servers/KuberDock/composer.lock
+/AppCloud-plugin/sync.php

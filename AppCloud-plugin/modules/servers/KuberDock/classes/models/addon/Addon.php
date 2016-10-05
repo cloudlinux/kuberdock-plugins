@@ -6,34 +6,22 @@
 
 namespace models\addon;
 
-use \models\billing\Server;
-use \models\billing\Config;
-use \models\billing\PackageGroup;
-use \models\billing\EmailTemplate;
-use \models\billing\Package;
-use \models\billing\Currency;
-use \models\billing\Pricing;
-use \models\billing\CustomField;
+use models\addon\resourceTypes\ResourceFactory;
+use models\billing\Server;
+use models\billing\Config;
+use models\billing\PackageGroup;
+use models\billing\EmailTemplate;
+use models\billing\Package;
+use models\billing\Currency;
+use models\billing\Pricing;
+use models\billing\CustomField;
 use exceptions\CException;
 
 class Addon extends \components\Component {
     /**
      *
      */
-    const REQUIRED_PHP_VERSION = '5.4';
-    /**
-     *
-     */
-    const STANDARD_PRODUCT = 'Standard package';
-    /**
-     *
-     */
-    const KD_PACKAGE_ID = 0;
-
-    /**
-     * Can not be deleted
-     */
-    const STANDARD_KUBE_TYPE = 0;
+    const REQUIRED_PHP_VERSION = '5.6';
 
     /**
      *
@@ -193,12 +181,15 @@ class Addon extends \components\Component {
         $scheme->create('KuberDock_preapps', function ($table) {
             /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
-            $table->string('session_id', 64);
             $table->integer('user_id');
             $table->integer('product_id');
             $table->integer('kuber_product_id');
             $table->string('pod_id', 64);
             $table->text('data');
+            $table->enum('type', [
+                ResourceFactory::TYPE_POD,
+                ResourceFactory::TYPE_YAML,
+            ])->default(ResourceFactory::TYPE_POD);
             $table->text('referer');
 
             $table->index('pod_id');
@@ -226,18 +217,34 @@ class Addon extends \components\Component {
             /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
             $table->integer('user_id');
-            $table->integer('app_id', false, true);
             $table->integer('service_id');
-            $table->string('pod_id', 64);
+            $table->string('pod_id', 64)->nullable();
             $table->integer('billable_item_id');
-            $table->integer('invoice_id');
-            $table->string('status', 32);
-            $table->string('type', 64)->default(\models\addon\Resources::TYPE_POD);
+            $table->string('status', 32)->default(Resources::STATUS_ACTIVE);
+            $table->string('type', 64)->default(Resources::TYPE_POD);
 
             $table->index('pod_id');
             $table->index('billable_item_id');
+        });
 
-            $table->foreign('app_id')->references('id')->on('KuberDock_preapps')->onDelete('cascade');
+        $scheme->create('KuberDock_item_invoices', function ($table) {
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
+            $table->increments('id');
+            $table->integer('item_id', false, true);
+            $table->integer('invoice_id');
+            $table->string('status', 16);
+            $table->enum('type', [
+                ItemInvoice::TYPE_ORDER,
+                ItemInvoice::TYPE_EDIT,
+                ItemInvoice::TYPE_SWITCH,
+            ])->default(ItemInvoice::TYPE_ORDER);
+            $table->text('params')->nullable();
+            $table->timestamps();
+
+            $table->index('invoice_id');
+            $table->index('item_id');
+
+            $table->foreign('item_id')->references('id')->on('KuberDock_items')->onDelete('cascade');
         });
 
         $scheme->create('KuberDock_migrations', function ($table) {
@@ -252,7 +259,6 @@ class Addon extends \components\Component {
             /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
             $table->integer('user_id');
-            $table->integer('billable_item_id');
             $table->string('name');
             $table->enum('type', array(
                 \models\addon\Resources::TYPE_IP,
@@ -262,21 +268,19 @@ class Addon extends \components\Component {
             $table->string('status', 32)->default(\models\addon\Resources::STATUS_ACTIVE );
 
             $table->index('name');
-            $table->index('billable_item_id');
-
-            $table->foreign('billable_item_id')->references('billable_item_id')
-                ->on('KuberDock_items')->onDelete('cascade');
         });
 
         $scheme->create('KuberDock_resource_pods', function ($table) {
             /* @var \Illuminate\Database\Schema\Blueprint $table */
-            $table->string('pod_id', 64);
+            $table->string('pod_id', 64)->nullable();
             $table->integer('resource_id', false, true);
+            $table->integer('item_id', false, true);
 
             $table->index('pod_id');
             $table->index('resource_id');
 
             $table->foreign('resource_id')->references('id')->on('KuberDock_resources')->onDelete('cascade');
+            $table->foreign('item_id')->references('id')->on('KuberDock_items')->onDelete('cascade');
         });
     }
 
@@ -289,6 +293,7 @@ class Addon extends \components\Component {
 
         $scheme->dropIfExists('KuberDock_resource_pods');
         $scheme->dropIfExists('KuberDock_resources');
+        $scheme->dropIfExists('KuberDock_item_invoices');
         $scheme->dropIfExists('KuberDock_items');
         $scheme->dropIfExists('KuberDock_kubes_links');
         $scheme->dropIfExists('KuberDock_kubes_templates');

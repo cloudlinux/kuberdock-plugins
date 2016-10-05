@@ -191,7 +191,7 @@ class KuberDock_Pod
         }
         $attributes['containers'] = $params;
 
-        $item = \models\addon\Items::where('pod_id', $this->id)->orderBy('id', 'desc')->first();
+        $item = \models\addon\Item::where('pod_id', $this->id)->orderBy('id', 'desc')->first();
 
         if ($item) {
             $billableItem = \base\models\CL_BillableItems::model()->loadById($item->billable_item_id);
@@ -262,7 +262,7 @@ class KuberDock_Pod
     public function editKubes($newPod, KuberDock_User $user)
     {
         $attributes['id'] = $this->id;
-        $item = \models\addon\Items::where('pod_id', $this->id)->orderBy('id', 'desc')->first();
+        $item = \models\addon\Item::where('pod_id', $this->id)->orderBy('id', 'desc')->first();
 
         if (!$item) {
             throw new \exceptions\CException('Billable item not found.');

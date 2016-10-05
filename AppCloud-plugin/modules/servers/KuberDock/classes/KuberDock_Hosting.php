@@ -157,7 +157,7 @@ class KuberDock_Hosting extends CL_Hosting
      */
     public function calculateFixed()
     {
-        $items = \models\addon\Items::unpaid()->where('user_id', $this->userid)->get();
+        $items = \models\addon\Item::unpaid()->where('user_id', $this->userid)->get();
         foreach ($items as $item) {
             $item->setUnpaid();
         }

@@ -18,7 +18,7 @@ include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
  * @throws Exception
  */
 function KuberDock_ConfigOptions() {
-    $id = \components\Tools::model()->getParam('id');
+    $id = \components\Tools::model()->getParam('id', components\Tools::model()->getPost('id'));
 
     return \models\billing\Package::find($id)->getConfig();
 }
@@ -168,7 +168,7 @@ function KuberDock_ClientArea($params) {
     $server = KuberDock_Server::model()->loadById($service->server);
     $trialTime = (int) $product->getConfigOption('trialTime');
     $enableTrial = $product->getConfigOption('enableTrial');
-    $items = \models\addon\Items::where('user_id', $params['userid'])->get()->toArray();
+    $items = \models\addon\Item::where('user_id', $params['userid'])->get()->toArray();
     $items = \base\CL_Tools::model()->getKeyAsField($items, 'pod_id');
     $regDate = new DateTime($service->regdate);
     $trialExpired = '';

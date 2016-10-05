@@ -8,57 +8,26 @@ require_once dirname(__FILE__) . '/../../modules/servers/KuberDock/init.php';
 
 try {
     $vars = get_defined_vars();
-    $postFields = \base\CL_Tools::getApiParams($vars);
+    $postFields = \components\BillingApi::model()->getApiParams($vars);
 
-    foreach (array('client_id', 'pod') as $attr) {
+    foreach (['client_id', 'pod'] as $attr) {
         if (!isset($postFields->params->{$attr}) || !$postFields->params->{$attr}) {
             throw new \exceptions\CException(sprintf("Field '%s' is required", $attr));
         }
     }
 
-    $clientId = $postFields->params->client_id;
-    $pod = $postFields->params->pod;
-    $pod = json_decode(html_entity_decode(urldecode($pod), ENT_QUOTES), true);
+    $service = \models\billing\Service::typeKuberDock()->where('userid', $postFields->params->client_id)->first();
 
-    $user = KuberDock_User::model()->loadById($clientId);
-
-    $item = \models\addon\Items::where('pod_id', $pod['id'])->orderBy('id', 'desc')->first();
-    /* @var \models\addon\Items $item */
-
-    if (!$item) {
-        throw new Exception('User has no KuberDock item');
+    if (!$service) {
+        throw new Exception('User has no KuberDock service');
     }
 
-    if (!$item->isPaid()) {
-        throw new Exception('Pod is unpaid');
-    }
+    $pod = new \models\addon\resourceTypes\Pod($service->package);
+    $pod->load(html_entity_decode(urldecode($postFields->params->pod), ENT_QUOTES));
 
-    if (!$item->service_id) {
-        throw new Exception('User has no active KuberDock product');
-    }
+    $results = $service->package->getBilling()->processApiOrder($pod, $service, \models\addon\ItemInvoice::TYPE_EDIT);
 
-    $service = \KuberDock_Hosting::model()->loadById($item->service_id);
-    if ($service == false) {
-        throw new Exception('Service not found');
-    }
-
-    $kdPod = new \KuberDock_Pod($service);
-    $kdPod->loadById($pod['id']);
-
-    $invoice = $kdPod->editKubes($pod, $user);
-
-    $results = array(
-        'status' => $invoice->status,
-        'invoice_id' => $invoice->id,
-    );
-
-    if ($invoice->isPayed()) {
-        $service->getAdminApi()->applyEdit($pod['id'], $pod['status']);
-    } else {
-        $results['redirect'] = \base\CL_Tools::generateAutoAuthLink('viewinvoice.php?id=' . $invoice->id, $user->email);
-    }
-
-    $apiresults = array('result' => 'success', 'results' => $results);
+    $apiresults = ['result' => 'success', 'results' => $results];
 } catch (Exception $e) {
-    $apiresults = array('result' => 'error', 'message' => $e->getMessage());
+    $apiresults = ['result' => 'error', 'message' => $e->getMessage()];
 }

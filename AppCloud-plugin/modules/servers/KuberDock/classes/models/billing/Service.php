@@ -6,11 +6,15 @@ namespace models\billing;
 
 use api\KuberDock_Api;
 use components\BillingApi;
-use components\Pod;
 use models\Model;
 
 class Service extends Model
 {
+    /**
+     * Is after module create
+     * @var bool
+     */
+    public $moduleCreate = false;
     /**
      * @var string
      */
@@ -19,10 +23,6 @@ class Service extends Model
      * @var array
      */
     protected $dates = ['nextinvoicedate', 'nextduedate'];
-    /**
-     * @var Pod
-     */
-    protected $pod;
 
     /**
      *
@@ -30,8 +30,6 @@ class Service extends Model
     protected function bootIfNotBooted()
     {
         parent::bootIfNotBooted();
-
-        $this->pod = new Pod($this);
     }
 
     /**
@@ -40,6 +38,14 @@ class Service extends Model
     public function package()
     {
         return $this->belongsTo('models\billing\Package', 'packageid');
+    }
+
+    /**
+     * @return Client
+     */
+    public function client()
+    {
+        return $this->belongsTo('models\billing\Client', 'userid');
     }
 
     /**
@@ -59,11 +65,22 @@ class Service extends Model
     }
 
     /**
-     * @return Pod
+     * @return InvoiceItem
      */
-    public function getPod()
+    public function invoiceItem()
     {
-        return $this->pod;
+        return $this->hasMany('models\billing\InvoiceItem', 'relid')->where('type', 'Hosting');
+    }
+
+    /**
+     * @param $query
+     * @return mixed
+     */
+    public function scopeTypeKuberDock($query)
+    {
+        return $query->whereHas('package', function ($query) {
+            $query->where('servertype', KUBERDOCK_MODULE_NAME);
+        });
     }
 
     /**

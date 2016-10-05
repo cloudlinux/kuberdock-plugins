@@ -2,87 +2,57 @@
 
 namespace controllers;
 
-use base\CL_Controller;
 use base\CL_Base;
+use components\Assets;
+use components\BillingApi;
+use components\Controller;
+use components\Tools;
 use Exception;
-use \exceptions\CException;
+use exceptions\CException;
+use models\addon\App;
+use models\addon\PackageRelation;
 
 
-class KuberDock_OrderController extends CL_Controller {
+class OrderController extends Controller {
+    /**
+     * @var string
+     */
     public $action = 'orderApp';
     /**
      * @var string
      */
     public $layout = 'addon';
+    /**
+     * @var object
+     */
+    protected $billingClientArea;
 
+    /**
+     *
+     */
     public function init()
     {
-        $this->assets = new \KuberDock_Assets();
-        $this->clientArea = CL_Base::model()->getClientArea();
+        $this->assets = new Assets();
     }
 
+    /**
+     * Add predefined app to cart and redirect
+     */
     public function toCartAction()
     {
-        $sessionId = CL_Base::model()->getParam('sessionId');
-        $data = \KuberDock_Addon_PredefinedApp::model()->loadByAttributes(array(
-            'session_id' => $sessionId,
-        ));
+        $id = Tools::model()->getParam('id');
 
         try {
-            if (!$data) {
-                throw new CException('App not found.');
+            $app = App::find($id);
+
+            if (!$app) {
+                throw new CException('App not found');
             }
 
-            $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadByParams(current($data));
-            $product = \KuberDock_Product::model()->loadById($predefinedApp->product_id);
-
-            if (!$product) {
-                throw new CException('App product not found.');
-            }
-            $predefinedApp->session_id = \base\CL_Base::model()->getSession();
-            $predefinedApp->save();
-            $product->addToCart();
+            $app->addToSession();
+            BillingApi::model()->addProductToCart($app->product_id);
             header('Location: cart.php?a=view');
-        } catch(Exception $e) {
-            CException::log($e);
-            CException::displayError($e);
-        }
-    }
-
-    public function orderAppAction()
-    {
-        $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
-        $kdProductId = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_PRODUCT_ID_FIELD);
-        $yaml = html_entity_decode(urldecode(CL_Base::model()->getParam($predefinedApp::KUBERDOCK_YAML_FIELD)), ENT_QUOTES);
-        $referer = CL_Base::model()->getParam($predefinedApp::KUBERDOCK_REFERER_FIELD);
-        $parsedYaml = \base\CL_Tools::parseYaml($yaml);
-
-        try {
-            if(isset($parsedYaml['kuberdock']['packageID'])) {
-                $kdProductId = $parsedYaml['kuberdock']['packageID'];
-            }
-
-            $kdProduct = \KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $referer);
-            $product = \KuberDock_Product::model()->loadById($kdProduct->product_id);
-
-            $predefinedApp = $predefinedApp->loadBySessionId();
-            if(!$predefinedApp) {
-                $predefinedApp = new \KuberDock_Addon_PredefinedApp();
-            }
-
-            $predefinedApp->setAttributes(array(
-                'session_id' => \base\CL_Base::model()->getSession(),
-                'kuber_product_id' => $kdProductId,
-                'product_id' => $product->id,
-                'data' => $yaml,
-                'referer' => $referer,
-            ));
-
-            $predefinedApp->save();
-            $product->addToCart();
-            header('Location: cart.php?a=view');
-        } catch(Exception $e) {
-            // product not found
+        } catch (Exception $e) {
             CException::log($e);
             CException::displayError($e);
         }
@@ -151,5 +121,13 @@ class KuberDock_OrderController extends CL_Controller {
         } catch(Exception $e) {
             echo $e->getMessage();
         }
+    }
+
+    /**
+     * @param object $clientArea
+     */
+    public function setBillingClientArea($clientArea)
+    {
+        $this->billingClientArea = $clientArea;
     }
 }

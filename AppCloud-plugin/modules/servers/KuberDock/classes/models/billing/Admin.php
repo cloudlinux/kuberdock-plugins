@@ -26,7 +26,7 @@ class Admin extends Model
      * @return self
      * @throws \Exception
      */
-    public function getDefault()
+    public static function getDefault()
     {
         $data = self::where('roleid', self::FULL_ADMINISTRATOR_ROLE_ID)->where('disabled', 0)->first();
 

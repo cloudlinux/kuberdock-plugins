@@ -4,15 +4,13 @@
 namespace models\addon;
 
 
-use base\models\CL_BillableItems;
-use components\KuberDock_InvoiceItem;
-use components\Pod;
+use components\InvoiceItem;
 use exceptions\CException;
+use exceptions\NotFoundException;
+use models\addon\resourceTypes\Pod;
 use models\billing\BillableItem;
 use models\billing\Invoice;
 use models\Model;
-use KuberDock_Pod;
-use KuberDock_Hosting;
 
 class Resources extends Model
 {
@@ -58,14 +56,29 @@ class Resources extends Model
     /**
      * @var array
      */
-    protected $fillable = array('user_id', 'billable_item_id', 'name', 'type', 'status');
+    protected $fillable = ['user_id', 'billable_item_id', 'name', 'type', 'status'];
 
     /**
-     *
+     * @param Pod $pod
+     * @param Item $item
      */
-    protected static function boot()
+    public static function add(Pod $pod, Item $item)
     {
-        parent::boot();
+        $resource = new static();
+        $resource->addPD($pod, $item);
+        $resource->addIP($pod, $item);
+    }
+
+    /**
+     * @return array
+     */
+    public static function getTypes()
+    {
+        return [
+            self::TYPE_IP,
+            self::TYPE_PD,
+            self::TYPE_POD,
+        ];
     }
 
     /**
@@ -78,154 +91,127 @@ class Resources extends Model
 
     /**
      * @param $query
-     * @param $name
      * @param $userId
      * @return mixed
      */
-    public function scopeByName($query, $name, $userId)
+    public function scopeNotDeleted($query, $userId)
     {
-        return $query->where('user_id', $userId)->where('name', $name)->where('status', '!=', self::STATUS_DELETED);
+        return $query->where('user_id', $userId)->where('status', '!=', self::STATUS_DELETED);
     }
 
     /**
-     * @param string $podId
+     * @param $query
+     * @return mixed
      */
-    public static function add($podId)
+    public function scopeTypePd($query)
     {
-        $item = Items::paid()->where('pod_id', $podId)->orderBy('id', 'desc')->first();
-        $pod = $item->service->getPod()->load($podId);
-
-        self::addPD($pod, $item->service->userid);
-        self::addIP($pod, $item->service->userid);
+        return $query->where('type', self::TYPE_PD);
     }
 
     /**
-     * @param KuberDock_InvoiceItem $item
+     * @param $query
+     * @return mixed
      */
-    public function divide(KuberDock_InvoiceItem $item)
+    public function scopeTypeIp($query)
     {
-        $billableItem = BillableItem::find($this->billable_item_id);
+        return $query->where('type', self::TYPE_IP);
+    }
+
+    /**
+     * @param InvoiceItem $item
+     */
+    public function divide(InvoiceItem $item)
+    {
+        $addonItem = $this->resourcePods()->first()->item;
+        $billableItem = $addonItem->billableItem;
+
+        $billableItem->amount -= $item->getTotal();
+        $billableItem->save();
+
+        if ($this->type == self::TYPE_IP) {
+            $item->setName('#' . $this->name);
+        }
 
         // Separate billable item
         $newBillableItem = $billableItem->replicate();
-        $newBillableItem->description = sprintf('%s - %s', $item->getType(), $item->getName());
+        $newBillableItem->description = $item->getDescription();
         $newBillableItem->amount = $item->getTotal();
         $newBillableItem->invoicecount = 0;
         $newBillableItem->save();
 
         // Separate addon item
-        // Update method updates all records
-        // TODO: refactor to one to many
-        $newAddonItem = $billableItem->addonItem()->orderBy('id', 'desc')->first()->replicate();
+        $newAddonItem = $addonItem->replicate();
         $newAddonItem->pod_id = null;
         $newAddonItem->billable_item_id = $newBillableItem->id;
-        $newAddonItem->invoice_id = 0;
-        $newAddonItem->status = Invoice::STATUS_PAID;
         $newAddonItem->type = $this->type;
         $newAddonItem->save();
 
+        $this->resourcePods()->save(ResourcePods::firstOrNew([
+            'resource_id' => $this->id,
+            'item_id' => $newAddonItem->id,
+        ]));
+
         // Change resource status
-        $this->update(array(
+        $this->update([
             'status' => self::STATUS_DIVIDED,
-            'billable_item_id' => $newBillableItem->id,
-        ));
-
-        // Reduce item amount for current item
-        $billableItem->amount = $item->getTotal();
-        $billableItem->save();
+        ]);
     }
 
     /**
-     * @param string $podId
-     * @return int|null
+     * @param Item $item
+     * @return ItemInvoice[]
      */
-    public function getUnpaidInvoices($podId)
+    public function getUnpaidItemInvoices(Item $item)
     {
-        $db = Items::resolveConnection();
-
-        $items = $db->table('KuberDock_items')
-            ->select('KuberDock_items.*', $db->raw('NULL AS resource_pod_id'))
-            ->where('status', Invoice::STATUS_UNPAID)
-            ->where('pod_id', $podId)
-            ->where('user_id', $this->user_id);
-
-        $resourceItems = $db->table('KuberDock_items')
-            ->select('KuberDock_items.*', 'KuberDock_resource_pods.pod_id AS resource_pod_id')
-            ->join('KuberDock_resources', 'KuberDock_items.billable_item_id', '=', 'KuberDock_resources.billable_item_id')
-            ->join('KuberDock_resource_pods', 'KuberDock_resource_pods.resource_id', '=', 'KuberDock_resources.id')
-            ->where('KuberDock_resource_pods.pod_id', $podId)
-            ->where('KuberDock_items.user_id', $this->user_id)
-            ->where('KuberDock_items.status', Invoice::STATUS_UNPAID);
-
-        $data = $resourceItems->union($items)->get();
-
-        foreach ($data as $row) {
-            return $row->invoice_id;
-        }
-
-        return null;
+        return ItemInvoice::select('KuberDock_item_invoices')
+            ->join('KuberDock_resource_pods', 'KuberDock_resource_pods.item_id', '=', 'KuberDock_item_invoices.item_id')
+            ->where('KuberDock_item_invoices.status', Invoice::STATUS_UNPAID)
+            ->groupBy('KuberDock_item_invoices.invoice_id')->get();
     }
 
     /**
-     * @param Items $item
+     * @param Item $item
      */
-    public function freePD($item)
+    public function freePD(Item $item)
     {
-        $pdName = $this->getNameFromDescription($item->billableItem->description);
         $pd = $item->service->getApi()->getPD();
 
         foreach ($pd->getData() as $v) {
-            if ($v['name'] == $pdName) {
+            if ($v['name'] == $this->name) {
                 try {
                     $item->service->getApi()->deletePD($v['id']);
-                    $model = Resources::byName($pdName, $item->service->userid);
-                    if ($model) {
-                        $model->status = self::STATUS_DELETED;
-                        $model->save();
-                    }
+                    $this->update([
+                        'status' => self::STATUS_DELETED,
+                    ]);
                 } catch (\Exception $e) {
                     \exceptions\CException::log($e);
                 }
             }
         }
+
+        $this->update([
+            'status' => self::STATUS_DELETED,
+        ]);
     }
 
     /**
-     * @param Items $item
+     * @param Item $item
      */
-    public function freeIP($item)
+    public function freeIP(Item $item)
     {
-        $ip = $this->getNameFromDescription($item->billableItem->description);
+        $resourcePods = $this->resourcePods()->whereNotNull('pod_id')->groupBy('pod_id')->get();
 
-        try {
-            foreach ($this->resourcePods as $resourcePod) {
-                try {
-                    $item->service->getApi()->stopPod($resourcePod->pod_id);
-                } catch (\Exception $e) {
-                    // pass
-                }
+        foreach ($resourcePods as $resourcePod) {
+            try {
                 $item->service->getApi()->unbindIP($resourcePod->pod_id);
-                $model = Resources::byName($ip, $item->service->userid);
-                if ($model) {
-                    $model->status = self::STATUS_DELETED;
-                    $model->save();
-                }
+            } catch (NotFoundException $e) {
+                continue;
             }
-        } catch (\Exception $e) {
-            CException::log($e);
         }
-    }
 
-    /**
-     * @return array
-     */
-    public function getTypes()
-    {
-        return array(
-            self::TYPE_IP,
-            self::TYPE_PD,
-            self::TYPE_POD,
-        );
+        $this->update([
+            'status' => self::STATUS_DELETED,
+        ]);
     }
 
     /**
@@ -246,70 +232,49 @@ class Resources extends Model
 
     /**
      * @param Pod $pod
-     * @param $userId
+     * @param Item $item
      */
-    private function addPD(Pod $pod, $userId)
+    private function addPD(Pod $pod, Item $item)
     {
         foreach ($pod->getPersistentDisk() as $pd) {
-            $model = Resources::byName($pd['pdName'], $userId)->first();
-            if (!$model) {
-                $item = Items::withPod($pod->id);
-                $model = Resources::create(array(
-                    'user_id' => $userId,
-                    'name' => $pd['pdName'],
-                    'type' => self::TYPE_PD,
-                    'billable_item_id' => $item->billable_item_id,
-                ));
-            }
-
-            $resourcePods = ResourcePods::firstOrNew(array(
-                'pod_id' => $pod->id,
-                'resource_id' => $model->id,
-            ));
-            $model->resourcePods()->save($resourcePods);
+            $this->addResource($pd['pdName'], $pod, $item, self::TYPE_PD);
         }
     }
 
     /**
      * @param Pod $pod
-     * @param $userId
+     * @param Item $item
      */
-    private function addIP(Pod $pod, $userId)
+    private function addIP(Pod $pod, Item $item)
     {
-        $publicIP = $pod->getPublicIP();
+        $ipPoolData = $pod->getService()->getApi()->getIpPoolStat()->getData();
 
-        if (!$publicIP) {
+        if (!$ipPoolData) {
             return;
         }
 
-        $model = Resources::byName($publicIP, $userId)->first();
-        if (!$model) {
-            $item = Items::withPod($pod->id);
-            $model = Resources::create(array(
-                'user_id' => $userId,
-                'name' => $publicIP,
-                'type' => self::TYPE_IP,
-                'billable_item_id' => $item->billable_item_id,
-            ));
-        }
-
-        $resourcePods = ResourcePods::firstOrNew(array(
-            'pod_id' => $pod->id,
-            'resource_id' => $model->id,
-        ));
-        $model->resourcePods()->save($resourcePods);
+        $this->addResource(count($ipPoolData), $pod, $item, self::TYPE_IP);
     }
 
     /**
-     * @param string $description
-     * @return null
+     * @param string $name
+     * @param Pod $pod
+     * @param Item $item
+     * @param $type
      */
-    private function getNameFromDescription($description)
+    private function addResource($name, Pod $pod, Item $item, $type)
     {
-        if (preg_match('/.* - (.*)/', $description, $match)) {
-            return $match[1];
-        }
+        $resource = Resources::firstOrCreate([
+            'user_id' => $pod->getService()->userid,
+            'name' => $name,
+            'type' => $type,
+        ]);
 
-        return null;
+        $resourcePods = ResourcePods::firstOrNew(array(
+            'pod_id' => $pod->id,
+            'resource_id' => $resource->id,
+            'item_id' => $item->id,
+        ));
+        $resource->resourcePods()->save($resourcePods);
     }
 }

@@ -8,6 +8,10 @@ namespace components;
 
 class Units {
     /**
+     * Package: public IP
+     */
+    const IP = 'IP';
+    /**
      * Package: persistent storage
      */
     const PS = 'GB';
@@ -27,6 +31,14 @@ class Units {
      * Kube & Package: Traffic
      */
     const TRAFFIC = 'GB';
+
+    /**
+     * @return string
+     */
+    static public function getIPUnits()
+    {
+        return self::PS;
+    }
 
     /**
      * @return string

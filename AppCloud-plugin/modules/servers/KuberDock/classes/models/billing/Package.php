@@ -4,8 +4,15 @@
 namespace models\billing;
 
 
+use components\InvoiceItem;
+use components\Tools;
 use components\Units;
 use exceptions\CException;
+use models\addon\KubePrice;
+use models\addon\Resources;
+use models\addon\billingTypes\BillingInterface;
+use models\addon\billingTypes\Fixed;
+use models\addon\billingTypes\Payg;
 use models\Model;
 
 class Package extends Model
@@ -24,7 +31,7 @@ class Package extends Model
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return Pricing
      */
     public function pricing()
     {
@@ -193,6 +200,16 @@ class Package extends Model
     }
 
     /**
+     * @return string
+     */
+    public function getReadablePaymentType()
+    {
+        $types = Package::getPaymentTypes();
+
+        return $types[$this->getPaymentType()];
+    }
+
+    /**
      * Enable API debug
      * @return bool
      */
@@ -202,17 +219,17 @@ class Package extends Model
     }
 
     /**
-     * @return bool
+     * @return float
      */
     public function getPriceIP()
     {
-        return (bool) $this->getConfigOption('priceIP');
+        return (float) $this->getConfigOption('priceIP');
     }
 
     /**
      * @return float
      */
-    public function getPricePersistentStorage()
+    public function getPricePS()
     {
         return (float) $this->getConfigOption('pricePersistentStorage');
     }
@@ -267,6 +284,30 @@ class Package extends Model
     public function getSendTrialExpire()
     {
         return (float) $this->getConfigOption('sendTrialExpire');
+    }
+
+    /**
+     * @return array
+     */
+    public function getKubes()
+    {
+        return KubePrice::with('template')->where('product_id', $this->id)
+            ->get()->keyBy('template.kuber_kube_id')->toArray();
+    }
+
+    /**
+     * @return BillingInterface
+     * @throws CException
+     */
+    public function getBilling()
+    {
+        if ($this->isBillingFixed()) {
+            return new Fixed();
+        } else if ($this->isBillingPayg()) {
+            return new Payg();
+        }
+
+        throw new CException('Unknown billing type');
     }
 
     /**
@@ -337,12 +378,48 @@ class Package extends Model
         return $packages;
     }
 
+
+    /**
+     * @param float $price
+     * @param string $description
+     * @param string|null $units
+     * @param int $qty
+     * @param string $type
+     * @return InvoiceItem
+     */
+    public function createInvoiceItem($price, $description, $units = null, $qty = 1, $type = Resources::TYPE_POD)
+    {
+        $invoice = InvoiceItem::create($price, $description, $units, $qty, $type);
+
+        if ($this->taxable) {
+            $invoice->setTaxed(true);
+        }
+
+        return $invoice;
+    }
+
     /**
      * @return bool
      */
     public function isKuberDock()
     {
         return $this->servertype == KUBERDOCK_MODULE_NAME;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isBillingFixed()
+    {
+        return $this->getBillingType() == 'Fixed price';
+    }
+
+    /**
+     * @return bool
+     */
+    public function isBillingPayg()
+    {
+        return $this->getBillingType() == 'PAYG';
     }
 
     /**

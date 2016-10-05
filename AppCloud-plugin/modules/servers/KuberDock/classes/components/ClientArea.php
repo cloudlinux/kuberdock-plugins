@@ -6,44 +6,57 @@ use base\CL_Tools;
 use base\models\CL_Currency;
 use KuberDock_Product;
 use KuberDock_Hosting;
+use models\addon\App;
+use models\addon\KubePrice;
+use models\billing\Client;
+use models\billing\Package;
+use models\billing\Service;
 
-class ClientArea extends \base\CL_Component
+class ClientArea extends Component 
 {
-    /* @var CL_Currency */
+    /**
+     * @var array
+     */
+    private $smartyValues;
+    /**
+     * @var \models\billing\Currency
+     */
     private $currency;
-    private $values;
     private $products = null;
+    
+    public function __construct()
+    {
+        $client = new Client();
+        $this->currency = $client->getSessionCurrency();
+    }
 
-    public function prepare()
+    public function redraw()
     {
         global $smarty;
 
-        $this->values = $smarty->get_template_vars();
-        $this->currency = CL_Currency::model()->getDefaultCurrency();
+        $this->smartyValues = $smarty->get_template_vars();
 
         // Client area homepage
-        if (!isset($this->values['products']) && in_array($this->values['filename'], array('clientarea'))) {
+        if (!isset($this->smartyValues['products']) && in_array($this->smartyValues['filename'], array('clientarea'))) {
             $this->prepareHomepage();
         }
 
         // Client cart area
-        if (in_array($this->values['filename'], array('cart'))) {
+        if (in_array($this->smartyValues['filename'], array('cart'))) {
             $this->prepareCartDetails();
             $this->prepareCart();
 
-            if ($this->values['cartitemcount'] == 0) {
+            if ($this->smartyValues['cartitemcount'] == 0) {
                 $this->clearPA();
             }
         }
 
         // Upgrade area
-        if (in_array($this->values['filename'], array('upgrade'))) {
+        if (in_array($this->smartyValues['filename'], array('upgrade'))) {
             $this->prepareUpgrade();
         }
 
-        $smarty->assign($this->values);
-
-        return $this->values;
+        $smarty->assign($this->smartyValues);
     }
 
     public function prepareHomepage()
@@ -52,8 +65,8 @@ class ClientArea extends \base\CL_Component
         $services = CL_Tools::getKeyAsField(KuberDock_Hosting::model()->getByUserStatus());
 
         // Service list
-        if (isset($this->values['services'])) {
-            foreach ($this->values['services'] as $k=>$service) {
+        if (isset($this->smartyValues['services'])) {
+            foreach ($this->smartyValues['services'] as $k=>$service) {
                 if ($service['module'] != KUBERDOCK_MODULE_NAME) {
                     continue;
                 }
@@ -62,31 +75,31 @@ class ClientArea extends \base\CL_Component
                 $product = KuberDock_Product::model()->loadByParams($products[$productId]);
                 $serviceModel = KuberDock_Hosting::model()->loadByParams($service);
 
-                $this->values['services'][$k]['billingcycle'] = $product->getReadablePaymentType();
-                $this->values['services'][$k]['nextduedate'] = CL_Tools::getFormattedDate(new \DateTime());
+                $this->smartyValues['services'][$k]['billingcycle'] = $product->getReadablePaymentType();
+                $this->smartyValues['services'][$k]['nextduedate'] = CL_Tools::getFormattedDate(new \DateTime());
 
                 $enableTrial = $product->getConfigOption('enableTrial');
                 $trialTime = $product->getConfigOption('trialTime');
                 $regDate = \DateTime::createFromFormat(CL_Tools::getDateFormat(), $serviceModel->regdate);
 
                 if ($enableTrial && $serviceModel->isTrialExpired($regDate, $trialTime)) {
-                    $this->values['services'][$k]['statustext'] = 'Expired';
+                    $this->smartyValues['services'][$k]['statustext'] = 'Expired';
                 }
             }
-        } elseif (isset($products[$this->values['pid']])) {
-            $product = KuberDock_Product::model()->loadByParams($products[$this->values['pid']]);
+        } elseif (isset($products[$this->smartyValues['pid']])) {
+            $product = KuberDock_Product::model()->loadByParams($products[$this->smartyValues['pid']]);
 
             $enableTrial = $product->getConfigOption('enableTrial');
             $trialTime = $product->getConfigOption('trialTime');
-            $regDate = \DateTime::createFromFormat(CL_Tools::getDateFormat(), $this->values['regdate']);
+            $regDate = \DateTime::createFromFormat(CL_Tools::getDateFormat(), $this->smartyValues['regdate']);
 
             if ($enableTrial && KuberDock_Hosting::model()->isTrialExpired($regDate, $trialTime)) {
-                $this->values['status'] = 'Expired';
+                $this->smartyValues['status'] = 'Expired';
             }
 
-            $this->values['firstpaymentamount'] = $this->currency->getFullPrice($product->getConfigOption('firstDeposit'));
-            $this->values['billingcycle'] = $product->getReadablePaymentType();
-            $this->values['nextduedate'] = CL_Tools::getFormattedDate(new \DateTime());
+            $this->smartyValues['firstpaymentamount'] = $this->currency->getFullPrice($product->getConfigOption('firstDeposit'));
+            $this->smartyValues['billingcycle'] = $product->getReadablePaymentType();
+            $this->smartyValues['nextduedate'] = CL_Tools::getFormattedDate(new \DateTime());
         }
     }
 
@@ -97,60 +110,59 @@ class ClientArea extends \base\CL_Component
      */
     private function prepareCart()
     {
-        if (!isset($this->values['products'])) {
+        if (!isset($this->smartyValues['products'])) {
             return;
         }
 
-        $products = $this->getProducts();
-
-        foreach ($this->values['products'] as $k => &$product) {
-            if (!isset($products[$product['pid']])) {
+        foreach ($this->smartyValues['products'] as $k => &$product) {
+            $package = Package::find($product['pid']);
+            
+            if (!$package->isKuberDock()) {
                 continue;
             }
 
-            $p = KuberDock_Product::model()->loadById($product['pid']);
-            if (!$p->isKuberProduct()) {
-                continue;
-            }
+            $product['features'] = $this->getProductDescription($package);
+            $pricing = $package->pricing()->withCurrency($this->currency->id)->first()->getReadable();
+            $service = $this->getUserService();
 
-            $product['features'] = $p->getDescription();
-            $pricing = $p->getPricing();
-            $usersProduct = $this->getUsersProduct();
+            $app = new App();
+            $app = $app->getFromSession();
 
-            if (($predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId()) && isset($product['pricingtext'])) {
-                $price = $this->currency->getFullPrice($predefinedApp->getTotalPrice(true));
+            if ($app && isset($product['pricingtext'])) {
+                $resource = $app->getResource();
+                $price = $this->currency->getFullPrice($resource->getPrice(true));
 
-                if ($usersProduct) {
-                    if ($product['pid'] != $usersProduct['packageid']) {
-                        $otherProduct = clone(KuberDock_Product::model());
-                        $userPackage = $otherProduct->loadById($usersProduct['packageid']);
-                        $msg = 'Yaml requires "' . $p->getName()
-                            . '" product. You have "' . $userPackage->getName()
+                if ($service) {
+                    if ($package->id != $service->packageid) {
+                        $msg = 'Yaml requires "' . $package->name
+                            . '" product. You have "' . $service->package->name
                             . '" product. Please upgrade the product.';
-                        $p->jsRedirect($predefinedApp->referer . '&error=' . urlencode($msg));
+                        Tools::model()->jsRedirect($app->referer . '&error=' . urlencode($msg));
                     }
                 } else {
                     if ($pricing['recurring'] > 0) {
                         $price = $this->currency->getFullPrice($pricing['recurring']) . ' + ' . $price;
                     }
-                    $product['billingcyclefriendly'] = $p->getReadablePaymentType();
+                    $product['billingcyclefriendly'] = $package->getReadablePaymentType();
                     if ($pricing['setup'] && $pricing['setup']!=-1) {
                         $product['pricing']['setupfeeonly'] = $this->currency->getFullPrice($pricing['setup']);
                     }
                 }
 
-                $product['pricingtext'] = $price . '/' . $p->getReadablePaymentType();
+                $product['pricingtext'] = $price . '/' . $package->getReadablePaymentType();
                 $product['pricing']['totaltodayexcltax'] = $price;
                 $product['pricing']['totalTodayExcludingTaxSetup'] = $price;
-                $product['productinfo']['groupname'] = 'Package ' . $predefinedApp->getAppPackageName();
-                $product['productinfo']['name'] = ucfirst($predefinedApp->getName());
+                $product['productinfo']['groupname'] = 'Package ' . $resource->getPackageName();
+                $product['productinfo']['name'] = ucfirst($resource->getName());
             }
 
-            if ($depositPrice = $p->getConfigOption('firstDeposit') && !$usersProduct) {
-                $product['pricing']['minprice']['price'] = ' First Deposit ' . $this->currency->getFullPrice($depositPrice);
+            if ($depositPrice = $package->getFirstDeposit() && !$service) {
+                $product['pricing']['minprice']['price'] =
+                    ' First Deposit ' . $this->currency->getFullPrice($depositPrice);
 
                 if (isset($product['pricingtext'])) {
-                    $product['pricingtext'] .= ' (  including first deposit: ' . $this->currency->getFullPrice($depositPrice) . ')';
+                    $product['pricingtext'] .=
+                        ' (  including first deposit: ' . $this->currency->getFullPrice($depositPrice) . ')';
                 }
             }
         }
@@ -159,41 +171,47 @@ class ClientArea extends \base\CL_Component
     // Client side - cart product details page
     public function prepareCartDetails()
     {
-        $products = $this->getProducts();
+        if (isset($this->smartyValues['productinfo'])) {
+            $package = Package::find($this->smartyValues['productinfo']['pid']);
 
-        if (isset($this->values['productinfo']) && isset($products[$this->values['productinfo']['pid']])) {
-            $product = KuberDock_Product::model()->loadById($this->values['productinfo']['pid']);
-            $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
-            $kubes = \KuberDock_Addon_Kube_Link::loadByProductId($this->values['productinfo']['pid']);
-            $customFields = array();
-
-            if ($predefinedApp) {
-                $pricing = $product->getPricing();
-                $price = $this->currency->getFullPrice($predefinedApp->getTotalPrice(true));
-                $this->values['productinfo']['name'] = ucfirst($predefinedApp->getName());
-                $this->values['productinfo']['description'] = 'Package ' . $predefinedApp->getAppPackageName();
-                $this->values['pricing'][$pricing['cycle']] .= sprintf(' + %s %s',$price, $this->values['productinfo']['name']);
-                $customFields[] = array(
-                    'input' => '',
-                    'name' => $this->values['productinfo']['name'] . ' Price',
-                    'description' => $price . ' / ' . $product->getReadablePaymentType(),
-                );
+            if (!$package->isKuberDock()) {
+                return;
             }
 
-            if ((float) $product->getConfigOption('priceIP')) {
+            $app = new App();
+            $app = $app->getFromSession();
+            $kubes = $package->getKubes();
+            $customFields = [];
+
+            if ($app) {
+                $resource = $app->getResource();
+                $pricing = $package->pricing()->withCurrency($this->currency->id)->first()->getReadable();
+                $price = $this->currency->getFullPrice($app->getResource()->getPrice());
+                $this->smartyValues['productinfo']['name'] = ucfirst($resource->getName());
+                $this->smartyValues['productinfo']['description'] = 'Package ' . $resource->getPackageName();
+                $this->smartyValues['pricing'][$pricing['cycle']] .=
+                    sprintf(' + %s %s', $price, $this->smartyValues['productinfo']['name']);
+                $customFields[] = [
+                    'input' => '',
+                    'name' => $this->smartyValues['productinfo']['name'] . ' Price',
+                    'description' => $price . ' / ' . $package->getReadablePaymentType(),
+                ];
+            }
+
+            if ($package->getPriceIP()) {
                 $customFields[] = array(
                     'input' => '',
                     'name' => 'Public IP',
-                    'description' => $this->currency->getFullPrice($product->getConfigOption('priceIP'))
-                        . ' / ' . $product->getReadablePaymentType(),
+                    'description' => $this->currency->getFullPrice($package->getPriceIP())
+                        . ' / ' . $package->getReadablePaymentType(),
                 );
             }
 
-            if ((float) $product->getConfigOption('pricePersistentStorage')) {
+            if ($package->getPricePS()) {
                 $customFields[] = array(
                     'input' => '',
                     'name' => 'Persistent Storage',
-                    'description' => $this->currency->getFullPrice($product->getConfigOption('pricePersistentStorage'))
+                    'description' => $this->currency->getFullPrice($package->getPricePS())
                         . ' / 1 ' . Units::getHDDUnits(),
                 );
             }
@@ -207,34 +225,34 @@ class ClientArea extends \base\CL_Component
                         . ' / 1 ' . Units::getTrafficUnits(),
                 );
             }*/
-            $this->values['customfields'] = array_merge($this->values['customfields'], $customFields);
+            $this->smartyValues['customfields'] = array_merge($this->smartyValues['customfields'], $customFields);
 
             $desc = 'Per Kube - %s, CPU - %s, Memory - %s %s, HDD - %s %s';
             //$desc = 'Per Kube - %s, CPU - %s, Memory - %s %s, HDD - %s %s, Traffic - %s %s'; // AC-3783
             $resources = false;
 
             foreach ($kubes as $kube) {
-                if ($predefinedApp) {
-                    $kubeType = $predefinedApp->getKubeType();
-                    if ($kubeType != $kube['kuber_kube_id']) {
+                if ($app) {
+                    $kubeType = $resource->getKubeType();
+                    if ($kubeType != $kube['template']['kuber_kube_id']) {
                         continue;
                     }
                     $resources = true;
                 }
-                $this->values['customfields'][] = array(
+                $this->smartyValues['customfields'][] = array(
                     'input' => '',
-                    'name' => $resources ? 'Additional Resources' : 'Kube ' . $kube['kube_name'],
-                    'description' => vsprintf($desc, array(
-                        $this->currency->getFullPrice($kube['kube_price']) .' / '. $product->getReadablePaymentType(),
-                        (float) $kube['cpu_limit'],
-                        $kube['memory_limit'],
+                    'name' => $resources ? 'Additional Resources' : 'Kube ' . $kube['template']['kube_name'],
+                    'description' => vsprintf($desc, [
+                        $this->currency->getFullPrice($kube['kube_price']) .' / '. $package->getReadablePaymentType(),
+                        (float) $kube['template']['cpu_limit'],
+                        $kube['template']['memory_limit'],
                         Units::getMemoryUnits(),
-                        $kube['hdd_limit'],
+                        $kube['template']['hdd_limit'],
                         Units::getHDDUnits(),
                         /* AC-3783
-                        $kube['traffic_limit'],
+                        $kube['template']['traffic_limit'],
                         Units::getTrafficUnits(),*/
-                    )),
+                    ]),
                 );
             }
         }
@@ -243,25 +261,25 @@ class ClientArea extends \base\CL_Component
     // Client side - product upgrade page
     public function prepareUpgrade()
     {
-        if (is_array($this->values['upgradepackages'])) {
-            $service = KuberDock_Hosting::model()->loadById($this->values['id']);
+        if (is_array($this->smartyValues['upgradepackages'])) {
+            $service = KuberDock_Hosting::model()->loadById($this->smartyValues['id']);
             $product = KuberDock_Product::model()->loadById($service->packageid);
             if ($product->isKuberProduct() && $product->getConfigOption('enableTrial')) {
                 $service->amount = 0;
                 $service->save();
             }
 
-            foreach ($this->values['upgradepackages'] as &$row) {
+            foreach ($this->smartyValues['upgradepackages'] as &$row) {
                 $product = KuberDock_Product::model()->loadById($row['pid']);
 
                 if (($firstDeposit = $product->getConfigOption('firstDeposit')) && $product->isKuberProduct()) {
-                    $this->values['LANG']['orderfree'] = $this->currency->getFullPrice($firstDeposit).' First Deposit';
+                    $this->smartyValues['LANG']['orderfree'] = $this->currency->getFullPrice($firstDeposit).' First Deposit';
                     $row['pricing']['onetime'] = $this->currency->getFullPrice($firstDeposit).' First Deposit';
                     $row['pricing']['minprice']['price'] = $this->currency->getFullPrice($firstDeposit);
                 }
             }
-        } elseif (is_array($this->values['upgrades'])) {
-            $upgrade = current($this->values['upgrades']);
+        } elseif (is_array($this->smartyValues['upgrades'])) {
+            $upgrade = current($this->smartyValues['upgrades']);
             $model = new KuberDock_Product();
             $oldProduct = $model->loadById($upgrade['oldproductid']);
             $model = new KuberDock_Product();
@@ -272,9 +290,9 @@ class ClientArea extends \base\CL_Component
             }
 
             if ($oldProduct->isKuberProduct() && ($firstDeposit = $newProduct->getConfigOption('firstDeposit'))) {
-                $this->values['subtotal'] = $this->values['total'] = $this->currency->getFullPrice($firstDeposit);
-                if (isset($this->values['upgrades'][0])) {
-                    $this->values['upgrades'][0]['price'] = $this->currency->getFullPrice($firstDeposit);
+                $this->smartyValues['subtotal'] = $this->smartyValues['total'] = $this->currency->getFullPrice($firstDeposit);
+                if (isset($this->smartyValues['upgrades'][0])) {
+                    $this->smartyValues['upgrades'][0]['price'] = $this->currency->getFullPrice($firstDeposit);
                 }
             }
         }
@@ -283,55 +301,49 @@ class ClientArea extends \base\CL_Component
     /**
      * Adds Deposit value to setup fee if needed
      *
-     * @param $params
-     * @return array|null
+     * @param int $productId
+     * @return array
      * @throws \Exception
      */
-    public function pricingOverride($params)
+    public function productPricingOverride($productId)
     {
-        global $smarty;
+        $package = Package::find($productId);
 
-        $this->values = $smarty->get_template_vars();
-
-        $pid = $params['pid'];
-        $product = \KuberDock_Product::model()->loadById($pid);
-
-        if (!$product->isKuberProduct()) {
-            return null;
+        if (!$package->isKuberDock()) {
+            return [];
         }
 
-        $pricing = $product->getPricing();
+        $pricing = $package->pricing()->withCurrency($this->currency->id)->first()->getReadable();
+
         $setupFee = ($pricing['setup'] > 0)
             ? $pricing['setup']
             : 0;
 
         $recurring = 0;
-        $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+        $app = new App();
+        $app = $app->getFromSession();
 
-        if ($predefinedApp && !$predefinedApp->getPod()) {
-            if ($this->getUsersProduct()) {
-                return array(
-                    'setup' => '0.0',
-                    'recurring' => $product->isFixedPrice()
-                        ? $predefinedApp->getTotalPrice(true)
-                        : '0.0',
-                );
+        if ($app) {
+            // User already has KD service
+            if ($this->getUserService()) {
+                return [
+                    'setup' => 0,
+                    'recurring' => $app->getResource()->getPrice(),
+                ];
             }
 
             // Price for yaml PA
-            if ($product->isFixedPrice()) {
-                $recurring = $predefinedApp->getTotalPrice(true);
-            }
+            $recurring = $app->getResource()->getPrice();
         }
 
         $recurring = ($pricing['recurring'] > 0)
             ? $pricing['recurring'] + $recurring
             : $recurring;
 
-        return array(
-            'setup' => $product->getFirstDeposit() + $setupFee,
+        return [
+            'setup' => $package->getFirstDeposit() + $setupFee,
             'recurring' => $recurring,
-        );
+        ];
     }
 
     /**
@@ -349,17 +361,74 @@ class ClientArea extends \base\CL_Component
     }
 
     /**
-     * Returns user's product, if there is no user, or user has no product - false
-     *
-     * @return array|bool
+     * @param Package $package
+     * @return array
      */
-    private function getUsersProduct()
+    private function getProductDescription(Package $package)
     {
-        if (!$this->values['loggedin']) {
-            return false;
+        $description = array();
+
+        if ($package->getEnableTrial()) {
+            $description['Free Trial'] = sprintf('<strong>%s days</strong><br/>', $package->getTrialTime());
         }
 
-        return current(\KuberDock_Hosting::model()->getByUser($this->values['clientsdetails']['id']));
+        if (0 != $priceIP = $package->getPriceIP()) {
+            $description['Public IP'] = $this->formatFeature($priceIP, $package->getPaymentType());
+        }
+
+        if (0 != $pricePS = (float) $package->getPricePS()) {
+            $description['Persistent Storage'] = $this->formatFeature($pricePS, '1 ' . Units::getHDDUnits());
+        }
+
+        /*AC-3783
+        if (0 != $priceOT = (float) $package->getConfigOption('priceOverTraffic')) {
+            $description['Additional Traffic'] = $package->formatFeature($priceOT, '1 ' . Units::getTrafficUnits());
+        }*/
+
+        foreach ($package->kubePrice as $kubePrice) {
+            if (!$kubePrice['kube_price']) {
+                continue;
+            }
+
+            $kube = $kubePrice->template;
+            $description['Kube ' . $kube['kube_name']] = vsprintf(
+                '<strong>%s / %s</strong><br/><em>CPU %s, Memory %s, <br/>Disk Usage %s</em>',
+                [
+                    $this->currency->getFullPrice($kube['kube_price']),
+                    $package->getPaymentType(),
+                    number_format($kube['cpu_limit'], 2) . ' ' . Units::getCPUUnits(),
+                    $kube['memory_limit'] . ' ' . Units::getMemoryUnits(),
+                    $kube['hdd_limit'] . ' ' . Units::getHDDUnits(),
+                    //$kube['traffic_limit'].' '.Units::getTrafficUnits() // AC-3783
+                ]
+            );
+        }
+
+        return $description;
+    }
+
+    /**
+     * @param float $value
+     * @param string $units
+     * @return string
+     */
+    private function formatFeature($value, $units)
+    {
+        return  sprintf('<strong>%s / %s</strong><br/>', $this->currency->getFullPrice($value), $units);
+    }
+
+    /**
+     * Return user's service
+     *
+     * @return Service|null
+     */
+    private function getUserService()
+    {
+        if (!$this->smartyValues['loggedin']) {
+            return null;
+        }
+
+        return Service::typeKuberDock()->where('userid', $this->smartyValues['clientsdetails']['id'])->first();
     }
 
     /**
@@ -367,6 +436,7 @@ class ClientArea extends \base\CL_Component
      */
     private function clearPA()
     {
-        \KuberDock_Addon_PredefinedApp::model()->clear();
+        $app = new App();
+        $app->deleteFromSession();
     }
 }

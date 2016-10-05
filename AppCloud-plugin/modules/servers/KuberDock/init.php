@@ -17,7 +17,7 @@ defined(USE_JWT_TOKENS) or define(USE_JWT_TOKENS, true);
 
 if(KUBERDOCK_DEBUG) {
     ini_set('display_errors', true);
-    error_reporting(E_ERROR);
+    error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
 } else {
     ini_set('display_errors', false);
     error_reporting(E_ERROR);

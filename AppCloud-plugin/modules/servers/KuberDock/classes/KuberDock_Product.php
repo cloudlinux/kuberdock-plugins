@@ -18,7 +18,7 @@ use components\KuberDock_InvoiceItem;
 use exceptions\CException;
 use exceptions\UserNotFoundException;
 use models\addon\Resources;
-use models\addon\Items;
+use models\addon\Item;
 
 /**
  * Class KuberDock_Product
@@ -200,7 +200,7 @@ class KuberDock_Product extends CL_Product {
         $api = $service->getAdminApi();
 
         try {
-            $api->getUser($service->username);
+            //$api->getUser($service->username);
             $api->unDeleteUser($service->username);
             $this->update($service->id, true);
         } catch(UserNotFoundException $e) {
@@ -520,7 +520,7 @@ class KuberDock_Product extends CL_Product {
      * @param KuberDock_Hosting $service
      * @param KuberDock_Addon_PredefinedApp $app
      * @param int $invoiceId
-     * @return \models\addon\Items
+     * @return \models\addon\Item
      * @throws Exception
      */
     public function addBillableApp(KuberDock_Hosting $service, KuberDock_Addon_PredefinedApp $app, $invoiceId = null)
@@ -543,7 +543,7 @@ class KuberDock_Product extends CL_Product {
 
         // TODO: create billable item even if price 0
         if ($totalPrice == 0) {
-            $item = new Items();
+            $item = new Item();
             $item->setRawAttributes(array(
                 'user_id' => $service->userid,
                 'service_id' => $service->id,

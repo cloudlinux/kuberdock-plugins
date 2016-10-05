@@ -49,6 +49,7 @@ class AddonController extends Controller {
 
         $paginator = $this->getLogsPaginator();
         $logs = KubePriceChange::offset($paginator->offset())->limit($paginator->limit())->get();
+        $package = new Package();
 
         $tabs = array(
             'kubes' => 'Kube types',
@@ -57,7 +58,7 @@ class AddonController extends Controller {
 
         $this->render('index', [
             'kubes' => KubeTemplate::with('KubePrice')->orderBy('kube_name')->get(),
-            'packages' => Package::getSortedActivePackages(),
+            'packages' => $package->getSortedActivePackages(),
             'brokenPackages' => array(),
             'logs' => $logs,
             'paginator' => $paginator,

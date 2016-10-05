@@ -22,8 +22,8 @@ try {
     $pod = json_decode(html_entity_decode(urldecode($pod), ENT_QUOTES), true);
     $user = KuberDock_User::model()->loadById($clientId);
 
-    $item = \models\addon\Items::where('pod_id', $pod['id'])->orderBy('id', 'desc')->first();
-    /* @var \models\addon\Items $item */
+    $item = \models\addon\Item::where('pod_id', $pod['id'])->orderBy('id', 'desc')->first();
+    /* @var \models\addon\Item $item */
 
     if (!$item) {
         $services = KuberDock_Hosting::model()->getByUser($clientId);
