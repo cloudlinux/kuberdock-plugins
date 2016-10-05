@@ -8,19 +8,15 @@ class YamlValidationException extends \Exception
 
     public function __construct(array $errors){
         if (isset($errors['customFields'])) {
-            $this->flattenCustomFields($errors['customFields']);
+            $this->errors[] = $errors['customFields'];
         }
 
-        if (isset($errors['appPackages'])) {
-            $this->flatten($errors['appPackages']);
-        }
+        $keys = array('appPackages', 'common', 'schema');
 
-        if (isset($errors['common'])) {
-            $this->flatten($errors['common']);
-        }
-
-        if (isset($errors['schema']['kuberdock'])) {
-            $this->flatten($errors['schema']['kuberdock']);
+        foreach ($keys as $key) {
+            if (isset($errors[$key])) {
+                $this->flatten($errors[$key]);
+            }
         }
 
         parent::__construct(implode('<br>', $this->errors), 0);
@@ -47,13 +43,6 @@ class YamlValidationException extends \Exception
             if ($value) {
                 $this->errors[] = $value;
             }
-        }
-    }
-
-    private function flattenCustomFields($fields)
-    {
-        foreach ($fields as $name => $field) {
-            $this->errors[] = $name . ': ' . $field['message'] . ' (line: ' . $field['line'] . ', column: ' .$field['column'] . ')';
         }
     }
 }
