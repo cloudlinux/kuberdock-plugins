@@ -487,9 +487,14 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
      * @param KuberDock_Product $product
      * @param KuberDock_Hosting $service
      * @param int $invoiceId
+     * @throws \exceptions\CException
      */
     private function orderFixed(KuberDock_Product $product, $service, $invoiceId = null)
     {
+        if ($this->getTotalPrice(true) == 0) {
+            throw new \exceptions\CException('You can\'t buy app with 0 price');
+        }
+
         // Trying to re-create module
         if ($service->domainstatus == KuberDock_User::STATUS_PENDING) {
             $service->createModule();
