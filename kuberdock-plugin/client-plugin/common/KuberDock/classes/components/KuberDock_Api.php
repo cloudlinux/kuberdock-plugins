@@ -3,7 +3,6 @@
 namespace Kuberdock\classes\components;
 
 use Kuberdock\classes\exceptions\YamlValidationException;
-use Kuberdock\classes\extensions\yaml\Spyc;
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\exceptions\CException;
 use Kuberdock\classes\exceptions\WithoutBillingException;
@@ -762,10 +761,6 @@ class KuberDock_Api {
             'template' => $template,
         ), 'POST');
 
-        // TODO: move it to KD
-        $yaml = Spyc::YAMLLoad($data['template']);
-        $yaml['kuberdock']['kuberdock_template_id'] = (int) $data['id'];
-        $template = Spyc::YAMLDump($yaml);
         $this->putTemplate($data['id'], $name, $template);
 
         return $data;
@@ -780,11 +775,6 @@ class KuberDock_Api {
      */
     public function putTemplate($id, $name, $template)
     {
-        // TODO: move it to KD
-        $yaml = Spyc::YAMLLoadString($template);
-        $yaml['kuberdock']['kuberdock_template_id'] = (int) $id;
-        $template = Spyc::YAMLDump($yaml);
-
         return $this->apiCall('/api/predefined-apps/' . $id, array(
             'name' => $name,
             'template' => $template,

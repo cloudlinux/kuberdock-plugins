@@ -233,8 +233,6 @@ sub createAppAction() {
             $app->executeSilent('/bin/rm -f ' . $app->getFilePath($app->{'_appId'} . '_48.png'));
         }
 
-        $yaml->{kuberdock}->{'kuberdock_template_id'} = $template->{id};
-
         $app->saveYaml('app.yaml', $yaml);
         KuberDock::KCLI::updateTemplate($template->{'id'}, $app->getFilePath('app.yaml'), $appName);
 
@@ -347,8 +345,6 @@ sub updateAppAction() {
         } elsif(-e $app->getFilePath($app->{'_appId'} . '_48.png')) {
             $app->executeSilent('/bin/rm -f ' . $app->getFilePath($app->{'_appId'} . '_48.png'));
         }
-
-        $yaml->{kuberdock}->{'kuberdock_template_id'} = $template->{id};
 
         $app->saveYaml('app.yaml', $yaml);
         my $template = KuberDock::KCLI::updateTemplate($app->{'_templateId'}, $app->getFilePath('app.yaml'), $appName);

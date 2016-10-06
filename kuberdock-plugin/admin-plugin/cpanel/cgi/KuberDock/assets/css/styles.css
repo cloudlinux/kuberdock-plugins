@@ -4,6 +4,7 @@ div#doctitle h1 span img {
 }
 .CodeMirror {
     border: 1px solid #ddd;
+    font-size: 12px;
 }
 
 #progress {

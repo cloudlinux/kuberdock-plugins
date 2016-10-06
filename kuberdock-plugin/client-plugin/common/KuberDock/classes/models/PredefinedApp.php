@@ -238,6 +238,9 @@ class PredefinedApp {
         // Create order with kuberdock product
         $pod = $this->pod->createProduct();
         $this->command = $pod->getCommand();
+
+        $this->template->data['kuberdock']['kuberdock_template_id'] = (int) $this->templateId;
+
         $fileManager = Base::model()->getStaticPanel()->getFileManager();
         $fileManager->putFileContent($this->getAppPath(), Spyc::YAMLDump($this->template->data));
 
@@ -247,7 +250,7 @@ class PredefinedApp {
             throw new CException(preg_replace('/^kube_type:\s/i', '', $e->getMessage())); // AC-3003
         }
 
-        $fileManager->putFileContent($this->getAppPath(), Spyc::YAMLDump($this->template->data));
+//        $fileManager->putFileContent($this->getAppPath(), Spyc::YAMLDump($this->template->data));
         $fileManager->putFileContent($this->getAppPath($this->template->getPodName()), Spyc::YAMLDump($this->template->data));
 
         $fileManager->chmod($this->getAppPath(), 0640);

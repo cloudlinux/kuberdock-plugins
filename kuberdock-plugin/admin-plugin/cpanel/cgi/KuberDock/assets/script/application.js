@@ -55,12 +55,13 @@ jQuery(function () {
                 var container = jQuery('#validationConfirm').modal('show').find('.modal-body');
                 container.html('');
 
-                flattenCustomFields(container, data.data.customFields);
+                if (typeof(data.data.customFields)!='undefined') {
+                    container.append(data.data.customFields);
+                }
+
                 flatten(container, data.data.appPackages);
                 flatten(container, data.data.common);
-                if (typeof(data.data.schema)!='undefined') {
-                    flatten(container, data.data.schema.kuberdock);
-                }
+                flatten(container, data.data.schema);
             } else {
                 jQuery('.check-yaml').data('submit', true).trigger('click');
             }
@@ -85,15 +86,5 @@ jQuery(function () {
                 container.append(value + '<br>');
             }
         }
-    };
-
-    var flattenCustomFields = function (container, fields) {
-        if (typeof(fields)=='undefined') {
-            return;
-        }
-
-        jQuery.each(fields, function(name, field){
-            container.append(name + ': ' + field.message + ' (line: ' + field.line + ', column: ' + field.column + ')<br>');
-        });
     };
 });
