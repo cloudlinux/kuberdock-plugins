@@ -1,7 +1,7 @@
 Version: 1.2
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 0%{?dist}.cloudlinux
+Release: 1%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -62,6 +62,21 @@ fi
 %{python_sitelib}/kd_common/*
 
 %changelog
+
+* Thu Oct 06 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-1
+- AC-4717 Plesk. postDescription doesn't change
+- Hosting panels. Validation error fixed. kuberdock_template_id moved to client side.
+- Hosting panels. Remove unused class
+- AC-4483 Hosting panels. Fix prices for app packages in KD
+- AC-4484 Hosting panels. Forbid switching packages if this pod was edited at least once.
+- AC-4366 cPanel part AC-4492 - change PA templates schema: rename domain -> baseDomain (hosting panels part)
+- AC-3070 Hosting panels. Ability to switch appPackage
+- Hosting panels. Define python_sitelib
+- AC-4277 Encoding in postDescription
+- Hosting panels. Changed kube type yaml section
+- AC-3838 Hosting panels. UI improvement in KuberDock plugin for cPanel and Plesk;
+- AC-4326 EBS is not being dysplayed in postDescription.
+- AC-4366 Hosting panels. Display appropriate prices/resources on the PA page in case of using domain
 
 * Tue Aug 30 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-0
 - AC-4353 DA. User side > User can't buy pod after payed invoice
