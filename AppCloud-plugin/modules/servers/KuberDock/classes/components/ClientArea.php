@@ -142,11 +142,11 @@ class ClientArea extends \base\CL_Component
                 $product['productinfo']['name'] = ucfirst($predefinedApp->getName());
             }
 
-            if ($depositPrice = $p->getConfigOption('firstDeposit') && !$usersProduct) {
-                $product['pricing']['minprice']['price'] = ' First Deposit ' . $this->currency->getFullPrice($depositPrice);
-
+            if ($p->getConfigOption('firstDeposit') && !$usersProduct) {
+                $fullPrice = $this->currency->getFullPrice($p->getConfigOption('firstDeposit'));
+                $product['pricing']['minprice']['price'] = ' First Deposit ' . $fullPrice;
                 if (isset($product['pricingtext'])) {
-                    $product['pricingtext'] .= ' (  including first deposit: ' . $this->currency->getFullPrice($depositPrice) . ')';
+                    $product['pricingtext'] .= ' (  including first deposit: ' . $fullPrice . ')';
                 }
             }
         }
