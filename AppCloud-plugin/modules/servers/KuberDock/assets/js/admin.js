@@ -43,13 +43,16 @@ $(document).ready(function() {
 
     var trialManage = function() {
         var trial = $('input[type=checkbox][name="packageconfigoption[1]"]'),
-            trialTr = trial.closest('tr');
+            settingsTable = trial.closest('table'),
+            trialFields = [2, 11, 12];
 
-        $.each(trialTr.siblings(), function(index, element) {
+        $.each(settingsTable.find('[name^="packageconfigoption"][type!="hidden"]'), function(index, element) {
+            if (index == 0) {
+                return;
+            }
             var isTrial = trial.prop('checked');
-            var trialRow = $.inArray(index, [4]) !== -1;
-            $(element).toggle(isTrial == trialRow);
-            trialTr.find('td:gt(1)').toggle(isTrial);
+            var isTrialRow = ($.inArray(index + 1, trialFields) !== -1);
+            $(element).closest('td').toggle(isTrial == isTrialRow).prev('td').toggle(isTrial == isTrialRow);
         });
     };
 
@@ -71,6 +74,15 @@ $(document).ready(function() {
         }
     };
 
+    var processKuberDock = $.ajax({
+        url: 'addonmodules.php?module=KuberDock',
+        data: {
+            a: 'isKuberProduct',
+            productId: $.url('?id')
+        },
+        dataType: 'json'
+    });
+
     $(document).on('change', 'input[type=checkbox][name="packageconfigoption[1]"]', function() {
         trialManage();
     });
@@ -79,20 +91,21 @@ $(document).ready(function() {
         billingTypeManage();
     });
 
-    if(window.location.href.indexOf('configproducts') >= 0) {
-        $.ajax({
-            url: 'addonmodules.php?module=KuberDock',
-            data: {
-                a: 'isKuberProduct',
-                productId: $.url('?id')
-            },
-            dataType: 'json'
-        }).done(function(data) {
-            if(!data.kuberdock) {
-                return false;
-            }
-            trialManage();
-            billingTypeManage();
+    if (window.location.href.indexOf('configproducts') >= 0) {
+        $(document).ajaxStop(function () {
+            $.when(processKuberDock).done(function (data) {
+                if (!data.kuberdock) {
+                    return false;
+                }
+
+                // Edit product, radio buttons position
+                $('td:contains("Billing type")').next('td').find('br').remove();
+                $('td:contains("Restricted users")').next('td').find('input[type=checkbox]').css('position', 'relative');
+
+                trialManage();
+                billingTypeManage();
+                priceDescriptionManage();
+            });
         });
     }
 
@@ -130,18 +143,6 @@ $(document).ready(function() {
     $(document).on('change', 'select[name="packageconfigoption[3]"]', function() {
         priceDescriptionManage();
     });
-
-    priceDescriptionManage();
-
-    var support = 'If you have a problem contact our support team via <a href="mailto:helpdesk@kuberdock.com">' +
-        'helpdesk@kuberdock.com</a> or create a request in helpdesk <a href="https://helpdesk.cloudlinux.com">' +
-        'https://helpdesk.cloudlinux.com</a>';
-    // Displayed everywhere
-    //$('.btn-container').append('<div class="col-md-12 support">' + support + '</div>');
-
-    // Edit product, radio buttons position
-    $('td:contains("Billing type")').next('td').find('br').remove();
-    $('td:contains("Restricted users")').next('td').find('input[type=checkbox]').css('position', 'relative');
 });
 
 $(function() {
