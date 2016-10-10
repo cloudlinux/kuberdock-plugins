@@ -174,6 +174,15 @@ function KuberDock_ShoppingCartValidateCheckout($params)
                 $errors[] = 'You are already have trial KuberDock product.';
             }
         }
+    } else if (!$userId) {
+        // New user
+        $app = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
+        if ($app) {
+            $product = KuberDock_Product::model()->loadById($app->product_id);
+            if ($product->isFixedPrice() && $app->getTotalPrice(true) == 0) {
+                $errors[] = 'You can\'t buy app with 0 price';
+            }
+        }
     }
 
     return $errors;
