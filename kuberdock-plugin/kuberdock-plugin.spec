@@ -1,7 +1,7 @@
 Version: 1.2
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 1%{?dist}.cloudlinux
+Release: 2%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -56,12 +56,16 @@ if [ $1 == 0 ] ; then
 fi
 
 %files
+%doc LICENSE
 %defattr(-,root,root,-)
 %{_datadir}/kuberdock-plugin/*
 %{_bindir}/kdcommon
 %{python_sitelib}/kd_common/*
 
 %changelog
+
+* Thu Oct 13 2016 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-2
+- updated EULA
 
 * Thu Oct 06 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-1
 - AC-4717 Plesk. postDescription doesn't change
