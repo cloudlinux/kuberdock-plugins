@@ -8,7 +8,6 @@ namespace api;
 
 use exceptions\CException;
 use exceptions\NotFoundException;
-use exceptions\UserNotFoundException;
 use Exception;
 use extensions\jwt\JWT;
 
@@ -411,33 +410,19 @@ class KuberDock_Api {
      */
     public function unDeleteUser($user)
     {
-        return $this->makeCall('/api/users/undelete/' . $user, 'POST');
+        return $this->makeCall('/api/users/undelete', array(
+            'email' => $user,
+        ), 'POST');
     }
 
     /**
      * @param $user
      * @return KuberDock_ApiResponse
-     * @throws Exception, UserNotFoundException
+     * @throws Exception, NotFoundException
      */
     public function getUser($user)
     {
-        if (!$user) {
-            throw new UserNotFoundException();
-        }
-
-        $this->url = $this->serverUrl . '/api/users/all/' . $user;
-        try {
-            $response = $this->call();
-        } catch (NotFoundException $e) {
-            throw new UserNotFoundException();
-        }
-
-        if (!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/users/all/' . $user);
     }
 
     /**

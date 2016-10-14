@@ -106,6 +106,7 @@ class KuberDock_Hosting extends CL_Hosting
                     ));
                 }
 
+                // If suspend module then user can't change product via client area
                 $this->getAdminApi()->updateUser(array('suspended' => true), $this->username);
             } else {
                 $trialNoticeEvery = $product->getConfigOption('trialNoticeEvery') != ''
