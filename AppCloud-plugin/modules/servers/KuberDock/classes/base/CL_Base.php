@@ -97,8 +97,8 @@ class CL_Base extends CL_Component {
      * Get param from $_POST variable
      *
      * @param $key
-     * @param null $default
-     * @return null
+     * @param null $default todo: replace null with an empty array
+     * @return array|null
      */
     public function getPost($key, $default = null)
     {

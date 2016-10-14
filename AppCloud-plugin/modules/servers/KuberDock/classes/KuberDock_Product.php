@@ -629,6 +629,61 @@ class KuberDock_Product extends CL_Product {
     }
 
     /**
+     * Runs when admin saves a product
+     *
+     * @param $options array packageconfigoption
+     */
+    public function edit($options)
+    {
+        if (!$this->isKuberProduct()) {
+            return;
+        }
+
+        if(empty($options)) {
+            return;
+        }
+
+        $i = 1;
+        foreach($this->getConfig() as $row) {
+            $value = isset($options[$i]) ? $options[$i] : '';
+            $this->setConfigOptionByIndex($i, $value);
+            $i++;
+        }
+
+        try {
+            if(!$this->getKubes()) {
+                $this->hidden = 1;
+            }
+
+            if($this->isFixedPrice()) {
+                $this->setConfigOption('firstDeposit', 0);
+            }
+
+            if ($this->isTrial()) {
+                $this->setConfigOption('billingType', 'PAYG');
+                $this->setConfigOption('priceIP', 0);
+                $this->setConfigOption('pricePersistentStorage', 0);
+                $this->setConfigOption('firstDeposit', 0);
+            }
+
+            // with first deposit clients always must pay it first, then get pods
+            if ($this->getFirstDeposit()) {
+                $this->autosetup = 'payment';
+            }
+
+            $this->save();
+
+            KuberDock_Addon_Product::model()->updateKubePricing($this->id);
+
+            if($this->isTrial()) {
+                $this->createDefaultKubeIfNeeded();
+            }
+        } catch(Exception $e) {
+            CException::log($e);
+        }
+    }
+
+    /**
      * @return int
      * @throws Exception
      */

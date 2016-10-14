@@ -44,43 +44,7 @@ function KuberDock_ProductEdit($params)
 {
     $options = CL_Base::model()->getPost('packageconfigoption');
     $product = KuberDock_Product::model()->loadById($params['pid']);
-
-    if($product->isKuberProduct()) {
-        if(empty($options)) {
-            return;
-        }
-
-        $i = 1;
-        foreach($product->getConfig() as $row) {
-            $value = isset($options[$i]) ? $options[$i] : '';
-            $product->setConfigOptionByIndex($i, $value);
-            $i++;
-        }
-
-        try {
-            if(!$product->getKubes()) {
-                $product->hidden = 1;
-            }
-
-            if($product->isFixedPrice()) {
-                $product->setConfigOption('firstDeposit', 0);
-            }
-
-            if ($product->isTrial()) {
-                $product->setConfigOption('billingType', 'PAYG');
-            }
-
-            $product->save();
-
-            KuberDock_Addon_Product::model()->updateKubePricing($params['pid']);
-
-            if($product->isTrial()) {
-                $product->createDefaultKubeIfNeeded();
-            }
-        } catch(Exception $e) {
-            CException::log($e);
-        }
-    }
+    $product->edit($options);
 }
 add_hook('ProductEdit', 1, 'KuberDock_ProductEdit');
 
