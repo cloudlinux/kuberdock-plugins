@@ -52,8 +52,8 @@ class KuberDock_Plesk extends KuberDock_Panel
         $response = ob_get_contents();
         ob_end_clean();
 
-        if (preg_match_all('|\w+|', $response, $match) && isset($match[0][1])) {
-            return $match[0][1];
+        if (preg_match_all('|[\.\w-]+|', $response, $match) && isset($match[0][3])) {
+            return $match[0][3];
         } else {
             return $client->getProperty('login');
         }
