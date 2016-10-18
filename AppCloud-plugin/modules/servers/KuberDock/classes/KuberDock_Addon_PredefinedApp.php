@@ -135,18 +135,22 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
      */
     public function order(KuberDock_Product $product, $service, $userId, $invoiceId = null)
     {
-        self::loadBySessionId();
-        $this->user_id = $userId;
-        $this->save();
+        $app = self::loadBySessionId();
+        if (!$app) {
+            return;
+        }
+
+        $app->user_id = $userId;
+        $app->save();
 
         if (!$service) {
             return;
         }
 
         if ($product->isFixedPrice()) {
-            $this->orderFixed($product, $service, $invoiceId);
+            $app->orderFixed($product, $service, $invoiceId);
         } else {
-            $this->orderPAYG($product, $service);
+            $app->orderPAYG($product, $service);
         }
     }
 

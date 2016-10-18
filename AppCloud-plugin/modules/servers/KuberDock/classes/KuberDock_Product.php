@@ -16,7 +16,7 @@ use base\models\CL_Invoice;
 use components\KuberDock_Units;
 use components\KuberDock_InvoiceItem;
 use exceptions\CException;
-use exceptions\UserNotFoundException;
+use exceptions\NotFoundException;
 
 /**
  * Class KuberDock_Product
@@ -203,10 +203,9 @@ class KuberDock_Product extends CL_Product {
         $api = $service->getAdminApi();
 
         try {
-            $api->getUser($service->username);
-            $api->unDeleteUser($service->username);
+            $api->unDeleteUser($this->client->email);
             $this->update($service->id, true);
-        } catch(UserNotFoundException $e) {
+        } catch (NotFoundException $e) {
             $api->createUser(array(
                 'clientid' => (int) $this->client->id,
                 'first_name' => $this->client->firstname,
