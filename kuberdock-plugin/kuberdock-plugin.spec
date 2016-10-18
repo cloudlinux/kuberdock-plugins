@@ -64,8 +64,11 @@ fi
 
 %changelog
 
-* Thu Oct 13 2016 Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-2
+* Tue Oct 18 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-2
 - updated EULA
+- Plesk. Fixed error for logins contains dot in name
+- Plesk. Bugfix with excessive tabs
+- AC-4356 DA. Add tab with available PAs for user
 
 * Thu Oct 06 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-1
 - AC-4717 Plesk. postDescription doesn't change
