@@ -19,7 +19,7 @@ try {
     $clientId = $postFields->params->client_id;
     $pod= $postFields->params->pod;
 
-    $pod = json_decode(html_entity_decode(urldecode($pod), ENT_QUOTES), true);
+    $pod = json_decode(html_entity_decode(rawurldecode($pod), ENT_QUOTES), true);
     $user = KuberDock_User::model()->loadById($clientId);
 
     $item = \models\addon\Item::where('pod_id', $pod['id'])->orderBy('id', 'desc')->first();

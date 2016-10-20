@@ -13,12 +13,10 @@ use base\models\CL_Client;
 use base\models\CL_MailTemplate;
 use base\models\CL_BillableItems;
 use base\models\CL_Invoice;
-use components\Units;
+use components\KuberDock_Units;
 use components\KuberDock_InvoiceItem;
 use exceptions\CException;
-use exceptions\UserNotFoundException;
-use models\addon\Resources;
-use models\addon\Item;
+use exceptions\NotFoundException;
 
 /**
  * Class KuberDock_Product
@@ -65,8 +63,8 @@ class KuberDock_Product extends CL_Product {
      */
     public function getConfig()
     {
-        $psUnit = Units::getPSUnits();
-//        $trafficUnit = Units::getTrafficUnits(); // AC-3783
+        $psUnit = KuberDock_Units::getPSUnits();
+//        $trafficUnit = KuberDock_Units::getTrafficUnits(); // AC-3783
 
         $config = array(
             'enableTrial' => array(
@@ -80,9 +78,10 @@ class KuberDock_Product extends CL_Product {
                 'Number' => 2,
                 'FriendlyName' => 'User Free Trial period',
                 'Type' => 'text',
+                'Decimal' => true,
                 'Size' => '10',
                 'Default' => '0',
-                'Description' => 'Days',
+                'Description' => 'days',
             ),
             'paymentType' => array(
                 'Number' => 3,
@@ -103,6 +102,7 @@ class KuberDock_Product extends CL_Product {
                 'Number' => 5,
                 'FriendlyName' => 'Price for IP',
                 'Type' => 'text',
+                'Decimal' => true,
                 'Size' => '10',
                 'Default' => '0',
                 'Description' => '<span>per IP/hour</span>',
@@ -111,6 +111,7 @@ class KuberDock_Product extends CL_Product {
                 'Number' => 6,
                 'FriendlyName' => 'Price for persistent storage',
                 'Type' => 'text',
+                'Decimal' => true,
                 'Size' => '10',
                 'Default' => '0',
                 'Description' => '<span data-unit="' . $psUnit . '">per ' . $psUnit . '/hour</span>',
@@ -129,6 +130,7 @@ class KuberDock_Product extends CL_Product {
                 'Number' => 8,
                 'FriendlyName' => 'First Deposit',
                 'Type' => 'text',
+                'Decimal' => true,
                 'Size' => '10',
                 'Default' => '0',
                 'Description' => '',
@@ -151,6 +153,7 @@ class KuberDock_Product extends CL_Product {
                 'Number' => 11,
                 'FriendlyName' => 'Trial period ending notice repeat',
                 'Type' => 'text',
+                'Decimal' => true,
                 'Size' => '10',
                 'Default' => '0',
                 'Description' => 'days (0 - don\'t send)',
@@ -200,10 +203,9 @@ class KuberDock_Product extends CL_Product {
         $api = $service->getAdminApi();
 
         try {
-            //$api->getUser($service->username);
-            $api->unDeleteUser($service->username);
+            $api->unDeleteUser($this->client->email);
             $this->update($service->id, true);
-        } catch(UserNotFoundException $e) {
+        } catch (NotFoundException $e) {
             $api->createUser(array(
                 'clientid' => (int) $this->client->id,
                 'first_name' => $this->client->firstname,
@@ -381,12 +383,12 @@ class KuberDock_Product extends CL_Product {
         }
 
         if (0 != $pricePS = (float) $this->getConfigOption('pricePersistentStorage')) {
-            $description['Persistent Storage'] = $this->formatFeature($pricePS, '1 ' . Units::getHDDUnits());
+            $description['Persistent Storage'] = $this->formatFeature($pricePS, '1 ' . KuberDock_Units::getHDDUnits());
         }
 
 //        AC-3783
 //        if (0 != $priceOT = (float) $this->getConfigOption('priceOverTraffic')) {
-//            $description['Additional Traffic'] = $this->formatFeature($priceOT, '1 ' . Units::getTrafficUnits());
+//            $description['Additional Traffic'] = $this->formatFeature($priceOT, '1 ' . KuberDock_Units::getTrafficUnits());
 //        }
 
         foreach($this->getKubes() as $kube) {
@@ -397,10 +399,10 @@ class KuberDock_Product extends CL_Product {
                 array(
                     $currency->getFullPrice($kube['kube_price']),
                     $this->getReadablePaymentType(),
-                    number_format($kube['cpu_limit'], 2) . ' '.Units::getCPUUnits(),
-                    $kube['memory_limit'].' '.Units::getMemoryUnits(),
-                    $kube['hdd_limit'].' '.Units::getHDDUnits(),
-//                    $kube['traffic_limit'].' '.Units::getTrafficUnits() // AC-3783
+                    number_format($kube['cpu_limit'], 2) . ' '.KuberDock_Units::getCPUUnits(),
+                    $kube['memory_limit'].' '.KuberDock_Units::getMemoryUnits(),
+                    $kube['hdd_limit'].' '.KuberDock_Units::getHDDUnits(),
+//                    $kube['traffic_limit'].' '.KuberDock_Units::getTrafficUnits() // AC-3783
                 )
             );
         }
@@ -465,7 +467,7 @@ class KuberDock_Product extends CL_Product {
 
     /**
      * @param $userId
-     * @return \KuberDock_Hosting
+     * @return array
      * @throws Exception
      */
     public function orderService($userId)
@@ -484,15 +486,8 @@ class KuberDock_Product extends CL_Product {
      */
     public function addToCart()
     {
-        $sessionProducts = &$_SESSION['cart']['products'];
-
-        foreach ($sessionProducts as $row) {
-            if ($row['pid'] == $this->id) {
-                return;
-            }
-        }
-
-        $sessionProducts[] = array(
+        $_SESSION['cart']['products'] = array();
+        $_SESSION['cart']['products'][] = array(
             'pid' => $this->id,
             'domain' => '',
             'billingcycle' => null,
@@ -517,13 +512,13 @@ class KuberDock_Product extends CL_Product {
 
     /**
      * Add billable item for Pod
-     * @param KuberDock_Hosting $service
+     * @param int $userId
      * @param KuberDock_Addon_PredefinedApp $app
      * @param int $invoiceId
-     * @return \models\addon\Item
+     * @return KuberDock_Addon_Items
      * @throws Exception
      */
-    public function addBillableApp(KuberDock_Hosting $service, KuberDock_Addon_PredefinedApp $app, $invoiceId = null)
+    public function addBillableApp($userId, KuberDock_Addon_PredefinedApp $app, $invoiceId = null)
     {
         if (!$this->isFixedPrice()) {
             throw new Exception('Fixed price - billable items not needed.');
@@ -537,22 +532,29 @@ class KuberDock_Product extends CL_Product {
             return $carry;
         });
 
+        $data = KuberDock_Hosting::model()->getByUser($userId);
+
+        if (!$data) {
+            throw new Exception('Service not found');
+        }
+
+        $service = KuberDock_Hosting::model()->loadByParams(current($data));
+
         if ($invoiceId) {
             $invoice = CL_Invoice::model()->loadById($invoiceId);
         }
 
         // TODO: create billable item even if price 0
         if ($totalPrice == 0) {
-            $item = new Item();
-            $item->setRawAttributes(array(
-                'user_id' => $service->userid,
+            $item = new KuberDock_Addon_Items();
+            $item->setAttributes(array(
+                'user_id' => $userId,
                 'service_id' => $service->id,
                 'app_id' => $app->id,
                 'pod_id' => $app->getPodId(),
                 'invoice_id' => 0,
                 'status' => CL_Invoice::STATUS_PAID,
             ));
-            $item->save();
 
             return $item;
         }
@@ -562,8 +564,9 @@ class KuberDock_Product extends CL_Product {
         $description = $this->getName() . ' - Pod ' . $app->getName();
         $model = CL_BillableItems::model();
         $model->setAttributes(array(
-            'userid' => $service->userid,
+            'userid' => $userId,
             'description' => $description,
+            'amount' => $totalPrice,
             'recur' => $recur,
             'recurfor' => 0,
             'recurcycle' => $recurCycle,
@@ -571,41 +574,17 @@ class KuberDock_Product extends CL_Product {
         ));
 
         $model->duedate = CL_Tools::getMySQLFormattedDate($model->getNextDueDate());
-        $model->amount = $totalPrice;
-        $model->save();
-
-        // Walk through items and divide PD\IP resources which already used
-        $items = array_filter($items, function ($item) use (&$model, $service) {
-            /* @var \components\KuberDock_InvoiceItem $item */
-            switch ($item->getType()) {
-                case Resources::TYPE_PD:
-                case Resources::TYPE_IP:
-                    $resource = Resources::byName($item->getName(), $service->userid)->first();
-                    /* @var Resources $resource */
-                    if ($resource) {
-                        if ($resource->isActive()) {
-                            $resource->divide($item);
-                            $model->amount -= $item->getTotal();
-                            return false;
-                        } elseif ($resource->isDivided()) {
-                            $model->amount -= $item->getTotal();
-                            return false;
-                        }
-                    }
-            }
-            return true;
-        });
 
         if (isset($invoice)) {
             $invoice_id = $invoice->id;
         } else {
-            $client = KuberDock_User::model()->getClientDetails($service->userid);
+            $client = KuberDock_User::model()->getClientDetails($userId);
             $gateway = $client['client']['defaultgateway']
                 ? $client['client']['defaultgateway']
                 : $service->paymentmethod;
 
             $invoice = CL_Invoice::model();
-            $invoice_id = $invoice->createInvoice($service->userid, $items, $gateway);
+            $invoice_id = $invoice->createInvoice($userId, $items, $gateway);
         }
 
         $invoiceItem = \base\models\CL_Invoice::model()->loadById($invoice_id);
@@ -617,31 +596,28 @@ class KuberDock_Product extends CL_Product {
         $model->invoicecount = 1;
         $model->save();
 
-        $invoice = \models\billing\Invoice::find($invoice->id);
-        // WHMCS won't relid for each item, otherwise on billable items page displayed each item as the same invoice
-        $firstInvoiceItem = $invoice->items()->first();
-        $firstInvoiceItem->setRawAttributes(array(
+        $invoiceItems = \base\models\CL_InvoiceItems::model()->loadById($invoiceItem->invoiceitems['id']);
+        $invoiceItems->setAttributes(array(
             'type' => $model::TYPE,
             'relid' => $model->id,
         ));
-        $firstInvoiceItem->save();
+        $invoiceItems->save();
 
         $status = $invoiceItem->isPayed() ? CL_Invoice::STATUS_PAID : CL_Invoice::STATUS_UNPAID;
-
-        $addonItem = new Items();
-        $addonItem->setRawAttributes(array(
-            'user_id' => $service->userid,
+        $item = new KuberDock_Addon_Items();
+        $item->setAttributes(array(
+            'user_id' => $userId,
             'service_id' => $service->id,
             'app_id' => $app->id,
             'pod_id' => $app->getPodId(),
             'billable_item_id' => $model->id,
             'invoice_id' => $invoiceItem->id,
             'status' => $status,
-            'type' => Resources::TYPE_POD,
         ));
-        $addonItem->save();
 
-        return $addonItem;
+        $item->save();
+
+        return $item;
     }
 
     /**
@@ -667,20 +643,6 @@ class KuberDock_Product extends CL_Product {
                 return 90;
             case 'annually':
                 return 365;
-        }
-    }
-
-    public function getNextShift()
-    {
-        switch ($this->getPaymentType()) {
-            case 'hourly':
-                return '+1 hour';
-            case 'monthly':
-                return '+1 month';
-            case 'quarterly':
-                return '+3 months';
-            case 'annually':
-                return '+1 year';
         }
     }
 
@@ -781,7 +743,6 @@ class KuberDock_Product extends CL_Product {
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadBySessionId();
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
         if($service->isActive() && $predefinedApp) {
-            $configuration = \base\models\CL_Configuration::model()->get();
             try {
                 if(!($pod = $predefinedApp->isPodExists($service->id))) {
                     $pod = $predefinedApp->create($service->id);
@@ -789,14 +750,7 @@ class KuberDock_Product extends CL_Product {
                     $predefinedApp->save();
                     $predefinedApp->start($pod['id'], $service->id);
                 }
-                $url = sprintf($configuration->SystemURL .
-                    '/kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $pod['id']);
-
-                if($jsRedirect) {
-                    $this->jsRedirect($url);
-                } else {
-                    header('Location: ' . $url);
-                }
+                $this->redirectToPod($service, $pod['id'], $jsRedirect);
             } catch(Exception $e) {
                 CException::displayError($e);
             }
@@ -811,44 +765,57 @@ class KuberDock_Product extends CL_Product {
      */
     public function startPodAndRedirect($serviceId, $podId, $jsRedirect = false)
     {
-        global $whmcs;
-
         $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
         $service = \KuberDock_Hosting::model()->loadById($serviceId);
 
         if ($service->isActive()) {
-            $configuration = \base\models\CL_Configuration::model()->get();
             try {
                 $predefinedApp->payAndStart($podId, $service->id);
-
-                if($whmcs && $whmcs->isClientAreaRequest()) {
-                    $url = sprintf($configuration->SystemURL .
-                        '/kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $podId);
-                    if ($jsRedirect) {
-                        $this->jsRedirect($url);
-                    } else {
-                        header('Location: ' . $url);
-                    }
-                }
+                // Mark paid by admin, redirect only user.
+                $this->redirectToPod($service, $podId, $jsRedirect);
             } catch (Exception $e) {
                 CException::displayError($e);
             }
         }
     }
 
+    /**
+     * @param KuberDock_Hosting $service
+     * @param string $podId
+     * @param bool $jsRedirect
+     */
+    public function redirectToPod(KuberDock_Hosting $service, $podId, $jsRedirect = false)
+    {
+        global $whmcs;
+
+        if($whmcs && $whmcs->isAdminAreaRequest()) {
+            return;
+        }
+
+        $configuration = \base\models\CL_Configuration::model()->get();
+        $url = sprintf($configuration->SystemURL .
+            '/kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $podId);
+
+        if ($jsRedirect) {
+            $this->jsRedirect($url);
+        } else {
+            header('Location: ' . $url);
+        }
+    }
+
     public function createDefaultKubeIfNeeded()
     {
-        $defaultTemplate = \models\addon\KubeTemplate::getDefaultTemplate();
+        $defaultTemplate = KuberDock_Addon_Kube_Template::getDefaultTemplate();
 
         $defaultKube =  KuberDock_Addon_Kube_Link::model()->loadByAttributes(array(
             'product_id' => $this->id,
-            'template_id' => $defaultTemplate->id,
+            'template_id' => $defaultTemplate['id'],
         ));
 
         if(!$defaultKube) {
             $addonProduct = KuberDock_Addon_Product::model()->loadById($this->id);
             $kube = KuberDock_Addon_Kube_Link::model()->loadByParams(array(
-                'template_id' => $defaultTemplate->id,
+                'template_id' => $defaultTemplate['id'],
                 'product_id' => $this->id,
                 'kuber_product_id' => $addonProduct->kuber_product_id,
                 'kube_price' => '0.00',
@@ -999,14 +966,28 @@ SCRIPT;
         }
     }
 
-    public function createInvoice($description, $price, $units = null, $qty = 1, $type = Resources::TYPE_POD)
+    public function createInvoice($description, $price, $units = null, $qty = 1)
     {
-        $invoice = KuberDock_InvoiceItem::create($description, $price, $units, $qty, $type);
+        $invoice = KuberDock_InvoiceItem::create($description, $price, $units, $qty);
 
         if ($this->tax) {
             $invoice->setTaxed(true);
         }
 
         return $invoice;
+    }
+
+    public function beforeSave()
+    {
+        foreach ($this->getConfig() as $item) {
+            if (isset($item['Decimal']) && $item['Decimal']===true) {
+                $value = $this->getConfigOptionByIndex($item['Number']);
+                $value = str_replace(',', '.', $value);
+                $value = preg_replace('/([^\d\.]+)/i', '', $value);
+                $this->setConfigOptionByIndex($item['Number'], $value);
+            }
+        }
+
+        return true;
     }
 } 

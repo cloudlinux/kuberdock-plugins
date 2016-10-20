@@ -4,8 +4,7 @@
 namespace models\billing;
 
 
-use components\InvoiceItem;
-use components\Tools;
+use components\InvoiceItem as ComponentsInvoiceItem;
 use components\Units;
 use exceptions\CException;
 use models\addon\KubePrice;
@@ -385,11 +384,11 @@ class Package extends Model
      * @param string|null $units
      * @param int $qty
      * @param string $type
-     * @return InvoiceItem
+     * @return ComponentsInvoiceItem
      */
     public function createInvoiceItem($price, $description, $units = null, $qty = 1, $type = Resources::TYPE_POD)
     {
-        $invoice = InvoiceItem::create($price, $description, $units, $qty, $type);
+        $invoice = ComponentsInvoiceItem::create($price, $description, $units, $qty, $type);
 
         if ($this->taxable) {
             $invoice->setTaxed(true);

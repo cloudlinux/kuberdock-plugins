@@ -3,7 +3,6 @@
 namespace Kuberdock\classes\components;
 
 use Kuberdock\classes\exceptions\YamlValidationException;
-use Kuberdock\classes\extensions\yaml\Spyc;
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\exceptions\CException;
 use Kuberdock\classes\exceptions\WithoutBillingException;
@@ -325,12 +324,14 @@ class KuberDock_Api {
         return $this->apiCall('/api/predefined-apps/validate-template', array('template' => $template), 'POST');
     }
 
+
     /**
      * @param array $params
      * @param string $type
      * @return KuberDock_ApiResponse
      * @throws CException
      * @throws WithoutBillingException
+     * @throws YamlValidationException
      */
     public function call($params = array(), $type = 'GET')
     {
@@ -627,6 +628,27 @@ class KuberDock_Api {
     }
 
     /**
+     * @param array $params
+     * @param string $referer
+     * @return array
+     * @throws CException
+     */
+    public function orderEdit($params, $referer = '')
+    {
+        $this->url = $this->serverUrl . '/api/billing/orderPodEdit';
+        $response = $this->call(array(
+            'pod' => json_encode($params),
+            'referer' => urldecode($referer),
+        ), 'POST');
+
+        if (!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->getData();
+    }
+
+    /**
      * @param string $podId
      * @param array $containers
      * @return array
@@ -646,6 +668,39 @@ class KuberDock_Api {
         }
 
         return $response->getData();
+    }
+
+    /**
+     * @param string $podId
+     * @param string $plan
+     * @return array
+     * @throws CException
+     */
+    public function switchPlan($podId, $plan)
+    {
+        $this->url = $this->serverUrl . sprintf('/api/yamlapi/switch/%s/%s', $podId, $plan);
+        $response = $this->call(array(
+            'async' => 'false',
+        ), 'PUT');
+
+        if (!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
+
+        return $response->getData();
+    }
+
+    /**
+     * @param string $podId
+     * @param string $plan
+     * @param string $referer
+     * @return array
+     */
+    public function orderSwitchPlan($podId, $plan, $referer = '')
+    {
+        return $this->apiCall(sprintf('/api/billing/switch-app-package/%s/%s', $podId, $plan), array(
+            'referer' => $referer,
+        ), 'POST');
     }
 
     /**
@@ -671,6 +726,22 @@ class KuberDock_Api {
                 return true;
             }
         });
+    }
+
+    public function getClientTemplates()
+    {
+        $base = \Kuberdock\classes\Base::model();
+        $apps = $base->getPanel()->getAdminApi()->getTemplates(strtolower($base->getPanelType()));
+        $panelUrl = $base->getPanel()->getClientUrl();
+        $defaultImage = $base->getPanel()->getAssets()->getRelativePath('images/default_transparent.png');
+
+        array_walk($apps, function (&$e) use ($panelUrl, $defaultImage) {
+            $yaml = \Kuberdock\classes\extensions\yaml\Spyc::YAMLLoadString($e['template']);
+            $e['path'] = $panelUrl . '#predefined/' . $e['id'];
+            $e['icon'] = isset($yaml['kuberdock']['icon']) ? $yaml['kuberdock']['icon'] : $defaultImage;
+        });
+
+        return $apps;
     }
 
     /**
@@ -706,10 +777,6 @@ class KuberDock_Api {
             'template' => $template,
         ), 'POST');
 
-        // TODO: move it to KD
-        $yaml = Spyc::YAMLLoad($data['template']);
-        $yaml['kuberdock']['kuberdock_template_id'] = (int) $data['id'];
-        $template = Spyc::YAMLDump($yaml);
         $this->putTemplate($data['id'], $name, $template);
 
         return $data;
@@ -724,11 +791,6 @@ class KuberDock_Api {
      */
     public function putTemplate($id, $name, $template)
     {
-        // TODO: move it to KD
-        $yaml = Spyc::YAMLLoadString($template);
-        $yaml['kuberdock']['kuberdock_template_id'] = (int) $id;
-        $template = Spyc::YAMLDump($yaml);
-
         return $this->apiCall('/api/predefined-apps/' . $id, array(
             'name' => $name,
             'template' => $template,

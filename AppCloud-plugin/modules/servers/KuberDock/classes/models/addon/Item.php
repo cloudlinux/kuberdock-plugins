@@ -111,6 +111,20 @@ class Item extends Model
     }
 
     /**
+     *
+     */
+    public function stopInvoicing()
+    {
+        // Stop invoicing
+        $this->billableItem->invoiceaction = BillableItem::CREATE_NO_INVOICE_ID;
+        $this->billableItem->description .= ' (Deleted)';
+        $this->billableItem->save();
+
+        $this->status = Resources::STATUS_DELETED;
+        $this->save();
+    }
+
+    /**
      * After newly generated invoice for billable item, add record to KuberDock_items (Items)
      * @param int $invoiceId
      */

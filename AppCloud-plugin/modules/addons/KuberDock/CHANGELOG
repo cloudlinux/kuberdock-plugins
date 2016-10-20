@@ -1,3 +1,28 @@
+* 1.0.8
+
+- AC-4680 WHMCS. 0 PA price causes error in function setAttributes()
+- AC-4562 WHMCS. Pod doesn't become to unpaid status when update Trial PAYG to Standard Fixed price
+- WHMCS. PAYG fixes
+- WHMCS. Fix for 5.4
+- AC-4590 WHMCS. There is no recalculation if you add a container after paying for a month of use the Pod(PAYG)
+- AC-4531 WHMCS. Response 'user has no KuberDock item' on attempt to edit non paid pod
+- WHMCS. Fixed pod edition
+- AC-4605 WHMCS. There is no 'Next Due Date' value on product information after suspending user(PAYG)
+- WHMCS. Fixed 3rd migration class name
+- AC-4488 WHMCS. Error while upgrade packages
+- AC-4487 WHMCS. Use rawurldecode for api
+- AC-4368 WHMCS. KD user don't change role from "TrialUser" to "User" when upgrade from trial package to standard package
+- AC-4367 WHMCS. User don't become to "Suspend" status (Trial package)
+- AC-3961 WHMCS. Input fields in WHMCS module are not validated and can be saved
+- WHMCS. Fixed IP\PS invoicing for PAYG
+- AC-4492 - WHMCS. Change PA templates schema: rename domain -> baseDomain
+- WHMCS. Bugfix: New order from adminpage
+- AC-4215 WHMCS. Trial package take settings from Standard package
+- AC-4366 WHMCS. Display appropriate prices/resources on the PA page in case of using domain
+- AC-4317 WHMCS. Do not charge for public IP if domain is used
+- WHMCS. Get kube type from another yaml field
+- AC-4227 WHMCS. Handle change kube type for pod edit feature
+
 * 1.0.7.5
 - AC-3657 WHMCS. Improve deploy script to do installation process easier
 - AC-4020 WHMCS. Ability to apply tax to the KD products in WHMCS

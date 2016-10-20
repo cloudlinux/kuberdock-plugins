@@ -137,6 +137,10 @@ define(['backbone', 'application/utils'], function(Backbone, Utils) {
 
         getPostDescription: function () {
             return Utils.processBBCode(this.get('postDescription'));
+        },
+
+        getName: function () {
+            return encodeURIComponent(this.get('name'));
         }
     });
 

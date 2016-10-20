@@ -70,7 +70,7 @@ class KuberDock extends API
         $data = $this->getJSONData();
         $pod = $this->getPod()->loadByName($name);
 
-        if($data->command == 'edit') {
+        if ($data->command == 'edit') {
             $this->redirect = $pod->processCommand($data->command, $data);
             return;
         }
@@ -217,7 +217,14 @@ class KuberDock extends API
 
         $url = sprintf('%s/api/stream?token2=%s', $api->getServerUrl(), $token2);
 
-        $handle = fopen($url, 'r');
+        $arrContextOptions=array(
+            "ssl"=>array(
+                "verify_peer"=>false,
+                "verify_peer_name"=>false,
+            ),
+        );
+
+        $handle = fopen($url, 'r', false, stream_context_create($arrContextOptions));
 
         if (ob_get_level() == 0) ob_start();
 

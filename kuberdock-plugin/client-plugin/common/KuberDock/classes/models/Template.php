@@ -305,6 +305,19 @@ class Template
         }
     }
 
+    public function setBaseDomain($baseDomain)
+    {
+        $this->data['kuberdock']['appPackage']['baseDomain'] = $baseDomain;
+    }
+
+    /**
+     * @param string $name
+     */
+    public function setPlanName($name)
+    {
+        $this->data['kuberdock']['appPackage']['name'] = $name;
+    }
+
     /**
      * @param string $description
      */
@@ -313,6 +326,38 @@ class Template
         $this->data['kuberdock']['postDescription'] .= "\n" . $description;
     }
 
+    /**
+     * @param int $planId
+     * @return array
+     */
+    public function getPodStructureFromPlan($planId)
+    {
+        $plan = $this->getPlan($planId);
+        $attributes = array(
+            'plan' => $plan['name'],
+        );
+
+        foreach ($plan['pods'] as $row) {
+            $attributes['kube_type'] = $row['kubeType'];
+            $attributes['containers'] = $row['containers'];
+            if (isset($plan['publicIP']) && $plan['publicIP']) {
+                $attributes['containers'][0]['ports'][0]['isPublic'] = $plan['publicIP'];
+            }
+
+            if (isset($row['persistentDisks'])) {
+                foreach ($row['persistentDisks'] as $k => $pd) {
+                    $attributes['volumes'][$k]['name'] = $pd['name'];
+                    $attributes['volumes'][$k]['persistentDisk']['pdSize'] = $pd['pdSize'];
+                }
+            }
+        }
+
+        return $attributes;
+    }
+
+    /**
+     *
+     */
     private function setDefaults()
     {
         $defaults = $this->panel->billing->getDefaults();

@@ -4,11 +4,9 @@
 namespace models\addon;
 
 
-use components\InvoiceItem;
-use exceptions\CException;
+use components\InvoiceItem as ComponentsInvoiceItem;
 use exceptions\NotFoundException;
 use models\addon\resourceTypes\Pod;
-use models\billing\BillableItem;
 use models\billing\Invoice;
 use models\Model;
 
@@ -118,9 +116,9 @@ class Resources extends Model
     }
 
     /**
-     * @param InvoiceItem $item
+     * @param ComponentsInvoiceItem $item
      */
-    public function divide(InvoiceItem $item)
+    public function ComponentsInvoiceItem(ComponentsInvoiceItem $item)
     {
         $addonItem = $this->resourcePods()->first()->item;
         $billableItem = $addonItem->billableItem;
@@ -158,15 +156,27 @@ class Resources extends Model
     }
 
     /**
-     * @param Item $item
+     * @param ItemInvoice $itemInvoice
      * @return ItemInvoice[]
      */
-    public function getUnpaidItemInvoices(Item $item)
+    public function getUnpaidItemInvoices(ItemInvoice $itemInvoice)
     {
-        return ItemInvoice::select('KuberDock_item_invoices')
-            ->join('KuberDock_resource_pods', 'KuberDock_resource_pods.item_id', '=', 'KuberDock_item_invoices.item_id')
+        $query = ItemInvoice::select('KuberDock_item_invoices.*')
+            ->join('KuberDock_resource_pods as rp2', 'rp2.item_id', '=', 'KuberDock_item_invoices.item_id')
+            ->join('KuberDock_resource_pods as rp1', 'rp1.resource_id', '=', 'rp2.resource_id')
+            ->join('KuberDock_resources', 'KuberDock_resources.id', '=', 'rp2.resource_id')
             ->where('KuberDock_item_invoices.status', Invoice::STATUS_UNPAID)
-            ->groupBy('KuberDock_item_invoices.invoice_id')->get();
+            ->where('KuberDock_resources.status', '!=', self::STATUS_DELETED)
+            ->where('KuberDock_item_invoices.invoice_id', '!=', $itemInvoice->invoice_id)
+            ->groupBy('KuberDock_item_invoices.item_id');
+
+        if ($itemInvoice->item->pod_id) {
+            $query->where('rp1.pod_id', $itemInvoice->item->pod_id);
+        } else {
+            $query->where('rp1.item_id', $itemInvoice->item_id);
+        }
+
+        return $query->get();
     }
 
     /**

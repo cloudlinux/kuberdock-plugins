@@ -8,6 +8,7 @@ use base\CL_Base;
 use base\CL_Tools;
 use base\models\CL_Invoice;
 use base\models\CL_User;
+use base\models\CL_BillableItems;
 use exceptions\CException;
 
 include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
@@ -76,6 +77,10 @@ function KuberDock_ProductEdit($params)
 
             if($product->isFixedPrice()) {
                 $product->setConfigOption('firstDeposit', 0);
+            }
+
+            if ($product->isTrial()) {
+                $product->setConfigOption('billingType', 'PAYG');
             }
 
             $product->save();
@@ -298,11 +303,12 @@ function KuberDock_InvoicePaid($params)
     foreach ($itemInvoices as $itemInvoice) {
         try {
             $itemInvoice->invoice->addFirstDeposit();
+
             $resources = new \models\addon\Resources();
 
-            $unpaidItemInvoices = $resources->getUnpaidItemInvoices($itemInvoice->item);
-            if ($unpaidItemInvoices) {
-                \components\Controller::model()->redirect($unpaidItemInvoices->first()->invoice->getUrl());
+            $unpaidItemInvoices = $resources->getUnpaidItemInvoices($itemInvoice);
+            if ($unpaidItemInvoices->count()) {
+                \components\Tools::model()->jsRedirect($unpaidItemInvoices->first()->invoice->getUrl());
             }
 
             $pod = $itemInvoice->afterPayment();
@@ -474,7 +480,7 @@ function KuberDock_ClientAreaRegister($params)
             }
 
             if($product->isFixedPrice()) {
-                $item = $product->addBillableApp($service, $predefinedApp);
+                $item = $product->addBillableApp($userId, $predefinedApp);
                 if(!($pod = $predefinedApp->isPodExists($service->id))) {
                     $pod = $predefinedApp->create($service->id, 'unpaid');
                 }
@@ -483,7 +489,7 @@ function KuberDock_ClientAreaRegister($params)
                 $item->pod_id = $pod['id'];
                 $item->save();
 
-                if($item->isPaid()) {
+                if($item->isPayed()) {
                     $product->startPodAndRedirect($item->service_id, $item->pod_id, true);
                 } else {
                     $product->jsRedirect('viewinvoice.php?id=' . $item->invoice_id);
@@ -560,3 +566,45 @@ function KuberDock_AfterModuleCreate($params)
     }
 }
 add_hook('AfterModuleCreate', 1, 'KuberDock_AfterModuleCreate');
+
+
+/**
+ * ! Actually, user will change package, but KuberDock_ChangePackage not runs if returned "abortcmd" !
+ *
+ * Runs when the ChangePackage function is being run, before any command is sent, but after the variables are loaded.
+ * @param array $params
+ * @return array
+ */
+function KuberDock_PreModuleChangePackage($params)
+{
+    $response = array();
+
+    $data = KuberDock_ProductUpgrade::model()->loadByAttributes(array(
+        'relid' => $params['params']['serviceid'],
+    ), '', array(
+        'order' => 'id desc',
+        'limit' => 1,
+    ));
+
+    if (!$data) {
+        return $response;
+    }
+
+    $productUpgrade = KuberDock_ProductUpgrade::model()->loadByParams(current($data));
+
+    // Eloquent resolve this
+    $oldProduct = clone KuberDock_Product::model()->loadById($productUpgrade->originalvalue);
+    $newProduct = $productUpgrade->getNewProduct();
+
+    // User already has trial product
+    if ($newProduct->isTrial() && KuberDock_Addon_Trial::model()->loadById($params['params']['userid'])) {
+        $response[] = array('abortcmd' => true);
+    }
+    // User want another trial
+    if ($oldProduct->isTrial() && $newProduct->isTrial()) {
+        $response[] = array('abortcmd' => true);
+    }
+
+    return $response;
+}
+add_hook('PreModuleChangePackage', 1, 'KuberDock_PreModuleChangePackage');

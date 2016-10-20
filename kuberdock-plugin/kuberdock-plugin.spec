@@ -1,17 +1,21 @@
 Version: 1.2
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 0%{?dist}.cloudlinux
+Release: 2%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
 URL: http://www.cloudlinux.com
 Source0: %{name}-%{version}.tar.bz2
 
+BuildRequires: python
+
 Requires: kuberdock-cli >= 1.0-3
 
 AutoReq: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+%define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
 
 %description
 Kuberdock plugins
@@ -28,6 +32,7 @@ cp -r * %{buildroot}/usr/share/kuberdock-plugin
 
 %{__install} -D -d -m 755 %{buildroot}%{python_sitelib}/kd_common
 %{__install} -D -m 755 kuberdock-common/kdcommon %{buildroot}%{_bindir}/kdcommon
+mkdir -p %{buildroot}%{python_sitelib}/kd_common
 cp -r kuberdock-common/kd_common/* %{buildroot}%{python_sitelib}/kd_common
 
 %clean
@@ -51,12 +56,34 @@ if [ $1 == 0 ] ; then
 fi
 
 %files
+%doc LICENSE
 %defattr(-,root,root,-)
 %{_datadir}/kuberdock-plugin/*
 %{_bindir}/kdcommon
 %{python_sitelib}/kd_common/*
 
 %changelog
+
+* Tue Oct 18 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-2
+- updated EULA
+- Plesk. Fixed error for logins contains dot in name
+- Plesk. Bugfix with excessive tabs
+- AC-4356 DA. Add tab with available PAs for user
+
+* Thu Oct 06 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-1
+- AC-4717 Plesk. postDescription doesn't change
+- Hosting panels. Validation error fixed. kuberdock_template_id moved to client side.
+- Hosting panels. Remove unused class
+- AC-4483 Hosting panels. Fix prices for app packages in KD
+- AC-4484 Hosting panels. Forbid switching packages if this pod was edited at least once.
+- AC-4366 cPanel part AC-4492 - change PA templates schema: rename domain -> baseDomain (hosting panels part)
+- AC-3070 Hosting panels. Ability to switch appPackage
+- Hosting panels. Define python_sitelib
+- AC-4277 Encoding in postDescription
+- Hosting panels. Changed kube type yaml section
+- AC-3838 Hosting panels. UI improvement in KuberDock plugin for cPanel and Plesk;
+- AC-4326 EBS is not being dysplayed in postDescription.
+- AC-4366 Hosting panels. Display appropriate prices/resources on the PA page in case of using domain
 
 * Tue Aug 30 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-0
 - AC-4353 DA. User side > User can't buy pod after payed invoice

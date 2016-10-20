@@ -39,6 +39,18 @@ class ItemInvoice extends Model
     protected $fillable = ['invoice_id', 'status', 'type', 'params'];
 
     /**
+     * @return array
+     */
+    public static function getTypes()
+    {
+        return [
+            self::TYPE_ORDER,
+            self::TYPE_EDIT,
+            self::TYPE_SWITCH,
+        ];
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function invoice()
@@ -106,17 +118,5 @@ class ItemInvoice extends Model
         } catch (\Exception $e) {
             CException::log($e);
         }
-    }
-
-    /**
-     * @return array
-     */
-    public static function getTypes()
-    {
-        return [
-            self::TYPE_ORDER,
-            self::TYPE_EDIT,
-            self::TYPE_SWITCH,
-        ];
     }
 }

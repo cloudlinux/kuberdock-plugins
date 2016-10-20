@@ -269,22 +269,6 @@ function KuberDock_LoginLink($params) {
 }
 
 /**
- * Run create module command while clicking "Save Changes" in admin area
- * @param $params
- */
-/*function KuberDock_AdminServicesTabFieldsSave($params) {
-    try {
-        $product = KuberDock_Product::model()->loadById($params['pid']);
-        $client = CL_Client::model()->loadByParams($params['clientsdetails']);
-        $product->setClient($client);
-        $product->create($params['serviceid']);
-    } catch(Exception $e) {
-        CException::log($e);
-        // do nothing
-    }
-}*/
-
-/**
  * This function is used for upgrading and downgrading of products.
  * @param array $params
  * @return bool
@@ -295,7 +279,6 @@ function KuberDock_ChangePackage($params) {
         $upgrade->changePackage();
     } catch(Exception $e) {
         CException::log($e);
-        //
     }
 }
 

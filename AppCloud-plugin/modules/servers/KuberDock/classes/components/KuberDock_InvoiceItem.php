@@ -3,69 +3,29 @@
 namespace components;
 
 use base\models\CL_Currency;
-use exceptions\CException;
-use models\addon\Resources;
 
 class KuberDock_InvoiceItem
 {
     /** @var bool Short invoices have only description and total. No units, quantity and price */
     private $short = false;
 
-    /**
-     * @var string
-     */
     private $units;
-    /**
-     * @var string
-     */
     private $description;
-    /**
-     * @var bool
-     */
     private $taxed = false;
-    /**
-     * @var float
-     */
     private $price;
-    /**
-     * @var string
-     */
-    private $name;
-    /**
-     * @var int
-     */
     private $qty;
-    /**
-     * @var string Resources::getTypes
-     */
-    private $type;
 
-    /**
-     * @param string $description
-     * @param float $price
-     * @param string $units
-     * @param int $qty
-     */
     public function __construct($description, $price, $units, $qty)
     {
-        $this->description = $this->formatDescription($description);
+        $this->description = $description;
         $this->price = $price;
         $this->units = $units;
         $this->qty = $qty;
     }
 
-    /**
-     * @param string $description
-     * @param float $price
-     * @param null $units
-     * @param int $qty
-     * @param string $type
-     * @return KuberDock_InvoiceItem
-     */
-    public static function create($description, $price, $units = null, $qty = 1, $type = Resources::TYPE_POD)
+    public static function create($description, $price, $units = null, $qty = 1)
     {
-        $object = new self($description, $price, $units, $qty);
-        $object->setType($type);
+        $object =  new self($description, $price, $units, $qty);
 
         if (is_null($units)) {
             $object->setShort();
@@ -75,9 +35,15 @@ class KuberDock_InvoiceItem
     }
 
     /**
-     * @param bool|true $short
-     * @return $this
+     * todo: when we move to php 5.4 replace all occurencies with json_encode($items), add "implements \JsonSerializable"
+     *
+     * @return array
      */
+    public function jsonSerialize()
+    {
+        return get_object_vars($this);
+    }
+
     public function setShort($short = true)
     {
         $this->short = $short;
@@ -85,9 +51,6 @@ class KuberDock_InvoiceItem
         return $this;
     }
 
-    /**
-     * @return bool
-     */
     public function isShort()
     {
         return $this->short;
@@ -104,50 +67,46 @@ class KuberDock_InvoiceItem
         return $this;
     }
 
-    /**
-     * @return bool
-     */
+    public function setQty($qty)
+    {
+        $this->qty = $qty;
+    }
+
     public function getTaxed()
     {
         return $this->taxed;
     }
 
-    /**
-     * @return float
-     */
+    public function getPrice()
+    {
+        return $this->price;
+    }
+
+    public function multiplyPrice($multiplier)
+    {
+        $this->price *= $multiplier;
+    }
+
     public function getTotal()
     {
         return $this->price * $this->qty;
     }
 
-    /**
-     * @return string
-     */
-    public function getType()
+    public function getQty()
     {
-        return $this->type;
+        return $this->qty;
     }
 
-    /**
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string
-     */
     public function getDescription()
     {
         return $this->description;
     }
 
-    /**
-     * @param $number
-     * @return string
-     */
+    public function getUnits()
+    {
+        return $this->units;
+    }
+
     public function getHtml($number)
     {
         $currency = CL_Currency::model()->getDefaultCurrency();
@@ -162,31 +121,5 @@ class KuberDock_InvoiceItem
                 <td align="center">' . $currency->getFullPrice($this->getTotal()) . '</td>
             </tr>
         ';
-    }
-
-    /**
-     * @param string $type
-     * @throws CException
-     */
-    private function setType($type)
-    {
-        if (!in_array($type, Resources::getTypes())) {
-            throw new CException(sprintf('Undefined resource type: %s', $type));
-        }
-
-        $this->type = $type;
-    }
-
-    /**
-     * @param string $description
-     * @return string
-     */
-    private function formatDescription($description)
-    {
-        if (preg_match('/^(Storage|IP):\s?(.*)$/', $description, $match)) {
-            $this->name = $match[2];
-        }
-
-        return $description;
     }
 }

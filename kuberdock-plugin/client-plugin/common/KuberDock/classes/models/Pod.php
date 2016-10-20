@@ -96,6 +96,9 @@ class Pod {
         return json_encode($this->_data);
     }
 
+    /**
+     * @return array
+     */
     public function asArray()
     {
         return $this->_data;
@@ -460,6 +463,41 @@ class Pod {
     }
 
     /**
+     * @param string $podId
+     * @param string $plan
+     * @param string $referer
+     * @return array
+     * @throws PaymentRequiredException
+     */
+    public function orderSwitchPlan($podId, $plan, $referer = '')
+    {
+        $response = Base::model()->getPanel()->getApi()->orderSwitchPlan($podId, $plan, $referer);
+
+        if ($response['status'] == 'Unpaid') {
+            throw new PaymentRequiredException($response);
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param array $params
+     * @param string $referer
+     * @return array
+     * @throws PaymentRequiredException
+     */
+    public function orderEdit($params, $referer)
+    {
+        $response = Base::model()->getPanel()->getApi()->orderEdit($params, $referer);
+
+        if ($response['status'] == 'Unpaid') {
+            throw new PaymentRequiredException($response);
+        }
+
+        return $response;
+    }
+
+    /**
      *
      */
     public function save()
@@ -529,11 +567,18 @@ class Pod {
         $this->command->deleteContainer($this->name);
     }
 
+    /**
+     * @return string
+     */
     public function edit()
     {
         return $this->getPodUrl(true);
     }
 
+    /**
+     * @param $data
+     * @return string
+     */
     public function redeploy($data)
     {
         $commandOptions = $data->commandOptions;
@@ -542,13 +587,12 @@ class Pod {
         return 'Application restarted';
     }
 
+    /**
+     * @param array $data
+     * @return string
+     */
     public function upgrade($data)
     {
-        /*array_walk_recursive($data->containers, function (&$e) {
-            if ($e instanceof \stdClass) {
-                $e = (array) $e;
-            }
-        });*/
         $params['id'] = $this->id;
         $params['containers'] = $data->containers;
         $params['kube_type'] = $this->kube_type;
@@ -563,9 +607,32 @@ class Pod {
         return 'Application upgraded';
     }
 
+    /**
+     * @param array $data
+     * @return string
+     */
+    public function changePlan($data)
+    {
+        $package = Base::model()->getPanel()->billing->getPackage();
+
+        if (Base::model()->getPanel()->billing->isFixedPrice($package['id'])) {
+            $this->orderSwitchPlan($data->id, $data->plan, $this->getLink());
+        } else {
+            Base::model()->getPanel()->getAdminApi()->switchPlan($data->id, $data->plan);
+        }
+
+        return 'Plan changed';
+    }
+
+    /**
+     * @param string $command
+     * @param array $data
+     * @return mixed
+     * @throws CException
+     */
     public function processCommand($command, $data = array())
     {
-        if(method_exists($this, $command)) {
+        if (method_exists($this, $command)) {
             $rm = new \ReflectionMethod($this, $command);
             return $rm->invoke($this, $data);
         }
@@ -648,6 +715,10 @@ class Pod {
         return Base::model()->getPanel()->getURL() . '#pod/' . $this->name;
     }
 
+    /**
+     * @param $kubeCount
+     * @throws ApiException
+     */
     public function checkMaxKubes($kubeCount)
     {
         $sysapi = Base::model()->getPanel()->getAdminApi()->getSysApi('name');

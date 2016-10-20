@@ -1,3 +1,9 @@
+<?php
+if ($panelType=='DirectAdmin') {
+    $this->renderPartial('tabs', array('active' => 'index'));
+}
+?>
+
 <div id="contents"></div>
 
 <script>

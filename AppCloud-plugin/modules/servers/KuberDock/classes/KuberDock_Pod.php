@@ -1,7 +1,6 @@
 <?php
 
 use components\KuberDock_InvoiceItem;
-use models\addon\Resources;
 
 class KuberDock_Pod
 {
@@ -191,9 +190,9 @@ class KuberDock_Pod
         }
         $attributes['containers'] = $params;
 
-        $item = \models\addon\Item::where('pod_id', $this->id)->orderBy('id', 'desc')->first();
-
-        if ($item) {
+        $data = KuberDock_Addon_Items::model()->loadByAttributes(array('pod_id' => $this->id));
+        if ($data) {
+            $item = KuberDock_Addon_Items::model()->loadByParams(current($data));
             $billableItem = \base\models\CL_BillableItems::model()->loadById($item->billable_item_id);
 
             if ($newKubes > 0) {
@@ -259,19 +258,23 @@ class KuberDock_Pod
      * @return \base\models\CL_Invoice
      * @throws Exception
      */
-    public function editKubes($newPod, KuberDock_User $user)
+    public function edit($newPod, KuberDock_User $user)
     {
         $attributes['id'] = $this->id;
-        $item = \models\addon\Item::where('pod_id', $this->id)->orderBy('id', 'desc')->first();
 
-        if (!$item) {
-            throw new \exceptions\CException('Billable item not found.');
+        if (isset($newPod['template_plan_name'])) {
+            $attributes['plan'] = $newPod['template_plan_name'];
         }
 
+        $data = KuberDock_Addon_Items::model()->loadByAttributes(array('pod_id' => $this->id));
+        if (!$data) {
+            throw new \exceptions\CException('Billable item not found.');
+        }
+        $item = KuberDock_Addon_Items::model()->loadByParams(current($data));
         $billableItem = \base\models\CL_BillableItems::model()->loadById($item->billable_item_id);
         $this->proRate = $billableItem->getProRate();
 
-        $this->collectInvoiceItems($this->_values, $newPod['edited_config']);
+        $this->collectInvoiceItems($this->_values, $newPod);
 
         $price = array_reduce($this->editInvoiceItems, function ($carry, $item) {
             $carry += $item->getTotal();
@@ -309,7 +312,18 @@ class KuberDock_Pod
             return \base\models\CL_Invoice::model()->loadById($invoice->id);
         } else {
             $service = KuberDock_Hosting::model()->loadById($item->service_id);
-            $service->getAdminApi()->redeployPod($this->id, $attributes);
+            if (isset($attributes['plan'])) {
+                // Switch plan
+                $service->getAdminApi()->switchPodPlan($this->id, $attributes['plan']);
+            } elseif (isset($attributes['containers'])) {
+                // Add kubes pod
+                // TODO: remove
+                $service->getAdminApi()->redeployPod($this->id, $attributes);
+            } else {
+                // Edit pod
+                $service->getAdminApi()->applyEdit($this->id);
+            }
+
             $billableItem->amount += $price;
             $billableItem->save();
             // Update app
@@ -320,53 +334,6 @@ class KuberDock_Pod
 
             return \base\models\CL_Invoice::model()->loadById($item->invoice_id);
         }
-    }
-
-    /**
-     * @param string $id
-     * @return $this
-     */
-    public function loadById($id)
-    {
-        $this->_values = $this->api->getPod($id);
-        $kubes = \base\CL_Tools::getKeyAsField($this->kubes, 'kuber_kube_id');
-        $this->kube = $kubes[$this->kube_type];
-
-        return $this;
-    }
-
-    /**
-     * @param array $data
-     * @return $this
-     */
-    public function loadByParams($data)
-    {
-        $this->_values = $data;
-
-        $kubes = \base\CL_Tools::getKeyAsField($this->kubes, 'kuber_kube_id');
-        $this->kube = $kubes[$this->kube_type];
-
-        return $this;
-    }
-
-    public function getPersistentDisk()
-    {
-        $pd = array();
-
-        if (isset($this->_values['volumes'])) {
-            foreach ($this->_values['volumes'] as $row) {
-                if (isset($row['persistentDisk'])) {
-                    $pd[] = $row['persistentDisk'];
-                }
-            }
-        }
-
-        return $pd;
-    }
-
-    public function getPublicIP()
-    {
-        return isset($this->public_ip) ? $this->public_ip : '';
     }
 
     private function collectInvoiceItems($old, $new)
@@ -412,8 +379,7 @@ class KuberDock_Pod
                     if ($oldKubeType != $newKubeType) {
                         $description = sprintf('Change kube type from %s to %s (%s)',
                             $oldKube['kube_name'], $this->kube['kube_name'], $newKontainers[$name]['image']);
-                        $price = $newKontainers[$name]['kubes'] * $newKubePrice
-                            - $newKontainers[$name]['kubes'] * $oldKubePrice;
+                        $price = $oldKontainers[$name]['kubes'] * ($newKubePrice - $oldKubePrice);
                         $this->editInvoiceItems[] = $this->product->createInvoice($description, $price, 'kube', 1);
                     }
                 }
@@ -441,7 +407,7 @@ class KuberDock_Pod
                 . '"' . $name . '"'
                 . ')';
 
-            $this->editInvoiceItems[] = $this->product->createInvoice($description, $price, 'kube', $delta, Resources::TYPE_POD);
+            $this->editInvoiceItems[] = $this->product->createInvoice($description, $price, 'kube', $delta);
         }
 
         if ($oldPublicIpUsed != $newPublicIpUsed) {
@@ -454,7 +420,7 @@ class KuberDock_Pod
             }
             $description = self::UPDATE_KUBES_DESCRIPTION . ', public IP ' . $action;
             $ipPrice = (float) $this->product->getConfigOption('priceIP') * $this->proRate;
-            $this->editInvoiceItems[] = $this->product->createInvoice($description, $ipPrice, 'IP', $count, Resources::TYPE_IP);
+            $this->editInvoiceItems[] = $this->product->createInvoice($description, $ipPrice, 'IP', $count);
         }
 
         // volumes
@@ -467,7 +433,7 @@ class KuberDock_Pod
         $newVolumes = self::sortVolumes($new);
         $psPrice = (float)$this->product->getConfigOption('pricePersistentStorage') * $this->proRate;
         $listVolumes = array_keys(array_merge($oldVolumes, $newVolumes));
-        $unit = \components\Units::getPSUnits();
+        $unit = \components\KuberDock_Units::getPSUnits();
         foreach ($listVolumes as $volumeName) {
             $issetNewPorts = isset($newVolumes[$volumeName]);
             $issetOldPorts = isset($oldVolumes[$volumeName]);
@@ -495,7 +461,7 @@ class KuberDock_Pod
                 . ' ('
                 . $name
                 . ')';
-            $this->editInvoiceItems[] = $this->product->createInvoice($description, $psPrice, $unit, $count, Resources::TYPE_PD);
+            $this->editInvoiceItems[] = $this->product->createInvoice($description, $psPrice, $unit, $count);
         }
     }
 
@@ -508,5 +474,32 @@ class KuberDock_Pod
         return array_filter($volumes, function($item) {
             return $item['persistentDisk'];
         });
+    }
+
+    /**
+     * @param string $id
+     * @return $this
+     */
+    public function loadById($id)
+    {
+        $this->_values = $this->api->getPod($id);
+        $kubes = \base\CL_Tools::getKeyAsField($this->kubes, 'kuber_kube_id');
+        $this->kube = $kubes[$this->kube_type];
+
+        return $this;
+    }
+
+    /**
+     * @param array $data
+     * @return $this
+     */
+    public function loadByParams($data)
+    {
+        $this->_values = $data;
+
+        $kubes = \base\CL_Tools::getKeyAsField($this->kubes, 'kuber_kube_id');
+        $this->kube = $kubes[$this->kube_type];
+
+        return $this;
     }
 }

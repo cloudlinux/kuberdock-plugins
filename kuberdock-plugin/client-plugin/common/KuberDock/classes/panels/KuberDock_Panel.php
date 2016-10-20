@@ -227,6 +227,11 @@ abstract class KuberDock_Panel
         return sprintf('%s://%s:%s%s/%s', $scheme, $host, $port, $self, $uri);
     }
 
+    public static function getClientUrl($action = 'index')
+    {
+        return $action;
+    }
+
     /**
      * @return array
      */

@@ -6,9 +6,6 @@
 
 use base\CL_Model;
 use base\CL_Tools;
-use base\models\CL_Invoice;
-use components\KuberDock_InvoiceItem;
-use models\addon\Resources;
 
 /**
  * Class KuberDock_Addon_PredefinedApp
@@ -75,12 +72,12 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         } else {
             $data = $this->loadByAttributes(array(
                 'session_id' => \base\CL_Base::model()->getSession(),
-            ), 'pod_id IS NULL', array(
+            ), 'pod_id IS NULL OR pod_id = ""', array(
                 'order' => 'id DESC',
                 'limit' => 1,
             ));
         }
-
+        
         if(!$data) {
             return false;
         }
@@ -138,18 +135,22 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
      */
     public function order(KuberDock_Product $product, $service, $userId, $invoiceId = null)
     {
-        self::loadBySessionId();
-        $this->user_id = $userId;
-        $this->save();
+        $app = self::loadBySessionId();
+        if (!$app) {
+            return;
+        }
 
-        if (!$service || !$product->isKuberProduct()) {
+        $app->user_id = $userId;
+        $app->save();
+
+        if (!$service) {
             return;
         }
 
         if ($product->isFixedPrice()) {
-            $this->orderFixed($product, $service, $invoiceId);
+            $app->orderFixed($product, $service, $invoiceId);
         } else {
-            $this->orderPAYG($product, $service);
+            $app->orderPAYG($product, $service);
         }
     }
 
@@ -198,17 +199,16 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
     {
         $service = KuberDock_Hosting::model()->loadById($serviceId);
         $api = $service->getApi();
-        $pod = $service->getApi()->getPod($podId);
-        if ($pod['status'] == 'unpaid') {
-            $adminApi = $service->getAdminApi();
-            $adminApi->updatePod($podId, array(
-                'status' => 'stopped',
-            ));
+        $adminApi = $service->getAdminApi();
+        $adminApi->updatePod($podId, array(
+            'status' => 'stopped',
+        ));
+        try {
             $api->startPod($podId);
+        } catch (Exception $e) {
+            // pass
+            \exceptions\CException::log($e);
         }
-
-        // Add resources
-        \models\addon\Resources::add($podId);
     }
 
     /**
@@ -235,7 +235,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
 
     /**
      * @param bool $total
-     * @return KuberDock_InvoiceItem[]
+     * @return array
      */
     public function getTotalPrice($total = false)
     {
@@ -412,15 +412,14 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         $containers = $spec['containers'] ? $spec['containers'] : $spec;
         foreach ($containers as $row) {
             if (isset($row['kubes'])) {
-                $items[] = $product->createInvoice('Pod: ' . $row['name'], $kubePrice, 'pod', $row['kubes']
-                    , Resources::TYPE_POD);
+                $items[] = $product->createInvoice('Pod: ' . $row['name'], $kubePrice, 'pod', $row['kubes']);
             }
 
-            if (isset($row['ports']) && !isset($data['kuberdock']['appPackage']['domain'])) {
+            if (isset($row['ports']) && !isset($data['kuberdock']['appPackage']['baseDomain'])) {
                 foreach ($row['ports'] as $port) {
                     if (isset($port['isPublic']) && $port['isPublic'] && !$hasPublicIP) {
                         $ipPrice = (float) $product->getConfigOption('priceIP');
-                        $items[] = $product->createInvoice('IP: ' . $ip, $ipPrice, 'IP', 1, Resources::TYPE_IP);
+                        $items[] = $product->createInvoice('Public IP', $ipPrice, 'IP');
                         $hasPublicIP = true;
                     }
                 }
@@ -430,11 +429,11 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         if (isset($spec['volumes'])) {
             foreach ($spec['volumes'] as $row) {
                 if (isset($row['persistentDisk']['pdSize'])) {
-                    $unit = \components\Units::getPSUnits();
+                    $unit = \components\KuberDock_Units::getPSUnits();
                     $psPrice = (float)$product->getConfigOption('pricePersistentStorage');
                     $title = 'Storage: ' . $row['persistentDisk']['pdName'];
                     $qty = $row['persistentDisk']['pdSize'];
-                    $items[] = $product->createInvoice($title, $psPrice, $unit, $qty, Resources::TYPE_PD);
+                    $items[] = $product->createInvoice($title, $psPrice, $unit, $qty);
                 }
             }
         }
@@ -460,14 +459,14 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
         foreach ($data['containers'] as $row) {
             if (isset($row['kubes'])) {
                 $description = 'Pod: ' . $data['name'] . ' (' . $row['image'] . ')';
-                $items[] = $product->createInvoice($description, $kubePrice, 'pod', $row['kubes'], Resources::TYPE_POD);
+                $items[] = $product->createInvoice($description, $kubePrice, 'pod', $row['kubes']);
             }
 
             if (isset($row['ports']) && !isset($data['domain'])) {
                 foreach ($row['ports'] as $port) {
                     if (isset($port['isPublic']) && $port['isPublic'] && !$hasPublicIP) {
                         $ipPrice = (float) $product->getConfigOption('priceIP');
-                        $items[] = $product->createInvoice('Public IP', $ipPrice, 'IP', 1, Resources::TYPE_IP);
+                        $items[] = $product->createInvoice('Public IP', $ipPrice, 'IP');
                         $hasPublicIP = true;
                     }
                 }
@@ -478,10 +477,9 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
             foreach ($data['volumes'] as $row) {
                 if (isset($row['persistentDisk']['pdSize'])) {
                     $psPrice = (float)$product->getConfigOption('pricePersistentStorage');
-                    $unit = \components\Units::getPSUnits();
+                    $unit = \components\KuberDock_Units::getPSUnits();
                     $title = 'Storage: ' . $row['persistentDisk']['pdName'];
-                    $items[] = $product->createInvoice($title, $psPrice, $unit, $row['persistentDisk']['pdSize'],
-                        Resources::TYPE_PD);
+                    $items[] = $product->createInvoice($title, $psPrice, $unit, $row['persistentDisk']['pdSize']);
                 }
             }
         }
@@ -494,9 +492,14 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
      * @param KuberDock_Product $product
      * @param KuberDock_Hosting $service
      * @param int $invoiceId
+     * @throws \exceptions\CException
      */
     private function orderFixed(KuberDock_Product $product, $service, $invoiceId = null)
     {
+        if ($this->getTotalPrice(true) == 0) {
+            throw new \exceptions\CException('You can\'t buy app with 0 price');
+        }
+
         // Trying to re-create module
         if ($service->domainstatus == KuberDock_User::STATUS_PENDING) {
             $service->createModule();
@@ -515,7 +518,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
             $product->jsRedirect($this->referer . '&error=' . urlencode($e->getMessage()));
         }
 
-        $item = $product->addBillableApp($service, $this, $invoiceId);
+        $item = $product->addBillableApp($this->user_id, $this, $invoiceId);
         $item->pod_id = $pod['id'];
         $item->save();
         $this->referer = null;
@@ -524,7 +527,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
 
         $product->removeFromCart();
 
-        if ($item->isPaid()) {
+        if ($item->isPayed()) {
             $product->startPodAndRedirect($item->service_id, $item->pod_id, true);
         } else {
             $product->jsRedirect('viewinvoice.php?id=' . $item->invoice_id);

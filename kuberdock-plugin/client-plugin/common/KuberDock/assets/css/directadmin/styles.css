@@ -664,3 +664,100 @@ p {
     width: 1100px;
     margin: 0 20px;
 }
+
+.preapp-plan-page form.plans .margin-top a.btn.current-plan {
+    background-color: #05B91A !important;
+}
+.preapp-plan-page form.plans .margin-top a.btn.current-plan:hover {
+    background-color: #05a218 !important;
+}
+
+h3 {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+}
+#apps{
+    margin: 0 20px;
+    width: 1100px;
+}
+.tabs{
+    margin: 0 0 12px;
+}
+.tabs > div{
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+}
+.tabs ul{
+    list-style: outside none none;
+    margin: -1px 0 0;
+    padding: 0;
+}
+.tabs ul::before, .tabs ul::after{
+    content: "";
+    display: table;
+}
+.tabs ul::after{
+    clear: both;
+}
+.tabs li{
+    display: block;
+    position: relative;
+}
+.tabs li > a{
+    background: #b5b5b5 none repeat scroll 0 0;
+    border: 1px solid #b5b5b5;
+    color: #fff;
+    display: block;
+    margin-top: 1px;
+    padding: 10px 10px 12px;
+    text-decoration: none;
+}
+.tabs li > a:hover{
+    background-color: #2298cb;
+    border-color: #2298cb;
+}
+.tabs li > a .close{
+    cursor: pointer;
+    float: right;
+    margin-left: 2px;
+    text-align: right;
+    text-shadow: none;
+    width: 14px;
+}
+.tabs li > a .close:hover{
+    opacity: 0.5;
+}
+.tabs li > a .close::before{
+    content: "✕";
+    font-size: 12px;
+    font-weight: 400;
+}
+.tabs .active a, .tabs .active a:hover{
+    background-color: #fff;
+    border-color: #09729f;
+    color: #09729f;
+    position: relative;
+}
+.tabs .active a::before, .tabs .active a:hover::before{
+    background: #fff none repeat scroll 0 0;
+    bottom: -1px;
+    content: "";
+    height: 1px;
+    left: 0;
+    position: absolute;
+    width: 100%;
+}
+
+.tabs li{
+    float: left;
+}
+.tabs li > a{
+    border-bottom-width: 0;
+    float: left;
+    margin: 2px 2px 0 0;
+    padding: 6px 10px;
+}
+.tabs .active a{
+    margin-bottom: -1px;
+    padding-bottom: 7px;
+}

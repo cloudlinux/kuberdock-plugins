@@ -54,7 +54,8 @@ function(Backbone, Marionette, Utils, MessageModel, MessageView) {
                     'pod/:name/:description': 'podDetails',
                     'predefined/:id': 'processPredefined',
                     'predefined/new/:id': 'predefinedCreate',
-                    'predefined/new/:id/:plan': 'predefinedSetup'
+                    'predefined/new/:id/:plan': 'predefinedSetup',
+                    'predefined/change_plan/:name': 'predefinedChangePlan'
                 }
             });
 

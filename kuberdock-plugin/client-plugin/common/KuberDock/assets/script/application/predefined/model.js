@@ -42,6 +42,10 @@ define(['backbone', 'application/utils', 'application/pods/model'], function (Ba
             return Utils.parseResponse(response);
         },
 
+        setCurrentPlan: function (plan) {
+            this.set('currentPlan', plan);
+        },
+
         getKDSection: function () {
             if (this.has('template')) {
                 return this.get('template').kuberdock || {};
@@ -100,12 +104,15 @@ define(['backbone', 'application/utils', 'application/pods/model'], function (Ba
             return containerPublic && !planPublic ? containerPublic : planPublic;
         },
 
-        hasDomain: function(planKey) {
-            return this.getPlan(planKey).domain !== undefined;
+        hasBaseDomain: function(planKey) {
+            return this.getPlan(planKey).baseDomain !== undefined;
         },
 
         getPersistentSize: function (planKey) {
-            var plan = this.getPlan(planKey);
+            var plan = this.has('currentPlan')
+                ? this.get('currentPlan')
+                : this.getPlan(planKey);
+
             var size = _.reduce(this.getVolumes(), function (s, v) {
                 if (typeof v.persistentDisk == 'undefined') {
                     return 0;
@@ -140,7 +147,7 @@ define(['backbone', 'application/utils', 'application/pods/model'], function (Ba
             total += this.getKubes(planKey) * kube.price;
             total += this.getPersistentSize(planKey) * p.price_pstorage;
 
-            if (!this.hasDomain(planKey)) {
+            if (!this.hasBaseDomain(planKey)) {
                 total += (this.getPublicIP(planKey) ? 1 : 0) * p.price_ip;
             }
 

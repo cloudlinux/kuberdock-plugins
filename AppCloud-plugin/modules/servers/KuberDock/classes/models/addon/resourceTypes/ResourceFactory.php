@@ -6,7 +6,6 @@ namespace models\addon\resourceTypes;
 
 use api\KuberDock_Api;
 use components\Component;
-use components\InvoiceItem;
 use components\InvoiceItemCollection;
 use models\billing\Package;
 use models\billing\Service;

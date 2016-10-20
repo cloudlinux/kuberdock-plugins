@@ -27,9 +27,7 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade
     {
         $data = $this->loadByAttributes(array(
             'relid' => $serviceId,
-            'status' => self::STATUS_PENDING,
             'type' => 'package',
-            'orderid' => 0,
         ), '', array(
             'order' => 'id DESC',
             'limit' => 1
@@ -47,12 +45,12 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade
      */
     public function changePackage()
     {
-        $oldProduct = KuberDock_Product::model()->loadById($this->originalvalue);
+        $oldProduct = clone KuberDock_Product::model()->loadById($this->originalvalue);
         $newProduct = $this->getNewProduct();
+        $service = KuberDock_Hosting::model()->loadById($this->relid);
 
         $deposit = KuberDock_Product::model()->getConfigOption('firstDeposit');
         if($deposit) {
-            $service = KuberDock_Hosting::model()->loadById($this->relid);
             $clientDetails = CL_Client::model()->getClientDetails($service->userid);
             $items[] = $newProduct->createInvoice(CL_Invoice::CUSTOM_INVOICE_DESCRIPTION, $deposit)->setTaxed(false);
 
@@ -69,6 +67,43 @@ class KuberDock_ProductUpgrade extends CL_ProductUpgrade
             //return $this->calculateFromHourToPeriodic();
         } elseif($oldProduct->getConfigOption('paymentType') != 'hourly' && $newProduct->getConfigOption('paymentType') == 'hourly') {
             return $this->calculateFromPeriodicToHour();
+        }
+
+        $service->getAdminApi()->updateUser(array(
+            'package' => $newProduct->getName(),
+        ), $service->username);
+
+        if ($oldProduct->isTrial() && !$oldProduct->isFixedPrice()) {
+            $service->getAdminApi()->updateUser(array(
+                'rolename' => $newProduct->getRole(),
+            ), $service->username);
+            $service->unSuspendModule();
+
+            $date = new DateTime();
+            $service->nextduedate = CL_Tools::getMySQLFormattedDate($date->modify('+1 day'));
+            $service->save();
+        }
+
+        // upgrade from payG to fixedPrice
+        if (!$oldProduct->isFixedPrice() && $newProduct->isFixedPrice()) {
+            // get all client's pods
+            $pods = $service->getApi()->getPods()->getData();
+            $admin = KuberDock_User::model()->getCurrentAdmin();
+
+            // order them all (create billable items and invoices)
+            foreach ($pods as $pod) {
+                $response = localAPI('orderkuberdockpod', array(
+                    'client_id' => $service->userid,
+                    'pod' => json_encode($pod),
+                ), $admin['username']);
+
+                if ($response['results']['status'] == CL_Invoice::STATUS_UNPAID) {
+                    $service->getApi()->stopPod($pod['id']);
+                    $service->getAdminApi()->updatePod($pod['id'], array(
+                        'status' => 'unpaid',
+                    ));
+                }
+            }
         }
     }
 

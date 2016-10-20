@@ -215,18 +215,38 @@ class CL_Tools extends CL_Component {
         return strtolower(implode($pass));
     }
 
-    /**
-     * @param $value
-     */
-    public static function log($value)
+    public static function log($value, $export = true)
     {
         if (!KUBERDOCK_DEBUG) {
             return;
         }
 
+        if ($value instanceof \base\CL_Model) {
+            $object = get_class($value);
+            $value = $value->getAttributes();
+        }
+
+        if ($value instanceof \base\CL_Component) {
+            $object = get_class($value);
+            $value = $value->getAttributes();
+        }
+
+        if ($value instanceof \DateTime) {
+            $object = get_class($value);
+            $value = $value->format('Y-m-d H:i:s');
+        }
+
         $hl = fopen('/tmp/whmcs.log', 'a');
         ob_start();
-        var_dump($value);
+        echo PHP_EOL;
+        if (isset($object)) {
+            echo 'Object ' . $object . ':' . PHP_EOL;
+        }
+        if ($export) {
+            var_export($value);
+        } else {
+            var_dump($value);
+        }
         $content = ob_get_contents();
         ob_end_clean();
         fwrite($hl, $content);

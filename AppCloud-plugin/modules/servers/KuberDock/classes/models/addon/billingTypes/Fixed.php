@@ -63,10 +63,6 @@ class Fixed extends Component implements BillingInterface
     {
         $pod = new Pod($item->service->package);
 
-        if ($item->type != Resources::TYPE_POD) {
-            return $pod;
-        }
-
         $pod->setService($item->service);
         $pod->loadById($item->pod_id);
 
@@ -113,8 +109,9 @@ class Fixed extends Component implements BillingInterface
         $pod->setService($item->service);
 
         try {
-            $response = $item->service->getAdminApi()->redeploy($item->pod_id)->getData();
-            $pod->setAttributes($response['edited_config']);
+            $params = $item->invoices()->orderBy('id', 'desc')->first()->params;
+            $item->service->getAdminApi()->switchPodPlan($item->pod_id, $params->plan);
+            $pod->loadById($item->pod_id);
         } catch (\Exception $e) {
             CException::log($e);
         }
@@ -177,12 +174,16 @@ class Fixed extends Component implements BillingInterface
     }
 
     /**
-     *
+     * Cron job
      */
     public function processCron()
     {
         $config = Config::get();
 
+        // Stop invoicing for deleted pods
+        $this->processDeletedPods();
+
+        // Process unpaid items
         $unpaidItems = Item::select('KuberDock_items.*')
             ->join('tblhosting', 'tblhosting.id', '=', 'KuberDock_items.service_id')
             ->join('KuberDock_item_invoices', 'KuberDock_item_invoices.item_id', '=', 'KuberDock_items.id')
@@ -190,7 +191,7 @@ class Fixed extends Component implements BillingInterface
             ->where('tblhosting.domainstatus', 'Active')
             ->where('KuberDock_items.status', '!=', Resources::STATUS_DELETED)
             ->where('KuberDock_item_invoices.status', Invoice::STATUS_UNPAID)
-            ->whereRaw('DATE(DATE_ADD(tblinvoices.duedate, INTERVAL ? DAY)) >= CURRENT_DATE()', [
+            ->whereRaw('DATE(DATE_ADD(tblinvoices.duedate, INTERVAL ? DAY)) <= CURRENT_DATE()', [
                 $config->AutoSuspensionDays,
             ])
             ->groupBy('KuberDock_items.id')
@@ -226,13 +227,7 @@ class Fixed extends Component implements BillingInterface
                     break;
             }
 
-            // Stop invoicing
-            $item->billableItem->invoiceaction = BillableItem::CREATE_NO_INVOICE_ID;
-            $item->billableItem->description .= ' (Deleted)';
-            $item->billableItem->save();
-
-            $item->status = Resources::STATUS_DELETED;
-            $item->save();
+            $item->stopInvoicing();
         }
     }
 
@@ -345,6 +340,8 @@ class Fixed extends Component implements BillingInterface
     protected function createEditInvoice(Pod $pod, Item $item, Service $service)
     {
         $attributes = [];
+        $type = ItemInvoice::TYPE_EDIT;
+
         $pod->setService($service);
         $newPod = clone $pod;
         $newPod->setAttributes($pod->edited_config);
@@ -353,8 +350,24 @@ class Fixed extends Component implements BillingInterface
         $invoiceItems = $this->collectEditInvoiceItems($pod, $newPod);
         $invoiceItems->filterPaidResources($service);
 
+        if (isset($newPod->template_plan_name)) {
+            $attributes['plan'] = $newPod->template_plan_name;
+            $type = ItemInvoice::TYPE_SWITCH;
+        }
+
         if ($invoiceItems->sum() <= 0) {
-            $this->afterEditPayment($item);
+            if ($type == ItemInvoice::TYPE_SWITCH) {
+                try {
+                    $item->service->getAdminApi()->switchPodPlan($item->pod_id, $attributes['plan']);
+                } catch (\Exception $e) {
+                    CException::log($e);
+                }
+
+                $item->billableItem->amount = $newPod->getPrice();
+                $item->billableItem->save();
+            } else {
+                $this->afterEditPayment($item);
+            }
 
             $invoice = new Invoice();
             $invoice->status = Invoice::STATUS_PAID;
@@ -365,14 +378,10 @@ class Fixed extends Component implements BillingInterface
         $invoice = BillingApi::model()->createInvoice($service->client, $invoiceItems, false);
         $invoice->items()->first()->assignBillableItem($item->billableItem);
 
-        if (isset($pod->template_plan_name)) {
-            $attributes['plan'] = $pod->template_plan_name;
-        }
-
         $itemInvoice = new ItemInvoice([
             'invoice_id' => $invoice->id,
             'status' => $invoice->status,
-            'type' => ItemInvoice::TYPE_EDIT,
+            'type' => $type,
             'params' => $attributes,
         ]);
         $item->invoices()->save($itemInvoice);
@@ -477,7 +486,7 @@ class Fixed extends Component implements BillingInterface
         }
 
         // volumes
-        $this->addVolumeInvoiceItems($old, $new, $volumeInvoiceItems);
+        $this->addVolumeInvoiceItems($old, $new, $invoiceItems);
 
         return $invoiceItems;
     }
@@ -578,5 +587,25 @@ class Fixed extends Component implements BillingInterface
     private function processTypeSwitch(Pod $pod, Item $item, Service $service)
     {
         return $this->createEditInvoice($pod, $item, $service);
+    }
+
+    /**
+     * Check whether deleted pod or not
+     */
+    private function processDeletedPods()
+    {
+        $items = Item::where('status', '!=', Resources::STATUS_DELETED)
+            ->where('type', Resources::TYPE_POD)
+            ->get();
+
+        foreach ($items as $item) {
+            try {
+                $item->service->getApi()->getPod($item->pod_id);
+            } catch (NotFoundException $e) {
+                $item->stopInvoicing();
+            } catch (\Exception $e) {
+                CException::log($e);
+            }
+        }
     }
 }

@@ -8,7 +8,6 @@ namespace api;
 
 use exceptions\CException;
 use exceptions\NotFoundException;
-use exceptions\UserNotFoundException;
 use Exception;
 use Firebase\JWT\JWT;
 
@@ -410,33 +409,19 @@ class KuberDock_Api {
      */
     public function unDeleteUser($user)
     {
-        return $this->makeCall('/api/users/undelete', ['email' => $user], 'POST');
+        return $this->makeCall('/api/users/undelete', array(
+            'email' => $user,
+        ), 'POST');
     }
 
     /**
      * @param $user
      * @return KuberDock_ApiResponse
-     * @throws Exception, UserNotFoundException
+     * @throws Exception, NotFoundException
      */
     public function getUser($user)
     {
-        if (!$user) {
-            throw new UserNotFoundException();
-        }
-
-        $this->url = $this->serverUrl . '/api/users/all/' . $user;
-        try {
-            $response = $this->call();
-        } catch (NotFoundException $e) {
-            throw new UserNotFoundException();
-        }
-
-        if (!$response->getStatus()) {
-            $this->logError($response->getMessage());
-            throw new Exception($response->getMessage());
-        }
-
-        return $response;
+        return $this->makeCall('/api/users/all/' . $user);
     }
 
     /**
@@ -730,9 +715,13 @@ class KuberDock_Api {
      */
     public function stopPod($podId)
     {
-        return $this->makeCall('/api/podapi/' . $podId, array(
-            'command' => 'stop',
-        ), 'PUT');
+        try {
+            return $this->makeCall('/api/podapi/' . $podId, array(
+                'command' => 'stop',
+            ), 'PUT');
+        } catch(\Exception $e) {
+            //
+        }
     }
 
     /**
@@ -771,6 +760,16 @@ class KuberDock_Api {
         $attributes['commandOptions']['applyEdit'] = true;
 
         return $this->redeployPod($podId, $attributes);
+    }
+
+    /**
+     * @param string $podId
+     * @param string $plan
+     * @return KuberDock_ApiResponse
+     */
+    public function switchPodPlan($podId, $plan)
+    {
+        return $this->makeCall(sprintf('/api/yamlapi/switch/%s/%s', $podId, $plan), 'PUT');
     }
 
     /**
@@ -819,6 +818,7 @@ class KuberDock_Api {
 
     /**
      * @return KuberDock_ApiResponse
+     * @throws Exception
      */
     public function getIpPoolStat()
     {
