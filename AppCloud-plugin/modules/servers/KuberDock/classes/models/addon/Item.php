@@ -5,10 +5,12 @@ namespace models\addon;
 
 
 use base\models\CL_Invoice;
+use components\BillingApi;
 use models\billing\BillableItem;
 use models\billing\Client;
 use models\billing\Config;
 use models\billing\Invoice;
+use models\billing\Package;
 use models\billing\Service;
 use models\Model;
 
@@ -23,6 +25,10 @@ class Item extends Model
      * @var string
      */
     protected $table = 'KuberDock_items';
+    /**
+     * @var array
+     */
+    protected $fillable = ['pod_id', 'user_id', 'service_id', 'status', 'type'];
 
     /**
      *
@@ -73,6 +79,24 @@ class Item extends Model
     }
 
     /**
+     * @param $query
+     * @return mixed
+     */
+    public function scopePayg($query)
+    {
+        return $query->where('billable_item_id', 0)->orWhereNull('billable_item_id');
+    }
+
+    /**
+     * @param $query
+     * @return mixed
+     */
+    public function scopeFixed($query)
+    {
+        return $query->where('billable_item_id', '>', 0);
+    }
+
+    /**
      * Get not deleted items by pod id
      * @param $query
      * @param $podId
@@ -108,6 +132,14 @@ class Item extends Model
     public function isPod()
     {
         return $this->status == Resources::TYPE_POD;
+    }
+
+    /**
+     *
+     */
+    public function suspend()
+    {
+        BillingApi::model()->suspendModule($this->service, 'Not enough funds');
     }
 
     /**
@@ -164,7 +196,40 @@ class Item extends Model
         })->first();
 
         if ($service && $app) {
-            $service->package->getBilling()->invoiceCorrection($app->getResource(), $service, $invoice);
+            // AC-3839 Add recurring price to invoice
+            // Add setup\recurring funds only for newly created service
+            $package = $service->package;
+            /* @var Package $package */
+
+            $pricing = $package->pricing()->withCurrency($invoice->client->currencyModel->id)->first()->getReadable();
+
+            $invoiceItems = $app->getResource()->getInvoiceItems();
+
+            if ($pricing['setup'] > 0) {
+                $invoiceItems->add($package->createInvoiceItem('Setup', $pricing['setup ']));
+            }
+
+            if ($pricing['recurring'] > 0) {
+                $invoiceItems->add(
+                    $package->createInvoiceItem('Recurring ('. $pricing['cycle'] .')', $pricing['recurring'])
+                );
+            }
+
+            if (($firstDeposit = $package->getFirstDeposit())) {
+                $invoiceItems->add($package->createInvoiceItem('First deposit', $firstDeposit)->setTaxed(false));
+            }
+
+            if ($invoiceItems->sum() <= 0) {
+                return;
+            }
+
+            $invoice = $invoice->edit($invoiceItems);
+
+            // In order to system know that it is product order invoice
+            $invoice->items->first()->setRawAttributes(array(
+                'type' => 'Hosting',
+                'relid' => $service->id,
+            ))->save();
         }
     }
 }

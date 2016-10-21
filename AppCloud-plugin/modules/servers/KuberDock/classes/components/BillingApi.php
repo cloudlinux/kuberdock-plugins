@@ -58,14 +58,50 @@ class BillingApi extends Component
     }
 
     /**
+     * @param Service $service
+     * @param string $reason
+     * @throws \Exception
+     */
+    public function suspendModule(Service $service, $reason = null)
+    {
+        BillingApi::request('modulesuspend', [
+            'accountid' => $service->id,
+            'suspendreason' => $reason,
+        ]);
+    }
+
+    /**
+     * @param Service $service
+     * @throws \Exception
+     */
+    public function unSuspendModule(Service $service)
+    {
+        BillingApi::request('moduleunsuspend', [
+            'accountid' => $service->id,
+        ]);
+    }
+
+    /**
+     * @param Service $service
+     * @throws \Exception
+     */
+    public function terminateModule(Service $service)
+    {
+        BillingApi::request('moduleterminate', [
+            'accountid' => $service->id,
+        ]);
+    }
+
+    /**
      * @param Client $client
      * @param InvoiceItemCollection $items
      * @param bool $autoApplyCredit
-     * @param null $gateway
+     * @param \DateTime|null $dueDate
+     * @param string|null $gateway
      * @return Invoice
      * @throws \Exception
      */
-    public function createInvoice(Client $client, $items, $autoApplyCredit = true, $gateway = null)
+    public function createInvoice(Client $client, $items, $autoApplyCredit = true, \DateTime $dueDate = null, $gateway = null)
     {
         $template = Config::get()->Template;
 
@@ -73,7 +109,7 @@ class BillingApi extends Component
 
         $values['userid'] = $client->id;
         $values['date'] = $date;
-        $values['duedate'] = $date;
+        $values['duedate'] = $dueDate ? $dueDate->format('Y-m-d') : $date;
         $values['paymentmethod'] = $gateway ? $gateway : $client->getGateway();
         $values['sendinvoice'] = true;
 
@@ -183,6 +219,28 @@ class BillingApi extends Component
         }
 
         return $invoice->fresh();
+    }
+
+    /**
+     * Related ID
+     * General Email Type = Client ID (tblclients.id)
+     * Product Email Type = Service ID (tblhosting.id)
+     * Domain Email Type = Domain ID (tbldomains.id)
+     * Invoice Email Type = Invoice ID (tblinvoices.id)
+     * Support Email Type = Ticket ID (tbltickets.id)
+     * Affiliate Email Type = Affiliate ID (tblaffiliates.id)
+     * @param int $id
+     * @param string $name
+     * @param array $params
+     * @throws \Exception
+     */
+    public function sendPreDefinedEmail($id, $name, $params = [])
+    {
+        BillingApi::request('sendemail', [
+            'messagename' => $name,
+            'customvars' => base64_encode(serialize($params)),
+            'id' => $id,
+        ]);
     }
 
     /**

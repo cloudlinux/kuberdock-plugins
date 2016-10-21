@@ -8,7 +8,6 @@ use base\CL_Base;
 use base\CL_Tools;
 use base\models\CL_Invoice;
 use base\models\CL_User;
-use base\models\CL_BillableItems;
 use exceptions\CException;
 
 include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
@@ -21,30 +20,17 @@ function KuberDock_DailyCronJob() {
     echo "Starting '".KUBERDOCK_MODULE_NAME."' hook\n";
 
     try {
-        $fixedBilling = new \models\addon\billingTypes\Fixed();
+        $fixedBilling = new \models\addon\billing\Fixed();
         $fixedBilling->processCron();
+
+        $paygBilling = new \models\addon\billing\Payg();
+        $paygBilling->processCron();
     } catch (Exception $e) {
         echo 'ERROR: '. $e->getMessage() . "\n";
         CException::log($e);
     }
 
-    $model = KuberDock_Hosting::model();
-    $services = $model->getByUserStatus(CL_User::STATUS_ACTIVE);
-
-    foreach($services as $service) {
-        $service = $model->loadByParams($service);
-
-        if (!$service->getProduct()->isFixedPrice()) continue;
-
-        try {
-            $service->calculate();
-        } catch(Exception $e) {
-            echo 'ERROR: serviceId-'. $service->id . ' '. $e->getMessage() . "\n";
-            CException::log($e);
-        }
-    }
-
-    echo " - Done\n";
+    echo "KuberDock - Done\n";
 }
 add_hook('DailyCronJob', 1, 'KuberDock_DailyCronJob');
 
@@ -154,6 +140,7 @@ function KuberDock_ShoppingCartValidateCheckout($params)
     if (isset($_SESSION['cart']) && $userId) {
         foreach ($_SESSION['cart']['products'] as $product) {
             $package = \models\billing\Package::find($product['pid']);
+            /* @var \models\billing\Package $package */
 
             // TOS enabled but not accepted
             if (!$package->isKuberDock() || ((bool) $config->EnableTOSAccept && !isset($_POST['accepttos']))) {
@@ -556,10 +543,13 @@ function KuberDock_AfterModuleCreate($params)
     try {
         $app = new \models\addon\App();
         $app = $app->getFromSession();
+        $billing = $service->package->getBilling();
+
+        $billing->afterModuleCreate($service);
 
         if ($app) {
             $service->moduleCreate = true;
-            $service->package->getBilling()->order($app->getResource(), $service);
+            $billing->order($app->getResource(), $service);
         }
     } catch (Exception $e) {
         CException::log($e);

@@ -6,7 +6,7 @@
 
 namespace models\addon;
 
-use models\addon\resourceTypes\ResourceFactory;
+use models\addon\resource\ResourceFactory;
 use models\billing\Server;
 use models\billing\Config;
 use models\billing\PackageGroup;
@@ -84,6 +84,14 @@ class Addon extends \components\Component {
             $emailTemplate->createFromView($emailTemplate::MODULE_CREATE_NAME,
                 'KuberDock Module Created','module_create');
 
+            $emailTemplate->createFromView($emailTemplate::RESOURCES_NOTICE_NAME,
+                'KuberDock Resources Notice', 'resources_notice');
+            $emailTemplate->createFromView($emailTemplate::RESOURCES_TERMINATION_NAME,
+                'KuberDock Resources Termination', 'resources_expired');
+
+            $emailTemplate->createFromView($emailTemplate::INVOICE_REMINDER_NAME,
+                'KuberDock Invoice reminder', 'invoice_reminder');
+
             // Sync packages & kubes
             $this->syncData($group);
         } catch(\Exception $e) {
@@ -107,6 +115,12 @@ class Addon extends \components\Component {
         EmailTemplate::where('name', EmailTemplate::TRIAL_EXPIRED_NAME)->where('type', EmailTemplate::TYPE_PRODUCT)
             ->delete();
         EmailTemplate::where('name', EmailTemplate::MODULE_CREATE_NAME)->where('type', EmailTemplate::TYPE_PRODUCT)
+            ->delete();
+        EmailTemplate::where('name', EmailTemplate::RESOURCES_NOTICE_NAME)->where('type', EmailTemplate::TYPE_PRODUCT)
+            ->delete();
+        EmailTemplate::where('name', EmailTemplate::RESOURCES_TERMINATION_NAME)
+            ->where('type', EmailTemplate::TYPE_PRODUCT)->delete();
+        EmailTemplate::where('name', EmailTemplate::INVOICE_REMINDER_NAME)->where('type', EmailTemplate::TYPE_PRODUCT)
             ->delete();
 
         $servers = Server::typeKuberDock()->active()->get();
@@ -219,7 +233,7 @@ class Addon extends \components\Component {
             $table->integer('user_id');
             $table->integer('service_id');
             $table->string('pod_id', 64)->nullable();
-            $table->integer('billable_item_id');
+            $table->integer('billable_item_id')->nullable();
             $table->string('status', 32)->default(Resources::STATUS_ACTIVE);
             $table->string('type', 64)->default(Resources::TYPE_POD);
 

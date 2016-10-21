@@ -5,10 +5,10 @@ namespace components;
 
 
 use models\addon\Resources;
-use models\addon\resourceTypes\ResourceFactory;
+use models\addon\State;
 use models\billing\Service;
 
-class InvoiceItemCollection implements \IteratorAggregate
+class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
 {
     /**
      * @var array
@@ -20,11 +20,37 @@ class InvoiceItemCollection implements \IteratorAggregate
     protected $description;
 
     /**
+     *
+     */
+    public function __clone()
+    {
+        array_walk($this->data, function (&$item) {
+            $item = clone $item;
+        });
+    }
+
+    /**
      * @return \ArrayIterator
      */
     public function getIterator()
     {
         return new \ArrayIterator($this->data);
+    }
+
+    /**
+     * @return string
+     */
+    public function jsonSerialize()
+    {
+        return $this->data;
+    }
+
+    /**
+     * @return int
+     */
+    public function count()
+    {
+        return count($this->data);
     }
 
     /**
@@ -76,7 +102,9 @@ class InvoiceItemCollection implements \IteratorAggregate
     {
         // Walk through items and divide PD\IP resources which already used
         $this->data = array_filter($this->data, function ($item) use ($service) {
-            /* @var InvoiceItem $item */
+            /* @var InvoiceItem $item
+             * @var Resources $resource
+             */
             switch ($item->getType()) {
                 case Resources::TYPE_PD:
                     $resource = Resources::notDeleted($service->userid)->where('name', $item->getName())
@@ -105,6 +133,31 @@ class InvoiceItemCollection implements \IteratorAggregate
                     }
 
                     return false;
+            }
+
+            return true;
+        });
+    }
+
+    /**
+     * @param State $state
+     */
+    public function filterPaidState(State $state)
+    {
+        $this->data = array_filter($this->data, function ($item) use ($state) {
+            foreach ($state->details as $paidItem) {
+                /* @var InvoiceItem $item */
+                $sameName = $item->getName() == $paidItem['name'];
+                $sameUnits = $item->getUnits() == $paidItem['units'];
+
+                if ($sameName && $sameUnits) {
+                    if ($item->getQty() <= $paidItem['qty']) {
+                        return false;
+                    } else {
+                        $item->setQty($item->getQty() - $paidItem['qty']);
+                        return $item;
+                    }
+                }
             }
 
             return true;

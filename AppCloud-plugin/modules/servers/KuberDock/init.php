@@ -15,7 +15,7 @@ defined(KUBERDOCK_DEBUG_API) or define(KUBERDOCK_DEBUG_API, false);
 // Enable JWT tokens for KD API requests
 defined(USE_JWT_TOKENS) or define(USE_JWT_TOKENS, true);
 
-if(KUBERDOCK_DEBUG) {
+if (KUBERDOCK_DEBUG) {
     ini_set('display_errors', true);
     error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
 } else {

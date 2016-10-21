@@ -40,6 +40,22 @@ class Invoice extends Model
      * @var string
      */
     protected $table = 'tblinvoices';
+    /**
+     * @var array
+     */
+    protected $fillable = ['status'];
+    /**
+     * @var array
+     */
+    protected $dates = ['duedate'];
+
+    /**
+     * @param array $dates
+     */
+    public function setDates($dates)
+    {
+        $this->dates = $dates;
+    }
 
     /**
      * @return InvoiceItem

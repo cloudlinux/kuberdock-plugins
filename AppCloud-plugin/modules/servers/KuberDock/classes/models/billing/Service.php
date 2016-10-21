@@ -6,6 +6,8 @@ namespace models\billing;
 
 use api\KuberDock_Api;
 use components\BillingApi;
+use models\addon\Item;
+use models\addon\Resources;
 use models\Model;
 
 class Service extends Model
@@ -22,15 +24,11 @@ class Service extends Model
     /**
      * @var array
      */
-    protected $dates = ['nextinvoicedate', 'nextduedate'];
-
+    protected $dates = ['regdate', 'nextinvoicedate', 'nextduedate', 'overideautosuspend'];
     /**
-     *
+     * @var array
      */
-    protected function bootIfNotBooted()
-    {
-        parent::bootIfNotBooted();
-    }
+    protected $fillable = ['status'];
 
     /**
      * @return Package
@@ -73,6 +71,14 @@ class Service extends Model
     }
 
     /**
+     * @return Item
+     */
+    public function item()
+    {
+        return $this->hasOne('models\addon\Item', 'service_id')->where('status', '!=', Resources::STATUS_DELETED);
+    }
+
+    /**
      * @param $query
      * @return mixed
      */
@@ -105,6 +111,51 @@ class Service extends Model
     public function getAdminApi()
     {
         return $this->serverModel->getApi();
+    }
+
+    /**
+     * @return $this
+     */
+    public function terminate()
+    {
+        $this->getAdminApi()->updateUser([
+            'active' => false,
+            'suspended' => false
+        ], $this->username);
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function suspend()
+    {
+        $this->getAdminApi()->updateUser([
+            'suspended' => true
+        ], $this->username);
+
+        $this->item()->where('status', '!=', Resources::STATUS_DELETED)->update([
+            'status' => Resources::STATUS_SUSPENDED,
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function unSuspend()
+    {
+        $this->getAdminApi()->updateUser([
+            'suspended' => false
+        ], $this->username);
+
+        $this->item()->where('status', '!=', Resources::STATUS_DELETED)->update([
+            'status' => Resources::STATUS_ACTIVE,
+        ]);
+
+        return $this;
     }
 
     /**

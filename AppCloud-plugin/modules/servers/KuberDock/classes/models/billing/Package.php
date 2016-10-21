@@ -9,9 +9,9 @@ use components\Units;
 use exceptions\CException;
 use models\addon\KubePrice;
 use models\addon\Resources;
-use models\addon\billingTypes\BillingInterface;
-use models\addon\billingTypes\Fixed;
-use models\addon\billingTypes\Payg;
+use models\addon\billing\BillingInterface;
+use models\addon\billing\Fixed;
+use models\addon\billing\Payg;
 use models\Model;
 
 class Package extends Model
@@ -377,18 +377,41 @@ class Package extends Model
         return $packages;
     }
 
+    /**
+     * @param bool $forward
+     * @return string
+     */
+    public function getNextShift($forward = true)
+    {
+        switch ($this->getPaymentType()) {
+            case 'hourly':
+                $offset = '1 day';
+                break;
+            case 'monthly':
+                $offset = '1 month';
+                break;
+            case 'quarterly':
+                $offset = '3 month';
+                break;
+            case 'annually':
+                $offset = '1 year';
+                break;
+        }
+
+        return ($forward ? '+' : '-') . $offset;
+    }
 
     /**
-     * @param float $price
      * @param string $description
+     * @param float $price
      * @param string|null $units
      * @param int $qty
      * @param string $type
      * @return ComponentsInvoiceItem
      */
-    public function createInvoiceItem($price, $description, $units = null, $qty = 1, $type = Resources::TYPE_POD)
+    public function createInvoiceItem($description, $price, $units = null, $qty = 1, $type = Resources::TYPE_POD)
     {
-        $invoice = ComponentsInvoiceItem::create($price, $description, $units, $qty, $type);
+        $invoice = ComponentsInvoiceItem::create($description, $price, $units, $qty, $type);
 
         if ($this->taxable) {
             $invoice->setTaxed(true);

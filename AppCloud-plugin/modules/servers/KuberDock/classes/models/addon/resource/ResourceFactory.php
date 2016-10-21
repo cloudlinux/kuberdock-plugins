@@ -1,7 +1,7 @@
 <?php
 
 
-namespace models\addon\resourceTypes;
+namespace models\addon\resource;
 
 
 use api\KuberDock_Api;

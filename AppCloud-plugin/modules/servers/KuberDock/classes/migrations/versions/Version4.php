@@ -29,7 +29,7 @@ class Version4 implements \migrations\VersionInterface
             /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->string('pod_id', 64)->nullable();
             $table->integer('resource_id', false, true);
-            $table->integer('item_id', false, true);
+            $table->integer('item_id');
 
             $table->index('pod_id');
             $table->index('resource_id');

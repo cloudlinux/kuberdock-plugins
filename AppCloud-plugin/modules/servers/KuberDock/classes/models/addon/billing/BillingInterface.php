@@ -1,12 +1,12 @@
 <?php
 
 
-namespace models\addon\billingTypes;
+namespace models\addon\billing;
 
 
 use models\addon\Item;
-use models\addon\resourceTypes\Pod;
-use models\addon\resourceTypes\ResourceFactory;
+use models\addon\resource\Pod;
+use models\addon\resource\ResourceFactory;
 use models\billing\Invoice;
 use models\billing\Service;
 
@@ -48,4 +48,9 @@ interface BillingInterface
      * @return Pod
      */
     public function afterSwitchPayment(Item $item);
+
+    /**
+     * @param Service $service
+     */
+    public function afterModuleCreate(Service $service);
 }

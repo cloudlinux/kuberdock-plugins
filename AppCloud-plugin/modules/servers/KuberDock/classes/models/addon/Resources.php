@@ -6,8 +6,9 @@ namespace models\addon;
 
 use components\InvoiceItem as ComponentsInvoiceItem;
 use exceptions\NotFoundException;
-use models\addon\resourceTypes\Pod;
+use models\addon\resource\Pod;
 use models\billing\Invoice;
+use models\billing\Service;
 use models\Model;
 
 class Resources extends Model
@@ -40,6 +41,10 @@ class Resources extends Model
      *
      */
     const STATUS_DIVIDED  = 'Divided';
+    /**
+     *
+     */
+    const STATUS_SUSPENDED = 'Suspended';
 
     /**
      * @var bool
@@ -118,7 +123,7 @@ class Resources extends Model
     /**
      * @param ComponentsInvoiceItem $item
      */
-    public function ComponentsInvoiceItem(ComponentsInvoiceItem $item)
+    public function divide(ComponentsInvoiceItem $item)
     {
         $addonItem = $this->resourcePods()->first()->item;
         $billableItem = $addonItem->billableItem;
@@ -190,9 +195,6 @@ class Resources extends Model
             if ($v['name'] == $this->name) {
                 try {
                     $item->service->getApi()->deletePD($v['id']);
-                    $this->update([
-                        'status' => self::STATUS_DELETED,
-                    ]);
                 } catch (\Exception $e) {
                     \exceptions\CException::log($e);
                 }
@@ -222,6 +224,31 @@ class Resources extends Model
         $this->update([
             'status' => self::STATUS_DELETED,
         ]);
+    }
+
+    /**
+     * @param Service $service
+     */
+    public function freeAll(Service $service)
+    {
+        $api = $service->getApi();
+        $pd = $api->getPD()->getData();
+
+        foreach ($pd as $v) {
+            try {
+                $api->deletePD($v['id']);
+            } catch (\Exception $e) {
+                \exceptions\CException::log($e);
+            }
+        }
+
+        foreach ($api->getPods()->getData() as $pod) {
+            try {
+                $service->getAdminApi()->unbindIP($pod['id']);
+            } catch (NotFoundException $e) {
+                continue;
+            }
+        }
     }
 
     /**

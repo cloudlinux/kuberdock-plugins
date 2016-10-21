@@ -4,6 +4,8 @@
 namespace models\billing;
 
 
+use Carbon\Carbon;
+use components\BillingApi;
 use components\View;
 use models\Model;
 
@@ -20,8 +22,10 @@ class EmailTemplate extends Model
     const TRIAL_EXPIRED_NAME = 'KuberDock Trial Expired';
     const MODULE_CREATE_NAME = 'KuberDock Module Create';
 
-    const PD_NOTICE_NAME = 'KuberDock PD Notice';
-    const IP_NOTICE_NAME = 'KuberDock IP Notice';
+    const RESOURCES_NOTICE_NAME = 'KuberDock Resources Notice';
+    const RESOURCES_TERMINATION_NAME = 'KuberDock Resources Termination';
+
+    const INVOICE_REMINDER_NAME = 'KuberDock Invoice Reminder';
 
     /**
      * @var bool
@@ -31,7 +35,9 @@ class EmailTemplate extends Model
      * @var string
      */
     protected $table = 'tblemailtemplates';
-
+    /**
+     * @var array
+     */
     protected $fillable = ['name', 'type', 'subject', 'message'];
 
     /**
@@ -43,7 +49,7 @@ class EmailTemplate extends Model
      */
     public function createFromView($name, $subject, $template, $type = self::TYPE_PRODUCT) {
         $view = new View();
-        $message = $view->renderPartial('emails/templates/' . $template, array(), false);
+        $message = $view->renderPartial('emails/templates/' . $template, [], false);
 
         return parent::firstOrCreate([
             'name' => $name,

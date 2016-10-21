@@ -1,6 +1,6 @@
 <?php
 
-namespace models\addon\billingTypes;
+namespace models\addon\billing;
 
 
 use components\BillingApi;
@@ -14,13 +14,12 @@ use exceptions\NotFoundException;
 use models\addon\Item;
 use models\addon\ItemInvoice;
 use models\addon\Resources;
-use models\addon\resourceTypes\Pod;
-use models\addon\resourceTypes\ResourceFactory;
+use models\addon\resource\Pod;
+use models\addon\resource\ResourceFactory;
 use models\billing\BillableItem;
 use models\billing\Client;
 use models\billing\Config;
 use models\billing\Invoice;
-use models\billing\Package;
 use models\billing\Service;
 
 class Fixed extends Component implements BillingInterface
@@ -123,6 +122,14 @@ class Fixed extends Component implements BillingInterface
     }
 
     /**
+     * @param Service $service
+     */
+    public function afterModuleCreate(Service $service)
+    {
+        // Not used
+    }
+
+    /**
      * @param Pod $pod
      * @param Service $service
      * @param string $type
@@ -189,6 +196,7 @@ class Fixed extends Component implements BillingInterface
             ->join('KuberDock_item_invoices', 'KuberDock_item_invoices.item_id', '=', 'KuberDock_items.id')
             ->join('tblinvoices', 'tblinvoices.id', '=', 'KuberDock_item_invoices.invoice_id')
             ->where('tblhosting.domainstatus', 'Active')
+            ->where('KuberDock_items.billable_item_id', '>', 0)
             ->where('KuberDock_items.status', '!=', Resources::STATUS_DELETED)
             ->where('KuberDock_item_invoices.status', Invoice::STATUS_UNPAID)
             ->whereRaw('DATE(DATE_ADD(tblinvoices.duedate, INTERVAL ? DAY)) <= CURRENT_DATE()', [
@@ -229,47 +237,6 @@ class Fixed extends Component implements BillingInterface
 
             $item->stopInvoicing();
         }
-    }
-
-    /**
-     * @param ResourceFactory $resource
-     * @param Service $service
-     * @param Invoice $invoice
-     */
-    public function invoiceCorrection(ResourceFactory $resource, Service $service, Invoice $invoice)
-    {
-        // AC-3839 Add recurring price to invoice
-        // Add setup\recurring funds only for newly created service
-        $package = $service->package;
-        /* @var Package $package */
-        $pricing = $package->pricing()->withCurrency($invoice->client->currencyModel->id)->first()->getReadable();
-
-        $invoiceItems = $resource->getInvoiceItems();
-
-        if ($pricing['setup'] > 0) {
-            $invoiceItems->add($package->createInvoiceItem($pricing['setup '], 'Setup'));
-        }
-
-        if ($pricing['recurring'] > 0) {
-            $invoiceItems->add(
-                $package->createInvoiceItem($pricing['recurring'], 'Recurring ('. $pricing['cycle'] .')')
-            );
-        }
-
-
-        if (($firstDeposit = $package->getFirstDeposit())) {
-            $invoiceItems->add(
-                $package->createInvoiceItem($firstDeposit, 'First deposit')->setTaxed(false)
-            );
-        }
-
-        $invoice = $invoice->edit($invoiceItems);
-
-        // In order to system know that it is product order invoice
-        $invoice->items->first()->setRawAttributes(array(
-            'type' => 'Hosting',
-            'relid' => $service->id,
-        ))->save();
     }
 
     /**
@@ -440,7 +407,7 @@ class Fixed extends Component implements BillingInterface
                     );
                     $price = $newContainers[$name]['kubes'] * $newKubePrice
                         - $newContainers[$name]['kubes'] * $oldKubePrice;
-                    $invoiceItems->add($package->createInvoiceItem($price, $description, 'kube', 1));
+                    $invoiceItems->add($package->createInvoiceItem($description, $price, 'kube', 1));
                 }
 
                 if ($delta == 0) {
@@ -468,7 +435,7 @@ class Fixed extends Component implements BillingInterface
                 . ')';
 
             $invoiceItems->add(
-                $package->createInvoiceItem($newKubePrice, $description, 'kube', $delta, Resources::TYPE_POD)
+                $package->createInvoiceItem($description, $newKubePrice, 'kube', $delta, Resources::TYPE_POD)
             );
         }
 
@@ -482,7 +449,7 @@ class Fixed extends Component implements BillingInterface
             }
             $description = 'Update resources, public IP ' . $action;
             $ipPrice = $package->getPriceIP() * $this->proRate;
-            $invoiceItems->add($package->createInvoiceItem($ipPrice, $description, 'IP', $count, Resources::TYPE_IP));
+            $invoiceItems->add($package->createInvoiceItem($description, $ipPrice, 'IP', $count, Resources::TYPE_IP));
         }
 
         // volumes
@@ -535,7 +502,7 @@ class Fixed extends Component implements BillingInterface
                 . ')';
 
             $invoiceItems->add(
-                $new->getPackage()->createInvoiceItem($psPrice, $description, $unit, $count, Resources::TYPE_PD)
+                $new->getPackage()->createInvoiceItem($description, $psPrice, $unit, $count, Resources::TYPE_PD)
                     ->setName($name)
             );
         }
@@ -595,6 +562,7 @@ class Fixed extends Component implements BillingInterface
     private function processDeletedPods()
     {
         $items = Item::where('status', '!=', Resources::STATUS_DELETED)
+            ->where('billable_item_id', '>', 0)
             ->where('type', Resources::TYPE_POD)
             ->get();
 

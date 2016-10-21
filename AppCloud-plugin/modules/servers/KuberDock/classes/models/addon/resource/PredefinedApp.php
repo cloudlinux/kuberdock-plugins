@@ -1,7 +1,7 @@
 <?php
 
 
-namespace models\addon\resourceTypes;
+namespace models\addon\resource;
 
 
 use api\KuberDock_Api;
@@ -62,7 +62,7 @@ class PredefinedApp extends ResourceFactory
 
         foreach ($containers as $row) {
             if (isset($row['kubes'])) {
-                $items->add($this->package->createInvoiceItem($kubePrice, $row['name'], 'pod', $row['kubes']));
+                $items->add($this->package->createInvoiceItem($row['name'], $kubePrice, 'pod', $row['kubes']));
             }
 
             if (isset($row['ports']) && !isset($data['kuberdock']['appPackage']['domain'])) {
@@ -70,7 +70,7 @@ class PredefinedApp extends ResourceFactory
                     if (isset($port['isPublic']) && $port['isPublic'] && !$hasPublicIP) {
                         $hasPublicIP = true;
                         $ipPrice = $this->package->getPriceIP();
-                        $items->add($this->package->createInvoiceItem($ipPrice, '', 'IP', 1, Resources::TYPE_IP));
+                        $items->add($this->package->createInvoiceItem('', $ipPrice, 'IP', 1, Resources::TYPE_IP));
                     }
                 }
             }
@@ -83,7 +83,7 @@ class PredefinedApp extends ResourceFactory
                     $psPrice = $this->package->getPricePS();
                     $qty = $row['persistentDisk']['pdSize'];
                     $items->add(
-                        $this->package->createInvoiceItem($psPrice, '', $unit, $qty, Resources::TYPE_PD)
+                        $this->package->createInvoiceItem('', $psPrice, $unit, $qty, Resources::TYPE_PD)
                             ->setName($row['persistentDisk']['pdName'])
                     );
                 }

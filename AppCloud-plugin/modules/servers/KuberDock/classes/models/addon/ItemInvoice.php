@@ -4,9 +4,11 @@
 namespace models\addon;
 
 
+use components\BillingApi;
 use exceptions\CException;
-use models\addon\resourceTypes\Pod;
+use models\addon\resource\Pod;
 use models\billing\Invoice;
+use models\billing\Service;
 use models\Model;
 
 class ItemInvoice extends Model

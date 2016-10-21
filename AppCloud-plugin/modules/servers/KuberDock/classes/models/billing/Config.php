@@ -45,6 +45,29 @@ class Config extends Model
     }
 
     /**
+     * suspend' => (bool) Enable Suspension,
+     * 'suspendDays' => (int) Suspend Days	,
+     * 'termination' => (bool) Enable Termination,
+     * 'terminationDays' => (int) Termination Days,
+     * 'invoiceReminderDays' => (int) Invoice Unpaid Reminder,
+     * 'invoiceNoticeDays' => (int) Invoice Notice,
+     * @return array
+     */
+    public static function getAutomatedSettings()
+    {
+        $config = self::get();
+
+        return [
+            'suspend' => (bool) $config->AutoSuspension,
+            'suspendDays' => (int) $config->AutoSuspensionDays,
+            'termination' => (bool) $config->AutoTermination,
+            'terminationDays' => (int) $config->AutoTerminationDays,
+            'invoiceReminderDays' => (int) $config->SendInvoiceReminderDays,
+            'invoiceNoticeDays' => (int) $config->CreateInvoiceDaysBefore,
+        ];
+    }
+
+    /**
      *
      * @param string $name
      * @param string $ip

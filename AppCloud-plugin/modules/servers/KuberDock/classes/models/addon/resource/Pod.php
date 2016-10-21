@@ -1,7 +1,7 @@
 <?php
 
 
-namespace models\addon\resourceTypes;
+namespace models\addon\resource;
 
 
 use api\KuberDock_Api;
@@ -61,7 +61,7 @@ class Pod extends ResourceFactory
             if (isset($row['kubes'])) {
                 $description = 'Pod: ' . $this->name . ' (' . $row['image'] . ')';
                 $items->add(
-                    $this->package->createInvoiceItem($kubePrice, $description, 'pod', $row['kubes'])
+                    $this->package->createInvoiceItem($description, $kubePrice, 'pod', $row['kubes'])
                 );
             }
 
@@ -71,7 +71,7 @@ class Pod extends ResourceFactory
                         $hasPublicIP = true;
                         $ipPrice = $this->package->getPriceIP();
                         $items->add(
-                            $this->package->createInvoiceItem($ipPrice, '', Units::getIPUnits(), 1, Resources::TYPE_IP)
+                            $this->package->createInvoiceItem('', $ipPrice, Units::getIPUnits(), 1, Resources::TYPE_IP)
                         );
                     }
                 }
@@ -83,7 +83,7 @@ class Pod extends ResourceFactory
                 if (isset($row['persistentDisk']['pdSize'])) {
                     $psPrice = $this->package->getPricePS();
                     $items->add(
-                        $this->package->createInvoiceItem($psPrice, '', Units::getPSUnits(),
+                        $this->package->createInvoiceItem('', $psPrice, Units::getPSUnits(),
                             $row['persistentDisk']['pdSize'], Resources::TYPE_PD)
                                 ->setName($row['persistentDisk']['pdName'])
                     );

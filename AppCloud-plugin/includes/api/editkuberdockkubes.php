@@ -22,7 +22,7 @@ try {
         throw new Exception('User has no KuberDock service');
     }
 
-    $pod = new \models\addon\resourceTypes\Pod($service->package);
+    $pod = new \models\addon\resource\Pod($service->package);
     $pod->load(html_entity_decode(urldecode($postFields->params->pod), ENT_QUOTES));
 
     $results = $service->package->getBilling()->processApiOrder($pod, $service, \models\addon\ItemInvoice::TYPE_EDIT);

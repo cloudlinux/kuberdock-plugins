@@ -4,11 +4,10 @@ namespace components;
 
 
 use exceptions\CException;
-use Illuminate\Database\Eloquent\Collection;
 use models\addon\Resources;
 use models\billing\Currency;
 
-class InvoiceItem
+class InvoiceItem implements \JsonSerializable
 {
     /** @var bool Short invoices have only description and total. No units, quantity and price */
     private $short = false;
@@ -43,13 +42,13 @@ class InvoiceItem
 
     /**
      * InvoiceItem constructor.
-     * @param float $price
      * @param string $description
+     * @param float $price
      * @param string $units
      * @param int $qty
      * @param string $type
      */
-    public function __construct($price, $description, $units, $qty, $type)
+    public function __construct($description, $price, $units, $qty, $type)
     {
         $this->customDescription = $description;
         $this->price = $price;
@@ -59,16 +58,24 @@ class InvoiceItem
     }
 
     /**
-     * @param $price
+     * @return array
+     */
+    public function jsonSerialize()
+    {
+        return get_object_vars($this);
+    }
+
+    /**
      * @param string $description
+     * @param float $price
      * @param null $units
      * @param int $qty
      * @param string $type
      * @return InvoiceItem
      */
-    public static function create($price, $description, $units = null, $qty = 1, $type = Resources::TYPE_POD)
+    public static function create($description, $price, $units = null, $qty = 1, $type = Resources::TYPE_POD)
     {
-        $object = new self($price, $description, $units, $qty, $type);
+        $object = new self($description, $price, $units, $qty, $type);
 
         return $object;
     }
@@ -136,6 +143,22 @@ class InvoiceItem
     }
 
     /**
+     * @return string
+     */
+    public function getUnits()
+    {
+        return $this->units;
+    }
+
+    /**
+     * @return string
+     */
+    public function getQty()
+    {
+        return $this->qty;
+    }
+
+    /**
      * @param string $name
      * @return $this
      */
@@ -157,6 +180,17 @@ class InvoiceItem
         }
 
         $this->type = $type;
+    }
+
+    /**
+     * @param int $quantity
+     * @return string
+     */
+    public function setQty($quantity)
+    {
+        $this->qty = (int) $quantity;
+
+        return $this;
     }
 
     /**
@@ -183,6 +217,14 @@ class InvoiceItem
         }
 
         return $description;
+    }
+
+    /**
+     * @param float $prorate
+     */
+    public function proratePrice($prorate)
+    {
+        $this->price *= $prorate;
     }
 
     /**

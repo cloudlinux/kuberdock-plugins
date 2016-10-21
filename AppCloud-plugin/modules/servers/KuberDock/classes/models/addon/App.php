@@ -5,8 +5,8 @@ namespace models\addon;
 
 
 use exceptions\CException;
-use models\addon\resourceTypes\PredefinedApp;
-use models\addon\resourceTypes\ResourceFactory;
+use models\addon\resource\PredefinedApp;
+use models\addon\resource\ResourceFactory;
 use models\billing\Package;
 use models\Model;
 

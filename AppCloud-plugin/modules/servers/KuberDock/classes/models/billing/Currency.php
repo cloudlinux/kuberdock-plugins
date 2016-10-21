@@ -46,7 +46,7 @@ class Currency extends Model
     {
         $value = (float) $value * $this->rate;
 
-        switch($this->format) {
+        switch ($this->format) {
             case self::FORMAT_1:
                 $value = number_format($value, 2, '.', '');
                 break;

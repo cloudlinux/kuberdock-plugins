@@ -65,8 +65,8 @@ function KuberDock_CreateAccount($params) {
  */
 function KuberDock_TerminateAccount($params) {
     try {
-        $product = KuberDock_Product::model()->loadById($params['pid']);
-        $product->terminate($params['serviceid']);
+        $service = \models\billing\Service::find($params['serviceid']);
+        $service->terminate();
 
         return 'success';
     } catch(Exception $e) {
@@ -81,8 +81,8 @@ function KuberDock_TerminateAccount($params) {
  */
 function KuberDock_SuspendAccount($params) {
     try {
-        $product = KuberDock_Product::model()->loadById($params['pid']);
-        $product->suspend($params['serviceid']);
+        $service = \models\billing\Service::find($params['serviceid']);
+        $service->suspend();
 
         return 'success';
     } catch(Exception $e) {
@@ -97,8 +97,8 @@ function KuberDock_SuspendAccount($params) {
  */
 function KuberDock_UnsuspendAccount($params) {
     try {
-        $product = KuberDock_Product::model()->loadById($params['pid']);
-        $product->unSuspend($params['serviceid']);
+        $service = \models\billing\Service::find($params['serviceid']);
+        $service->unSuspend();
 
         return 'success';
     } catch(Exception $e) {

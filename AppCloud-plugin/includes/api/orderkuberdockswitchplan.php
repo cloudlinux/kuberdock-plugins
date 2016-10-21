@@ -25,7 +25,7 @@ try {
     $oldPod = html_entity_decode(urldecode($postFields->params->oldPod), ENT_QUOTES);
     $newPod = html_entity_decode(urldecode($postFields->params->pod), ENT_QUOTES);
 
-    $pod = new \models\addon\resourceTypes\Pod($service->package);
+    $pod = new \models\addon\resource\Pod($service->package);
     $pod->load($oldPod);
     $pod->edited_config = json_decode($newPod, true);
 

@@ -38,7 +38,7 @@ try {
         'product_id' => $packageRelation->product_id,
         'data' => $yaml,
         'referer' => $referer,
-        'type' => \models\addon\resourceTypes\ResourceFactory::TYPE_YAML,
+        'type' => \models\addon\resource\ResourceFactory::TYPE_YAML,
     ]);
 
     $app->save();
