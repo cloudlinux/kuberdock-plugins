@@ -330,6 +330,11 @@ class KuberDock_Api {
         return $this->apiCall('/api/v1/yamlapi/fill/' . $templateId . '/' . $planId);
     }
 
+    public function isVolumeResizable()
+    {
+        return $this->apiCall('/api/v1/pstorage/is_volume_resizable');
+    }
+
     /**
      * @param array $params
      * @param string $type

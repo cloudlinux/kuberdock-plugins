@@ -847,11 +847,14 @@ define(['app', 'application/utils',
 
         templateHelpers: function () {
             var templateModel = this.model.get('templateModel');
+            var isVolumeResizableModel = this.model.get('isVolumeResizableModel');
 
-            var currentPlan = _.findWhere(templateModel.getPlans(), {
-                name: this.model.get('template_plan_name')
-            });
-            templateModel.setCurrentPlan(currentPlan);
+            if (!isVolumeResizableModel.get('resizable')) {
+                var currentPlan = _.findWhere(templateModel.getPlans(), {
+                    name: this.model.get('template_plan_name')
+                });
+                templateModel.setCurrentPlan(currentPlan);
+            }
 
             return {
                 model: this.model,

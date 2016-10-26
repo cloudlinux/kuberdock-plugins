@@ -185,31 +185,37 @@ define([
         },
 
         predefinedChangePlan: function (name) {
-            var view;
-
-            if (this.pod && this.templateModel) {
-                this.pod.set('templateModel', this.templateModel);
-                view = new Views.ChangePlan({
-                    model: this.pod
-                });
-                this.layout.showChildView('content', view);
+            if (this.pod && this.templateModel && this.isVolumeResizableModel) {
+                this.predefinedChangePlanSetView(name);
             } else {
                 this.pod = new Pod.Model({name: name});
-                view = new Views.ChangePlan({
-                    model: this.pod
-                });
+
                 var self = this;
 
-                $.when(this.pod.fetch({silent: true})).done(function () {
+                this.pod.fetch({silent: true}).done(function () {
                     self.templateModel = new Predefined.TemplateModel({
                         id: self.pod.get('template_id')
                     });
-                    $.when(self.templateModel.fetch({silent: true})).done(function () {
-                        self.pod.set('templateModel', self.templateModel);
-                        self.layout.showChildView('content', view);
+                    self.isVolumeResizableModel = new Predefined.IsVolumeResizableModel();
+
+                    $.when(
+                        self.templateModel.fetch({silent: true}),
+                        self.isVolumeResizableModel.fetch({silent:true})
+                    ).done(function () {
+                        self.predefinedChangePlanSetView(name);
                     });
                 });
             }
+        },
+
+        predefinedChangePlanSetView: function (name) {
+            var view;
+            this.pod.set('templateModel', this.templateModel);
+            this.pod.set('isVolumeResizableModel', this.isVolumeResizableModel);
+            view = new Views.ChangePlan({
+                model: this.pod
+            });
+            this.layout.showChildView('content', view);
         }
     });
 });

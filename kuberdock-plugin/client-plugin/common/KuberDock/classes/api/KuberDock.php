@@ -182,6 +182,14 @@ class KuberDock extends API
         return $this->getPod()->getPersistentDrives();
     }
 
+    protected function get_is_volume_resizable()
+    {
+        $api = Base::model()->getPanel()->getApi();
+        $resizable = $api->isVolumeResizable();
+
+        return array('resizable' => $resizable);
+    }
+
     protected function get_user_package()
     {
         return Base::model()->getPanel()->billing->getPackage();

@@ -178,6 +178,18 @@ define(['backbone', 'application/utils', 'application/pods/model'], function (Ba
         }
     });
 
+    Predefined.IsVolumeResizableModel = Backbone.Model.extend({
+        urlRoot: rootURL + '?request=is_volume_resizable',
+
+        defaults: function () {
+            return {};
+        },
+
+        parse: function (response) {
+            return Utils.parseResponse(response);
+        }
+    });
+
     Predefined.TemplateVariablesModel = Backbone.Model.extend({
         urlRoot: rootURL + '?request=templates/setup',
 
