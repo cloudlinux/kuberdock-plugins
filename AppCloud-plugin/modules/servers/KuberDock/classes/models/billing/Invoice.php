@@ -31,6 +31,10 @@ class Invoice extends Model
      *
      */
     const STATUS_DELETED = 'Deleted';
+    /**
+     *
+     */
+    const STATUS_CANCELLED = 'Cancelled';
 
     /**
      * @var bool

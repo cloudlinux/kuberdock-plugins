@@ -18,16 +18,11 @@ class KubeTemplate extends Model
      * Can be deleted by admin
      */
     const TYPE_NON_STANDARD = 1;
-    /**
-     *
-     */
-    const STANDARD_KUBE_IDS = [0, 1, 2];
 
     /**
      * @var bool
      */
     public $timestamps = false;
-
     /**
      * @var string
      */

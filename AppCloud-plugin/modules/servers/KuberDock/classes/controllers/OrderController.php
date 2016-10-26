@@ -10,7 +10,6 @@ use components\Tools;
 use Exception;
 use exceptions\CException;
 use models\addon\App;
-use models\addon\PackageRelation;
 
 
 class OrderController extends Controller {

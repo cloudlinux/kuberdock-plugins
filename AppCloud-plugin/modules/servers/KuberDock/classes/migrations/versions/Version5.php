@@ -2,10 +2,12 @@
 
 namespace migrations\versions;
 
+use models\addon\Item;
 use models\addon\ItemInvoice;
 use models\addon\Resources;
 use models\addon\resource\ResourceFactory;
 use models\billing\EmailTemplate;
+use models\billing\Service;
 
 class Version5 implements \migrations\VersionInterface
 {
@@ -16,8 +18,8 @@ class Version5 implements \migrations\VersionInterface
 
         $scheme->create('KuberDock_item_invoices', function ($table) {
             /* @var \Illuminate\Database\Schema\Blueprint $table */
-            $table->integer('id');
-            $table->integer('item_id');
+            $table->increments('id');
+            $table->integer('item_id', false, true);
             $table->integer('invoice_id');
             $table->string('status', 16);
             $table->enum('type', [
@@ -28,7 +30,6 @@ class Version5 implements \migrations\VersionInterface
             $table->text('params')->nullable();
             $table->timestamps();
 
-            $table->primary('id');
             $table->index('invoice_id');
             $table->index('item_id');
 
@@ -46,15 +47,14 @@ class Version5 implements \migrations\VersionInterface
 
         $scheme->table('KuberDock_items', function ($table) {
             /* @var \Illuminate\Database\Schema\Blueprint $table */
-            $table->increments('id');
             $table->string('type', 64)->default(Resources::TYPE_POD);
             $table->dropColumn('app_id');
             $table->dropColumn('invoice_id');
         });
 
-        $db->statement('ALTER TABLE KuberDock_items CHANGE COLUMN pod_id pod_id VARCHAR(64) DEFAULT NULL');
-        $db->statement('ALTER TABLE KuberDock_items CHANGE COLUMN billable_item_id billable_item_id INT(11) DEFAULT NULL');
-        $db->statement('ALTER TABLE KuberDock_items CHANGE COLUMN status status VARCHAR(16) DEFAULT \'?\'', [Resources::STATUS_ACTIVE]);
+        $db->statement('ALTER TABLE KuberDock_items MODIFY pod_id VARCHAR(64) DEFAULT NULL');
+        $db->statement('ALTER TABLE KuberDock_items MODIFY billable_item_id INT(11) DEFAULT NULL');
+        $db->statement('ALTER TABLE KuberDock_items MODIFY status VARCHAR(16) DEFAULT \'?\'', [Resources::STATUS_ACTIVE]);
 
         $emailTemplate = new EmailTemplate();
         $emailTemplate->createFromView($emailTemplate::RESOURCES_NOTICE_NAME,
@@ -64,6 +64,24 @@ class Version5 implements \migrations\VersionInterface
 
         $emailTemplate->createFromView($emailTemplate::INVOICE_REMINDER_NAME,
             'KuberDock Invoice reminder', 'invoice_reminder');
+
+        $services = Service::typeKuberDock()
+            ->where('domainstatus', 'Active')
+            ->whereHas('package', function ($query) {
+                $query->where('configoption9', 'PAYG');
+            })
+            ->get();
+
+        foreach ($services as $service) {
+            $item = new Item();
+            $item->setRawAttributes([
+                'user_id' => $service->userid,
+                'service_id' => $service->id,
+                'status' => Resources::STATUS_ACTIVE,
+                'type' => Resources::TYPE_POD,
+            ]);
+            $item->save();
+        }
     }
 
     public function down()

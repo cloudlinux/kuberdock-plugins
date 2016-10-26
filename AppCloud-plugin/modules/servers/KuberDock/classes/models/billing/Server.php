@@ -19,6 +19,9 @@ class Server extends Model
      */
     protected $table = 'tblservers';
 
+    /**
+     * @return ServerGroup
+     */
     public function groups()
     {
         return $this->hasManyThrough(

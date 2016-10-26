@@ -8,6 +8,9 @@ use models\Model;
 
 class PackageGroup extends Model
 {
+    /**
+     *
+     */
     const DEFAULT_NAME = 'KuberDock';
 
     /**
@@ -18,6 +21,8 @@ class PackageGroup extends Model
      * @var string
      */
     protected $table = 'tblproductgroups';
-
-    protected $fillable = array('name');
+    /**
+     * @var array
+     */
+    protected $fillable = ['name'];
 }

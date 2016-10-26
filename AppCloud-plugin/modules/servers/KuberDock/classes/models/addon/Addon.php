@@ -21,7 +21,7 @@ class Addon extends \components\Component {
     /**
      *
      */
-    const REQUIRED_PHP_VERSION = '5.6';
+    const REQUIRED_PHP_VERSION = '5.4';
 
     /**
      *
@@ -336,7 +336,7 @@ class Addon extends \components\Component {
                 KubeTemplate::firstOrCreate([
                     'kuber_kube_id' => $kube['id'],
                     'kube_name' => $kube['name'],
-                    'kube_type' => (int) !in_array($kube['id'], KubeTemplate::STANDARD_KUBE_IDS),
+                    'kube_type' => (int) !in_array($kube['id'], [0, 1, 2]),
                     'cpu_limit' => $kube['cpu'],
                     'memory_limit' => $kube['memory'],
                     'hdd_limit' => $kube['disk_space'],
