@@ -31,6 +31,7 @@ class CL_Invoice extends CL_Model {
     const STATUS_PAID = 'Paid';
     const STATUS_UNPAID = 'Unpaid';
     const STATUS_DELETED = 'Deleted';
+    const STATUS_CANCELLED = 'Cancelled';
 
     /**
      *

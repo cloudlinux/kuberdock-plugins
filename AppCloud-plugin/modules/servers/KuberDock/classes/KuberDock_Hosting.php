@@ -158,9 +158,8 @@ class KuberDock_Hosting extends CL_Hosting
     public function calculateFixed()
     {
         $items = KuberDock_Addon_Items::model()->loadByAttributes(array(
-            'status' => \base\models\CL_Invoice::STATUS_UNPAID,
             'user_id' => $this->userid,
-        ));
+        ), 'status != \'' . \base\models\CL_Invoice::STATUS_DELETED .'\'');
 
         foreach($items as $row) {
             $item = KuberDock_Addon_Items::model()->loadByParams($row);

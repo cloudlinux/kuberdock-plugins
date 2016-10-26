@@ -8,6 +8,7 @@ use components\BillingApi;
 use models\billing\BillableItem;
 use models\billing\Client;
 use models\billing\Invoice;
+use models\billing\InvoiceItem;
 use models\billing\Service;
 use models\Model;
 
@@ -144,11 +145,32 @@ class Item extends Model
      */
     public function stopInvoicing()
     {
-        // Stop invoicing
-        $this->billableItem->invoiceaction = BillableItem::CREATE_NO_INVOICE_ID;
-        $this->billableItem->description .= ' (Deleted)';
-        $this->billableItem->save();
+        $unpaidInvoices = $this->invoices()->unpaid()->get();
 
+        foreach ($unpaidInvoices as $itemInvoice) {
+            $invoiceItemCount = InvoiceItem::where('invoiceid', $itemInvoice->invoice_id)
+                ->where('type', BillableItem::TYPE)
+                ->count();
+
+            if ($invoiceItemCount > 1) {
+                $invoiceItem = InvoiceItem::where('invoiceid', $itemInvoice->invoice_id)
+                    ->where('relid', $this->billableItem->id)
+                    ->where('type', BillableItem::TYPE)
+                    ->first();
+
+                BillingApi::request('updateinvoice', [
+                    'invoiceid' => $itemInvoice->invoice_id,
+                    'deletelineids' => [
+                        'invoice_item_id' => $invoiceItem->id,
+                    ],
+                ]);
+            } else {
+                $itemInvoice->invoice->status = Invoice::STATUS_CANCELLED;
+                $itemInvoice->invoice->save();
+            }
+        }
+
+        $this->billableItem->delete();
         $this->status = Resources::STATUS_DELETED;
         $this->save();
     }

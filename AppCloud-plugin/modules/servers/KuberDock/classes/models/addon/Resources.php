@@ -122,11 +122,16 @@ class Resources extends Model
 
     /**
      * @param ComponentsInvoiceItem $item
+     * @return bool
      */
     public function divide(ComponentsInvoiceItem $item)
     {
         $addonItem = $this->resourcePods()->first()->item;
         $billableItem = $addonItem->billableItem;
+
+        if (!$billableItem) {
+            return true;
+        }
 
         $billableItem->amount -= $item->getTotal();
         $billableItem->save();
@@ -158,6 +163,8 @@ class Resources extends Model
         $this->update([
             'status' => self::STATUS_DIVIDED,
         ]);
+
+        return false;
     }
 
     /**

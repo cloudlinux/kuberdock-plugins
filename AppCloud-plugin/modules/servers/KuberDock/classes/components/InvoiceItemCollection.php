@@ -114,11 +114,11 @@ class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
                         return true;
                     }
 
-                    if ($resource) {
-                        $resource->divide($item);
+                    if ($resource->isActive()) {
+                        return $resource->divide($item);
                     }
 
-                    return false;
+                    break;
                 case Resources::TYPE_IP:
                     $ipStat = $service->getApi()->getIpPoolStat()->getData();
                     $resource = Resources::notDeleted($service->userid)->where('name', count($ipStat) + 1)
@@ -129,10 +129,10 @@ class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
                     }
 
                     if ($resource->isActive()) {
-                        $resource->divide($item);
+                        return $resource->divide($item);
                     }
 
-                    return false;
+                    break;
             }
 
             return true;

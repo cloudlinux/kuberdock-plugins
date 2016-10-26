@@ -191,7 +191,7 @@ class Fixed extends Component implements BillingInterface
     {
         $config = Config::get();
 
-        // Stop invoicing for deleted pods
+        // Process deleted pods
         $this->processDeletedPods();
 
         // Process unpaid items
