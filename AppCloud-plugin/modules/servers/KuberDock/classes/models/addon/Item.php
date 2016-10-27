@@ -226,10 +226,10 @@ class Item extends Model
             $invoice = $invoice->edit($invoiceItems);
 
             // In order to system know that it is product order invoice
-            $invoice->items->first()->setRawAttributes(array(
-                'type' => 'Hosting',
-                'relid' => $service->id,
-            ))->save();
+            $invoiceItem = $invoice->items->first();
+            $invoiceItem->type = 'Hosting';
+            $invoiceItem->relid = $service->id;
+            $invoiceItem->save();
         }
     }
 }
