@@ -357,7 +357,7 @@ class KuberDock_Hosting extends CL_Hosting
         }
         if ($totalPdSize) {
             $price = (float) $product->getConfigOption('pricePersistentStorage');
-            $unit = KuberDock_Units::getPSUnits();
+            $unit = Units::getPSUnits();
             $items[] = $product->createInvoice('Storage', $price, $unit, $totalPdSize);
         }
 

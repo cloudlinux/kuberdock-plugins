@@ -13,7 +13,7 @@ use base\models\CL_Client;
 use base\models\CL_MailTemplate;
 use base\models\CL_BillableItems;
 use base\models\CL_Invoice;
-use components\KuberDock_Units;
+use components\Units;
 use components\KuberDock_InvoiceItem;
 use exceptions\CException;
 use exceptions\NotFoundException;
@@ -63,8 +63,8 @@ class KuberDock_Product extends CL_Product {
      */
     public function getConfig()
     {
-        $psUnit = KuberDock_Units::getPSUnits();
-//        $trafficUnit = KuberDock_Units::getTrafficUnits(); // AC-3783
+        $psUnit = Units::getPSUnits();
+//        $trafficUnit = Units::getTrafficUnits(); // AC-3783
 
         $config = array(
             'enableTrial' => array(
@@ -383,12 +383,12 @@ class KuberDock_Product extends CL_Product {
         }
 
         if (0 != $pricePS = (float) $this->getConfigOption('pricePersistentStorage')) {
-            $description['Persistent Storage'] = $this->formatFeature($pricePS, '1 ' . KuberDock_Units::getHDDUnits());
+            $description['Persistent Storage'] = $this->formatFeature($pricePS, '1 ' . Units::getHDDUnits());
         }
 
 //        AC-3783
 //        if (0 != $priceOT = (float) $this->getConfigOption('priceOverTraffic')) {
-//            $description['Additional Traffic'] = $this->formatFeature($priceOT, '1 ' . KuberDock_Units::getTrafficUnits());
+//            $description['Additional Traffic'] = $this->formatFeature($priceOT, '1 ' . Units::getTrafficUnits());
 //        }
 
         foreach($this->getKubes() as $kube) {
@@ -399,10 +399,10 @@ class KuberDock_Product extends CL_Product {
                 array(
                     $currency->getFullPrice($kube['kube_price']),
                     $this->getReadablePaymentType(),
-                    number_format($kube['cpu_limit'], 2) . ' '.KuberDock_Units::getCPUUnits(),
-                    $kube['memory_limit'].' '.KuberDock_Units::getMemoryUnits(),
-                    $kube['hdd_limit'].' '.KuberDock_Units::getHDDUnits(),
-//                    $kube['traffic_limit'].' '.KuberDock_Units::getTrafficUnits() // AC-3783
+                    number_format($kube['cpu_limit'], 2) . ' '.Units::getCPUUnits(),
+                    $kube['memory_limit'].' '.Units::getMemoryUnits(),
+                    $kube['hdd_limit'].' '.Units::getHDDUnits(),
+//                    $kube['traffic_limit'].' '.Units::getTrafficUnits() // AC-3783
                 )
             );
         }

@@ -433,7 +433,7 @@ class KuberDock_Pod
         $newVolumes = self::sortVolumes($new);
         $psPrice = (float)$this->product->getConfigOption('pricePersistentStorage') * $this->proRate;
         $listVolumes = array_keys(array_merge($oldVolumes, $newVolumes));
-        $unit = \components\KuberDock_Units::getPSUnits();
+        $unit = \components\Units::getPSUnits();
         foreach ($listVolumes as $volumeName) {
             $issetNewPorts = isset($newVolumes[$volumeName]);
             $issetOldPorts = isset($oldVolumes[$volumeName]);
