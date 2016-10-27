@@ -10,7 +10,7 @@ function KuberDock_config()
     return array (
         'name' => 'KuberDock addon',
         'description' => '',
-        'version' => '1.0.8.1',
+        'version' => '1.1.0',
         'author' => '<a href="http://www.cloudlinux.com" targer="_blank">CloudLinux</a>',
         'fields' => array(),
     );
@@ -19,7 +19,7 @@ function KuberDock_config()
 function KuberDock_activate()
 {
     try {
-        KuberDock_Addon::model()->activate();
+        \models\addon\Addon::model()->activate();
 
         return array(
             'status' =>  'success',
@@ -36,7 +36,7 @@ function KuberDock_activate()
 function KuberDock_deactivate()
 {
     try {
-        KuberDock_Addon::model()->deactivate();
+        \models\addon\Addon::model()->deactivate();
 
         return array(
             'status' =>  'success',
@@ -52,8 +52,8 @@ function KuberDock_deactivate()
 
 function KuberDock_output($vars)
 {
-    $base = \base\CL_Base::model();
-    $base->baseUrl = $vars['modulelink'];
-    $base->defaultController = 'KuberDock_Addon';
-    $base->run();
+    $controller = \components\Controller::model();
+    $controller->baseUrl = $vars['modulelink'];
+    $controller->defaultController = 'Addon';
+    $controller->run();
 }

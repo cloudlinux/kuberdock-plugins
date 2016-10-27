@@ -44,6 +44,10 @@ class Migration
         /** @var VersionInterface $version */
         $version = new $className;
 
+        if (!is_array($version->$direction())) {
+            return;
+        }
+
         foreach ($version->$direction() as $sql) {
             CL_Query::model()->query($sql);
         };

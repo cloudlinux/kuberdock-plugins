@@ -8,51 +8,45 @@ require_once dirname(__FILE__) . '/../../modules/servers/KuberDock/init.php';
 
 try {
     $vars = get_defined_vars();
-    $postFields = \base\CL_Tools::getApiParams($vars);
+    $postFields = \components\BillingApi::model()->getApiParams($vars);
 
-    $predefinedApp = \KuberDock_Addon_PredefinedApp::model();
-
-    foreach (array($predefinedApp::KUBERDOCK_PRODUCT_ID_FIELD, $predefinedApp::KUBERDOCK_YAML_FIELD) as $attr) {
+    foreach (['pkgid', 'yaml'] as $attr) {
         if (!isset($postFields->params->{$attr})) {
             throw new \exceptions\CException(sprintf("Field '%s' required", $attr));
         }
     }
 
-    $kdProductId = $postFields->params->{$predefinedApp::KUBERDOCK_PRODUCT_ID_FIELD};
-    $yaml = html_entity_decode(rawurldecode($postFields->params->{$predefinedApp::KUBERDOCK_YAML_FIELD}), ENT_QUOTES);
-    $referer = $postFields->params->{$predefinedApp::KUBERDOCK_REFERER_FIELD};
-    $parsedYaml = \base\CL_Tools::parseYaml($yaml);
+    $packageId = $postFields->params->pkgid;
+    $yaml = html_entity_decode(rawurldecode($postFields->params->yaml), ENT_QUOTES);
+    $referer = $postFields->params->referer;
+    $parsedYaml = \components\Tools::parseYaml($yaml);
 
     if (isset($parsedYaml['kuberdock']['packageID'])) {
-        $kdProductId = $parsedYaml['kuberdock']['packageID'];
+        $packageId = $parsedYaml['kuberdock']['packageID'];
     }
 
-    $kdProduct = \KuberDock_Addon_Product::model()->getByKuberId($kdProductId, $referer);
-    $product = \KuberDock_Product::model()->loadById($kdProduct->product_id);
+    $packageRelation = \models\addon\PackageRelation::where('kuber_product_id', $packageId)
+        ->byReferer($referer)->first();
 
-    $predefinedApp = $predefinedApp->loadBySessionId();
-
-    if (!$predefinedApp) {
-        $predefinedApp = new \KuberDock_Addon_PredefinedApp();
+    if (!$packageRelation) {
+        throw new Exception(sprintf('Product for KuberDock server %s not found', $referer));
     }
 
-    $sessionId = \base\CL_Base::model()->getSession();
-
-    $predefinedApp->setAttributes(array(
-        'session_id' => $sessionId,
-        'kuber_product_id' => $kdProductId,
-        'product_id' => $product->id,
+    $app = new \models\addon\App();
+    $app->setRawAttributes([
+        'kuber_product_id' => $packageRelation->kuber_product_id,
+        'product_id' => $packageRelation->product_id,
         'data' => $yaml,
         'referer' => $referer,
-    ));
+        'type' => \models\addon\resource\ResourceFactory::TYPE_YAML,
+    ]);
 
-    $predefinedApp->save();
+    $app->save();
 
-    $config = \base\models\CL_Configuration::model()->get();
+    $config = \models\billing\Config::get();
 
     $results = array(
-        'package_id' => $kdProductId,
-        'redirect' => sprintf('%s/kdorder.php?a=toCart&sessionId=%s', $config->SystemURL, $sessionId),
+        'redirect' => sprintf('%s/kdorder.php?a=toCart&id=%s', $config->SystemURL, $app->id),
     );
 
     $apiresults = array('result' => 'success', 'results' => $results);

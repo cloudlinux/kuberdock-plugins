@@ -9,7 +9,7 @@ use base\CL_Tools;
 use base\models\CL_MailTemplate;
 use base\models\CL_Client;
 use base\models\CL_Hosting;
-use components\KuberDock_Units;
+use components\Units;
 use components\KuberDock_InvoiceItem;
 
 class KuberDock_Hosting extends CL_Hosting
@@ -152,6 +152,9 @@ class KuberDock_Hosting extends CL_Hosting
         return true;
     }
 
+    /**
+     * Process unpaid items
+     */
     public function calculateFixed()
     {
         $items = KuberDock_Addon_Items::model()->loadByAttributes(array(
@@ -266,7 +269,7 @@ class KuberDock_Hosting extends CL_Hosting
      * @param DateTime $date
      * @param array $kubes
      * @param string $paymentType (monthly, quarterly, annually)
-     * @return array
+     * @return float
      * @throws Exception
      */
     public function getPeriodicUsage(DateTime $date, $kubes, $paymentType)

@@ -22,14 +22,10 @@ try {
     $pod = json_decode(html_entity_decode(rawurldecode($pod), ENT_QUOTES), true);
     $user = KuberDock_User::model()->loadById($clientId);
 
-    $data = \KuberDock_Addon_Items::model()->loadByAttributes(array(
-        'pod_id' => $pod['id'],
-    ), '', array(
-        'order' => 'id DESC',
-        'limit' => 1,
-    ));
+    $item = \models\addon\Item::where('pod_id', $pod['id'])->orderBy('id', 'desc')->first();
+    /* @var \models\addon\Item $item */
 
-    if (!$data) {
+    if (!$item) {
         $services = KuberDock_Hosting::model()->getByUser($clientId);
 
         if (!$services) {
@@ -53,9 +49,7 @@ try {
             throw new Exception('User has no KuberDock item');
         }
     } else {
-        $item = \KuberDock_Addon_Items::model()->loadByParams(current($data));
-
-        if (!$item->isPayed()) {
+        if (!$item->isPaid()) {
             throw new Exception('Pod is unpaid');
         }
 

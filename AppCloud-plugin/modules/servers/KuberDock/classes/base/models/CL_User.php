@@ -8,6 +8,7 @@ namespace base\models;
 
 use Exception;
 use base\CL_Model;
+use models\billing\Admin;
 
 class CL_User extends CL_Model {
     const STATUS_ACTIVE = 'Active';
@@ -26,11 +27,11 @@ class CL_User extends CL_Model {
     }
 
     /**
-     * @return array
+     * @return Admin
      */
     public function getCurrentAdmin()
     {
-        return CL_Admin::model()->getDefault();
+        return Admin::getCurrent();
     }
 
     /**
@@ -61,11 +62,11 @@ class CL_User extends CL_Model {
      */
     public function getClientDetails($userId)
     {
-        $admin = $this->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $values["clientid"] = $userId;
         $values["stats"] = true;
 
-        $results = localAPI('getclientsdetails', $values, $admin['username']);
+        $results = localAPI('getclientsdetails', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);

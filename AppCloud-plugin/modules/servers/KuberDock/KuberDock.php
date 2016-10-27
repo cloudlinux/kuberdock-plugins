@@ -18,10 +18,9 @@ include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
  * @throws Exception
  */
 function KuberDock_ConfigOptions() {
-    $id = CL_Base::model()->getParam('id', CL_Base::model()->getPost('id'));
-    $product = KuberDock_Product::model()->loadById($id);
+    $id = \components\Tools::model()->getParam('id', components\Tools::model()->getPost('id'));
 
-    return $product->getConfig();
+    return \models\billing\Package::find($id)->getConfig();
 }
 
 /**
@@ -66,8 +65,8 @@ function KuberDock_CreateAccount($params) {
  */
 function KuberDock_TerminateAccount($params) {
     try {
-        $product = KuberDock_Product::model()->loadById($params['pid']);
-        $product->terminate($params['serviceid']);
+        $service = \models\billing\Service::find($params['serviceid']);
+        $service->terminate();
 
         return 'success';
     } catch(Exception $e) {
@@ -82,8 +81,8 @@ function KuberDock_TerminateAccount($params) {
  */
 function KuberDock_SuspendAccount($params) {
     try {
-        $product = KuberDock_Product::model()->loadById($params['pid']);
-        $product->suspend($params['serviceid']);
+        $service = \models\billing\Service::find($params['serviceid']);
+        $service->suspend();
 
         return 'success';
     } catch(Exception $e) {
@@ -98,8 +97,8 @@ function KuberDock_SuspendAccount($params) {
  */
 function KuberDock_UnsuspendAccount($params) {
     try {
-        $product = KuberDock_Product::model()->loadById($params['pid']);
-        $product->unSuspend($params['serviceid']);
+        $service = \models\billing\Service::find($params['serviceid']);
+        $service->unSuspend();
 
         return 'success';
     } catch(Exception $e) {
@@ -169,9 +168,7 @@ function KuberDock_ClientArea($params) {
     $server = KuberDock_Server::model()->loadById($service->server);
     $trialTime = (int) $product->getConfigOption('trialTime');
     $enableTrial = $product->getConfigOption('enableTrial');
-    $items = KuberDock_Addon_Items::model()->loadByAttributes(array(
-        'user_id' => $params['userid'],
-    ));
+    $items = \models\addon\Item::where('user_id', $params['userid'])->get()->toArray();
     $items = \base\CL_Tools::model()->getKeyAsField($items, 'pod_id');
     $regDate = new DateTime($service->regdate);
     $trialExpired = '';
@@ -262,9 +259,13 @@ function KuberDock_AdminLink($params) {
  * @return string
  */
 function KuberDock_LoginLink($params) {
-    $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
+    $service = \models\billing\Service::find($params['serviceid']);
 
-    return sprintf('<a href="%s" target="_blank">Login to KuberDock</a>', $service->getLoginByTokenLink());
+    try {
+        return sprintf('<a href="%s" target="_blank">Login to KuberDock</a>', $service->getLoginLink());
+    } catch (Exception $e) {
+        return '';
+    }
 }
 
 /**

@@ -2,11 +2,11 @@
     <tr>
         <th>Kube name</th>
         <th>Price</th>
-        <th>CPU limit (<?php echo \components\KuberDock_Units::getCPUUnits()?>)</th>
-        <th>Memory limit (<?php echo \components\KuberDock_Units::getMemoryUnits()?>)</th>
-        <th>Disk Usage limit (<?php echo \components\KuberDock_Units::getHDDUnits()?>)</th>
+        <th>CPU limit (<?php echo \components\Units::getCPUUnits()?>)</th>
+        <th>Memory limit (<?php echo \components\Units::getMemoryUnits()?>)</th>
+        <th>Disk Usage limit (<?php echo \components\Units::getHDDUnits()?>)</th>
         <?php /* AC-3783
-        <th>Traffic limit (<?php echo \components\KuberDock_Units::getMemoryUnits()?>)</th>
+        <th>Traffic limit (<?php echo \components\Units::getMemoryUnits()?>)</th>
         */ ?>
     </tr>
 

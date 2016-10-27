@@ -249,6 +249,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
 
         if ($total) {
             return array_reduce($items, function ($carry, $item) {
+                /* @var KuberDock_InvoiceItem $item */
                 $carry += $item->getTotal();
                 return $carry;
             });
@@ -387,7 +388,7 @@ class KuberDock_Addon_PredefinedApp extends CL_Model
 
     /**
      * @param $data
-     * @return array KuberDock_InvoiceItem[]
+     * @return KuberDock_InvoiceItem[]
      * @throws Exception
      */
     private function getTotalPriceYAML($data)

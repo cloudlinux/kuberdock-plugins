@@ -26,10 +26,11 @@ if(KUBERDOCK_DEBUG) {
     error_reporting(E_ERROR);
 }
 
-require_once KUBERDOCK_CLASS_DIR . DS . 'KuberDock_AutoLoader.php';
+require_once KUBERDOCK_ROOT_DIR . DS . 'vendor/autoload.php';
+require_once KUBERDOCK_CLASS_DIR . DS . 'KuberDock_Loader.php';
 
 try {
-    $loader = new KuberDock_AutoLoader();
+    $loader = new KuberDock_Loader();
 } catch(Exception $e) {
     echo $e->getMessage();
     \exceptions\CException::log($e);

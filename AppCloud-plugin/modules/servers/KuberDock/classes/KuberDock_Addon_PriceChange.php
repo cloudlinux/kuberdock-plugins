@@ -32,9 +32,9 @@ class KuberDock_Addon_PriceChange extends CL_Model
             $old_value = null;
         }
 
-        $admin = \base\models\CL_Admin::getCurrentAdmin();
+        $admin = \models\billing\Admin::getCurrent();
         $logs = self::model()->loadByParams(array(
-            'login' => $admin['username'],
+            'login' => $admin->username,
             'change_time' => date('Y-m-d H:i:s'),
             'type_id' => $type_id,
             'package_id' => $package_id,

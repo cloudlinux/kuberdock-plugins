@@ -8,6 +8,7 @@ namespace base\models;
 
 use Exception;
 use base\CL_Model;
+use models\billing\Admin;
 
 class CL_Server extends CL_Model
 {
@@ -25,10 +26,10 @@ class CL_Server extends CL_Model
      */
     public function decryptPassword()
     {
-        $admin = CL_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $values['password2'] = $this->password;
 
-        $results = localAPI('decryptpassword', $values, $admin['username']);
+        $results = localAPI('decryptpassword', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);
@@ -44,10 +45,10 @@ class CL_Server extends CL_Model
      */
     public function encryptPassword($password)
     {
-        $admin = CL_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $values['password2'] = $password;
 
-        $results = localAPI('encryptpassword', $values, $admin['username']);
+        $results = localAPI('encryptpassword', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);

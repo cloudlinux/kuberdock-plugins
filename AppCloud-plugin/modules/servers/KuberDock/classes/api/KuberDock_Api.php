@@ -9,7 +9,7 @@ namespace api;
 use exceptions\CException;
 use exceptions\NotFoundException;
 use Exception;
-use extensions\jwt\JWT;
+use Firebase\JWT\JWT;
 
 /**
  * Class KuberDock_Api
@@ -278,10 +278,10 @@ class KuberDock_Api {
         $response = curl_exec($ch);
         $status = curl_getinfo($ch);
 
-        if ($status['http_code'] != KuberDock_ApiStatusCode::HTTP_OK) {
-            $err = ucwords(curl_error($ch));
-            curl_close($ch);
+        $err = ucwords(curl_error($ch));
+        curl_close($ch);
 
+        if ($status['http_code'] != KuberDock_ApiStatusCode::HTTP_OK) {
             switch ($status['http_code']) {
                 case KuberDock_ApiStatusCode::HTTP_BAD_REQUEST:
                 case KuberDock_ApiStatusCode::HTTP_CONFLICT:
@@ -301,7 +301,6 @@ class KuberDock_Api {
             }
         }
 
-        curl_close($ch);
         $this->parseResponse($response);
 
         if (KUBERDOCK_DEBUG_API) {
@@ -753,20 +752,14 @@ class KuberDock_Api {
     }
 
     /**
-     * Start or redeploy pod and apply edit changes
-     *
-     * @param $podId
+     * @param string $podId
      * @return KuberDock_ApiResponse
-     * @throws CException
-     * @throws Exception
-     * @throws NotFoundException
      */
     public function applyEdit($podId)
     {
-        $attributes['command'] = 'redeploy';
         $attributes['commandOptions']['applyEdit'] = true;
 
-        return $this->makeCall('/api/podapi/' . $podId, $attributes, 'PUT');
+        return $this->redeployPod($podId, $attributes);
     }
 
     /**
@@ -786,6 +779,50 @@ class KuberDock_Api {
     public function getNodes()
     {
         return $this->makeCall('/api/nodes');
+    }
+
+    /**
+     * @return KuberDock_ApiResponse
+     * @throws CException
+     * @throws Exception
+     * @throws NotFoundException
+     */
+    public function getPD()
+    {
+        return $this->makeCall('/api/pstorage');
+    }
+
+    /**
+     * @param int $id
+     * @return KuberDock_ApiResponse
+     * @throws CException
+     * @throws Exception
+     * @throws NotFoundException
+     */
+    public function deletePD($id)
+    {
+        return $this->makeCall('/api/pstorage/' . $id, 'DELETE');
+    }
+
+    /**
+     * @param string $podId
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function unbindIP($podId)
+    {
+        return $this->makeCall('/api/podapi/' . $podId, array(
+            'command' => 'unbind-ip',
+        ), 'PUT');
+    }
+
+    /**
+     * @return KuberDock_ApiResponse
+     * @throws Exception
+     */
+    public function getIpPoolStat()
+    {
+        return $this->makeCall('/api/ippool/userstat');
     }
 
     /**

@@ -9,6 +9,7 @@ namespace base\models;
 use Exception;
 use base\CL_Query;
 use base\CL_Model;
+use models\billing\Admin;
 
 abstract class CL_Product extends CL_Model {
     /**
@@ -120,8 +121,7 @@ abstract class CL_Product extends CL_Model {
      */
     public function updateCustomField($productId, $serviceId, $fieldName, $value)
     {
-        $admin = CL_User::model()->getCurrentAdmin();
-        $adminuser = $admin['username'];
+        $admin = Admin::getCurrent();
 
         $customField = $this->getCustomField($productId, $fieldName);
 
@@ -134,7 +134,7 @@ abstract class CL_Product extends CL_Model {
             array($customField['id'] => $value
         )));
 
-        $result = localAPI('updateclientproduct', $values, $adminuser);
+        $result = localAPI('updateclientproduct', $values, $admin->username);
 
         if($result['result'] != 'success') {
             throw new Exception($result['message']);

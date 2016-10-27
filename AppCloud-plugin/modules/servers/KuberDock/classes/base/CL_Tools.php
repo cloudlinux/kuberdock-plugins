@@ -56,11 +56,11 @@ class CL_Tools extends CL_Component {
      */
     public static function getMySQLFormattedDate($date)
     {
-        if($date instanceof DateTime) {
+        if ($date instanceof DateTime) {
             return $date->format('Y-m-d H:i:s');
         }
 
-        if(function_exists('toMySQLDate')) {
+        if (function_exists('toMySQLDate')) {
             return toMySQLDate($date);
         }
 
@@ -187,6 +187,21 @@ class CL_Tools extends CL_Component {
         }
     }
 
+    /**
+     * @param string $url
+     * @return string
+     */
+    public static function generateLink($url)
+    {
+        $config = CL_Configuration::model()->get();
+
+        return $config->SystemURL . '/' . $url;
+    }
+
+    /**
+     * @param int $length
+     * @return string
+     */
     public static function generateRandomString($length = 8)
     {
         $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

@@ -9,6 +9,7 @@ namespace base\models;
 use Exception;
 use base\CL_Model;
 use base\CL_View;
+use models\billing\Admin;
 
 class CL_MailTemplate extends CL_Model
 {
@@ -22,6 +23,9 @@ class CL_MailTemplate extends CL_Model
     const TRIAL_NOTICE_NAME = 'KuberDock Trial Notice';
     const TRIAL_EXPIRED_NAME = 'KuberDock Trial Expired';
     const MODULE_CREATE_NAME = 'KuberDock Module Create';
+
+    const PD_NOTICE_NAME = 'KuberDock PD Notice';
+    const IP_NOTICE_NAME = 'KuberDock IP Notice';
 
     /**
      *
@@ -41,6 +45,16 @@ class CL_MailTemplate extends CL_Model
     {
         $view = new CL_View();
         $message = $view->renderPartial('emails/templates/' . $messageView, array(), false);
+
+        $data = $this->loadByAttributes(array(
+            'name' => $name,
+            'type' => $type,
+        ));
+
+        if ($data) {
+            return;
+        }
+
         $this->insert(array(
             'name' => $name,
             'subject' => $subject,
@@ -77,14 +91,14 @@ class CL_MailTemplate extends CL_Model
      */
     public function sendPreDefinedEmail($relId, $name, $params = array())
     {
-        $admin = CL_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $values['messagename'] = $name;
         $values['customvars'] = base64_encode(serialize($params));
         $values['id'] = $relId;
 
-        $results = localAPI('sendemail', $values, $admin['username']);
+        $results = localAPI('sendemail', $values, $admin->username);
 
-        if($results['result'] != 'success') {
+        if ($results['result'] != 'success') {
             throw new Exception($results['message']);
         }
     }
@@ -101,13 +115,13 @@ class CL_MailTemplate extends CL_Model
     public function sendCustomEmail($relId, $subject, $type, $viewName, $params = array())
     {
         $view = new CL_View();
-        $admin = CL_User::model()->getCurrentAdmin();
+        $admin = Admin::getCurrent();
         $values['customtype'] = $type;
         $values['customsubject'] = $subject;
         $values['custommessage'] = $view->renderPartial('emails/'.$viewName, $params, false);
         $values['id'] = $relId;
 
-        $results = localAPI('sendemail', $values, $admin['username']);
+        $results = localAPI('sendemail', $values, $admin->username);
 
         if($results['result'] != 'success') {
             throw new Exception($results['message']);

@@ -1,5 +1,7 @@
 <?php
 
+use components\KuberDock_InvoiceItem;
+
 class KuberDock_Pod
 {
     /**
@@ -287,7 +289,7 @@ class KuberDock_Pod
             ));
         }
 
-        if($price > 0) {
+        if ($price > 0) {
             $invoice = \base\models\CL_Invoice::model()->createInvoice($user->id, $this->editInvoiceItems, $user->getGateway(), false);
             $invoice = \base\models\CL_Invoice::model()->loadById($invoice);
             $invoiceItem = \base\models\CL_InvoiceItems::model()->loadByParams($invoice->invoiceitems);

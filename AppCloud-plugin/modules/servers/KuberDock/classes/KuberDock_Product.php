@@ -527,6 +527,7 @@ class KuberDock_Product extends CL_Product {
         $items = $app->getTotalPrice();
 
         $totalPrice = array_reduce($items, function ($carry, $item) {
+            /* @var $item \components\KuberDock_InvoiceItem */
             $carry += $item->getTotal();
             return $carry;
         });
@@ -681,6 +682,9 @@ class KuberDock_Product extends CL_Product {
         return $this->getConfigOption('billingType') == 'Fixed price';
     }
 
+    /**
+     * @return bool
+     */
     public function isSetupPayment()
     {
         return $this->autosetup == self::AUTO_SETUP_PAYMENT || !$this->autosetup;
@@ -754,6 +758,7 @@ class KuberDock_Product extends CL_Product {
     }
 
     /**
+     * Runs when pod is paid
      * @param int $serviceId
      * @param string $podId
      * @param bool $jsRedirect
