@@ -45,8 +45,11 @@ class Fixed extends Component implements BillingInterface
         $item = $this->createBillableItem($invoiceItems, $service, Resources::TYPE_POD, $resource);
 
         // On 1st service order
-        if ($service->moduleCreate && $item->invoices()->paid()->first()) {
+        $paidItemInvoice = $item->invoices()->paid()->first();
+        if ($service->moduleCreate && $paidItemInvoice) {
             $this->afterOrderPayment($item);
+
+            return $paidItemInvoice->invoice;
         }
 
         $invoice = $item->invoices()->unpaid()->first()->invoice;

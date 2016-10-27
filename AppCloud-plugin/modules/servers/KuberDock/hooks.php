@@ -549,7 +549,19 @@ function KuberDock_AfterModuleCreate($params)
 
         if ($app) {
             $service->moduleCreate = true;
-            $billing->order($app->getResource(), $service);
+            $invoice = $billing->order($app->getResource(), $service);
+
+            if ($invoice->isPaid()) {
+                global $whmcs;
+
+                if ($whmcs && $whmcs->isClientAreaRequest()) {
+                    $item = \models\addon\ItemInvoice::where('invoice_id', $invoice->id)->first()->item;
+                    $pod = new \models\addon\resource\Pod($item->service->package);
+                    $pod->setService($item->service);
+                    $pod->loadById($item->pod_id);
+                    $pod->redirect();
+                }
+            }
         }
     } catch (Exception $e) {
         CException::log($e);
