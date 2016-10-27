@@ -372,10 +372,6 @@ class WhmcsPlugin extends BillingPlugin
 
     protected function migrate()
     {
-        // todo: remove deprecated
-        $simpleMigration = new \components\KuberDock_Migration();
-        $simpleMigration->migrate();
-
         \migrations\Migration::up();
     }
 
