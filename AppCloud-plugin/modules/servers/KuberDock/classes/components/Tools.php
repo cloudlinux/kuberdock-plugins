@@ -145,9 +145,10 @@ SCRIPT;
      * Temporary ported eloquent method keyBy
      * @param object|array
      * @param string $keyBy
+     * @param bool $toArray
      * @return array
      */
-    public function keyBy($collection, $keyBy)
+    public function keyBy($collection, $keyBy, $toArray = false)
     {
         $results = [];
 
@@ -163,6 +164,10 @@ SCRIPT;
                 }
             } else {
                 $key = $item[$keyBy];
+            }
+
+            if (is_object($item) && method_exists($item, 'toArray')) {
+                $item = $item->toArray();
             }
 
             $results[$key] = $item;

@@ -176,7 +176,7 @@ class BillingApi extends Component
 
         BillingApi::request('updateinvoice', $values);
 
-        return $invoice->fresh();
+        return Invoice::find($invoice->id);
     }
 
     /**
@@ -191,7 +191,7 @@ class BillingApi extends Component
             'amount' => $invoiceItem->amount,
         ]);
 
-        return $invoiceItem->fresh();
+        return InvoiceItem::find($invoiceItem->id);
     }
 
     /**
@@ -218,7 +218,7 @@ class BillingApi extends Component
             throw $e;
         }
 
-        return $invoice->fresh();
+        return Invoice::find($invoice->id);
     }
 
     /**
