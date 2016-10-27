@@ -5,6 +5,7 @@ namespace models\billing;
 
 
 use components\InvoiceItem as ComponentsInvoiceItem;
+use components\Tools;
 use components\Units;
 use exceptions\CException;
 use models\addon\KubePrice;
@@ -290,8 +291,13 @@ class Package extends Model
      */
     public function getKubes()
     {
-        return KubePrice::with('template')->where('product_id', $this->id)
-            ->get()->keyBy('template.kuber_kube_id')->toArray();
+        $data = KubePrice::with('template')->where('product_id', $this->id)->get();
+
+        if (method_exists($data, 'keyBy')) {
+            return $data->keyBy('template.kuber_kube_id')->toArray();
+        } else {
+            return Tools::model()->keyBy($data, 'template.kuber_kube_id', true);
+        }
     }
 
     /**
