@@ -32,7 +32,7 @@ class AutomationSettings extends Component
     /**
      * @return mixed
      */
-    public function isSuspend()
+    public function isSuspendEnabled()
     {
         return $this->suspend;
     }
@@ -45,13 +45,13 @@ class AutomationSettings extends Component
     {
         $overdueDays = (new Carbon())->diffInDays($date);
 
-        return $this->isSuspend() && $overdueDays == $this->suspendDays;
+        return $this->isSuspendEnabled() && $overdueDays == $this->suspendDays;
     }
 
     /**
      * @return mixed
      */
-    public function isTerminate()
+    public function isTerminateEnabled()
     {
         return $this->termination;
     }
@@ -64,7 +64,7 @@ class AutomationSettings extends Component
     {
         $overdueDays = (new Carbon())->diffInDays($date);
 
-        return $this->isTerminate() && $overdueDays == $this->terminationDays;
+        return $this->isTerminateEnabled() && $overdueDays == $this->terminationDays;
     }
 
     /**
@@ -75,7 +75,7 @@ class AutomationSettings extends Component
     {
         $overdueDays = (new Carbon())->diffInDays($date);
 
-        return $this->isTerminate() && $overdueDays == abs($this->terminationDays - $this->invoiceReminderDays);
+        return $this->isTerminateEnabled() && $overdueDays == abs($this->terminationDays - $this->invoiceReminderDays);
 
     }
 }

@@ -199,7 +199,7 @@ class InvoiceItem implements \JsonSerializable
     public function getDescription()
     {
         if ($this->customDescription) {
-            return $this->customDescription;
+            return $this->getCustomDescription();
         }
 
         $description = '';
@@ -217,6 +217,14 @@ class InvoiceItem implements \JsonSerializable
         }
 
         return $description;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCustomDescription()
+    {
+        return $this->customDescription;
     }
 
     /**

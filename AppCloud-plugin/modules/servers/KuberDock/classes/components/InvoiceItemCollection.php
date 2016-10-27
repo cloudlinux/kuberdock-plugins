@@ -73,7 +73,7 @@ class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
             /* @var InvoiceItem $item */
             $carry += $item->getTotal();
             return $carry;
-        });
+        }, 0);
     }
 
     /**
@@ -149,8 +149,9 @@ class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
                 /* @var InvoiceItem $item */
                 $sameName = $item->getName() == $paidItem['name'];
                 $sameUnits = $item->getUnits() == $paidItem['units'];
+                $sameDescription = $item->getCustomDescription() == $paidItem['customDescription'];
 
-                if ($sameName && $sameUnits) {
+                if ($sameName && $sameUnits && $sameDescription) {
                     if ($item->getQty() <= $paidItem['qty']) {
                         return false;
                     } else {

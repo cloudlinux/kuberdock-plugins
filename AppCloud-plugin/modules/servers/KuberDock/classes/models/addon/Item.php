@@ -148,12 +148,9 @@ class Item extends Model
     public function stopInvoicing()
     {
         // Stop invoicing
-        $this->billableItem->invoiceItem()->update([
-            'status' => Invoice::STATUS_CANCELLED,
-        ]);
-        $this->invoices()->update([
-            'status' => Invoice::STATUS_CANCELLED,
-        ]);
+        $this->billableItem->invoiceaction = BillableItem::CREATE_NO_INVOICE_ID;
+        $this->billableItem->description .= ' (Deleted)';
+        $this->billableItem->save();
 
         $this->status = Resources::STATUS_DELETED;
         $this->save();

@@ -227,13 +227,14 @@ class Payg extends Component implements BillingInterface
             })->first()->item;
 
             if ($item->service->package->getPaymentType() == 'hourly') {
-                if ($settings->isSuspend()) {
+                if ($settings->isSuspendEnabled()) {
                     $item->suspend($item->service);
                 }
             } else {
                 $hasPaidInvoices = $item->invoices()->paid()->count();
 
-                if ((!$hasPaidInvoices && $settings->isSuspend()) || $settings->isSuspended($itemInvoice->invoice->duedate)) {
+                if ((!$hasPaidInvoices && $settings->isSuspendEnabled())
+                    || $settings->isSuspended($itemInvoice->invoice->duedate)) {
                     $item->suspend();
                 }
             }
@@ -256,11 +257,11 @@ class Payg extends Component implements BillingInterface
                 $hasPaidInvoices = $item->invoices()->paid()->count();
                 $invoice = $item->invoices->last()->invoice;
 
-                if ((!$hasPaidInvoices && $settings->isSuspend()) || $settings->isSuspended($invoice->duedate)) {
+                if ((!$hasPaidInvoices && $settings->isSuspendEnabled()) || $settings->isSuspended($invoice->duedate)) {
                     $item->suspend();
                 }
 
-                if ($settings->isTerminate()) {
+                if ($settings->isTerminateEnabled()) {
                     if ($settings->isTerminateNotice($invoice->duedate)) {
                         BillingApi::model()->sendPreDefinedEmail($item->service->id,
                             EmailTemplate::RESOURCES_NOTICE_NAME, [
@@ -409,6 +410,7 @@ class Payg extends Component implements BillingInterface
         if ($podsUsage) {
             foreach ($podsUsage as $kubeId => $kubeCount) {
                 $price = $kubes[$kubeId]['kube_price'];
+                $totalKubeCount += $kubeCount;
                 $items->add(
                     $package->createInvoiceItem('Kubes "' . $kubes[$kubeId]['template']['kube_name'] . '"',
                         $price, 'Pod', $kubeCount, Resources::TYPE_POD)
@@ -421,27 +423,28 @@ class Payg extends Component implements BillingInterface
         foreach ($usage['ip_usage'] as $data) {
             if (!in_array($data['ip_address'], $totalIPs)) {
                 $totalIPs[] = $data['ip_address'];
-                $price = $package->getPriceIP();
-                $items->add(
-                    $package->createInvoiceItem('', $price, 'IP', count($totalIPs), Resources::TYPE_IP)
-                );
             }
         }
 
-        $totalPdSize = 0;
-        $invoicedPd = [];
+        if ($totalIPs) {
+            $price = $package->getPriceIP();
+            $items->add($package->createInvoiceItem('', $price, 'IP', count($totalIPs), Resources::TYPE_IP));
+        }
+
+        $totalPd = [];
 
         foreach ($usage['pd_usage'] as $data) {
-            if (in_array($data['pd_name'], $invoicedPd)) {
-                continue;
+            if (!isset($totalPd[$data['pd_name']]) || $totalPd[$data['pd_name']] < $data['size']) {
+                $totalPd[$data['pd_name']] = $data['size'];
             }
-            $invoicedPd[] = $data['pd_name'];
-            $totalPdSize += $data['size'];
+        }
+
+        $totalPdSize = array_sum($totalPd);
+
+        if ($totalPdSize) {
             $price = $package->getPricePS();
             $unit = Units::getPSUnits();
-            $items->add(
-                $package->createInvoiceItem('', $price, $unit, $totalPdSize, Resources::TYPE_PD)
-            );
+            $items->add($package->createInvoiceItem('', $price, $unit, $totalPdSize, Resources::TYPE_PD));
         }
 
         $lastState = State::where('hosting_id', $service->id)
@@ -455,7 +458,7 @@ class Payg extends Component implements BillingInterface
                 'amount' => $service->client->currencyModel->getFullPrice($items->sum()),
             ]);
         }
-
+        
         $originItems = clone $items;
 
         if ($lastState && $now < $service->nextduedate) {
