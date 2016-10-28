@@ -7,20 +7,15 @@ use Carbon\Carbon;
 use components\BillingApi;
 use components\Component;
 use components\InvoiceItemCollection;
-use components\Tools;
 use components\Units;
 use exceptions\CException;
 use exceptions\NotEnoughFundsException;
-use exceptions\NotFoundException;
 use models\addon\Item;
 use models\addon\ItemInvoice;
-use models\addon\KubePrice;
 use models\addon\Resources;
 use models\addon\resource\Pod;
 use models\addon\resource\ResourceFactory;
 use models\addon\State;
-use models\billing\Config;
-use models\billing\Currency;
 use models\billing\EmailTemplate;
 use models\billing\Invoice;
 use models\billing\Package;
@@ -528,5 +523,23 @@ class Payg extends Component implements BillingInterface
         }
 
         return $usagePeriod;
+    }
+
+    /**
+     * @param Service $service
+     * @return InvoiceItemCollection
+     */
+    public function firstInvoiceCorrection(Service $service)
+    {
+        /* @var Package $package */
+        $package = $service->package;
+
+        $invoiceItems = new InvoiceItemCollection();
+
+        if (($firstDeposit = $package->getFirstDeposit())) {
+            $invoiceItems->add($package->createInvoiceItem('First deposit', $firstDeposit)->setTaxed(false));
+        }
+
+        return $invoiceItems;
     }
 }

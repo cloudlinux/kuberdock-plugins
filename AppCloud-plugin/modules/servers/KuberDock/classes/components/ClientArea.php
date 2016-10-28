@@ -125,8 +125,7 @@ class ClientArea extends Component
             $pricing = $package->pricing()->withCurrency($this->currency->id)->first()->getReadable();
             $service = $this->getUserService();
 
-            $app = new App();
-            $app = $app->getFromSession();
+            $app = App::getFromSession();
 
             if ($app && isset($product['pricingtext'])) {
                 $resource = $app->getResource();
@@ -178,8 +177,7 @@ class ClientArea extends Component
                 return;
             }
 
-            $app = new App();
-            $app = $app->getFromSession();
+            $app = App::getFromSession();
             $kubes = $package->getKubes();
             $customFields = [];
 
@@ -320,8 +318,7 @@ class ClientArea extends Component
             : 0;
 
         $recurring = 0;
-        $app = new App();
-        $app = $app->getFromSession();
+        $app = App::getFromSession();
 
         if ($app) {
             // User already has KD service

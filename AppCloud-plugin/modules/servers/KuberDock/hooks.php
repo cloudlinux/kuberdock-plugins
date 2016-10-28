@@ -6,6 +6,7 @@
 
 use base\CL_Base;
 use base\CL_Tools;
+use models\addon\App;
 use base\models\CL_Invoice;
 use base\models\CL_User;
 use exceptions\CException;
@@ -151,8 +152,7 @@ function KuberDock_ShoppingCartValidateCheckout($params)
                 ->where('userid', $userId)->where('packageid', $package->id)->first();
 
             try {
-                $app = new \models\addon\App();
-                $app = $app->getFromSession();
+                $app = App::getFromSession();
 
                 if ($app && $service) {
                     $invoice = $package->getBilling()->order($app->getResource(), $service);
@@ -541,8 +541,7 @@ function KuberDock_AfterModuleCreate($params)
     $service = \models\billing\Service::find($params['params']['serviceid']);
 
     try {
-        $app = new \models\addon\App();
-        $app = $app->getFromSession();
+        $app = App::getFromSession();
         $billing = $service->package->getBilling();
 
         $billing->afterModuleCreate($service);

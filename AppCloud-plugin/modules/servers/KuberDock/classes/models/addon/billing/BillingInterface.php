@@ -4,6 +4,7 @@
 namespace models\addon\billing;
 
 
+use components\InvoiceItemCollection;
 use models\addon\Item;
 use models\addon\resource\Pod;
 use models\addon\resource\ResourceFactory;
@@ -53,4 +54,10 @@ interface BillingInterface
      * @param Service $service
      */
     public function afterModuleCreate(Service $service);
+
+    /**
+     * @param Service $service
+     * @return InvoiceItemCollection
+     */
+    public function firstInvoiceCorrection(Service $service);
 }

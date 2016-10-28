@@ -11,6 +11,7 @@ use components\Units;
 use exceptions\CException;
 use exceptions\NotEnoughFundsException;
 use exceptions\NotFoundException;
+use models\addon\App;
 use models\addon\Item;
 use models\addon\ItemInvoice;
 use models\addon\Resources;
@@ -578,5 +579,18 @@ class Fixed extends Component implements BillingInterface
                 CException::log($e);
             }
         }
+    }
+
+    /**
+     * @param Service $service
+     * @return InvoiceItemCollection
+     */
+    public function firstInvoiceCorrection(Service $service)
+    {
+        $session = App::getFromSession();
+
+        return (!is_null($session))
+            ? $session->getResource()->getInvoiceItems()
+            : new InvoiceItemCollection();
     }
 }

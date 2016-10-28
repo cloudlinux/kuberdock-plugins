@@ -46,7 +46,7 @@ class App extends Model
     /**
      * @return $this|null
      */
-    public function getFromSession()
+    public static function getFromSession()
     {
         return isset($_SESSION[self::SESSION_FIELD]) ? App::find($_SESSION[self::SESSION_FIELD]) : null;
     }

@@ -4,13 +4,10 @@
 namespace models\addon;
 
 
-use base\models\CL_Invoice;
 use components\BillingApi;
 use models\billing\BillableItem;
 use models\billing\Client;
-use models\billing\Config;
 use models\billing\Invoice;
-use models\billing\Package;
 use models\billing\Service;
 use models\Model;
 
@@ -184,52 +181,48 @@ class Item extends Model
 
     /**
      * For product order invoice upgrade items accordingly to PA
+     *
+     * When user buys product or product+PA at first time
+     *
      * @param Invoice $invoice
      */
     public function invoiceCorrection(Invoice $invoice)
     {
-        $app = new App();
-        $app = $app->getFromSession();
-
         $service = Service::typeKuberDock()->whereHas('invoiceItem', function ($query) use ($invoice) {
             $query->where('invoiceid', $invoice->id);
         })->first();
 
-        if ($service && $app) {
-            // AC-3839 Add recurring price to invoice
-            // Add setup\recurring funds only for newly created service
-            $package = $service->package;
-            /* @var Package $package */
-
-            $pricing = $package->pricing()->withCurrency($invoice->client->currencyModel->id)->first()->getReadable();
-
-            $invoiceItems = $app->getResource()->getInvoiceItems();
-
-            if ($pricing['setup'] > 0) {
-                $invoiceItems->add($package->createInvoiceItem('Setup', $pricing['setup ']));
-            }
-
-            if ($pricing['recurring'] > 0) {
-                $invoiceItems->add(
-                    $package->createInvoiceItem('Recurring ('. $pricing['cycle'] .')', $pricing['recurring'])
-                );
-            }
-
-            if (($firstDeposit = $package->getFirstDeposit())) {
-                $invoiceItems->add($package->createInvoiceItem('First deposit', $firstDeposit)->setTaxed(false));
-            }
-
-            if ($invoiceItems->sum() <= 0) {
-                return;
-            }
-
-            $invoice = $invoice->edit($invoiceItems);
-
-            // In order to system know that it is product order invoice
-            $invoiceItem = $invoice->items->first();
-            $invoiceItem->type = 'Hosting';
-            $invoiceItem->relid = $service->id;
-            $invoiceItem->save();
+        if (!$service) {
+            return;
         }
+
+        // AC-3839 Add recurring price to invoice
+        // Add setup\recurring funds only for newly created service
+
+        $package = $service->package;
+        $invoiceItems = $package->getBilling()->firstInvoiceCorrection($service);
+
+        $currency = $invoice->client->currencyModel->id;
+        $pricing = $package->pricing()->withCurrency($currency)->first()->getReadable();
+        if ($pricing['setup'] > 0) {
+            $invoiceItems->add($package->createInvoiceItem('Setup', $pricing['setup']));
+        }
+        if ($pricing['recurring'] > 0) {
+            $invoiceItems->add(
+                $package->createInvoiceItem('Recurring ('. $pricing['cycle'] .')', $pricing['recurring'])
+            );
+        }
+
+        if ($invoiceItems->sum() <= 0) {
+            return;
+        }
+
+        $invoice = $invoice->edit($invoiceItems);
+
+        // In order to system know that it is product order invoice
+        $invoiceItem = $invoice->items->first();
+        $invoiceItem->type = 'Hosting';
+        $invoiceItem->relid = $service->id;
+        $invoiceItem->save();
     }
 }
