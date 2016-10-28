@@ -235,6 +235,7 @@ class Resources extends Model
 
     /**
      * @param Service $service
+     * @throws \Exception
      */
     public function freeAll(Service $service)
     {
@@ -242,11 +243,7 @@ class Resources extends Model
         $pd = $api->getPD()->getData();
 
         foreach ($pd as $v) {
-            try {
-                $api->deletePD($v['id']);
-            } catch (\Exception $e) {
-                \exceptions\CException::log($e);
-            }
+            $api->deletePD($v['id']);
         }
 
         foreach ($api->getPods()->getData() as $pod) {

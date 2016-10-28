@@ -22,6 +22,7 @@ use models\billing\Client;
 use models\billing\Config;
 use models\billing\Invoice;
 use models\billing\Service;
+use models\Model;
 
 class Fixed extends Component implements BillingInterface
 {
@@ -190,6 +191,7 @@ class Fixed extends Component implements BillingInterface
     public function processCron()
     {
         $config = Config::get();
+        $settings = new AutomationSettings();
 
         // Process deleted pods
         $this->processDeletedPods();
@@ -210,25 +212,30 @@ class Fixed extends Component implements BillingInterface
             ->get();
 
         foreach ($unpaidItems as $item) {
+            $itemInvoice = $item->invoices()->unpaid()->orderBy('id', 'asc')->first();
+
             // Free resources
             switch ($item->type) {
                 case Resources::TYPE_POD:
                     // TODO: remove PD\IP
                     try {
-                        $item->service->getApi()->stopPod($item->pod_id);
+                        $item->service->getAdminApi()->updatePod($item->pod_id, [
+                            'unpaid' => true,
+                        ]);
                     } catch (NotFoundException $e) {
-                        continue;
+                        break;
                     } catch (\Exception $e) {
                         CException::log($e);
                     }
 
-                    $item->service->getAdminApi()->updatePod($item->pod_id, [
-                        'status' => 'unpaid',
-                    ]);
                     break;
                 case Resources::TYPE_PD:
                 case Resources::TYPE_IP:
                     $resource = $item->resourcePods()->whereNull('pod_id')->first()->resources;
+
+                    if (!$settings->isTerminated($itemInvoice->invoice->duedate)) {
+                        break;
+                    }
 
                     if ($item->type == Resources::TYPE_PD) {
                         $resource->freePD($item);
@@ -238,8 +245,6 @@ class Fixed extends Component implements BillingInterface
 
                     break;
             }
-
-            $item->stopInvoicing();
         }
     }
 

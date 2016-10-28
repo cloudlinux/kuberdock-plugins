@@ -104,7 +104,7 @@ class Pod extends ResourceFactory
     {
         if ($unpaid) {
             $this->service->getAdminApi()->updatePod($this->id, [
-                'status' => 'stopped',
+                'unpaid' => false,
             ]);
         }
 

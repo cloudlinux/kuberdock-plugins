@@ -185,10 +185,12 @@ class Payg extends Component implements BillingInterface
         $expireDate->modify('+' . $package->getTrialTime() . ' day');
 
         if ($now >= $expireDate) {
-            if ($package->getSendTrialExpire() && $expireDate == $now) {
-                BillingApi::model()->sendPreDefinedEmail($this->id, EmailTemplate::TRIAL_EXPIRED_NAME, [
-                    'trial_end_date' => $expireDate->format('Y-m-d'),
-                ]);
+            if ($expireDate == $now) {
+                if ($package->getSendTrialExpire()) {
+                    BillingApi::model()->sendPreDefinedEmail($this->id, EmailTemplate::TRIAL_EXPIRED_NAME, [
+                        'trial_end_date' => $expireDate->format('Y-m-d'),
+                    ]);
+                }
 
                 // If suspend module then user can't change product via client area
                 $service->getAdminApi()->updateUser(['suspended' => true], $service->username);
@@ -286,7 +288,6 @@ class Payg extends Component implements BillingInterface
                 ]);
             }
         }
-
     }
 
     /**

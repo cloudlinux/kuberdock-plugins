@@ -171,6 +171,8 @@ class Item extends Model
             } else {
                 $itemInvoice->invoice->status = Invoice::STATUS_CANCELLED;
                 $itemInvoice->invoice->save();
+                $itemInvoice->status = Invoice::STATUS_CANCELLED;
+                $itemInvoice->save();
             }
         }
 

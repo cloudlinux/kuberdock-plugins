@@ -54,7 +54,7 @@ class Version5 implements \migrations\VersionInterface
 
         $db->statement('ALTER TABLE KuberDock_items MODIFY pod_id VARCHAR(64) DEFAULT NULL');
         $db->statement('ALTER TABLE KuberDock_items MODIFY billable_item_id INT(11) DEFAULT NULL');
-        $db->statement('ALTER TABLE KuberDock_items MODIFY status VARCHAR(16) DEFAULT \'?\'', [Resources::STATUS_ACTIVE]);
+        $db->statement('ALTER TABLE KuberDock_items MODIFY status VARCHAR(16) DEFAULT "' . Resources::STATUS_ACTIVE . '"');
 
         $emailTemplate = new EmailTemplate();
         $emailTemplate->createFromView($emailTemplate::RESOURCES_NOTICE_NAME,
