@@ -27,12 +27,6 @@
                     <td class="textright">{$producttotals.pricing.setup}</td>
                 </tr>
             {/if}
-            {foreach from=$producttotals.pricing.recurringexcltax key=cycle item=recurring}
-                <tr>
-                    <td>{$cycle}:</td>
-                    <td class="textright">{$recurring}</td>
-                </tr>
-            {/foreach}
             {if $producttotals.pricing.tax1}
                 <tr>
                     <td>{$carttotals.taxname} @ {$carttotals.taxrate}%:</td>
