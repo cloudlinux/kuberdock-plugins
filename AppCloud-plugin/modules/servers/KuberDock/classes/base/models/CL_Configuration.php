@@ -8,6 +8,12 @@ namespace base\models;
 
 use base\CL_Model;
 
+/**
+ * Class CL_Configuration
+ *
+ * @deprecated
+ * @package base\models
+ */
 class CL_Configuration extends CL_Model
 {
     protected $_pk = 'setting';
