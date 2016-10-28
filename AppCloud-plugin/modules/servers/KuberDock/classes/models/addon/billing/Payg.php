@@ -234,18 +234,16 @@ class Payg extends Component implements BillingInterface
                 }
             }
         } else {
-            $items = Item::with('invoices')
-                ->payg()
-                ->where('status', '!=', Resources::STATUS_DELETED)
-                ->whereHas('invoices', function ($query) {
-                    $query->where('status', Invoice::STATUS_UNPAID);
-                })
-                ->whereHas('invoices.invoice', function ($query) use ($now) {
-                    $query->where('duedate', '<', $now);
-                })
-                ->whereHas('service.package', function ($query) {
-                    $query->where('configoption3', '!=', 'hourly');
-                })
+            $items = Item::select('KuberDock_items.*')
+                ->join('KuberDock_item_invoices', 'KuberDock_item_invoices.item_id', '=', 'KuberDock_items.id')
+                ->join('tblinvoices', 'tblinvoices.id', '=', 'KuberDock_item_invoices.invoice_id')
+                ->join('tblhosting', 'tblhosting.id', '=', 'KuberDock_items.service_id')
+                ->join('tblproducts', 'tblproducts.id', '=', 'tblhosting.packageid')
+                ->whereNull('KuberDock_items.billable_item_id')
+                ->where('KuberDock_items.status', '!=', Resources::STATUS_DELETED)
+                ->where('KuberDock_item_invoices.status', Invoice::STATUS_UNPAID)
+                ->where('tblinvoices.duedate', '<', $now)
+                ->where('tblproducts.configoption3', '!=', 'hourly')
                 ->get();
 
             foreach ($items as $item) {
