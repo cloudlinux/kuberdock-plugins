@@ -449,81 +449,37 @@ add_hook('AdminServiceEdit', 1, 'KuberDock_AdminServiceEdit');
 /**
  * @param $params
  */
-function KuberDock_ClientAreaRegister($params)
-{
-    // Create app
-    $predefinedApp = KuberDock_Addon_PredefinedApp::model()->loadBySessionId('LAST');
-    $product = KuberDock_Product::model()->loadById($predefinedApp->product_id);
-    $userId = isset($_SESSION['uid']) ? $_SESSION['uid'] : null;
-    if($predefinedApp && $userId) {
-        try {
-            $result = \base\models\CL_Order::model()->createOrder($userId, $product->id);
-            \base\models\CL_Order::model()->acceptOrder($result['orderid']);
-            $service = \KuberDock_Hosting::model()->loadById($result['productids']);
-
-            // pod
-            if($predefinedApp->pod_id) {
-                throw new Exception('New user has no pods');
-            }
-
-            if($product->isFixedPrice()) {
-                $item = $product->addBillableApp($userId, $predefinedApp);
-                if(!($pod = $predefinedApp->isPodExists($service->id))) {
-                    $pod = $predefinedApp->create($service->id, 'unpaid');
-                }
-                $predefinedApp->pod_id = $pod['id'];
-                $predefinedApp->save();
-                $item->pod_id = $pod['id'];
-                $item->save();
-
-                if($item->isPayed()) {
-                    $product->startPodAndRedirect($item->service_id, $item->pod_id, true);
-                } else {
-                    $product->jsRedirect('viewinvoice.php?id=' . $item->invoice_id);
-                }
-            } else {
-                $pod = $predefinedApp->create($service->id);
-                $predefinedApp->pod_id = $pod['id'];
-                $predefinedApp->save();
-                $predefinedApp->start($pod['id'], $service->id);
-                $product->jsRedirect(sprintf('kdorder.php?a=redirect&sid=%s&podId=%s', $service->id, $predefinedApp->pod_id));
-            }
-        } catch(Exception $e) {
-            CException::log($e);
-            CException::displayError($e, true);
-        }
-    }
-}
-add_hook('ClientAreaRegister', 1, 'KuberDock_ClientAreaRegister');
-
-/**
- * @param $params
- */
 function KuberDock_ClientAdd($params)
 {
     // Add service for user created from KD
-    $packageId = CL_Base::model()->getPost('package_id');
+    $packageId = \components\Tools::model()->getPost('package_id');
 
     if (is_numeric($packageId)) {
         try {
-            $data = KuberDock_Addon_Product::model()->loadByAttributes(array(
-                'kuber_product_id' => $packageId,
-            ));
+            $packageRelation = \models\addon\PackageRelation::where('kuber_product_id', $packageId)->first();
 
-            if (!$data) {
+            if (!$packageRelation) {
                 throw new Exception('Product not found');
             }
 
-            $data = current($data);
-            $result = \base\models\CL_Order::model()->createOrder($params['userid'], $data['product_id']);
-            \base\models\CL_Order::model()->acceptOrder($result['orderid'], false);
+            $client = \models\billing\Client::find($params['userid']);
 
-            // Update service
-            $service = KuberDock_Hosting::model()->loadById($result['productids']);
-            $service->username = CL_Base::model()->getPost('kduser', '');
+            $user = \components\Tools::model()->getPost('kduser');
+            $password = \components\Tools::model()->getPost('password');
+
+            $service = new \models\billing\Service();
+            $service->userid = $client->id;
+            $service->packageid = $packageRelation->product_id;
+            $service->server = $packageRelation->package->serverGroup->servers()->first()->id;
+            $service->regdate = new DateTime();
+            $service->paymentmethod = $client->getGateway();
+            $service->billingcycle = 'Free Account';
+            $service->domainstatus = 'Active';
+            $service->username = $user;
+            $service->password = \components\BillingApi::model()->encryptPassword($password);
             $service->save();
 
-            system('php ' . KUBERDOCK_ROOT_DIR . '/bin/updateUser.php --service_id='. $service->id .
+            system('php ' . KUBERDOCK_ROOT_DIR . '/bin/update_user_token.php --service_id='. $service->id .
                 " > /dev/null 2>/dev/null &");
         } catch (Exception $e) {
             CException::log($e);

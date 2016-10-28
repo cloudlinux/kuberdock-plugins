@@ -1,7 +1,7 @@
 <?php
 
-require dirname(__FILE__) . '/../../../../init.php';
-require_once dirname(__FILE__) . '/../init.php';
+require_once __DIR__ . '/../../../../init.php';
+require_once __DIR__ . '/../init.php';
 
 $opts = getopt('c:', array(
     'service_id:',
@@ -26,14 +26,11 @@ $userId = $opts['user_id'];
 $startCount = isset($opts['c']) ? $opts['c'] : 1;
 
 try {
-    $service = KuberDock_Hosting::model()->loadById($serviceId);
-    $client = \base\models\CL_Client::model()->loadById($service->userid);
-    $product = KuberDock_Product::model()->loadById($service->packageid);
-    $product->setClient($client);
-    $client->filterValues();
-    $product->create($serviceId);
+    $service = \models\billing\Service::find($serviceId);
+    $service->createUser();
     exit(0);
-} catch(Exception $e) {
+} catch (Exception $e) {
+    echo $e->getMessage();
     if ($startCount >= 5) {
         \exceptions\CException::log($e);
         exit(1);

@@ -18,6 +18,19 @@ use models\Model;
 class Package extends Model
 {
     /**
+     *
+     */
+    const ROLE_TRIAL = 'TrialUser';
+    /**
+     *
+     */
+    const ROLE_USER = 'User';
+    /**
+     *
+     */
+    const ROLE_RESTRICTED_USER = 'LimitedUser';
+
+    /**
      * @var string
      */
     protected $table = 'tblproducts';
@@ -36,6 +49,14 @@ class Package extends Model
     public function pricing()
     {
         return $this->hasMany('models\billing\Pricing', 'relid');
+    }
+
+    /**
+     * @return ServerGroup
+     */
+    public function serverGroup()
+    {
+        return $this->belongsTo('models\billing\ServerGroup', 'servergroup');
     }
 
     /**
@@ -431,7 +452,7 @@ class Package extends Model
      */
     public function isKuberDock()
     {
-        return $this->servertype == KUBERDOCK_MODULE_NAME;
+        return $this->servertype === KUBERDOCK_MODULE_NAME;
     }
 
     /**
@@ -439,7 +460,7 @@ class Package extends Model
      */
     public function isBillingFixed()
     {
-        return $this->getBillingType() == 'Fixed price';
+        return $this->getBillingType() === 'Fixed price';
     }
 
     /**
@@ -447,7 +468,21 @@ class Package extends Model
      */
     public function isBillingPayg()
     {
-        return $this->getBillingType() == 'PAYG';
+        return $this->getBillingType() === 'PAYG';
+    }
+
+    /**
+     * @return string
+     */
+    public function getRole()
+    {
+        if ($this->getEnableTrial()) {
+            return self::ROLE_TRIAL;
+        } elseif ($this->getRestrictedUser()) {
+            return self::ROLE_RESTRICTED_USER;
+        } else {
+            return self::ROLE_USER;
+        }
     }
 
     /**

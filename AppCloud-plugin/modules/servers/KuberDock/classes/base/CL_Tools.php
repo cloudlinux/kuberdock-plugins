@@ -9,7 +9,13 @@ namespace base;
 use DateTime;
 use ReflectionClass;
 use base\models\CL_Configuration;
+use Symfony\Component\Yaml\Yaml;
 
+/**
+ * Class CL_Tools
+ * @package base
+ * @deprecated
+ */
 class CL_Tools extends CL_Component {
 
     /**
@@ -259,7 +265,7 @@ class CL_Tools extends CL_Component {
      */
     public static function parseYaml($data)
     {
-        return \extensions\Yaml\Yaml::parse($data);
+        return Yaml::parse($data);
     }
 
     /**

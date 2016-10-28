@@ -6,7 +6,6 @@ namespace components;
 
 use DateTime;
 use models\billing\Config;
-use models\billing\Package;
 use Symfony\Component\Yaml\Yaml;
 
 class Tools extends Component
@@ -174,5 +173,23 @@ SCRIPT;
         }
 
         return $results;
+    }
+
+    /**
+     * @param int $length
+     * @param string $additional
+     * @return string
+     */
+    public static function generateRandomString($length = 8, $additional = '')
+    {
+        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' . $additional;
+        $pass = array();
+
+        for ($i=0; $i<$length; $i++) {
+            $n = mt_rand(0, strlen($alphabet) - 1);
+            $pass[] = $alphabet[$n];
+        }
+
+        return strtolower(implode($pass));
     }
 }

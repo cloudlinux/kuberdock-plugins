@@ -47,6 +47,20 @@ class BillingApi extends Component
     }
 
     /**
+     * @param string $password
+     * @return string
+     * @throws \Exception
+     */
+    public function encryptPassword($password)
+    {
+        $response = BillingApi::request('encryptpassword', [
+            'password2' => $password,
+        ]);
+
+        return $response['password'];
+    }
+
+    /**
      * @param Service $service
      * @throws \Exception
      */

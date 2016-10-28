@@ -359,6 +359,7 @@ class Payg extends Component implements BillingInterface
         return $invoiceItems;
     }
 
+
     /**
      * @param Service $service
      * @return InvoiceItemCollection

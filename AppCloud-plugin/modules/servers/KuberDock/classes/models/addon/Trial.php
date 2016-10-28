@@ -21,4 +21,8 @@ class Trial extends Model
      * @var string
      */
     protected $primaryKey = 'service_id';
+    /**
+     * @var array
+     */
+    protected $fillable = ['user_id', 'service_id'];
 }

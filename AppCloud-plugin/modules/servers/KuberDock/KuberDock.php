@@ -5,13 +5,11 @@
  */
 
 use base\CL_View;
-use base\CL_Base;
 use base\models\CL_Currency;
-use base\models\CL_Client;
 use api\KuberDock_Api;
 use exceptions\CException;
 
-include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
+include_once __DIR__ . DIRECTORY_SEPARATOR . 'init.php';
 
 /**
  * @return array
@@ -28,31 +26,13 @@ function KuberDock_ConfigOptions() {
  * @return string
  */
 function KuberDock_CreateAccount($params) {
+    $service = \models\billing\Service::find($params['serviceid']);
+
     try {
-        $product = KuberDock_Product::model()->loadById($params['pid']);
-        $client = CL_Client::model()->loadByParams($params['clientsdetails']);
-        $client->filterValues();
-
-        $product->setClient($client);
-        $product->create($params['serviceid']);
-
-        if ($product->getConfigOption('enableTrial')) {
-            $trial = KuberDock_Addon_Trial::model();
-            if (!$trial->loadById($params['userid'])) {
-                $trial->insert(array(
-                    'user_id' => $params['userid'],
-                    'service_id' => $params['serviceid'],
-                ));
-            }
-        }
+        $service->createUser();
 
         return 'success';
     } catch (Exception $e) {
-        $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
-        $service->updateById($params['serviceid'], array(
-            'domainstatus' => 'Pending',
-        ));
-
         CException::log($e);
 
         return 'ERROR: ' . $e->getMessage();

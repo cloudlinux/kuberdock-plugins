@@ -6,8 +6,11 @@ namespace models\billing;
 
 use api\KuberDock_Api;
 use components\BillingApi;
+use components\Tools;
+use exceptions\NotFoundException;
 use models\addon\Item;
 use models\addon\Resources;
+use models\addon\Trial;
 use models\Model;
 
 class Service extends Model
@@ -91,6 +94,7 @@ class Service extends Model
 
     /**
      * @return KuberDock_Api
+     * @throws \Exception
      */
     public function getApi()
     {
@@ -115,6 +119,7 @@ class Service extends Model
 
     /**
      * @return $this
+     * @throws \Exception
      */
     public function terminate()
     {
@@ -128,6 +133,7 @@ class Service extends Model
 
     /**
      * @return $this
+     * @throws \Exception
      */
     public function suspend()
     {
@@ -144,6 +150,7 @@ class Service extends Model
 
     /**
      * @return $this
+     * @throws \Exception
      */
     public function unSuspend()
     {
@@ -159,11 +166,82 @@ class Service extends Model
     }
 
     /**
+     * @throws \Exception
+     */
+    public function createUser()
+    {
+        $password = Tools::generateRandomString(25, '0123456789!@#$%^&*()');
+        $this->username = $this->username ? $this->username : $this->client->email;
+        $this->password = BillingApi::model()->encryptPassword($password);
+
+        $api = $this->getAdminApi();
+
+        $data = [
+            'clientid' => (int) $this->client->id,
+            'first_name' => $this->client->firstname,
+            'last_name' => $this->client->lastname,
+            'username' => $this->username,
+            'password' => $password,
+            'active' => true,
+            'suspended' => false,
+            'email' => $this->client->email,
+            'rolename' => $this->package->getRole(),
+            'package' => $this->package->name,
+        ];
+
+        try {
+            $api->unDeleteUser($this->username);
+            $api->updateUser($data, $this->username);
+        } catch (NotFoundException $e) {
+            $api->createUser($data);
+        }
+
+        $token = $this->getApi()->getToken();
+
+        if ($token) {
+            $this->setToken($token);
+        }
+
+        $this->domainstatus = 'Active';
+        $this->save();
+
+        if ($this->package->getEnableTrial()) {
+            Trial::firstOrCreate([
+                'user_id' => $this->userid,
+                'service_id' => $this->id,
+            ]);
+        }
+
+        // Send module create email
+        BillingApi::model()->sendPreDefinedEmail($this->id, EmailTemplate::MODULE_CREATE_NAME, [
+            'kuberdock_link' => $this->serverModel->getUrl(),
+        ]);
+    }
+
+    /**
+     * @param string $token
+     */
+    public function setToken($token)
+    {
+        $customField = CustomField::where('type', 'product')->where('relid', $this->package->id)->first();
+
+        CustomFieldValue::firstOrCreate([
+            'relid' => $this->id,
+            'fieldid' => $customField->id,
+        ]);
+
+        CustomFieldValue::where('fieldid', $customField->id)
+            ->where('relid', $this->id)
+            ->update([
+                'value' => $token,
+            ]);
+    }
+
+    /**
      * @return string
      */
     public function getToken()
     {
-        // TODO: implement CustomField\CustomFieldValue
         $data = $this->select('tblcustomfieldsvalues.*')
             ->join('tblcustomfieldsvalues', 'tblhosting.id', '=', 'tblcustomfieldsvalues.relid')
             ->join('tblcustomfields', 'tblcustomfields.id', '=', 'tblcustomfieldsvalues.fieldid')
