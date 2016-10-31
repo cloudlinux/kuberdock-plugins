@@ -25,12 +25,6 @@ class State extends Model
      * @var array
      */
     protected $dates = ['checkin_date'];
-    /**
-     * @var array
-     */
-    protected $casts = [
-        'details' => 'array',
-    ];
 
     /**
      * @return Package
@@ -38,5 +32,22 @@ class State extends Model
     public function package()
     {
         return $this->belongsTo('models\billing\Package', 'product_id');
+    }
+
+    /**
+     * @param string $value
+     * @return array
+     */
+    public function getDetailsAttribute($value)
+    {
+        return json_decode($value, true);
+    }
+
+    /**
+     * @param string $value
+     */
+    public function setDetailsAttribute($value)
+    {
+        $this->attributes['details'] = json_encode($value);
     }
 }

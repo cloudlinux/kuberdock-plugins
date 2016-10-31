@@ -103,7 +103,7 @@ class Payg extends Component implements BillingInterface
     }
 
     /**
-     *
+     * @throws \Exception
      */
     public function processCron()
     {
@@ -171,6 +171,7 @@ class Payg extends Component implements BillingInterface
 
     /**
      * @param Service $service
+     * @throws \Exception
      */
     protected function processTrial(Service $service)
     {
@@ -209,6 +210,7 @@ class Payg extends Component implements BillingInterface
 
     /**
      * @param ItemInvoice|null $itemInvoice
+     * @throws \Exception
      */
     protected function processSuspend(ItemInvoice $itemInvoice = null)
     {
@@ -240,7 +242,7 @@ class Payg extends Component implements BillingInterface
                 ->join('tblhosting', 'tblhosting.id', '=', 'KuberDock_items.service_id')
                 ->join('tblproducts', 'tblproducts.id', '=', 'tblhosting.packageid')
                 ->whereNull('KuberDock_items.billable_item_id')
-                ->where('KuberDock_items.status', '!=', Resources::STATUS_DELETED)
+                ->where('KuberDock_items.status', '=', Resources::STATUS_ACTIVE)
                 ->where('KuberDock_item_invoices.status', Invoice::STATUS_UNPAID)
                 ->where('tblinvoices.duedate', '<', $now)
                 ->where('tblproducts.configoption3', '!=', 'hourly')
@@ -363,6 +365,7 @@ class Payg extends Component implements BillingInterface
     /**
      * @param Service $service
      * @return InvoiceItemCollection
+     * @throws \Exception
      */
     protected function getPeriodicUsage(Service $service)
     {
@@ -396,9 +399,7 @@ class Payg extends Component implements BillingInterface
         $totalKubeCount = 0;
 
         foreach ($usage['pods_usage'] as $pod) {
-            if (!isset($podsUsage[$pod['kube_id']]) || $podsUsage[$pod['kube_id']] < $pod['kubes']) {
-                $podsUsage[$pod['kube_id']] = $pod['kubes'];
-            }
+            $podsUsage[$pod['kube_id']] += $pod['kubes'];
         }
 
         if ($podsUsage) {

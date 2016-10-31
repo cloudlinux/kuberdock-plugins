@@ -45,7 +45,7 @@ class AutomationSettings extends Component
     {
         $overdueDays = (new Carbon())->diffInDays($date);
 
-        return $this->isSuspendEnabled() && $overdueDays == $this->suspendDays;
+        return $this->isSuspendEnabled() && $overdueDays >= $this->suspendDays;
     }
 
     /**
@@ -64,7 +64,7 @@ class AutomationSettings extends Component
     {
         $overdueDays = (new Carbon())->diffInDays($date);
 
-        return $this->isTerminateEnabled() && $overdueDays == $this->terminationDays;
+        return $this->isTerminateEnabled() && $overdueDays >= $this->terminationDays;
     }
 
     /**

@@ -133,7 +133,7 @@ class Item extends Model
     }
 
     /**
-     *
+     * @throws \Exception
      */
     public function suspend()
     {
@@ -141,7 +141,7 @@ class Item extends Model
     }
 
     /**
-     *
+     * @throws \Exception
      */
     public function stopInvoicing()
     {

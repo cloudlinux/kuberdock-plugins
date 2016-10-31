@@ -56,7 +56,9 @@ class PackageRelation extends Model
             ->join('tblservergroupsrel', 'tblservergroupsrel.groupid', '=', 'tblservergroups.id')
             ->join('tblservers', 'tblservers.id', '=', 'tblservergroupsrel.serverid')
             ->where('tblproducts.hidden', '!=', 1)
-            ->whereRaw('INSTR(?, tblservers.ipaddress) > 0', [$referer])
-            ->orWhereRaw('INSTR(?, tblservers.hostname) > 0', [$referer]);
+            ->where(function ($query) use ($referer) {
+                $query->whereRaw('INSTR(?, tblservers.ipaddress) > 0', [$referer])
+                    ->orWhereRaw('INSTR(?, tblservers.hostname) > 0', [$referer]);
+            });
     }
 }
