@@ -392,7 +392,7 @@ class Package extends Model
     {
         $paymentTypes = array_flip(Package::getPaymentTypes());
         $packages = Package::join('KuberDock_products', 'tblproducts.id', '=', 'KuberDock_products.product_id')
-            ->typeKuberDock()->orderBy('name')->get();
+            ->typeKuberDock()->orderBy('name')->get()->getDictionary();
 
         uasort($packages, function ($a, $b) use ($paymentTypes) {
             if ($a->getPaymentType() == $b->getPaymentType()) {
