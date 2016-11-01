@@ -572,7 +572,11 @@ class Fixed extends Component implements BillingInterface
 
         foreach ($items as $item) {
             try {
-                $item->service->getApi()->getPod($item->pod_id);
+                /** @var Service $service */
+                $service = $item->service;
+                if ($service) {
+                    $service->getApi()->getPod($item->pod_id);
+                }
             } catch (NotFoundException $e) {
                 $item->stopInvoicing();
             } catch (\Exception $e) {

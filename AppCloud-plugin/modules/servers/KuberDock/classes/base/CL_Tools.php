@@ -15,6 +15,8 @@ use Symfony\Component\Yaml\Yaml;
  * Class CL_Tools
  * @package base
  * @deprecated
+ * @see \components\Tools
+ *
  */
 class CL_Tools extends CL_Component {
 

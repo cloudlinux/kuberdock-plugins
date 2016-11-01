@@ -145,6 +145,10 @@ class Item extends Model
      */
     public function stopInvoicing()
     {
+        if (!$this->billableItem) {
+            return;
+        }
+
         $unpaidInvoices = $this->invoices()->unpaid()->get();
 
         foreach ($unpaidInvoices as $itemInvoice) {

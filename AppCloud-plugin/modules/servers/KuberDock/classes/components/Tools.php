@@ -99,7 +99,7 @@ class Tools extends Component
      * @param null $default
      * @return null
      */
-    public function getPost($key, $default = null)
+    public static function getPost($key, $default = null)
     {
         return isset($_POST[$key]) ? $_POST[$key] : $default;
     }
@@ -108,7 +108,7 @@ class Tools extends Component
      * @param string $url
      * @param array $data
      */
-    public function jsRedirect($url, $data = [])
+    public static function jsRedirect($url, $data = [])
     {
         if ($data) {
             echo <<<HTML

@@ -9,6 +9,8 @@ use base\CL_Tools;
 
 /**
  * Class KuberDock_Addon_PredefinedApp
+ * @deprecated
+ * @see models\addon\App
  */
 class KuberDock_Addon_PredefinedApp extends CL_Model
 {

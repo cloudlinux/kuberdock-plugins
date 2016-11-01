@@ -162,6 +162,15 @@ class Service extends Model
             'status' => Resources::STATUS_ACTIVE,
         ]);
 
+        $api = $this->getApi();
+        foreach ($api->getPods()->getData() as $pod) {
+            try {
+                $api->startPod($pod['id']);
+            } catch (\Exception $e) {
+                // pass
+            }
+        }
+
         return $this;
     }
 

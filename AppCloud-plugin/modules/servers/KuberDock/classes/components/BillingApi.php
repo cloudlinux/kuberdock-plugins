@@ -76,7 +76,7 @@ class BillingApi extends Component
      * @param string $reason
      * @throws \Exception
      */
-    public function suspendModule(Service $service, $reason = null)
+    public static function suspendModule(Service $service, $reason = null)
     {
         BillingApi::request('modulesuspend', [
             'accountid' => $service->id,
@@ -88,7 +88,7 @@ class BillingApi extends Component
      * @param Service $service
      * @throws \Exception
      */
-    public function unSuspendModule(Service $service)
+    public static function unSuspendModule(Service $service)
     {
         BillingApi::request('moduleunsuspend', [
             'accountid' => $service->id,

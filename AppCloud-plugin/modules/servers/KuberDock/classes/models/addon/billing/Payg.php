@@ -52,7 +52,7 @@ class Payg extends Component implements BillingInterface
     public function afterOrderPayment(Item $item)
     {
         try {
-            $item->service->unSuspend();
+            BillingApi::unSuspendModule($item->service);
         } catch (\Exception $e) {
             CException::log($e);
         }
@@ -160,13 +160,13 @@ class Payg extends Component implements BillingInterface
 
                 BillingApi::model()->applyCredit($invoice);
             } catch (NotEnoughFundsException $e) {
-                $this->processSuspend($itemInvoice);
+                $this->suspendItem($itemInvoice);
             } catch (\Exception $e) {
                 CException::log($e);
             }
         }
 
-        $this->processSuspend();
+        $this->suspendAll();
     }
 
     /**
@@ -209,76 +209,84 @@ class Payg extends Component implements BillingInterface
     }
 
     /**
-     * @param ItemInvoice|null $itemInvoice
+     * @param ItemInvoice $itemInvoice
      * @throws \Exception
      */
-    protected function processSuspend(ItemInvoice $itemInvoice = null)
+    protected function suspendItem(ItemInvoice $itemInvoice)
+    {
+        $settings = new AutomationSettings();
+
+        if (!$settings->isSuspendEnabled()) {
+            return;
+        }
+
+        $item = $itemInvoice->item;
+
+        if ($item->service->package->getPaymentType() == 'hourly') {
+            $item->suspend();
+        } else {
+            $hasPaidInvoices = $item->invoices()->paid()->count();
+
+            if (!$hasPaidInvoices || $settings->isSuspended($itemInvoice->invoice->duedate)) {
+                $item->suspend();
+            }
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    protected function suspendAll()
     {
         $settings = new AutomationSettings();
         $now = new \DateTime();
         $now->setTime(0, 0, 0);
 
-        if ($itemInvoice) {
-            $item = $itemInvoice->with('item')->whereHas('item', function ($query) {
-                $query->where('status', '=', Resources::STATUS_ACTIVE);
-            })->first()->item;
+        $items = Item::select('KuberDock_items.*')
+            ->join('KuberDock_item_invoices', 'KuberDock_item_invoices.item_id', '=', 'KuberDock_items.id')
+            ->join('tblinvoices', 'tblinvoices.id', '=', 'KuberDock_item_invoices.invoice_id')
+            ->join('tblhosting', 'tblhosting.id', '=', 'KuberDock_items.service_id')
+            ->join('tblproducts', 'tblproducts.id', '=', 'tblhosting.packageid')
+            ->whereNull('KuberDock_items.billable_item_id')
+            ->where('KuberDock_items.status', '=', Resources::STATUS_ACTIVE)
+            ->where('KuberDock_item_invoices.status', Invoice::STATUS_UNPAID)
+            ->where('tblinvoices.duedate', '<', $now)
+            ->where('tblproducts.configoption3', '!=', 'hourly')
+            ->get();
 
-            if ($item->service->package->getPaymentType() == 'hourly') {
-                if ($settings->isSuspendEnabled()) {
-                    $item->suspend($item->service);
-                }
-            } else {
-                $hasPaidInvoices = $item->invoices()->paid()->count();
+        foreach ($items as $item) {
+            $hasPaidInvoices = $item->invoices()->paid()->count();
+            $invoice = $item->invoices->last()->invoice;
 
-                if ((!$hasPaidInvoices && $settings->isSuspendEnabled())
-                    || $settings->isSuspended($itemInvoice->invoice->duedate)) {
-                    $item->suspend();
-                }
+            if ((!$hasPaidInvoices && $settings->isSuspendEnabled()) || $settings->isSuspended($invoice->duedate)) {
+                $item->suspend();
             }
-        } else {
-            $items = Item::select('KuberDock_items.*')
-                ->join('KuberDock_item_invoices', 'KuberDock_item_invoices.item_id', '=', 'KuberDock_items.id')
-                ->join('tblinvoices', 'tblinvoices.id', '=', 'KuberDock_item_invoices.invoice_id')
-                ->join('tblhosting', 'tblhosting.id', '=', 'KuberDock_items.service_id')
-                ->join('tblproducts', 'tblproducts.id', '=', 'tblhosting.packageid')
-                ->whereNull('KuberDock_items.billable_item_id')
-                ->where('KuberDock_items.status', '=', Resources::STATUS_ACTIVE)
-                ->where('KuberDock_item_invoices.status', Invoice::STATUS_UNPAID)
-                ->where('tblinvoices.duedate', '<', $now)
-                ->where('tblproducts.configoption3', '!=', 'hourly')
-                ->get();
 
-            foreach ($items as $item) {
-                $hasPaidInvoices = $item->invoices()->paid()->count();
-                $invoice = $item->invoices->last()->invoice;
+            if (!$settings->isTerminateEnabled()) {
+                continue;
+            }
 
-                if ((!$hasPaidInvoices && $settings->isSuspendEnabled()) || $settings->isSuspended($invoice->duedate)) {
-                    $item->suspend();
-                }
+            if ($settings->isTerminateNotice($invoice->duedate)) {
+                BillingApi::model()->sendPreDefinedEmail($item->service->id,
+                    EmailTemplate::RESOURCES_NOTICE_NAME, [
+                        'expire_date' => $now->format('Y-m-d'),
+                    ]);
+            }
 
-                if ($settings->isTerminateEnabled()) {
-                    if ($settings->isTerminateNotice($invoice->duedate)) {
-                        BillingApi::model()->sendPreDefinedEmail($item->service->id,
-                            EmailTemplate::RESOURCES_NOTICE_NAME, [
-                                'expire_date' => $now->format('Y-m-d'),
-                            ]);
-                    }
+            if ($settings->isTerminated($invoice->duedate)) {
+                $resources = new Resources();
+                $resources->freeAll($item->service);
 
-                    if ($settings->isTerminated($invoice->duedate)) {
-                        $resources = new Resources();
-                        $resources->freeAll($item->service);
-
-                        BillingApi::model()->sendPreDefinedEmail($item->service->id,
-                            EmailTemplate::RESOURCES_NOTICE_NAME, [
-                                'expire_date' => $now->format('Y-m-d'),
-                            ]);
-                        $item->update([
-                            'status' => Resources::STATUS_DELETED,
-                        ]);
-                    }
-                }
+                BillingApi::model()->sendPreDefinedEmail($item->service->id,
+                    EmailTemplate::RESOURCES_NOTICE_NAME, [
+                        'expire_date' => $now->format('Y-m-d'),
+                    ]);
+                $item->update([
+                    'status' => Resources::STATUS_DELETED,
+                ]);
             }
         }
+
     }
 
     /**

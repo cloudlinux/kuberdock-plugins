@@ -7,8 +7,9 @@
 use base\CL_Base;
 use base\CL_Tools;
 use models\addon\App;
+use models\addon\ItemInvoice;
+use components\Tools;
 use base\models\CL_Invoice;
-use base\models\CL_User;
 use exceptions\CException;
 
 include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
@@ -51,7 +52,7 @@ add_hook('ProductEdit', 1, 'KuberDock_ProductEdit');
 /**
  * Run: Immediately before the product is removed from the database
  *
- * @param int $params
+ * @param array $params
  */
 function KuberDock_ProductDelete($params)
 {
@@ -124,12 +125,12 @@ function KuberDock_ShoppingCartValidateCheckout($params)
                     try {
                         \components\BillingApi::model()->applyCredit($invoice);
                     } catch (\exceptions\NotEnoughFundsException $e) {
-                        \components\Tools::model()->jsRedirect($invoice->getUrl());
+                        Tools::jsRedirect($invoice->getUrl());
                     }
                 }
             } catch (Exception $e) {
                 CException::log($e);
-                \components\Tools::model()->jsRedirect($app->referer . '&error=' . urlencode($e->getMessage()));
+                Tools::jsRedirect($app->referer . '&error=' . urlencode($e->getMessage()));
             }
 
             $errorMessage = 'You can\'t buy more than 1 KuberDock product.';
@@ -245,7 +246,7 @@ add_hook('InvoiceCreated', 1, 'KuberDock_InvoiceCreated');
  */
 function KuberDock_InvoicePaid($params)
 {
-    $itemInvoices = \models\addon\ItemInvoice::where('invoice_id', $params['invoiceid'])->get();
+    $itemInvoices = ItemInvoice::where('invoice_id', $params['invoiceid'])->get();
 
     if (!$itemInvoices->count()) {
         return;
@@ -259,7 +260,7 @@ function KuberDock_InvoicePaid($params)
 
             $unpaidItemInvoices = $resources->getUnpaidItemInvoices($itemInvoice);
             if ($unpaidItemInvoices->count()) {
-                \components\Tools::model()->jsRedirect($unpaidItemInvoices->first()->invoice->getUrl());
+                Tools::jsRedirect($unpaidItemInvoices->first()->invoice->getUrl());
             }
 
             $pod = $itemInvoice->afterPayment();
@@ -270,7 +271,10 @@ function KuberDock_InvoicePaid($params)
 
     global $whmcs;
 
-    if ($whmcs && $whmcs->isClientAreaRequest()) {
+    if (!isset($pod) || !$pod) {
+        $service = \models\billing\Service::find($itemInvoices->last()->item->service_id);
+        Tools::jsRedirect($service->getLoginLink());
+    } else if ($whmcs && $whmcs->isClientAreaRequest()) {
         $pod->redirect();
     }
 }
@@ -416,7 +420,7 @@ add_hook('AdminServiceEdit', 1, 'KuberDock_AdminServiceEdit');
 function KuberDock_ClientAdd($params)
 {
     // Add service for user created from KD
-    $packageId = \components\Tools::model()->getPost('package_id');
+    $packageId = Tools::getPost('package_id');
 
     if (is_numeric($packageId)) {
         try {
@@ -428,8 +432,8 @@ function KuberDock_ClientAdd($params)
 
             $client = \models\billing\Client::find($params['userid']);
 
-            $user = \components\Tools::model()->getPost('kduser');
-            $password = \components\Tools::model()->getPost('password');
+            $user = Tools::getPost('kduser');
+            $password = Tools::getPost('password');
 
             $service = new \models\billing\Service();
             $service->userid = $client->id;
@@ -474,7 +478,7 @@ function KuberDock_AfterModuleCreate($params)
                 global $whmcs;
 
                 if ($whmcs && $whmcs->isClientAreaRequest()) {
-                    $item = \models\addon\ItemInvoice::where('invoice_id', $invoice->id)->first()->item;
+                    $item = ItemInvoice::where('invoice_id', $invoice->id)->first()->item;
                     $pod = new \models\addon\resource\Pod($item->service->package);
                     $pod->setService($item->service);
                     $pod->loadById($item->pod_id);

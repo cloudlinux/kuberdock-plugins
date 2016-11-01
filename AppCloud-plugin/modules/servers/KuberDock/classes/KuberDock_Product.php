@@ -20,6 +20,8 @@ use exceptions\NotFoundException;
 
 /**
  * Class KuberDock_Product
+ * @deprecated
+ * @see models\billing\Package
  */
 class KuberDock_Product extends CL_Product {
     const AUTO_SETUP_PAYMENT = 'payment';
