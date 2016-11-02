@@ -127,6 +127,8 @@ class Addon extends \components\Component {
         foreach ($servers as $server) {
             Config::removeAllowedApiIP($server->ipaddress);
         }
+
+        Config::removeSetting('ModuleHooks', 'KuberDock');
     }
 
     /**
@@ -421,5 +423,7 @@ class Addon extends \components\Component {
                 }
             }
         }
+
+        Config::appendSetting('ModuleHooks', 'KuberDock');
     }
 }

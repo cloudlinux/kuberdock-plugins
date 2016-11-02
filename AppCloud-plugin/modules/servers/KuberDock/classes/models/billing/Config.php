@@ -106,4 +106,40 @@ class Config extends Model
         $model->value = serialize($data);
         $model->save();
     }
+
+    /**
+     * Appends a value to a setting.
+     * Setting must be stored in a string, separated with commas
+     *
+     * @param $setting
+     * @param $value
+     */
+    public static function appendSetting($setting, $value)
+    {
+        $model = self::find($setting);
+        $oldValue = explode(',', $model->value);
+        if (!isset(array_flip($oldValue)[$value])) {
+            $oldValue[] = $value;
+            $model->value = trim(implode(',', $oldValue), ',');
+            $model->save();
+        }
+    }
+
+    /**
+     * Removes a value from a setting.
+     * Setting must be stored in a string, separated with commas
+     *
+     * @param $setting
+     * @param $value
+     */
+    public static function removeSetting($setting, $value)
+    {
+        $model = self::find($setting);
+        $oldValue = array_flip(explode(',', $model->value));
+        if (isset($oldValue[$value])) {
+            unset($oldValue[$value]);
+            $model->value = trim(implode(',', array_flip($oldValue)), ',');
+            $model->save();
+        }
+    }
 }
