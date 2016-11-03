@@ -392,8 +392,14 @@ class Payg extends Component implements BillingInterface
             $dateStart = clone $service->regdate;
             $dateEnd = clone $service->regdate;
             $dateEnd->modify($package->getNextShift());
-            $service->nextduedate = clone $now;
+            $service->nextduedate = $service->regdate->modify($package->getNextShift());
+            $service->save();
         } else {
+            if ($now == $service->nextduedate) {
+                $service->nextduedate = $service->nextduedate->modify($package->getNextShift());
+                $service->save();
+            }
+
             $dateStart = clone $service->nextduedate;
             $dateStart->modify($package->getNextShift(false));
             $dateEnd = clone $service->nextduedate;
@@ -476,12 +482,6 @@ class Payg extends Component implements BillingInterface
                     $item->proratePrice($periodRemained / $period);
                 }
             }
-        }
-
-        // Set next due date
-        if ($now == $service->nextduedate) {
-            $service->nextduedate = $service->nextduedate->modify($package->getNextShift());
-            $service->save();
         }
 
         if ($items->sum()) {

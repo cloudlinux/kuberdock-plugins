@@ -199,7 +199,7 @@ class Service extends Model
         ];
 
         try {
-            $api->unDeleteUser($this->username);
+            $api->unDeleteUser($this->client->email);
             $api->updateUser($data, $this->username);
         } catch (NotFoundException $e) {
             $api->createUser($data);
