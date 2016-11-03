@@ -164,6 +164,11 @@ class Pod extends ResourceFactory
      */
     public function redirect($js = true)
     {
+        global $whmcs;
+        if($whmcs && $whmcs->isAdminAreaRequest()) {
+            return;
+        }
+
         $token = $this->service->getApi()->getJWTToken();
         $url = sprintf('%s/?token2=%s#pods/%s', $this->service->serverModel->getUrl(), $token, $this->id);
 

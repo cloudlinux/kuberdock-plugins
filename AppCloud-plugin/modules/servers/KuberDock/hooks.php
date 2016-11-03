@@ -270,11 +270,14 @@ function KuberDock_InvoicePaid($params)
     }
 
     global $whmcs;
+    if ($whmcs && $whmcs->isAdminAreaRequest()) {
+        return;
+    }
 
     if (!isset($pod) || !$pod) {
         $service = \models\billing\Service::find($itemInvoices->last()->item->service_id);
         Tools::jsRedirect($service->getLoginLink());
-    } else if ($whmcs && $whmcs->isClientAreaRequest()) {
+    } else {
         $pod->redirect();
     }
 }
