@@ -192,4 +192,42 @@ SCRIPT;
 
         return strtolower(implode($pass));
     }
+
+    public static function log($value)
+    {
+        if (!KUBERDOCK_DEBUG) {
+            return;
+        }
+
+        $hl = fopen('/tmp/whmcs.log', 'a');
+        ob_start();
+        echo PHP_EOL;
+        var_dump($value);
+        $content = ob_get_contents();
+        ob_end_clean();
+        fwrite($hl, $content);
+        fclose($hl);
+    }
+
+    /**
+     * array_column available only since PHP 5.5.0
+     *
+     * @param $array
+     * @param $column
+     * @param $index
+     * @return array
+     */
+    public static function array_column($array, $column, $index = null)
+    {
+        $result = [];
+        foreach ($array as $item) {
+            if (null === $index) {
+                $result[] = $item[$column];
+            } else {
+                $result[$item[$index]] = $item[$column];
+            }
+        }
+
+        return $result;
+    }
 }

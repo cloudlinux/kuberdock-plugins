@@ -8,6 +8,7 @@ use base\CL_Base;
 use base\CL_Tools;
 use models\addon\App;
 use models\addon\ItemInvoice;
+use models\addon\Resources;
 use components\Tools;
 use base\models\CL_Invoice;
 use exceptions\CException;
@@ -256,14 +257,9 @@ function KuberDock_InvoicePaid($params)
         try {
             $itemInvoice->invoice->addFirstDeposit();
 
-            $resources = new \models\addon\Resources();
-
-            $unpaidItemInvoices = $resources->getUnpaidItemInvoices($itemInvoice);
-            if ($unpaidItemInvoices->count()) {
-                Tools::jsRedirect($unpaidItemInvoices->first()->invoice->getUrl());
-            }
-
             $pod = $itemInvoice->afterPayment();
+
+            Resources::redirectToUnpaidInvoice($itemInvoice);
         } catch (Exception $e) {
             CException::log($e);
         }

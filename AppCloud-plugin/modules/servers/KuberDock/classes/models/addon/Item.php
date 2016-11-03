@@ -94,6 +94,16 @@ class Item extends Model
         return $query->where('billable_item_id', '>', 0);
     }
 
+    public function scopeUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    public function scopeType($query, $type)
+    {
+        return $query->where('type', $type);
+    }
+
     /**
      * Get not deleted items by pod id
      * @param $query
@@ -103,9 +113,9 @@ class Item extends Model
     public function scopeWithPod($query, $podId)
     {
         return $query
-            ->where('status', '!=', Resources::STATUS_DELETED)
-            ->where('type', Resources::TYPE_POD)
-            ->where('pod_id', $podId)->first();
+            ->type(Resources::TYPE_POD)
+            ->where('pod_id', $podId)
+            ->where('status', '!=', Resources::STATUS_DELETED);
     }
 
     /**
@@ -175,6 +185,8 @@ class Item extends Model
                 $itemInvoice->save();
             }
         }
+
+        ResourcePods::where('item_id', $this->id)->delete();
 
         $this->billableItem->delete();
         $this->status = Resources::STATUS_DELETED;

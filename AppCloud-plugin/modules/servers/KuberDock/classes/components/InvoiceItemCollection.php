@@ -96,16 +96,17 @@ class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
     }
 
     /**
+     * Walk through items and divide PD\IP resources which already used
+     *
      * @param Service $service
+     * @param string $pod_id
      */
-    public function filterPaidResources(Service $service)
+    public function filterPaidResources(Service $service, $pod_id = null)
     {
-        // Walk through items and divide PD\IP resources which already used
-        $this->data = array_filter($this->data, function ($item) use ($service) {
-            /* @var InvoiceItem $item
-             * @var Resources $resource
-             */
+        $this->data = array_filter($this->data, function ($item) use ($service, $pod_id) {
+            /** @var InvoiceItem $item */
             switch ($item->getType()) {
+                /** @var Resources $resource */
                 case Resources::TYPE_PD:
                     $resource = Resources::notDeleted($service->userid)->where('name', $item->getName())
                         ->typePd()->first();
@@ -114,7 +115,7 @@ class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
                         return true;
                     }
 
-                    if ($resource->isActive()) {
+                    if ($resource->isActive() && !$resource->isSamePod($pod_id)) {
                         return $resource->divide($item);
                     }
 

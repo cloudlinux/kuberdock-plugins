@@ -4,9 +4,6 @@
 namespace models\addon;
 
 
-use components\KuberDock_InvoiceItem;
-use components\Pod;
-use components\Units;
 use models\Model;
 
 class ResourcePods extends Model
