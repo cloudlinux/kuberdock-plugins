@@ -165,7 +165,7 @@ class Pod extends ResourceFactory
     public function redirect($js = true)
     {
         global $whmcs;
-        if($whmcs && $whmcs->isAdminAreaRequest()) {
+        if($whmcs && !$whmcs->isClientAreaRequest()) {
             return;
         }
 

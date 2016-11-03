@@ -270,7 +270,7 @@ function KuberDock_InvoicePaid($params)
     }
 
     global $whmcs;
-    if ($whmcs && $whmcs->isAdminAreaRequest()) {
+    if ($whmcs && !$whmcs->isClientAreaRequest()) {
         return;
     }
 
