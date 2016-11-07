@@ -450,6 +450,8 @@ function KuberDock_ClientAdd($params)
             $service->password = \components\BillingApi::model()->encryptPassword($password);
             $service->save();
 
+            $packageRelation->package->getBilling()->afterModuleCreate($service);
+
             system('php ' . KUBERDOCK_ROOT_DIR . '/bin/update_user_token.php --service_id='. $service->id .
                 " > /dev/null 2>/dev/null &");
         } catch (Exception $e) {
