@@ -25,7 +25,7 @@ class Server extends Model
     public function groups()
     {
         return $this->hasManyThrough(
-            'models\billing\ServerGroupRelation', 'serverid', 'id'
+            'models\billing\ServerGroup', 'models\billing\ServerGroupRelation', 'serverid', 'id'
         );
     }
 
