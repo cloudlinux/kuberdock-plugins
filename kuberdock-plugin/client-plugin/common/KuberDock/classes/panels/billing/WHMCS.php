@@ -62,14 +62,6 @@ class WHMCS implements BillingInterface
     /**
      * @return array
      */
-    public function getProducts()
-    {
-        return $this->_data['products'];
-    }
-
-    /**
-     * @return array
-     */
     public function getService()
     {
         return $this->_data['service'];
@@ -126,15 +118,15 @@ class WHMCS implements BillingInterface
     }
 
     public function getPackage() {
-        return $this->_data['package'] ? current($this->_data['package']) : null;
+        return $this->_data['package'] ? $this->_data['package'] : null;
     }
 
     public function getPackageById($id)
     {
         if ($this->getPackage()) return $this->getPackage();
 
-        foreach($this->getPackages() as $row) {
-            if($row['id'] == $id) {
+        foreach ($this->getPackages() as $row) {
+            if ($row['id'] == $id) {
                 return $row;
             }
         }

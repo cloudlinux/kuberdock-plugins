@@ -4,7 +4,7 @@
 namespace models\billing;
 
 
-use api\KuberDock_Api;
+use api\Api;
 use components\BillingApi;
 use components\Tools;
 use exceptions\NotFoundException;
@@ -93,14 +93,14 @@ class Service extends Model
     }
 
     /**
-     * @return KuberDock_Api
+     * @return Api
      * @throws \Exception
      */
     public function getApi()
     {
         $password = BillingApi::model()->decryptPassword($this->password);
         $debug = $this->package->getDebug();
-        $api = new KuberDock_Api($this->username, $password, $this->serverModel->getUrl(), $debug);
+        $api = new Api($this->username, $password, $this->serverModel->getUrl(), $debug);
 
         if ($token = $this->getToken()) {
             $api->setToken($token);
@@ -110,7 +110,7 @@ class Service extends Model
     }
 
     /**
-     * @return KuberDock_Api
+     * @return Api
      */
     public function getAdminApi()
     {

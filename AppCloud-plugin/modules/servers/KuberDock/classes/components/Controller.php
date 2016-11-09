@@ -134,8 +134,10 @@ class Controller extends Component {
 
     /**
      * Run application engine
+     * @param array $attributes
+     * @throws \Exception
      */
-    public function run()
+    public function run($attributes = [])
     {
         $controller = isset($_GET[self::CONTROLLER_PARAM]) ?
             $_GET[self::CONTROLLER_PARAM] : $this->defaultController;
@@ -149,6 +151,7 @@ class Controller extends Component {
             $model->controller = strtolower($controller);
             $model->action = $action;
             $model->setView();
+            $model->setAttributes($attributes);
             $model->init();
             $model->baseUrl = $this->baseUrl;
 

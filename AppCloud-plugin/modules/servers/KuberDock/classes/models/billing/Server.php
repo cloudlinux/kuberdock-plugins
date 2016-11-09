@@ -4,7 +4,7 @@
 namespace models\billing;
 
 
-use api\KuberDock_Api;
+use api\Api;
 use components\BillingApi;
 use models\Model;
 
@@ -48,25 +48,38 @@ class Server extends Model
     }
 
     /**
+     * @param $query
+     * @param string $referer
+     * @return mixed
+     */
+    public function scopeByReferer($query, $referer)
+    {
+        return $query->where(function ($query) use ($referer) {
+            $query->whereRaw('INSTR(?, tblservers.ipaddress) > 0', [$referer])
+                ->orWhereRaw('INSTR(?, tblservers.hostname) > 0', [$referer]);
+        });
+    }
+
+    /**
      * @return string
      */
     public function getUrl()
     {
-        $scheme = $this->secure == 'on' ? KuberDock_Api::PROTOCOL_HTTPS : KuberDock_Api::PROTOCOL_HTTP;
+        $scheme = $this->secure == 'on' ? Api::PROTOCOL_HTTPS : Api::PROTOCOL_HTTP;
         $domain = $this->hostname ? $this->hostname : $this->ipaddress;
 
         return sprintf('%s://%s', $scheme, $domain);
     }
 
     /**
-     * @return KuberDock_Api
+     * @return Api
      */
     public function getApi()
     {
         $url = $this->getUrl();
         $password = BillingApi::model()->decryptPassword($this->password);;
 
-        $api = new KuberDock_Api($this->username, $password, $url);
+        $api = new Api($this->username, $password, $url);
 
         if ($this->accesshash) {
             $api->setToken($this->accesshash);

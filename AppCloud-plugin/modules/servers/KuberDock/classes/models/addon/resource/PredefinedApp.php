@@ -4,7 +4,7 @@
 namespace models\addon\resource;
 
 
-use api\KuberDock_Api;
+use api\Api;
 use components\InvoiceItemCollection;
 use components\Tools;
 use Exception;

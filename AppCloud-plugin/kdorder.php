@@ -16,5 +16,6 @@ $ca->initPage();
 $controller = new \components\Controller();
 $controller->baseUrl = \models\billing\Config::get()->SystemURL;
 $controller->defaultController = 'Order';
-//$controller->setBillingClientArea($ca);
-$controller->run();
+$controller->run([
+    'clientArea' => $ca,
+]);

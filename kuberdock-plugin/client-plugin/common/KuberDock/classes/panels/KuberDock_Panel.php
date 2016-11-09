@@ -117,6 +117,7 @@ abstract class KuberDock_Panel
         $this->adminApi->initAdmin($username, $password, $token);
 
         $data = $this->adminApi->getInfo($this->user, $this->domain);
+        //echo '<pre>'; print_r($data); exit;
         $this->billing = $this->getBilling($data);
 
         if (!$this->isNoBilling() && ($service = $this->billing->getService())) {

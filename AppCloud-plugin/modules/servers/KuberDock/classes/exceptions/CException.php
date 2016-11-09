@@ -39,16 +39,12 @@ class CException extends Exception {
 
     /**
      * @param Exception $exception
-     * @param bool $jsRedirect
      */
-    public static function displayError(Exception $exception, $jsRedirect = false)
+    public static function displayError(Exception $exception)
     {
         $_SESSION['kdError' . session_id()] = $exception->getMessage();
-        if ($jsRedirect) {
-            \KuberDock_Product::model()->jsRedirect('kdpage.php');
-        } else {
-            header('Location: kdpage.php');
-        }
+
+        header('Location: kdpage.php');
     }
 
     /**

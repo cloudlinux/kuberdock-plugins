@@ -4,6 +4,7 @@
 namespace models\addon;
 
 
+use models\billing\Server;
 use models\Model;
 
 class PackageRelation extends Model
@@ -25,7 +26,7 @@ class PackageRelation extends Model
     /**
      * @var array
      */
-    protected $fillable = ['kuber_product_id'];
+    protected $fillable = ['kuber_product_id', 'product_id'];
 
     /**
      * @return \Closure
@@ -53,6 +54,20 @@ class PackageRelation extends Model
     public function package()
     {
         return $this->belongsTo('models\billing\Package', 'product_id', 'id');
+    }
+
+    /**
+     *
+     */
+    protected static function boot()
+    {
+        static::deleting(function ($packageRelation) {
+            $server = $packageRelation->package->serverGroup->servers()->typeKuberDock()->active()->first();
+
+            if ($server) {
+                $server->getApi()->deletePackage($packageRelation->kuber_product_id);
+            }
+        });
     }
 
     /**

@@ -7,6 +7,7 @@
 namespace Kuberdock\classes\models;
 
 use Kuberdock\classes\exceptions\ApiException;
+use Kuberdock\classes\exceptions\WithoutBillingException;
 use Kuberdock\classes\panels\KuberDock_cPanel;
 use Kuberdock\classes\Base;
 use Kuberdock\classes\exceptions\CException;
@@ -590,18 +591,19 @@ class Pod {
     /**
      * @param array $data
      * @return string
+     * @throws CException
+     * @throws WithoutBillingException
+     * @throws PaymentRequiredException
      */
     public function upgrade($data)
     {
-        $params['id'] = $this->id;
-        $params['containers'] = $data->containers;
-        $params['kube_type'] = $this->kube_type;
         $package = Base::model()->getPanel()->billing->getPackage();
+        Base::model()->getPanel()->getApi()->editPod($data->id, $data->edited_config);
 
-        if(Base::model()->getPanel()->billing->isFixedPrice($package['id'])) {
-            $this->orderKubes($params, $this->getLink());
+        if (Base::model()->getPanel()->billing->isFixedPrice($package['id'])) {
+            $this->orderEdit($data, $this->getLink());
         } else {
-            Base::model()->getPanel()->getApi()->addKubes($this->id, $data->containers);
+            Base::model()->getPanel()->getAdminApi()->applyEdit($this->id);
         }
 
         return 'Application upgraded';

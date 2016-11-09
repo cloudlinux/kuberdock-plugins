@@ -4,7 +4,7 @@
 namespace models\addon\resource;
 
 
-use api\KuberDock_Api;
+use api\Api;
 use components\Component;
 use components\InvoiceItemCollection;
 use models\billing\Package;
@@ -98,7 +98,7 @@ abstract class ResourceFactory extends Component
     }
 
     /**
-     * @return KuberDock_Api
+     * @return Api
      */
     public function getApi()
     {
@@ -106,7 +106,7 @@ abstract class ResourceFactory extends Component
     }
 
     /**
-     * @return KuberDock_Api
+     * @return Api
      */
     public function getAdminApi()
     {

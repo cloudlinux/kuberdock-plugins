@@ -10,10 +10,10 @@
         */ ?>
     </tr>
 
-    <?php foreach($kubes as $kube):?>
+    <?php foreach ($kubes as $kube):?>
     <tr<?php echo !$kube['available'] ? ' class="unavailable"' : ''?>>
         <td><?php echo $kube['name'] ?></td>
-        <td><?php echo $currency->getFullPrice($kube['kube_price']) . ' / ' . $product->getReadablePaymentType()?></td>
+        <td><?php echo $currency->getFullPrice($kube['kube_price']) . ' / ' . $package->getReadablePaymentType()?></td>
         <td><?php echo $kube['cpu'] ?></td>
         <td><?php echo $kube['memory'] ?></td>
         <td><?php echo $kube['disk_space'] ?></td>
@@ -23,3 +23,7 @@
     </tr>
     <?php endforeach;?>
 </table>
+
+<?php if ($trialExpired): ?>
+<div>Trial expired: <?php echo $trialExpired->format(\components\Tools::getDateFormat())?></div>
+<?php endif; ?>

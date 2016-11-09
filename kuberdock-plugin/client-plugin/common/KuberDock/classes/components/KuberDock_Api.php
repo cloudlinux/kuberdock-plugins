@@ -335,7 +335,7 @@ class KuberDock_Api {
      */
     public function call($params = array(), $type = 'GET')
     {
-        if (!in_array($type, array('GET', 'POST', 'PUT', 'DELETE'))) {
+        if (!in_array($type, array('GET', 'POST', 'PUT', 'PATCH', 'DELETE'))) {
             throw new CException('Undefined request type: '.$type);
         }
 
@@ -346,6 +346,7 @@ class KuberDock_Api {
         switch ($type) {
             case 'POST':
             case 'PUT':
+            case 'PATCH':
                 $this->requestUrl = $this->url;
                 if($this->token) {
                     $this->requestUrl .= '?token=' . $this->token;
@@ -391,6 +392,8 @@ class KuberDock_Api {
                 case KuberDock_ApiStatusCode::HTTP_BAD_REQUEST:
                 case KuberDock_ApiStatusCode::HTTP_NOT_FOUND:
                 case KuberDock_ApiStatusCode::HTTP_UNAUTHORIZED:
+                case KuberDock_ApiStatusCode::HTTP_CONFLICT:
+                    print_r($response);
                     if (filter_var($responseData, FILTER_VALIDATE_URL)) {
                         throw new CException(
                             sprintf('You have no billing account, please buy product at <a href="%s">%s</a>'
@@ -558,6 +561,37 @@ class KuberDock_Api {
     }
 
     /**
+     * @param int $podId
+     * @param array $editedConfig
+     * @return array
+     * @throws CException
+     * @throws WithoutBillingException
+     */
+    public function editPod($podId, $editedConfig)
+    {
+        $data['command'] = 'edit';
+        $data['edited_config'] = $editedConfig;
+
+        $response = $this->apiCall('/api/podapi/' . $podId, $data, 'PATCH');
+
+        return $response;
+    }
+
+    /**
+     * @param int $podId
+     * @return array
+     * @throws CException
+     * @throws WithoutBillingException
+     */
+    public function applyEdit($podId)
+    {
+        $data['command'] = 'redeploy';
+        $data['commandOptions']['applyEdit'] = true;
+
+        return $this->apiCall('/api/podapi/' . $podId, $data, 'PUT');
+    }
+
+    /**
      * @param string $username
      * @param string $password
      * @return array
@@ -637,7 +671,7 @@ class KuberDock_Api {
     {
         $this->url = $this->serverUrl . '/api/billing/orderPodEdit';
         $response = $this->call(array(
-            'pod' => json_encode($params),
+            'pod' => $params,
             'referer' => urldecode($referer),
         ), 'POST');
 

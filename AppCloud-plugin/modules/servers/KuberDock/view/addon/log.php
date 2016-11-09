@@ -1,7 +1,6 @@
 <?php
 /**
  * @var $logs array Change log
- * @var $currency \base\models\CL_Currency
  */
 ?>
 

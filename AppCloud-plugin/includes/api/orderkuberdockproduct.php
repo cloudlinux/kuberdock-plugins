@@ -4,76 +4,65 @@ if (!defined('WHMCS')) {
     die('This file cannot be accessed directly');
 }
 
-require_once dirname(__FILE__) . '/../../modules/servers/KuberDock/init.php';
+require_once __DIR__ . '/../../modules/servers/KuberDock/init.php';
 
 try {
-    global $CONFIG;
-
     $vars = get_defined_vars();
-    $postFields = \base\CL_Tools::getApiParams($vars);
+    $postFields = \components\BillingApi::model()->getApiParams($vars);
 
-    foreach(array('user', 'userDomains', 'package_id') as $attr) {
-        if(is_null($postFields->params->{$attr})) {
+    foreach (['user', 'userDomains', 'package_id'] as $attr) {
+        if (is_null($postFields->params->{$attr})) {
             throw new \Exception(sprintf("Field '%s' required", $attr));
         }
     }
 
     $packageId = $postFields->params->package_id;
     $user = $postFields->params->user;
-    $userDomains = explode(',', $postFields->params->userDomains);
-    $price = $postFields->params->price;
-    $paymentMethod = $postFields->params->payment_method;
+    $domains = explode(',', $postFields->params->userDomains);
+    $price = $postFields->params->price;    // Not used
+    $paymentMethod = $postFields->params->payment_method;   // Not used
 
-    $userData = \base\models\CL_Client::model()->getClientByCpanelUser($user, $userDomains);
-    $services = \KuberDock_Hosting::model()->getByUser($userData['userid']);
-    $service = current($services);
+    $client = \models\billing\Client::byDomain($user, $domains)->first();
 
-    $addonProduct = KuberDock_Addon_Product::model()->loadByAttributes(array(
-        'kuber_product_id' => $packageId,
-    ));
-
-    if (!$addonProduct) {
-        throw new \Exception('Product not found');
+    if (!$client) {
+        throw new \exceptions\NotFoundException('User not found');
     }
 
-    $addonProduct = current($addonProduct);
-    $product = KuberDock_Product::model()->loadById($addonProduct['product_id']);
-    $results = array();
+    $packageRelation = \models\addon\PackageRelation::where('kuber_product_id', $packageId)->first();
+
+    if (!$packageRelation) {
+        throw new \exceptions\NotFoundException('Product not found');
+    }
+
+    $service = \models\billing\Service::where('userid', $client->id)
+        ->where('packageid', $packageRelation->product_id)
+        ->where('domainstatus', 'Active')
+        ->first();
 
     if (!$service) {
-        $order = \base\models\CL_Order::model()->createOrder($userData['userid'], $product->id, $price);
-        $orderId = $order['orderid'];
-        $serviceId = $order['productids'];
-    } else if ($service['domainstatus'] == KuberDock_User::STATUS_PENDING) {
-        $order = \base\models\CL_Order::model()->getOrders($service['orderid']);
-        $order = current($order['orders']['order']);
-        $orderId = $order['id'];
-        $serviceId = $service['id'];
+        $service = \components\BillingApi::model()->createOrder($client, $packageRelation->package);
+        $order = \models\billing\Order::find($service->orderid);
+        $order = \components\BillingApi::model()->acceptOrder($order);
+    } elseif ($service->domainstatus == 'Pending') {
+        $order = \models\billing\Order::find($service->orderid);
+        $order = \components\BillingApi::model()->acceptOrder($order);
     } else {
-        $order = null;
-        $serviceId = $service['id'];
+        $order = \models\billing\Order::find($service->orderid);
     }
 
-    $results['service_id'] = $serviceId;
-    if ($order) {
-        if ($order['invoiceid'] > 0) {
-            $invoice = \base\models\CL_Invoice::model()->loadById($order['invoiceid']);
-            if (!$invoice->isPayed()) {
-                $results['status'] = \base\models\CL_Invoice::STATUS_UNPAID;
-                $results['redirect'] = \base\CL_Tools::generateAutoAuthLink('viewinvoice.php?id=' . $invoice->id, $userData['email']);
-            } else {
-                \base\models\CL_Order::model()->acceptOrder($orderId);
-                $results['status'] = \base\models\CL_Invoice::STATUS_PAID;
-            }
-        } else {
-            \base\models\CL_Order::model()->acceptOrder($orderId);
-            $results['status'] = \base\models\CL_Invoice::STATUS_PAID;
+    $results['service_id'] = $service->id;
+
+    if ($order->invoice) {
+        $results['status'] = $order->invoice->status;
+        if ($order->invoice->isUnpaid()) {
+            $url = 'viewinvoice.php?id=' . $order->invoice->id;
+            $results['redirect'] = \components\BillingApi::generateAutoAuthLink($url, $client);
         }
     } else {
-        $results['status'] = \base\models\CL_Invoice::STATUS_PAID;
+        $results['status'] = \models\billing\Invoice::STATUS_PAID;
     }
 
-    $apiresults = array('result' => 'success', 'results' => $results);
+    $apiresults = ['result' => 'success', 'results' => $results];
 } catch (Exception $e) {
-    $apiresults = array('result' => 'error', 'message' => $e->getMessage());
+    $apiresults = ['result' => 'error', 'message' => $e->getMessage()];
 }

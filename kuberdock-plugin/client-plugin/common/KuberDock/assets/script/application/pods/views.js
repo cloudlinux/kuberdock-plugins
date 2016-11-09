@@ -748,7 +748,7 @@ define(['app', 'application/utils',
                 hdd: kube.disk_space * kubes  + ' ' + kube.disk_space_units,
                 memory: kube.memory * kubes  + ' ' + kube.memory_units
             }));
-
+            
             $('.new-price').text(wNumb({
                 decimals: 2,
                 prefix: userPackage.prefix,
@@ -786,18 +786,27 @@ define(['app', 'application/utils',
 
         upgradePod: function (e) {
             var formData = this.ui.form.serializeArray(),
-                containers = this.model.get('containers'),
-                self = this;
+                editedConfig = $.extend(true, {}, this.model.attributes),
+                self = this,
+                p = ['kube_type', 'restartPolicy', 'volumes', 'containers', 'kuberdock_resolve', 'domain', 'sid'];
 
-            _.each(containers, function (c, i) {
+            _.each(editedConfig.containers, function (c, i) {
                 _.each(formData, function (e) {
                     if (e.name.indexOf(c.name) >= 0) {
-                        containers[i].kubes = parseInt(e.value);
+                        c.kubes = parseInt(e.value);
                     }
                 });
             });
 
-            this.model.save({command: 'upgrade', containers: containers}).done(function () {
+            _.map(editedConfig, function (v, k) {
+                if (_.indexOf(p, k) < 0) {
+                    delete editedConfig[k];
+                }
+            });
+
+            this.model.set('edited_config', editedConfig);
+
+            this.model.save({command: 'upgrade'}).done(function () {
                 App.navigate('pod/' + encodeURIComponent(self.model.get('name')));
             });
         },

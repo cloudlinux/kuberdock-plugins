@@ -2,13 +2,13 @@
 
 namespace migrations;
 
-use base\CL_Query;
+use models\addon\Migration as MigrationModel;
 
 class Migration
 {
     public static function check()
     {
-        $last = \KuberDock_Migrations::getLast();
+        $last = self::last();
         $available = self::getAvailable($last);
 
         return (bool) $available;
@@ -16,24 +16,27 @@ class Migration
 
     public static function up()
     {
-        $last = \KuberDock_Migrations::getLast();
+        $last = self::last();
 
         $available = self::getAvailable($last);
 
         foreach ($available as $versionNumber) {
             self::run($versionNumber, 'up');
-            \KuberDock_Migrations::addVersion($versionNumber);
+
+            MigrationModel::newOrCreate([
+                'version' => $versionNumber,
+            ]);
         }
     }
 
     public static function down($target = null)
     {
-        $existing = \KuberDock_Migrations::loadByMin($target);
+        $existing = MigrationModel::where('version', '>', $target)->orderBy('version', 'desc')->first();
 
-        foreach ($existing as $version) {
-            $versionNumber = $version['version'];
-            self::run($versionNumber, 'down');
-            \KuberDock_Migrations::removeVersion($versionNumber);
+        foreach ($existing as $row) {
+            self::run($row->version, 'down');
+
+            MigrationModel::where('version', $row->version)->delete();
         }
     }
 
@@ -48,9 +51,22 @@ class Migration
             return;
         }
 
+        $db = \models\Model::getConnectionResolver();
+
         foreach ($version->$direction() as $sql) {
-            CL_Query::model()->query($sql);
+            $db->statement($sql);
         };
+    }
+
+    public static function last()
+    {
+        $last = MigrationModel::orderBy('version', 'desc')->first();
+
+        if ($last) {
+            return (int) $last->version;
+        }
+
+        return -1;
     }
 
     public static function getAvailable($min)

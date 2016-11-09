@@ -4,8 +4,8 @@
 namespace models\addon\resource;
 
 
-use api\KuberDock_Api;
-use api\KuberDock_ApiResponse;
+use api\Api;
+use api\ApiResponse;
 use components\Component;
 use components\InvoiceItemCollection;
 use components\Units;
@@ -98,7 +98,7 @@ class Pod extends ResourceFactory
 
     /**
      * @param bool $unpaid
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      */
     public function start($unpaid = false)
     {
@@ -165,7 +165,7 @@ class Pod extends ResourceFactory
     public function redirect($js = true)
     {
         global $whmcs;
-        if($whmcs && !$whmcs->isClientAreaRequest()) {
+        if ($whmcs && !$whmcs->isClientAreaRequest()) {
             return;
         }
 

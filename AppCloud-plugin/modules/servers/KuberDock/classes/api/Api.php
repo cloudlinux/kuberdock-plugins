@@ -12,10 +12,10 @@ use Exception;
 use Firebase\JWT\JWT;
 
 /**
- * Class KuberDock_Api
+ * Class Api
  * @package api
  */
-class KuberDock_Api {
+class Api {
     /**
      *
      */
@@ -109,16 +109,6 @@ class KuberDock_Api {
         $this->debug = $debug;
         $this->serverUrl = $url ? $url : self::API_URL;
         $this->dataType = self::DATA_TYPE_JSON;
-    }
-
-    /**
-     * @param \KuberDock_Server $server
-     * @return KuberDock_Api
-     */
-    public static function constructByServer($server)
-    {
-        $serverAttr = $server->getAttributes();
-        return new self($serverAttr['username'], $server->decryptPassword(), $server->getApiServerUrl());
     }
 
     /**
@@ -222,7 +212,7 @@ class KuberDock_Api {
     /**
      * @param array $params
      * @param string $type
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws CException
      * @throws NotFoundException
      */
@@ -281,21 +271,21 @@ class KuberDock_Api {
         $err = ucwords(curl_error($ch));
         curl_close($ch);
 
-        if ($status['http_code'] != KuberDock_ApiStatusCode::HTTP_OK) {
+        if ($status['http_code'] != ApiStatusCode::HTTP_OK) {
             switch ($status['http_code']) {
-                case KuberDock_ApiStatusCode::HTTP_BAD_REQUEST:
-                case KuberDock_ApiStatusCode::HTTP_CONFLICT:
+                case ApiStatusCode::HTTP_BAD_REQUEST:
+                case ApiStatusCode::HTTP_CONFLICT:
                     break;
-                case KuberDock_ApiStatusCode::HTTP_FORBIDDEN:
+                case ApiStatusCode::HTTP_FORBIDDEN:
                     throw new CException(sprintf('Invalid credential for KuberDock server %s', $this->url));
-                case KuberDock_ApiStatusCode::HTTP_NOT_FOUND:
+                case ApiStatusCode::HTTP_NOT_FOUND:
                     throw new NotFoundException();
                 default:
                     if ($err) {
-                        $msg = sprintf('%s (%s): %s', KuberDock_ApiStatusCode::getMessageByCode($status['http_code']),
+                        $msg = sprintf('%s (%s): %s', ApiStatusCode::getMessageByCode($status['http_code']),
                             $err, $this->url);
                     } else {
-                        $msg = sprintf('%s: %s', KuberDock_ApiStatusCode::getMessageByCode($status['http_code']), $this->url);
+                        $msg = sprintf('%s: %s', ApiStatusCode::getMessageByCode($status['http_code']), $this->url);
                     }
                     throw new CException($msg);
             }
@@ -314,7 +304,7 @@ class KuberDock_Api {
      * @param string $apiRoute
      * @param array $values
      * @param string $type
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws CException
      * @throws Exception
      * @throws NotFoundException
@@ -340,7 +330,7 @@ class KuberDock_Api {
 
     /**
      * @param $values
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function createUser($values)
@@ -365,7 +355,7 @@ class KuberDock_Api {
     /**
      * @param $values
      * @param $user
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function updateUser($values, $user)
@@ -374,7 +364,7 @@ class KuberDock_Api {
     }
 
     /**
-     * @return \api\KuberDock_ApiResponse
+     * @return \api\ApiResponse
      * @throws Exception
      */
     public function getDefaultKubeType()
@@ -383,7 +373,7 @@ class KuberDock_Api {
     }
 
     /**
-     * @return \api\KuberDock_ApiResponse
+     * @return \api\ApiResponse
      * @throws Exception
      */
     public function getDefaultPackageId()
@@ -394,7 +384,7 @@ class KuberDock_Api {
     /**
      * @param string $user
      * @param bool $force
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function deleteUser($user, $force = false)
@@ -404,7 +394,7 @@ class KuberDock_Api {
 
     /**
      * @param string $user
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function unDeleteUser($user)
@@ -416,7 +406,7 @@ class KuberDock_Api {
 
     /**
      * @param $user
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception, NotFoundException
      */
     public function getUser($user)
@@ -425,7 +415,7 @@ class KuberDock_Api {
     }
 
     /**
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function getUsers()
@@ -437,7 +427,7 @@ class KuberDock_Api {
      * @param string $user
      * @param \DateTime $dateFrom
      * @param \DateTime $dateTo
-     * @return \api\KuberDock_ApiResponse
+     * @return \api\ApiResponse
      * @throws Exception
      */
     public function getUsage($user, \DateTime $dateFrom, \DateTime $dateTo)
@@ -450,7 +440,7 @@ class KuberDock_Api {
 
     /**
      * @param $date
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function getAllUsage($date)
@@ -460,7 +450,7 @@ class KuberDock_Api {
 
     /**
      * @param int $id
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function getKube($id)
@@ -469,7 +459,7 @@ class KuberDock_Api {
     }
 
     /**
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function getKubes()
@@ -497,7 +487,7 @@ class KuberDock_Api {
 
     /**
      * @param int $packageId
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function getPackageKubesById($packageId)
@@ -507,7 +497,7 @@ class KuberDock_Api {
 
     /**
      * @param int $packageId
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function getPackageKubesByName($packageId)
@@ -517,7 +507,7 @@ class KuberDock_Api {
 
     /**
      * @param int $packageId
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function getPackageKubes($packageId)
@@ -528,7 +518,7 @@ class KuberDock_Api {
     /**
      * @param int $packageId
      * @param array $values
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws CException
      */
     public function createPackageKube($packageId, $values)
@@ -539,7 +529,7 @@ class KuberDock_Api {
     /**
      * @param int $packageId
      * @param int $kubeId
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function deletePackageKube($packageId, $kubeId)
@@ -551,7 +541,7 @@ class KuberDock_Api {
      * @param int $packageId
      * @param int $kubeId
      * @param float $kubePrice
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function addKubeToPackage($packageId, $kubeId, $kubePrice = 0.0)
@@ -563,7 +553,7 @@ class KuberDock_Api {
 
     /**
      * @param array $values
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws CException
      */
     public function createKube($values)
@@ -574,7 +564,7 @@ class KuberDock_Api {
     /**
      * @param int $id
      * @param array $values
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function updateKube($id, $values)
@@ -584,7 +574,7 @@ class KuberDock_Api {
 
     /**
      * @param int $id
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function deleteKube($id)
@@ -594,7 +584,7 @@ class KuberDock_Api {
 
     /**
      * @param bool $withKubes
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function getPackages($withKubes = false)
@@ -607,7 +597,7 @@ class KuberDock_Api {
     /**
      * @param int $id
      * @param bool $withKubes
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function getPackageById($id, $withKubes = false)
@@ -619,7 +609,7 @@ class KuberDock_Api {
 
     /**
      * @param string $name
-     * @return array|bool
+     * @return array
      * @throws Exception
      */
     public function getPackageByName($name)
@@ -632,12 +622,12 @@ class KuberDock_Api {
             }
         }
 
-        return false;
+        return [];
     }
 
     /**
      * @param array $values
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws CException
      */
     public function createPackage($values)
@@ -648,7 +638,7 @@ class KuberDock_Api {
     /**
      * @param int $id
      * @param array $values
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function updatePackage($id, $values)
@@ -658,7 +648,7 @@ class KuberDock_Api {
 
     /**
      * @param int $id
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function deletePackage($id)
@@ -668,7 +658,7 @@ class KuberDock_Api {
 
     /**
      * @param string $yaml
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function createPodFromYaml($yaml)
@@ -679,7 +669,7 @@ class KuberDock_Api {
     }
 
     /**
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function getPods()
@@ -698,7 +688,7 @@ class KuberDock_Api {
 
     /**
      * @param $podId
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function startPod($podId)
@@ -710,7 +700,7 @@ class KuberDock_Api {
 
     /**
      * @param $podId
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function stopPod($podId)
@@ -727,7 +717,7 @@ class KuberDock_Api {
     /**
      * @param string $podId
      * @param array $attributes
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function updatePod($podId, $attributes)
@@ -741,7 +731,7 @@ class KuberDock_Api {
     /**
      * @param string $podId
      * @param array $attributes
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function redeployPod($podId, $attributes)
@@ -753,7 +743,7 @@ class KuberDock_Api {
 
     /**
      * @param string $podId
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      */
     public function applyEdit($podId)
     {
@@ -765,7 +755,7 @@ class KuberDock_Api {
     /**
      * @param string $podId
      * @param string $plan
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      */
     public function switchPodPlan($podId, $plan)
     {
@@ -773,7 +763,7 @@ class KuberDock_Api {
     }
 
     /**
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function getNodes()
@@ -782,7 +772,7 @@ class KuberDock_Api {
     }
 
     /**
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws CException
      * @throws Exception
      * @throws NotFoundException
@@ -794,7 +784,7 @@ class KuberDock_Api {
 
     /**
      * @param int $id
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws CException
      * @throws Exception
      * @throws NotFoundException
@@ -806,7 +796,7 @@ class KuberDock_Api {
 
     /**
      * @param string $podId
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function unbindIP($podId)
@@ -817,7 +807,7 @@ class KuberDock_Api {
     }
 
     /**
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     public function getIpPoolStat()
@@ -874,12 +864,12 @@ class KuberDock_Api {
 
     /**
      * @param $response
-     * @return KuberDock_ApiResponse
+     * @return ApiResponse
      * @throws Exception
      */
     private function parseResponse($response)
     {
-        $this->response = new KuberDock_ApiResponse();
+        $this->response = new ApiResponse();
         $this->response->raw = $response;
 
         if ($this->dataType == self::DATA_TYPE_JSON) {

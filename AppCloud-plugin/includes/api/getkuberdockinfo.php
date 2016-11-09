@@ -4,76 +4,70 @@ if (!defined('WHMCS')) {
     die('This file cannot be accessed directly');
 }
 
-require_once dirname(__FILE__) . '/../../modules/servers/KuberDock/init.php';
+require_once __DIR__ . '/../../modules/servers/KuberDock/init.php';
 
 try {
-    global $CONFIG;
-
     $vars = get_defined_vars();
-    $postFields = \base\CL_Tools::getApiParams($vars);
-    $kdServer = $postFields->params->kdServer;
-    $cpanelUser = $postFields->params->user;
-    $cpanelUserDomains = explode(',', $postFields->params->userDomains);
+    $postFields = \components\BillingApi::model()->getApiParams($vars);
 
-    foreach (array('kdServer', 'user', 'userDomains') as $attr) {
+    foreach (['kdServer', 'user', 'userDomains'] as $attr) {
         if (!isset($postFields->params->{$attr}) || !$postFields->params->{$attr}) {
             throw new \exceptions\CException(sprintf("Field '%s' required", $attr));
         }
     }
 
     $kdServer = $postFields->params->kdServer;
-    $hUser = $postFields->params->user;
-    $hUserDomains = explode(',', $postFields->params->userDomains);
+    $user = $postFields->params->user;
+    $domains = explode(',', $postFields->params->userDomains);
 
-    $user = \base\models\CL_Client::model()->getClientByCpanelUser($hUser, $hUserDomains);
+    $client = \models\billing\Client::byDomain($user, $domains)->first();
 
-    $server = KuberDock_Server::model()->getByUrl($kdServer);
-    $adminApi = $server->getApi();
-    $services = KuberDock_Hosting::model()->getByUser($user['id']);
-    $userService = array();
-
-    foreach ($services as $row) {
-        if ($row['server'] != $server->id) {
-            continue;
-        }
-
-        $model = KuberDock_Hosting::model()->loadByParams($row);
-        $token = $model->getToken();
-
-        if (!$token) {
-            continue;
-        }
-
-        $userService = array(
-            'id' => $model->id,
-            'product_id' => $model->packageid,
-            'token' => $token,
-            'domainstatus' => $model->domainstatus,
-            'orderid' => $model->orderid,
-        );
-        if ($addonProduct = KuberDock_Addon_Product::model()->loadById($row['packageid'])) {
-            $userService['kuber_product_id'] = $addonProduct->kuber_product_id;
-        }
+    if (!$client) {
+        throw new \exceptions\NotFoundException('User not found');
     }
 
-    $data['billingUser'] = array(
-        'id' => $user['id'],
-        'defaultgateway' => $user['defaultgateway'],
-    );
-    $data['service'] = $userService;
-    $data['products'] = KuberDock_Addon_Product::model()->loadByAttributes();
-    $data['billing'] = 'WHMCS';
-    $data['billingLink'] = $CONFIG['SystemURL'];
+    $packageRelation = \models\addon\PackageRelation::byReferer($kdServer)->first();
+    $server = \models\billing\Server::typeKuberDock()->byReferer($kdServer)->first();
 
-    $data['default']['kubeType'] = $adminApi->getDefaultKubeType()->getData();
-    $data['default']['packageId'] = $adminApi->getDefaultPackageId()->getData();
-    if ($userService) {
-        $data['package'][] = $adminApi->getPackageById($userService['kuber_product_id'], true)->getData();
+    if (!$packageRelation) {
+        throw new \exceptions\NotFoundException(sprintf('KuberDock product for server %s not found', $kdServer));
+    }
+
+    $data = [];
+
+    $adminApi = $server->getApi();
+
+    $service = \models\billing\Service::where('userid', $client->id)
+        ->where('packageid', $packageRelation->product_id)
+        ->where('domainstatus', 'Active')
+        ->first();
+
+    if ($service) {
+        $data['service'] = [
+            'id' => $service->id,
+            'product_id' => $service->packageid,
+            'token' => $service->getToken(),
+            'domainstatus' => $service->domainstatus,
+            'orderid' => $service->orderid,
+            'kuber_product_id' => $packageRelation->kuber_product_id,
+        ];
+        $data['package'] = $service->getAdminApi()->getPackageById($packageRelation->kuber_product_id, true)->getData();
     } else {
         $data['packages'] = $adminApi->getPackages(true)->getData();
     }
 
-    $apiresults = array('result' => 'success', 'results' => $data);
+    $data['billingUser'] = [
+        'id' => $client->id,
+        'defaultgateway' => $client->defaultgateway,
+    ];
+
+    $data['billing'] = 'WHMCS';
+    $data['billingLink'] = \models\billing\Config::get()->SystemURL;
+
+    $data['default']['kubeType'] = $adminApi->getDefaultKubeType()->getData();
+    $data['default']['packageId'] = $adminApi->getDefaultPackageId()->getData();
+
+    $apiresults = ['result' => 'success', 'results' => $data];
 } catch (Exception $e) {
-    $apiresults = array('result' => 'error', 'message' => $e->getMessage());
+    $apiresults = ['result' => 'error', 'message' => $e->getMessage()];
 }

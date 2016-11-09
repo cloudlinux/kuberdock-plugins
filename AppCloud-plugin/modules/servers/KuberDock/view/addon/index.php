@@ -2,7 +2,6 @@
 /**
  * @var $log array Change log
  * @var $tab string Current tab
- * @var $currency \base\models\CL_Currency
  */
 
 $variables = compact(array_diff(

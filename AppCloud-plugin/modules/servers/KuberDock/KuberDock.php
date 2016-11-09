@@ -4,10 +4,12 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
-use base\CL_View;
-use base\models\CL_Currency;
-use api\KuberDock_Api;
+use api\Api;
 use exceptions\CException;
+use components\Tools;
+use components\View;
+use models\billing\Service;
+use models\billing\Package;
 
 include_once __DIR__ . DIRECTORY_SEPARATOR . 'init.php';
 
@@ -16,9 +18,9 @@ include_once __DIR__ . DIRECTORY_SEPARATOR . 'init.php';
  * @throws Exception
  */
 function KuberDock_ConfigOptions() {
-    $id = \components\Tools::model()->getParam('id', components\Tools::model()->getPost('id'));
+    $id = Tools::model()->getParam('id', components\Tools::model()->getPost('id'));
 
-    return \models\billing\Package::find($id)->getConfig();
+    return Package::find($id)->getConfig();
 }
 
 /**
@@ -26,7 +28,7 @@ function KuberDock_ConfigOptions() {
  * @return string
  */
 function KuberDock_CreateAccount($params) {
-    $service = \models\billing\Service::find($params['serviceid']);
+    $service = Service::find($params['serviceid']);
 
     try {
         $service->createUser();
@@ -45,7 +47,7 @@ function KuberDock_CreateAccount($params) {
  */
 function KuberDock_TerminateAccount($params) {
     try {
-        $service = \models\billing\Service::find($params['serviceid']);
+        $service = Service::find($params['serviceid']);
         $service->terminate();
 
         return 'success';
@@ -61,7 +63,7 @@ function KuberDock_TerminateAccount($params) {
  */
 function KuberDock_SuspendAccount($params) {
     try {
-        $service = \models\billing\Service::find($params['serviceid']);
+        $service = Service::find($params['serviceid']);
         $service->suspend();
 
         return 'success';
@@ -77,7 +79,7 @@ function KuberDock_SuspendAccount($params) {
  */
 function KuberDock_UnsuspendAccount($params) {
     try {
-        $service = \models\billing\Service::find($params['serviceid']);
+        $service = Service::find($params['serviceid']);
         $service->unSuspend();
 
         return 'success';
@@ -88,148 +90,130 @@ function KuberDock_UnsuspendAccount($params) {
 }
 
 /**
- * @param $params
+ * @param array $params
  * @return array
- * @throws Exception
+ * @throws LogicException
  */
 function KuberDock_AdminServicesTabFields($params) {
-    $view = new CL_View();
-    $product = KuberDock_Product::model()->loadById($params['pid']);
-    $currency = CL_Currency::model()->getDefaultCurrency();
-    $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
-    $trialTime = (int) $product->getConfigOption('trialTime');
-    $enableTrial = $product->getConfigOption('enableTrial');
-    $regDate = new DateTime($service->regdate);
+    /* @var \models\billing\Service $service
+     * @var \models\billing\Package $package
+     * */
+    $view = new View();
+    $service = Service::find($params['serviceid']);
+    $package = $service->package;
+    $currency = $service->client->currencyModel;
+
+    $regDate = $service->regdate;
     $trialExpired = '';
 
-    if ($enableTrial && $service->isTrialExpired($regDate, $trialTime)) {
-        $trialExpired = $regDate->modify('+'.$trialTime.' day')->format('Y-m-d');
+    if ($service->isTrialExpired()) {
+        $trialExpired = $regDate->addDays($package->getTrialTime());
     }
 
-    $addonProduct = KuberDock_Addon_Product::model()->loadById($product->pid);
-
     try {
-        $kubes = $service->getAdminApi()->getPackageKubes($addonProduct->kuber_product_id)->getData();
-        $kubes = \base\CL_Tools::getKeyAsField($kubes, 'id');
-        $pods = $service->getApi()->getPods()->getData();
-        $productStatistic = $view->renderPartial('admin/product_statistic', array(
-            'pods' => $pods,
-            'kubes' => $kubes,
-        ), false);
+        if (!$package->relatedKuberDock) {
+            throw new LogicException('KuberDock product not found');
+        }
 
-        $productInfo = $view->renderPartial('admin/product_info', array(
+        $kubes = $service->getAdminApi()->getPackageKubes($package->relatedKuberDock->kuber_product_id)->getData();
+        $pods = $service->getApi()->getPods()->getData();
+
+        if ($pods) {
+            $productStatistic = $view->renderPartial('admin/product_statistic', [
+                'pods' => $pods,
+                'kubes' => $kubes,
+            ], false);
+        } else {
+            $productStatistic = '<div>No pods yet</div>';
+        }
+
+        $productInfo = $view->renderPartial('admin/product_info', [
             'currency' => $currency,
-            'product' => $product,
+            'package' => $package,
             'kubes' => $kubes,
             'trialExpired' => $trialExpired,
-        ), false);
+        ], false);
 
-    } catch(Exception $e) {
+    } catch (Exception $e) {
         $productStatistic = sprintf('<div class="error">%s</div>', $e->getMessage());
         $productInfo = '';
     }
 
-    return array(
+    return [
         'Package Kubes' => $productInfo,
         'Pods' => $productStatistic,
-    );
+    ];
 }
 
 /**
- * @param $params
+ * @param array $params
  * @return string
- * @throws Exception
+ * @throws LogicException
  */
 function KuberDock_ClientArea($params) {
-    $view = new CL_View();
-    $product = KuberDock_Product::model()->loadByParams($params);
-    $currency = CL_Currency::model()->getDefaultCurrency();
-    $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
-    $server = KuberDock_Server::model()->loadById($service->server);
-    $trialTime = (int) $product->getConfigOption('trialTime');
-    $enableTrial = $product->getConfigOption('enableTrial');
-    $items = \models\addon\Item::where('user_id', $params['userid'])->get()->toArray();
-    $items = \base\CL_Tools::model()->getKeyAsField($items, 'pod_id');
-    $regDate = new DateTime($service->regdate);
+    /* @var \models\billing\Service $service
+     * @var \models\billing\Package $package
+     * @var \models\billing\Currency $currency
+     * */
+    $view = new View();
+    $service = Service::find($params['serviceid']);
+    $package = $service->package;
+    $currency = $service->client->currencyModel;
+
+    $regDate = $service->regdate;
     $trialExpired = '';
 
-    if($enableTrial && $service->isTrialExpired($regDate, $trialTime)) {
-        $trialExpired = $regDate->modify('+'.$trialTime.' day')->format('Y-m-d');
+    if ($service->isTrialExpired()) {
+        $trialExpired = $regDate->addDays($package->getTrialTime());
     }
 
-    $addonProduct = KuberDock_Addon_Product::model()->loadById($product->pid);
-
     try {
-        if (!$addonProduct) {
-            throw new Exception('KuberDock product not found');
+        if (!$package->relatedKuberDock) {
+            throw new LogicException('KuberDock product not found');
         }
         $pods = $service->getApi()->getPods()->getData();
-        $kubes = $service->getAdminApi()->getPackageKubes($addonProduct->kuber_product_id)->getData();
-        $kubes = \base\CL_Tools::getKeyAsField($kubes, 'id');
-        
+        $kubes = $service->getAdminApi()->getPackageKubes($package->relatedKuberDock->kuber_product_id)->getData();
+
         $productStatistic = $view->renderPartial('client/product_statistic', array(
             'pods' => $pods,
             'kubes' => $kubes,
             'service' => $service,
-            'items' => $items,
-            'product' => $product,
+            'package' => $package,
             'currency' => $currency,
         ), false);
 
         $productInfo = $view->renderPartial('client/product_info', array(
             'currency' => $currency,
-            'product' => $product,
+            'package' => $package,
             'service' => $service,
             'kubes' => $kubes,
-            'server' => $server,
             'trialExpired' => $trialExpired,
         ), false);
 
         return $productInfo . $productStatistic;
-    } catch(Exception $e) {
+    } catch (Exception $e) {
         return sprintf('<div class="error">%s</div>', $e->getMessage());
     }
 }
 
 /**
  * Render button on Setup -> products -> servers page
- * @param $params
+ * @param array $params
  * @return string
  * @throws CException
  * @throws Exception
  */
 function KuberDock_AdminLink($params) {
-    $server = KuberDock_Server::model()->loadById($params['serverid']);
+    $server = \models\billing\Server::find($params['serverid']);
     $api = $server->getApi();
     $api->setTimeout(5);
 
-    // Don't know why, but sometimes hook KuberDock_ServerEdit don't runs
     try {
-        if (!$server->accesshash) {
-            $server->accesshash = $api->getToken();
-            $server->save();
-        }
-    } catch (Exception $e) {
-        CException::log($e);
-        $server->accesshash = '';
-        $server->save();
-    }
-
-    try {
-        if (USE_JWT_TOKENS) {
-            $tokenField = 'token2';
-            $token = $api->getJWTToken(array(), true);
-        } else {
-            $tokenField = 'token';
-            $token = $server->accesshash;
-        }
-
-        $url = sprintf('%s/?%s=%s', $server->getApiServerUrl(), $tokenField, $token);
-        $api->setTimeout($api::API_CONNECTION_TIMEOUT);
+        $token = $api->getJWTToken(array(), true);
+        $url = sprintf('%s/?token2=%s', $server->getUrl(), $token);
 
         return sprintf('<a href="%s" target="_blank" class="btn btn-sm btn-default" >Login to KuberDock</a>', $url);
     } catch (Exception $e) {
-        $api->setTimeout($api::API_CONNECTION_TIMEOUT);
         return '';
     }
 }
@@ -254,10 +238,17 @@ function KuberDock_LoginLink($params) {
  * @return bool
  */
 function KuberDock_ChangePackage($params) {
+    /* @var \models\billing\PackageUpgrade $packageUpgrade */
     try {
-        $upgrade = KuberDock_ProductUpgrade::model()->loadByServiceId($params['serviceid']);
-        $upgrade->changePackage();
-    } catch(Exception $e) {
+        $packageUpgrade = \models\billing\PackageUpgrade::where('relid', $params['serviceid'])
+            ->where('type', 'package')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($packageUpgrade) {
+            $packageUpgrade->upgrade();
+        }
+    } catch (Exception $e) {
         CException::log($e);
     }
 }
@@ -268,19 +259,21 @@ function KuberDock_ChangePackage($params) {
  */
 function KuberDock_TestConnection($params) {
     try {
-        $protocol = $params['serversecure'] ? KuberDock_Api::PROTOCOL_HTTPS : KuberDock_Api::PROTOCOL_HTTP;
+        $protocol = $params['serversecure'] ? Api::PROTOCOL_HTTPS : Api::PROTOCOL_HTTP;
         $url = sprintf('%s://%s', $protocol, $params['serverip']);
-        if(empty($params['serverusername']) || empty($params['serverpassword'])) {
-            throw new Exception('Username is missing for the selected server. Please save configuration before testing connection.');
+        if (empty($params['serverusername']) || empty($params['serverpassword'])) {
+            throw new InvalidArgumentException('Username is missing for the selected server. 
+                Please save configuration before testing connection.');
         }
-        $api = new KuberDock_Api($params['serverusername'], $params['serverpassword'], $url);
+        $api = new Api($params['serverusername'], $params['serverpassword'], $url);
         $response = $api->getToken();
-        return array(
+
+        return [
             'success' => true,
-        );
-    } catch(Exception $e) {
-        return array(
+        ];
+    } catch (Exception $e) {
+        return [
             'error' => $e->getMessage(),
-        );
+        ];
     }
 }

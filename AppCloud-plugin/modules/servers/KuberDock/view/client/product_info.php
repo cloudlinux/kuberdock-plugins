@@ -1,8 +1,8 @@
 <div class="login-link">
-    <input type="button" value="Login to KuberDock" class="btn" onclick="window.open('<?php echo $service->getLoginByTokenLink();?>', '_blank')">
+    <input type="button" value="Login to KuberDock" class="btn" onclick="window.open('<?php echo $service->getLoginLink();?>', '_blank')">
 </div>
 
-<?php if($trialExpired):?>
+<?php if ($trialExpired):?>
 <div class="alert alert-danger">
     Your trial expired <?php echo $trialExpired ?>. Please upgrade package.
 </div>
@@ -22,10 +22,10 @@
         */ ?>
     </tr>
 
-    <?php foreach($kubes as $kube): ?>
+    <?php foreach ($kubes as $kube): ?>
         <tr<?php echo !$kube['available'] ? ' class="unavailable"' : ''?>>
             <td><?php echo $kube['name'] ?></td>
-            <td><?php echo $currency->getFullPrice($kube['kube_price']) . ' / ' . $product->getReadablePaymentType()?></td>
+            <td><?php echo $currency->getFullPrice($kube['kube_price']) . ' / ' . $package->getReadablePaymentType()?></td>
             <td><?php echo $kube['cpu'] ?></td>
             <td><?php echo $kube['memory'] ?></td>
             <td><?php echo $kube['disk_space'] ?></td>

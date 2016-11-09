@@ -2,7 +2,6 @@
 
 namespace controllers;
 
-use base\CL_Base;
 use components\Assets;
 use components\BillingApi;
 use components\Controller;
@@ -10,6 +9,7 @@ use components\Tools;
 use Exception;
 use exceptions\CException;
 use models\addon\App;
+use models\billing\Server;
 
 
 class OrderController extends Controller {
@@ -21,10 +21,6 @@ class OrderController extends Controller {
      * @var string
      */
     public $layout = 'addon';
-    /**
-     * @var object
-     */
-    protected $billingClientArea;
 
     /**
      *
@@ -57,58 +53,23 @@ class OrderController extends Controller {
         }
     }
 
-    public function redirectAction()
-    {
-        $this->clientArea->requireLogin();
-
-        $serviceId = \base\CL_Base::model()->getParam('sid');
-        $podId = \base\CL_Base::model()->getParam('podId');
-
-        if ($serviceId && $podId) {
-            $service = \KuberDock_Hosting::model()->loadById($serviceId);
-            $view = new \base\CL_View();
-            $predefinedApp = \KuberDock_Addon_PredefinedApp::model()->loadByPodId($podId);
-            $postDescription = htmlentities($predefinedApp->getPostDescription(), ENT_QUOTES);
-            try {
-                if ($predefinedApp->referer) {
-                    header('Location: ' . htmlspecialchars_decode($predefinedApp->referer));
-                } else {
-                    $link = $service->getServer()->getLoginPageLink();
-
-                    if (USE_JWT_TOKENS) {
-                        $link = sprintf('%s/?token2=%s#pods/%s', $link, $service->getApi()->getJWTToken(), $podId);
-                        header('Location: ' . $link);
-                    } else {
-                        $view->renderPartial('client/preapp_complete', array(
-                            'token' => $service->getToken(),
-                            'action' => $link . '/#pods/' . $podId,
-                            'postDescription' => $postDescription ? $postDescription : 'You successfully make payment for application',
-                        ));
-                    }
-                }
-                exit;
-            } catch (Exception $e) {
-                CException::log($e);
-                CException::displayError($e);
-            }
-        }
-    }
-
     public function restartAction()
     {
         $this->clientArea->requireLogin();
-        $podId = CL_Base::model()->getParam('podId');
-        $serviceId = CL_Base::model()->getParam('serviceId');
-        $wipeOut = CL_Base::model()->getParam('wipeOut', 0);
+        $podId = Tools::model()->getParam('podId');
+        $serviceId = Tools::model()->getParam('serviceId');
+        $wipeOut = Tools::model()->getParam('wipeOut', 0);
 
-        if($wipeOut) {
-            $values = array(
-                'commandOptions' => array(
-                    'wipeOut' => true),
-            );
+        if ($wipeOut) {
+            $values = [
+                'commandOptions' => [
+                    'wipeOut' => true
+                ],
+            ];
         }
 
-        $service = \KuberDock_Hosting::model()->loadById($serviceId);
+        $service = Server::find($serviceId);
+
         try {
             $service->getAdminApi()->redeployPod($podId, $values);
 
@@ -117,16 +78,8 @@ class OrderController extends Controller {
             $this->clientArea->assign('message', 'Pod restarted');
             $this->clientArea->setTemplate($templatePath);
             $this->clientArea->output();
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             echo $e->getMessage();
         }
-    }
-
-    /**
-     * @param object $clientArea
-     */
-    public function setBillingClientArea($clientArea)
-    {
-        $this->billingClientArea = $clientArea;
     }
 }

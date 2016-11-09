@@ -4,15 +4,20 @@
 namespace models\billing;
 
 
+use api\Api;
 use components\InvoiceItem as ComponentsInvoiceItem;
 use components\Tools;
 use components\Units;
 use exceptions\CException;
+use exceptions\ExistException;
 use models\addon\KubePrice;
+use models\addon\KubeTemplate;
+use models\addon\PackageRelation;
 use models\addon\Resources;
 use models\addon\billing\BillingInterface;
 use models\addon\billing\Fixed;
 use models\addon\billing\Payg;
+use models\billing\Currency;
 use models\Model;
 
 class Package extends Model
@@ -82,6 +87,18 @@ class Package extends Model
     public function scopeTypeKuberDock($query)
     {
         return $query->where('servertype', KUBERDOCK_MODULE_NAME);
+    }
+
+    /**
+     * @param $query
+     * @return mixed
+     */
+    public function scopeBroken($query)
+    {
+        return $query->typeKuberDock()->whereNotIn('id', function ($query) {
+            $query->select('product_id')
+                ->from(with(new PackageRelation())->getTable());
+        });
     }
 
     /**
@@ -386,6 +403,21 @@ class Package extends Model
     }
 
     /**
+     * @param int $index
+     * @param string $value
+     * @return mixed
+     * @throws \Exception
+     */
+    public function setConfigOptionByIndex($index, $value)
+    {
+        if(array_key_exists(($index-1), array_keys($this->getConfig()))) {
+            $this->{'configoption' . $index} = $value;
+        } else {
+            throw new \Exception('Undefined option index: ' . $index);
+        }
+    }
+
+    /**
      * @return array
      */
     public function getSortedActivePackages()
@@ -483,6 +515,124 @@ class Package extends Model
         } else {
             return self::ROLE_USER;
         }
+    }
+
+    /**
+     * Runs when admin saves a product
+     *
+     * @param $options array packageconfigoption
+     */
+    public function edit($options)
+    {
+        try {
+            $i = 1;
+            foreach ($this->getConfig() as $row) {
+                $value = isset($options[$i]) ? $options[$i] : '';
+                $this->setConfigOptionByIndex($i, $value);
+                $i++;
+            }
+
+            $this->setAttribute('hidden', $this->getKubes() ? 0 : 1);
+            $this->showdomainoptions = 0;
+
+            if ($this->isBillingFixed()) {
+                $this->setConfigOption('firstDeposit', 0);
+            }
+
+            if ($this->getEnableTrial()) {
+                $this->setConfigOption('billingType', 'PAYG');
+                $this->setConfigOption('priceIP', 0);
+                $this->setConfigOption('pricePersistentStorage', 0);
+                $this->setConfigOption('firstDeposit', 0);
+            }
+
+            // with first deposit clients always must pay it first, then get pods
+            if ($this->getFirstDeposit()) {
+                $this->autosetup = 'payment';
+            }
+
+            $this->save();
+
+            $this->createKuberDockPackage();
+
+            if ($this->getEnableTrial()) {
+                $this->addDefaultKube();
+            }
+        } catch (\Exception $e) {
+            CException::log($e);
+        }
+    }
+
+    /**
+     *
+     */
+    public function createKuberDockPackage()
+    {
+        /* @var Api $api */
+        $currency = Currency::getDefault();
+        $api = $this->serverGroup->servers()->typeKuberDock()->active()->first()->getApi();
+
+        CustomField::firstOrCreate(array(
+            'type' => 'product',
+            'relid' => $this->id,
+            'fieldname' => 'Token',
+            'adminonly' => 'on',
+        ));
+
+        $data = [
+            'first_deposit' => $this->getFirstDeposit(),
+            'currency' => $currency->code,
+            'prefix' => $currency->prefix,
+            'suffix' => $currency->suffix,
+            'name' => $this->name,
+            'period' => $this->getReadablePaymentType(),
+            'price_ip' => $this->getPriceIP(),
+            'price_pstorage' => $this->getPricePS(),
+            'price_over_traffic' => 0, // $product->getConfigOption('priceOverTraffic'), // AC-3783
+            'count_type' => $this->isBillingFixed() ? 'fixed' : 'payg',
+        ];
+
+        if ($this->relatedKuberDock) {
+            $api->updatePackage($this->relatedKuberDock->kuber_product_id, $data);
+        } else {
+            try {
+                $response = $api->createPackage($data)->getData();
+                PackageRelation::firstOrCreate([
+                    'product_id' => $this->id,
+                    'kuber_product_id' => $response['id'],
+                ]);
+            } catch (\Exception $e) {
+                if ($response = $api->getPackageByName($this->name)) {
+                    PackageRelation::firstOrCreate([
+                        'product_id' => $this->id,
+                        'kuber_product_id' => $response['id'],
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    public function addDefaultKube()
+    {
+        /* @var Api $api*/
+        $api = $this->serverGroup->servers()->typeKuberDock()->active()->first()->getApi();
+        $defaultKube = $api->getDefaultKubeType()->getData();
+
+        $kubeTemplate = KubeTemplate::where('kuber_kube_id', $defaultKube['id'])->first();
+        $kubePrice = KubePrice::firstOrNew([
+            'template_id' => $kubeTemplate->id,
+            'product_id' => $this->id,
+            'kuber_product_id' => $this->relatedKuberDock->kuber_product_id,
+            'kube_price' => 0,
+        ]);
+
+        $kubeTemplate->kubePrice()->save($kubePrice);
+
+        $this->setAttribute('hidden', 0);
+        $this->save();
     }
 
     /**

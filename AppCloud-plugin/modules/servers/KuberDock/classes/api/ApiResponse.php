@@ -6,7 +6,7 @@
 
 namespace api;
 
-class KuberDock_ApiResponse {
+class ApiResponse {
     /**
      * @var string
      */

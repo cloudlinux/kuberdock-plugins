@@ -15,6 +15,14 @@ class Client extends Model
     protected $table = 'tblclients';
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function services()
+    {
+        return $this->hasMany('models\billing\Service', 'userid');
+    }
+
+    /**
      * @return Currency
      */
     public function currencyModel()
@@ -25,6 +33,21 @@ class Client extends Model
     public function services()
     {
         return $this->hasMany('models\billing\Service', 'userid');
+    }
+
+    /**
+     * @param $query
+     * @param string $user
+     * @param array $domain
+     * @return mixed
+     */
+    public function scopeByDomain($query, $user, $domain)
+    {
+        return $query->whereHas('services', function ($query) use ($user, $domain) {
+            $query->where('username', $user)
+                ->where('status', 'Active')
+                ->whereIn('domain', $domain);
+        })->first();
     }
 
     /**

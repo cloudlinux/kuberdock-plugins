@@ -59,7 +59,7 @@ class AddonController extends Controller {
         $this->render('index', [
             'kubes' => KubeTemplate::with('KubePrice')->orderBy('kube_name')->get(),
             'packages' => $package->getSortedActivePackages(),
-            'brokenPackages' => array(),
+            'brokenPackages' => $package->broken()->get(),
             'logs' => $logs,
             'paginator' => $paginator,
             'tabs' => $tabs,

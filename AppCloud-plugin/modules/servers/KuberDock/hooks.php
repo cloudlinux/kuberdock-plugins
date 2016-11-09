@@ -4,13 +4,10 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
-use base\CL_Base;
-use base\CL_Tools;
 use models\addon\App;
 use models\addon\ItemInvoice;
 use models\addon\Resources;
 use components\Tools;
-use base\models\CL_Invoice;
 use exceptions\CException;
 
 include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
@@ -44,9 +41,14 @@ add_hook('DailyCronJob', 1, 'KuberDock_DailyCronJob');
  */
 function KuberDock_ProductEdit($params)
 {
-    $options = CL_Base::model()->getPost('packageconfigoption');
-    $product = KuberDock_Product::model()->loadById($params['pid']);
-    $product->edit($options);
+    $options = Tools::getPost('packageconfigoption');
+    $package = \models\billing\Package::find($params['pid']);
+
+    if (!$package || !$package->isKuberDock() || empty($options)) {
+        return;
+    }
+
+    $package->edit($options);
 }
 add_hook('ProductEdit', 1, 'KuberDock_ProductEdit');
 
@@ -57,10 +59,15 @@ add_hook('ProductEdit', 1, 'KuberDock_ProductEdit');
  */
 function KuberDock_ProductDelete($params)
 {
+    /* @var \models\billing\Package $package */
     try {
-        $addonProduct = KuberDock_Addon_Product::model();
-        $addonProduct->deleteKubePricing($params['pid']);
-    } catch(Exception $e) {
+        $package = \models\billing\Package::find($params['pid']);
+        if (!$package->isKuberDock()) {
+            return;
+        }
+
+        $package->relatedKuberDock->delete();
+    } catch (Exception $e) {
         CException::log($e);
     }
 }
@@ -73,19 +80,18 @@ add_hook('ProductDelete', 1, 'KuberDock_ProductDelete');
  */
 function KuberDock_ServiceDelete($params)
 {
+    /* @var \models\billing\Package $package */
     try {
-        $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
-        $product = KuberDock_Product::model()->loadById($service->packageid);
-        if(!$product->isKuberProduct()) return;
+        $service = \models\billing\Service::find($params['serviceid']);
+        $package = $service->package;
+
+        if (!$package->isKuberDock()) {
+            return;
+        }
 
         $service->getAdminApi()->deleteUser($service->username);
-
-        if($product->getConfigOption('enableTrial')) {
-            KuberDock_Addon_Trial::model()->deleteByAttributes(array(
-                'user_id' => $service->userid,
-            ));
-        }
-    } catch(Exception $e) {
+        \models\addon\Trial::where('user_id', $service->userid)->delete();
+    } catch (Exception $e) {
         CException::log($e);
     }
 }
@@ -287,7 +293,8 @@ add_hook('InvoicePaid', 1, 'KuberDock_InvoicePaid');
  */
 function KuberDock_InvoiceUnpaid($params)
 {
-    $invoice = CL_Invoice::model()->loadById($params['invoiceid']);
+    $invoice = \models\billing\Invoice::find($params['invoiceid']);
+
     if ($invoice) {
         $invoice->removeFirstDeposit();
     }
@@ -303,7 +310,8 @@ add_hook('InvoiceUnpaid', 1, 'KuberDock_InvoiceUnpaid');
  */
 function KuberDock_InvoiceCancelled($params)
 {
-    $invoice = CL_Invoice::model()->loadById($params['invoiceid']);
+    $invoice = \models\billing\Invoice::find($params['invoiceid']);
+
     if ($invoice) {
         $invoice->removeFirstDeposit();
     }
@@ -319,18 +327,14 @@ add_hook('InvoiceCancelled', 1, 'KuberDock_InvoiceCancelled');
  */
 function KuberDock_AcceptOrder($params)
 {
-    $data = KuberDock_Hosting::model()->loadByAttributes(array(
-        'orderid' => $params['orderid'],
-    ));
+    $service = \models\billing\Service::where('orderid', $params['orderid'])->first();
 
-    if (!$data) {
+    if (!$service) {
         return;
     }
 
-    $service = KuberDock_Hosting::model()->loadByParams(current($data));
-    $product =  KuberDock_Product::model()->loadById($service->packageid);
-    if ($product && $product->isKuberProduct() && !$product->autosetup) {
-        $service->createModule();
+    if ($service->package && $service->package->isKuberDock() && !$service->package->autosetup) {
+        $service->createUser();
     }
 }
 add_hook('AcceptOrder', 1, 'KuberDock_AcceptOrder');
@@ -341,14 +345,16 @@ add_hook('AcceptOrder', 1, 'KuberDock_AcceptOrder');
  */
 function KuberDock_ServerAdd($params)
 {
-    $server = KuberDock_Server::model()->loadById($params['serverid']);
-    if($server->isKuberDock()) {
+    $server = \models\billing\Server::typeKuberDock()->where('id', $params['serverid'])->first();
+
+    if ($server) {
         $server->accesshash = '';
         try {
             $server->accesshash = $server->getApi()->getToken();
             $server->save();
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             CException::log($e);
+            $server->save();
         }
     }
 }
@@ -360,17 +366,7 @@ add_hook('ServerAdd', 1, 'KuberDock_ServerAdd');
  */
 function KuberDock_ServerEdit($params)
 {
-    $server = KuberDock_Server::model()->loadById($params['serverid']);
-    if ($server->isKuberDock()) {
-        $server->accesshash = '';
-        try {
-            $server->accesshash = $server->getApi()->getToken();
-            $server->save();
-        } catch (Exception $e) {
-            CException::log($e);
-            $server->save();
-        }
-    }
+    KuberDock_ServerAdd($params);
 }
 add_hook('ServerEdit', 1, 'KuberDock_ServerEdit');
 
@@ -378,16 +374,15 @@ add_hook('ServerEdit', 1, 'KuberDock_ServerEdit');
 /**
  * Runs When the Delete Client link is clicked on the Client Summary in the Admin area
  * @param $params
- * @return bool
  */
 function KuberDock_ClientDelete($params)
 {
-    $rows = KuberDock_Hosting::model()->getByUser($params['userid']);
-    foreach($rows as $row) {
-        $service = KuberDock_Hosting::model()->loadByParams($row);
+    $services = \models\billing\Service::typeKuberDock()->where('userid', $params['userid'])->get();
+
+    foreach ($services as $service) {
         try {
             $service->getAdminApi()->deleteUser($service->username, true);
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             CException::log($e);
         }
     }
@@ -401,14 +396,12 @@ add_hook('ClientDelete', 1, 'KuberDock_ClientDelete');
  */
 function KuberDock_AdminServiceEdit($params)
 {
-    $nextDueDate = CL_Base::model()->getPost('nextduedate');
-    $service = KuberDock_Hosting::model()->loadById($params['serviceid']);
-    $product = KuberDock_Product::model()->loadById($service->packageid);
+    $nextDueDate = Tools::getPost('nextduedate');
+    $service = \models\billing\Service::find($params['serviceid']);
 
-    if ($product->isKuberProduct()) {
-        $service->updateById($service->id, array(
-            'nextduedate' => CL_Tools::getMySQLFormattedDate($nextDueDate),
-        ));
+    if ($service->package->isKuberDock()) {
+        $service->nextduedate = \Carbon\Carbon::createFromFormat(Tools::getDateFormat(), $nextDueDate);
+        $service->save();
     }
 }
 add_hook('AdminServiceEdit', 1, 'KuberDock_AdminServiceEdit');
@@ -503,32 +496,31 @@ add_hook('AfterModuleCreate', 1, 'KuberDock_AfterModuleCreate');
  */
 function KuberDock_PreModuleChangePackage($params)
 {
-    $response = array();
+    /* @var \models\billing\Package $newPackage
+     * @var \models\billing\Package $oldPackage
+     */
+    $response = [];
 
-    $data = KuberDock_ProductUpgrade::model()->loadByAttributes(array(
-        'relid' => $params['params']['serviceid'],
-    ), '', array(
-        'order' => 'id desc',
-        'limit' => 1,
-    ));
+    $packageUpgrade = \models\billing\PackageUpgrade::where('relid', $params['params']['serviceid'])
+        ->orderBy('id', 'desc')
+        ->first();
 
-    if (!$data) {
+    if (!$packageUpgrade) {
         return $response;
     }
 
-    $productUpgrade = KuberDock_ProductUpgrade::model()->loadByParams(current($data));
-
-    // Eloquent resolve this
-    $oldProduct = clone KuberDock_Product::model()->loadById($productUpgrade->originalvalue);
-    $newProduct = $productUpgrade->getNewProduct();
+    $oldPackage = \models\billing\Package::find($packageUpgrade->originalvalue);
+    $newPackage = $packageUpgrade->getNewPackage();
 
     // User already has trial product
-    if ($newProduct->isTrial() && KuberDock_Addon_Trial::model()->loadById($params['params']['userid'])) {
-        $response[] = array('abortcmd' => true);
+    $trial = \models\addon\Trial::where('user_id', $params['params']['userid'])->first();
+
+    if ($newPackage->getEnableTrial() && $trial) {
+        $response[] = ['abortcmd' => true];
     }
     // User want another trial
-    if ($oldProduct->isTrial() && $newProduct->isTrial()) {
-        $response[] = array('abortcmd' => true);
+    if ($oldPackage->getEnableTrial() && $newPackage->getEnableTrial()) {
+        $response[] = ['abortcmd' => true];
     }
 
     return $response;

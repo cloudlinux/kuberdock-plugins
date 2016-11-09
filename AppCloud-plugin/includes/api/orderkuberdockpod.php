@@ -10,6 +10,14 @@ try {
     $vars = get_defined_vars();
     $postFields = \components\BillingApi::model()->getApiParams($vars);
 
+    // Used for local api call
+    $params = (array) $postFields->params;
+    if (empty($params) && isset($_POST['client_id']) && isset($_POST['pod'])) {
+        $postFields->params->client_id = (int) $_POST['client_id'];
+        $postFields->params->pod = $_POST['pod'];
+        $postFields->params->referer = isset($_POST['referer']) ? $_POST['referer'] : '';
+    }
+
     foreach (array('client_id', 'pod') as $attr) {
         if (!isset($postFields->params->{$attr}) || !$postFields->params->{$attr}) {
             throw new \exceptions\CException(sprintf("Field '%s' required", $attr));

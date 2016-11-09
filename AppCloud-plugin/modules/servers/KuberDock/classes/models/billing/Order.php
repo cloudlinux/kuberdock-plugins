@@ -16,4 +16,12 @@ class Order extends Model
      * @var string
      */
     protected $table = 'tblorders';
+
+    /**
+     * @return Invoice
+     */
+    public function invoice()
+    {
+        return $this->belongsTo('models\billing\Invoice', 'invoiceid');
+    }
 }

@@ -9,6 +9,8 @@ use models\billing\Admin;
 use models\billing\Client;
 use models\billing\Config;
 use models\billing\Invoice;
+use models\billing\Order;
+use models\billing\Package;
 use models\billing\Service;
 
 class BillingApi extends Component
@@ -115,7 +117,8 @@ class BillingApi extends Component
      * @return Invoice
      * @throws \Exception
      */
-    public function createInvoice(Client $client, $items, $autoApplyCredit = true, \DateTime $dueDate = null, $gateway = null)
+    public function createInvoice(Client $client, InvoiceItemCollection $items, $autoApplyCredit = true,
+                                  \DateTime $dueDate = null, $gateway = null)
     {
         $template = Config::get()->Template;
 
@@ -196,6 +199,7 @@ class BillingApi extends Component
     /**
      * @param InvoiceItem $invoiceItem
      * @return InvoiceItem
+     * @throws \Exception
      */
     public function addCredit(InvoiceItem $invoiceItem)
     {
@@ -203,6 +207,22 @@ class BillingApi extends Component
             'clientid' => $invoiceItem->userid,
             'description' => $invoiceItem->description,
             'amount' => $invoiceItem->amount,
+        ]);
+
+        return InvoiceItem::find($invoiceItem->id);
+    }
+
+    /**
+     * @param InvoiceItem $invoiceItem
+     * @return InvoiceItem
+     * @throws \Exception
+     */
+    public function removeCredit(InvoiceItem $invoiceItem)
+    {
+        BillingApi::request('addcredit', [
+            'clientid' => $invoiceItem->userid,
+            'description' => $invoiceItem->description . ' (Remove)',
+            'amount' => -$invoiceItem->amount,
         ]);
 
         return InvoiceItem::find($invoiceItem->id);
@@ -233,6 +253,46 @@ class BillingApi extends Component
         }
 
         return Invoice::find($invoice->id);
+    }
+
+    /**
+     * @param Client $client
+     * @param Package $package
+     * @param float|null $price
+     * @return Service
+     * @throws \Exception
+     */
+    public function createOrder(Client $client, Package $package, $price = null)
+    {
+        $values['clientid'] = $client->id;
+        $values['pid'] = $package->id;
+        $values['paymentmethod'] = $client->getGateway();
+
+        if ($price) {
+            $values['priceoverride'] = $price;
+        }
+
+        $response = BillingApi::request('addorder', $values);
+
+        return Service::find($response['productids']);
+    }
+
+    /**
+     * @param Order $order
+     * @param bool $autoSetup
+     * @param bool $sendEmail
+     * @return Order
+     * @throws \Exception
+     */
+    public function acceptOrder(Order $order, $autoSetup = true, $sendEmail = true)
+    {
+        BillingApi::request('acceptorder', [
+            'orderid' => $order->id,
+            'autosetup' => $autoSetup,
+            'sendemail' => $sendEmail,
+        ]);
+
+        return Order::find($order->id);
     }
 
     /**

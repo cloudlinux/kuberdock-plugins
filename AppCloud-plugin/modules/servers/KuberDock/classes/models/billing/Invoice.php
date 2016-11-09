@@ -127,12 +127,29 @@ class Invoice extends Model
     /**
      * Add first deposit
      * @return $this
+     * @throws \Exception
      */
     public function addFirstDeposit()
     {
         foreach ($this->items as $row) {
             if (stripos($row->description, self::FIRST_DEPOSIT_DESCRIPTION) !== false && $row->amount) {
                 BillingApi::model()->addCredit($row);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Remove first deposit
+     * @return $this
+     * @throws \Exception
+     */
+    public function removeFirstDeposit()
+    {
+        foreach ($this->items as $row) {
+            if (stripos($row->description, self::FIRST_DEPOSIT_DESCRIPTION) !== false && $row->amount) {
+                BillingApi::model()->removeCredit($row);
             }
         }
 
