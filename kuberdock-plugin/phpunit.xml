@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="client-plugin/common/KuberDock/init.php"
+         colors="true"
+         stopOnFailure="true">
+
+    <testsuites>
+        <testsuite name="Main Test Suite">
+            <directory suffix="Test.php">tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">client-plugin/common/KuberDock/classes</directory>
+        </whitelist>
+    </filter>
+
+    <logging>
+        <log type="coverage-html" target="tests/log/report" charset="UTF-8"
+             yui="true" highlight="true"
+             lowUpperBound="50" highLowerBound="80"/>
+    </logging>
+
+</phpunit>

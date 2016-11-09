@@ -4,16 +4,17 @@
  * @author: Ruslan Rakhmanberdiev
  */
 
-defined(DS) or define(DS, DIRECTORY_SEPARATOR);
-defined(KUBERDOCK_MODULE_NAME) or define(KUBERDOCK_MODULE_NAME, 'KuberDock');
-defined(KUBERDOCK_ROOT_DIR) or define(KUBERDOCK_ROOT_DIR, dirname(__FILE__));
-defined(KUBERDOCK_CLASS_DIR) or define(KUBERDOCK_CLASS_DIR, KUBERDOCK_ROOT_DIR . DS . 'classes');
+defined('DS') or define('DS', DIRECTORY_SEPARATOR);
+defined('KUBERDOCK_MODULE_NAME') or define('KUBERDOCK_MODULE_NAME', 'KuberDock');
+defined('KUBERDOCK_ROOT_DIR') or define('KUBERDOCK_ROOT_DIR', __DIR__);
 
-defined(KUBERDOCK_DEBUG) or define(KUBERDOCK_DEBUG, true);
-defined(KUBERDOCK_DEBUG_API) or define(KUBERDOCK_DEBUG_API, false);
+defined('KUBERDOCK_CLASS_DIR') or define('KUBERDOCK_CLASS_DIR', KUBERDOCK_ROOT_DIR . DS . 'classes');
+
+defined('KUBERDOCK_DEBUG') or define('KUBERDOCK_DEBUG', true);
+defined('KUBERDOCK_DEBUG_API') or define('KUBERDOCK_DEBUG_API', false);
 
 // Enable JWT tokens for KD API requests
-defined(USE_JWT_TOKENS) or define(USE_JWT_TOKENS, true);
+defined('USE_JWT_TOKENS') or define('USE_JWT_TOKENS', true);
 
 // Suppress DateTime warnings
 date_default_timezone_set(@date_default_timezone_get());

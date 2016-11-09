@@ -27,6 +27,12 @@ class Validator
             }
         }
 
+        foreach ($this->rules as $field => $rules) {
+            if (isset($rules['rules']['required']) && !array_key_exists($field, $data)) {
+                $this->errors[] = sprintf('Empty "%s"', $this->rules[$field]['name']);
+            }
+        }
+
         return empty($this->errors);
     }
 

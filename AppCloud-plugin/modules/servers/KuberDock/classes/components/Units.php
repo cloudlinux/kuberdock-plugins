@@ -37,7 +37,7 @@ class Units {
      */
     static public function getIPUnits()
     {
-        return self::PS;
+        return self::IP;
     }
 
     /**
