@@ -2,12 +2,8 @@
 
 namespace components;
 
-use base\CL_Tools;
-use base\models\CL_Currency;
-use KuberDock_Product;
-use KuberDock_Hosting;
+use Carbon\Carbon;
 use models\addon\App;
-use models\addon\KubePrice;
 use models\billing\Client;
 use models\billing\Package;
 use models\billing\Service;
@@ -22,14 +18,19 @@ class ClientArea extends Component
      * @var \models\billing\Currency
      */
     private $currency;
-    private $products = null;
-    
+
+    /**
+     * ClientArea constructor.
+     */
     public function __construct()
     {
         $client = new Client();
         $this->currency = $client->getSessionCurrency();
     }
 
+    /**
+     *
+     */
     public function redraw()
     {
         global $smarty;
@@ -59,47 +60,50 @@ class ClientArea extends Component
         $smarty->assign($this->smartyValues);
     }
 
+    /**
+     * Client home page
+     */
     public function prepareHomepage()
     {
-        $products = $this->getProducts();
-        $services = CL_Tools::getKeyAsField(KuberDock_Hosting::model()->getByUserStatus());
-
-        // Service list
+        /* @var Package $package
+         * @var Service $service
+         * @var Carbon $expireDate
+         */
         if (isset($this->smartyValues['services'])) {
-            foreach ($this->smartyValues['services'] as $k=>$service) {
-                if ($service['module'] != KUBERDOCK_MODULE_NAME) {
+            foreach ($this->smartyValues['services'] as $k => $row) {
+                if ($row['module'] != KUBERDOCK_MODULE_NAME) {
                     continue;
                 }
 
-                $productId = $services[$service['id']]['product_id'];
-                $product = KuberDock_Product::model()->loadByParams($products[$productId]);
-                $serviceModel = KuberDock_Hosting::model()->loadByParams($service);
+                $service = Service::find($row['id']);
+                $package = $service->package;
 
-                $this->smartyValues['services'][$k]['billingcycle'] = $product->getReadablePaymentType();
-                $this->smartyValues['services'][$k]['nextduedate'] = CL_Tools::getFormattedDate(new \DateTime());
+                $this->smartyValues['services'][$k]['billingcycle'] = $package->getReadablePaymentType();
+                $this->smartyValues['services'][$k]['nextduedate'] = Tools::getFormattedDate(new \DateTime());
 
-                $enableTrial = $product->getConfigOption('enableTrial');
-                $trialTime = $product->getConfigOption('trialTime');
-                $regDate = \DateTime::createFromFormat(CL_Tools::getDateFormat(), $serviceModel->regdate);
-
-                if ($enableTrial && $serviceModel->isTrialExpired($regDate, $trialTime)) {
+                if ($service->isTrialExpired()) {
                     $this->smartyValues['services'][$k]['statustext'] = 'Expired';
                 }
             }
-        } elseif (isset($products[$this->smartyValues['pid']])) {
-            $product = KuberDock_Product::model()->loadByParams($products[$this->smartyValues['pid']]);
+        } elseif (isset($this->smartyValues['pid'])) {
+            $package = Package::find($this->smartyValues['pid']);
 
-            $enableTrial = $product->getConfigOption('enableTrial');
-            $trialTime = $product->getConfigOption('trialTime');
-            $regDate = \DateTime::createFromFormat(CL_Tools::getDateFormat(), $this->smartyValues['regdate']);
+            if (!$package->isKuberDock()) {
+                return;
+            }
 
-            if ($enableTrial && KuberDock_Hosting::model()->isTrialExpired($regDate, $trialTime)) {
+            $now = new \DateTime();
+            $now->setTime(0, 0, 0);
+            $expireDate = Carbon::createFromFormat(Tools::getDateFormat(), $this->smartyValues['regdate']);
+            $expireDate->addDays($package->getTrialTime());
+
+            if ($package->getEnableTrial() && $now >= $expireDate) {
                 $this->smartyValues['status'] = 'Expired';
             }
 
-            $this->smartyValues['firstpaymentamount'] = $this->currency->getFullPrice($product->getConfigOption('firstDeposit'));
-            $this->smartyValues['billingcycle'] = $product->getReadablePaymentType();
-            $this->smartyValues['nextduedate'] = CL_Tools::getFormattedDate(new \DateTime());
+            $this->smartyValues['firstpaymentamount'] = $this->currency->getFullPrice($package->getFirstDeposit());
+            $this->smartyValues['billingcycle'] = $package->getReadablePaymentType();
+            $this->smartyValues['nextduedate'] = Tools::getFormattedDate($now);
         }
     }
 
@@ -110,6 +114,9 @@ class ClientArea extends Component
      */
     private function prepareCart()
     {
+        /* @var Service $service
+         * @var Package $package */
+
         if (!isset($this->smartyValues['products'])) {
             return;
         }
@@ -167,9 +174,14 @@ class ClientArea extends Component
         }
     }
 
-    // Client side - cart product details page
+    /**
+     * Client side - cart product details page
+     */
     public function prepareCartDetails()
     {
+        /* @var Service $service
+         * @var Package $package */
+
         if (isset($this->smartyValues['productinfo'])) {
             $package = Package::find($this->smartyValues['productinfo']['pid']);
 
@@ -256,21 +268,29 @@ class ClientArea extends Component
         }
     }
 
-    // Client side - product upgrade page
+    /**
+     * Client side - product upgrade page
+     */
     public function prepareUpgrade()
     {
+        /* @var Service $service
+         * @var Package $package
+         * @var Package $oldProduct
+         * @var Package $newProduct
+         */
         if (is_array($this->smartyValues['upgradepackages'])) {
-            $service = KuberDock_Hosting::model()->loadById($this->smartyValues['id']);
-            $product = KuberDock_Product::model()->loadById($service->packageid);
-            if ($product->isKuberProduct() && $product->getConfigOption('enableTrial')) {
+            $service = Service::find($this->smartyValues['id']);
+            $package = $service->package;
+
+            if ($package->isKuberDock() && $package->getEnableTrial()) {
                 $service->amount = 0;
                 $service->save();
             }
 
             foreach ($this->smartyValues['upgradepackages'] as &$row) {
-                $product = KuberDock_Product::model()->loadById($row['pid']);
+                $package = Package::find($row['pid']);
 
-                if (($firstDeposit = $product->getConfigOption('firstDeposit')) && $product->isKuberProduct()) {
+                if (($firstDeposit = $package->getFirstDeposit()) && $package->isKuberDock()) {
                     $this->smartyValues['LANG']['orderfree'] = $this->currency->getFullPrice($firstDeposit).' First Deposit';
                     $row['pricing']['onetime'] = $this->currency->getFullPrice($firstDeposit).' First Deposit';
                     $row['pricing']['minprice']['price'] = $this->currency->getFullPrice($firstDeposit);
@@ -278,16 +298,14 @@ class ClientArea extends Component
             }
         } elseif (is_array($this->smartyValues['upgrades'])) {
             $upgrade = current($this->smartyValues['upgrades']);
-            $model = new KuberDock_Product();
-            $oldProduct = $model->loadById($upgrade['oldproductid']);
-            $model = new KuberDock_Product();
-            $newProduct = $model->loadById($upgrade['newproductid']);
+            $oldProduct = Package::find($upgrade['oldproductid']);
+            $newProduct = Package::find($upgrade['newproductid']);
 
             if (!$newProduct || !$oldProduct) {
                 return;
             }
 
-            if ($oldProduct->isKuberProduct() && ($firstDeposit = $newProduct->getConfigOption('firstDeposit'))) {
+            if ($oldProduct->isKuberDock() && ($firstDeposit = $newProduct->getFirstDeposit())) {
                 $this->smartyValues['subtotal'] = $this->smartyValues['total'] = $this->currency->getFullPrice($firstDeposit);
                 if (isset($this->smartyValues['upgrades'][0])) {
                     $this->smartyValues['upgrades'][0]['price'] = $this->currency->getFullPrice($firstDeposit);
@@ -341,20 +359,6 @@ class ClientArea extends Component
             'setup' => $package->getFirstDeposit() + $setupFee,
             'recurring' => $recurring,
         ];
-    }
-
-    /**
-     * @return array
-     */
-    private function getProducts()
-    {
-        if (is_null($this->products)) {
-            $this->products = CL_Tools::getKeyAsField(KuberDock_Product::model()->loadByAttributes(array(
-                'servertype' => KUBERDOCK_MODULE_NAME,
-            )), 'id');
-        }
-
-        return $this->products;
     }
 
     /**

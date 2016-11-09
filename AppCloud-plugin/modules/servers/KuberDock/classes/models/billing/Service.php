@@ -271,4 +271,17 @@ class Service extends Model
 
         return sprintf('%s/?token2=%s', $url, $token);
     }
+
+    /**
+     * @return bool
+     */
+    public function isTrialExpired()
+    {
+        $now = new \DateTime();
+        $now->setTime(0, 0, 0);
+        $expireDate = clone $this->regdate;
+        $expireDate->addDays($this->package->getTrialTime());
+
+        return $this->package->getEnableTrial() && $now >= $expireDate;
+    }
 }
