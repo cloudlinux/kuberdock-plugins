@@ -13,3 +13,5 @@ kuberdock-plugin/tests/log/
 /AppCloud-plugin/modules/servers/KuberDock/composer.lock
 /AppCloud-plugin/sync.php
 AppCloud-plugin/modules/servers/KuberDock/tests/log/
+AppCloud-plugin/modules/servers/KuberDock/dev-config.php
+

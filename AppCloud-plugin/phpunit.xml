@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit bootstrap="modules/servers/KuberDock/init.php"
+<phpunit bootstrap="modules/servers/KuberDock/bootstrap.php"
          colors="true"
          stopOnFailure="true">
 

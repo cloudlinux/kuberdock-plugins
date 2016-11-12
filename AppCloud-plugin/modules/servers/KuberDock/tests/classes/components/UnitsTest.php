@@ -3,7 +3,7 @@
 namespace tests\components;
 
 
-use PHPUnit\Framework\TestCase;
+use \tests\TestCase;
 use components\Units;
 
 class UnitsTest extends TestCase

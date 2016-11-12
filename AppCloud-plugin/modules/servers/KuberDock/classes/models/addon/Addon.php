@@ -137,11 +137,7 @@ class Addon extends \components\Component {
     private function createTables() {
         $scheme = \models\Model::getConnectionResolver()->connection()->getSchemaBuilder();
 
-        $scheme->create('KuberDock_products', function ($table) {
-            /* @var \Illuminate\Database\Schema\Blueprint $table */
-            $table->integer('product_id')->unique();
-            $table->integer('kuber_product_id')->unique();
-        });
+        \models\addon\PackageRelation::createTable($scheme);
 
         $scheme->create('KuberDock_kubes_templates', function ($table) {
             /* @var \Illuminate\Database\Schema\Blueprint $table */

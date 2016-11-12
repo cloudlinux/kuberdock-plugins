@@ -28,6 +28,18 @@ class PackageRelation extends Model
     protected $fillable = ['kuber_product_id'];
 
     /**
+     * @return \Closure
+     */
+    public function getSchema()
+    {
+        return function ($table) {
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
+            $table->integer('product_id')->unique();
+            $table->integer('kuber_product_id')->unique();
+        };
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function kubes()
