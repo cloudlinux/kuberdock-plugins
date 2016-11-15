@@ -46,11 +46,20 @@ class Payg extends Component implements BillingInterface
     }
 
     /**
-     * @param Item $item
+     * @param ItemInvoice $itemInvoice
+     */
+    public function beforePayment(ItemInvoice $itemInvoice)
+    {
+        // Not used
+    }
+
+    /**
+     * @param ItemInvoice $itemInvoice
      * @return Pod
      */
-    public function afterOrderPayment(Item $item)
+    public function afterOrderPayment(ItemInvoice $itemInvoice)
     {
+        $item = $itemInvoice->item;
         try {
             BillingApi::unSuspendModule($item->service);
         } catch (\Exception $e) {
@@ -59,10 +68,10 @@ class Payg extends Component implements BillingInterface
     }
 
     /**
-     * @param Item $item
+     * @param ItemInvoice $itemInvoice
      * @return Pod
      */
-    public function afterEditPayment(Item $item)
+    public function afterEditPayment(ItemInvoice $itemInvoice)
     {
         // Not used
     }
@@ -71,7 +80,7 @@ class Payg extends Component implements BillingInterface
      * @param Item $item
      * @return Pod
      */
-    public function afterSwitchPayment(Item $item)
+    public function afterSwitchPayment(ItemInvoice $itemInvoice)
     {
         // Not used
     }

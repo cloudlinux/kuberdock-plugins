@@ -4,11 +4,11 @@
 namespace models\addon;
 
 
-use components\BillingApi;
+use components\Tools;
 use exceptions\CException;
+use models\addon\billing\BillingInterface;
 use models\addon\resource\Pod;
 use models\billing\Invoice;
-use models\billing\Service;
 use models\Model;
 
 class ItemInvoice extends Model
@@ -76,6 +76,15 @@ class ItemInvoice extends Model
         return $query->where('status', Invoice::STATUS_UNPAID)->orderBy('invoice_id', 'desc');
     }
 
+    public function scopeType($query, $type)
+    {
+        if (!in_array($type, self::getTypes())) {
+            throw new \Exception('Wrong ItemInvoice type: ' . $type);
+        }
+
+        return $query->where('type', $type);
+    }
+
     /**
      * @param $query
      */
@@ -109,16 +118,59 @@ class ItemInvoice extends Model
         $this->status = $this->invoice->status;
         $this->save();
 
+        /** @var BillingInterface $billing */
         $billing = $this->item->service->package->getBilling();
+
+        $billing->beforePayment($this);
+
         $method = 'after' . ucfirst(strtolower($this->type)) . 'Payment';
 
         try {
             if (!method_exists($billing, $method)) {
                 throw new \Exception('Unknown after payment method');
             }
-            return call_user_func([$billing, $method], $this->item);
+            return call_user_func([$billing, $method], $this);
         } catch (\Exception $e) {
             CException::log($e);
         }
+    }
+
+    /**
+     * Find Items of deleted pods of this ItemInvoice's user and stop invoicing them
+     * @deprecated  - delete after AC-5136 is done
+     */
+    public function stopInvoicingDeleted()
+    {
+        $podIds = Tools::array_column($this->item->service->getApi()->getPods()->getData(), 'id');
+
+        $items = Item::fixed()
+            ->user($this->item->user_id)
+            ->type(Resources::TYPE_POD)
+            ->where('status', '!=', Resources::STATUS_DELETED)
+            ->whereNotIn('pod_id', $podIds)
+            ->get();
+
+        foreach ($items as $item) {
+            $item->stopInvoicing();
+        }
+    }
+
+    /**
+     * If user have unpaid invoices for same action (switch same pod) - delete them
+     */
+    public function deleteUnpaidSiblings()
+    {
+        $siblings = ItemInvoice::type($this->type)
+            ->unpaid()
+            ->where('item_id', $this->item_id)
+            ->get();
+
+        $invoiceIds = [];
+        foreach ($siblings as $sibling) {
+            $invoiceIds[] = $sibling->invoice_id;
+            $sibling->delete();
+        }
+
+        Invoice::whereIn('id', $invoiceIds)->delete();
     }
 }

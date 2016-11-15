@@ -4,7 +4,7 @@ if (!defined('WHMCS')) {
     die('This file cannot be accessed directly');
 }
 
-require_once dirname(__FILE__) . '/../../modules/servers/KuberDock/init.php';
+require_once __DIR__ . '/../../modules/servers/KuberDock/init.php';
 
 try {
     $vars = get_defined_vars();

@@ -5,6 +5,7 @@ namespace models\addon;
 
 
 use components\InvoiceItem as ComponentsInvoiceItem;
+use components\Tools;
 use exceptions\NotFoundException;
 use models\addon\resource\Pod;
 use models\billing\Invoice;
@@ -171,16 +172,17 @@ class Resources extends Model
      * @param ItemInvoice $itemInvoice
      * @return ItemInvoice[]
      */
-    public function getUnpaidItemInvoices(ItemInvoice $itemInvoice)
+    public static function getUnpaidItemInvoices(ItemInvoice $itemInvoice)
     {
-        $query = ItemInvoice::select('KuberDock_item_invoices.*')
-            ->join('KuberDock_resource_pods as rp2', 'rp2.item_id', '=', 'KuberDock_item_invoices.item_id')
+        $query = ItemInvoice::select('i.*')
+            ->from('KuberDock_item_invoices as i')
+            ->join('KuberDock_resource_pods as rp2', 'rp2.item_id', '=', 'i.item_id')
             ->join('KuberDock_resource_pods as rp1', 'rp1.resource_id', '=', 'rp2.resource_id')
-            ->join('KuberDock_resources', 'KuberDock_resources.id', '=', 'rp2.resource_id')
-            ->where('KuberDock_item_invoices.status', Invoice::STATUS_UNPAID)
-            ->where('KuberDock_resources.status', '!=', self::STATUS_DELETED)
-            ->where('KuberDock_item_invoices.invoice_id', '!=', $itemInvoice->invoice_id)
-            ->groupBy('KuberDock_item_invoices.item_id');
+            ->join('KuberDock_resources as r', 'r.id', '=', 'rp2.resource_id')
+            ->where('i.status', Invoice::STATUS_UNPAID)
+            ->where('r.status', '=', self::STATUS_DIVIDED)
+            ->where('i.invoice_id', '!=', $itemInvoice->invoice_id)
+            ->groupBy('i.item_id');
 
         if ($itemInvoice->item->pod_id) {
             $query->where('rp1.pod_id', $itemInvoice->item->pod_id);
@@ -189,6 +191,15 @@ class Resources extends Model
         }
 
         return $query->get();
+    }
+
+    public static function redirectToUnpaidInvoice($itemInvoice)
+    {
+        $unpaidItemInvoices = self::getUnpaidItemInvoices($itemInvoice);
+
+        if ($unpaidItemInvoices->count()) {
+            Tools::jsRedirect($unpaidItemInvoices->first()->invoice->getUrl());
+        }
     }
 
     /**
@@ -253,6 +264,23 @@ class Resources extends Model
                 continue;
             }
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getPodId()
+    {
+        return $this->resourcePods()->first()->pod_id;
+    }
+
+    /**
+     * @param string|null $pod_id
+     * @return bool
+     */
+    public function isSamePod($pod_id)
+    {
+        return !is_null($pod_id) && $this->getPodId() == $pod_id;
     }
 
     /**

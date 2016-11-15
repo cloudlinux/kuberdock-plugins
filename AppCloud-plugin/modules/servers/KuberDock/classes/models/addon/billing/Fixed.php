@@ -14,6 +14,7 @@ use exceptions\NotFoundException;
 use models\addon\App;
 use models\addon\Item;
 use models\addon\ItemInvoice;
+use models\addon\ResourcePods;
 use models\addon\Resources;
 use models\addon\resource\Pod;
 use models\addon\resource\ResourceFactory;
@@ -21,6 +22,7 @@ use models\billing\BillableItem;
 use models\billing\Client;
 use models\billing\Config;
 use models\billing\Invoice;
+use models\billing\InvoiceItem;
 use models\billing\Service;
 use models\Model;
 
@@ -60,11 +62,20 @@ class Fixed extends Component implements BillingInterface
     }
 
     /**
-     * @param Item $item
+     * @param ItemInvoice $itemInvoice
+     */
+    public function beforePayment(ItemInvoice $itemInvoice)
+    {
+        $itemInvoice->stopInvoicingDeleted();
+    }
+
+    /**
+     * @param ItemInvoice $itemInvoice
      * @return Pod
      */
-    public function afterOrderPayment(Item $item)
+    public function afterOrderPayment(ItemInvoice $itemInvoice)
     {
+        $item = $itemInvoice->item;
         $pod = new Pod($item->service->package);
 
         $pod->setService($item->service);
@@ -82,11 +93,12 @@ class Fixed extends Component implements BillingInterface
     }
 
     /**
-     * @param Item $item
+     * @param ItemInvoice $itemInvoice
      * @return Pod
      */
-    public function afterEditPayment(Item $item)
+    public function afterEditPayment(ItemInvoice $itemInvoice)
     {
+        $item = $itemInvoice->item;
         $pod = new Pod($item->service->package);
         $pod->setService($item->service);
 
@@ -104,16 +116,17 @@ class Fixed extends Component implements BillingInterface
     }
 
     /**
-     * @param Item $item
+     * @param ItemInvoice $itemInvoice
      * @return Pod
      */
-    public function afterSwitchPayment(Item $item)
+    public function afterSwitchPayment(ItemInvoice $itemInvoice)
     {
+        $item = $itemInvoice->item;
         $pod = new Pod($item->service->package);
         $pod->setService($item->service);
 
         try {
-            $params = $item->invoices()->orderBy('id', 'desc')->first()->params;
+            $params = $itemInvoice->params;
             $item->service->getAdminApi()->switchPodPlan($item->pod_id, $params->plan);
             $pod->loadById($item->pod_id);
         } catch (\Exception $e) {
@@ -122,6 +135,8 @@ class Fixed extends Component implements BillingInterface
 
         $item->billableItem->amount = $pod->getPrice();
         $item->billableItem->save();
+
+        $itemInvoice->deleteUnpaidSiblings();
 
         return $pod;
     }
@@ -143,29 +158,7 @@ class Fixed extends Component implements BillingInterface
      */
     public function processApiOrder(Pod $pod, Service $service, $type)
     {
-        $item = Item::where('pod_id', $pod->id)
-            ->where('status', '!=', Resources::STATUS_DELETED)
-            ->where('type', Resources::TYPE_POD)
-            ->where('user_id', $service->userid)
-            ->first();
-
-        if ($item) {
-            $itemInvoice = $item->invoices()->unpaid()->first();
-
-            if ($itemInvoice) {
-                $invoice = $itemInvoice->invoice;
-            } else {
-                $actionMethod = 'processType' . strtolower(ucfirst($type));
-
-                if (!method_exists($this, $actionMethod)) {
-                    throw new CException('Unknown api action method');
-                }
-
-                $invoice = call_user_func([$this, $actionMethod], $pod, $item, $service);
-            }
-        } else {
-            $invoice = $this->order($pod, $service);
-        }
+        $invoice = $this->getInvoice($pod, $service, $type);
 
         try {
             $invoice = BillingApi::model()->applyCredit($invoice);
@@ -324,7 +317,7 @@ class Fixed extends Component implements BillingInterface
         $this->proRate = $item->billableItem->getProRate();
 
         $invoiceItems = $this->collectEditInvoiceItems($pod, $newPod);
-        $invoiceItems->filterPaidResources($service);
+        $invoiceItems->filterPaidResources($service, $pod->id);
 
         if (isset($newPod->template_plan_name)) {
             $attributes['plan'] = $newPod->template_plan_name;
@@ -414,8 +407,7 @@ class Fixed extends Component implements BillingInterface
                         $oldKubeType['template']['kube_name'], $newKubeType['template']['kube_name'],
                         $newContainers[$name]['image']
                     );
-                    $price = $newContainers[$name]['kubes'] * $newKubePrice
-                        - $newContainers[$name]['kubes'] * $oldKubePrice;
+                    $price = $oldContainers[$name]['kubes'] * ($newKubePrice - $oldKubePrice);
                     $invoiceItems->add($package->createInvoiceItem($description, $price, 'kube', 1));
                 }
 
@@ -566,7 +558,7 @@ class Fixed extends Component implements BillingInterface
     }
 
     /**
-     * Check whether deleted pod or not
+     * Stop invoicing for deleted pods
      */
     private function processDeletedPods()
     {
@@ -576,6 +568,7 @@ class Fixed extends Component implements BillingInterface
             ->get();
 
         foreach ($items as $item) {
+
             try {
                 /** @var Service $service */
                 $service = $item->service;
@@ -601,5 +594,46 @@ class Fixed extends Component implements BillingInterface
         return (!is_null($session))
             ? $session->getResource()->getInvoiceItems()
             : new InvoiceItemCollection();
+    }
+
+    /**
+     * @param Pod $pod
+     * @param Service $service
+     * @param $type
+     * @return Invoice
+     * @throws CException
+     */
+    private function getInvoice(Pod $pod, Service $service, $type)
+    {
+        $item = Item::withPod($pod->id)->orderBy('id', 'desc')->first();
+
+        if (!$item) {
+            return $this->order($pod, $service);
+        }
+
+        $itemInvoices = $item->invoices()->unpaid()->type($type);
+
+        if ($type == ItemInvoice::TYPE_SWITCH) {
+            $newPlan = $pod->edited_config['template_plan_name'];
+            foreach ($itemInvoices->get() as $i) {
+                if (isset($i->params->plan) && $i->params->plan == $newPlan) {
+                    $itemInvoice = $i;
+                }
+            }
+        } else {
+            $itemInvoice = $itemInvoices->first();
+        }
+
+        if (isset($itemInvoice) && $itemInvoice) {
+            return $itemInvoice->invoice;
+        }
+
+        $actionMethod = 'processType' . strtolower(ucfirst($type));
+
+        if (!method_exists($this, $actionMethod)) {
+            throw new CException('Unknown api action method');
+        }
+
+        return call_user_func([$this, $actionMethod], $pod, $item, $service);
     }
 }

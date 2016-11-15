@@ -6,6 +6,7 @@ namespace models\addon\billing;
 
 use components\InvoiceItemCollection;
 use models\addon\Item;
+use models\addon\ItemInvoice;
 use models\addon\resource\Pod;
 use models\addon\resource\ResourceFactory;
 use models\billing\Invoice;
@@ -31,24 +32,24 @@ interface BillingInterface
 
     /**
      * Runs after order pod\PA payment
-     * @param Item $item
+     * @param ItemInvoice $itemInvoice
      * @return Pod
      */
-    public function afterOrderPayment(Item $item);
+    public function afterOrderPayment(ItemInvoice $itemInvoice);
 
     /**
      * Runs after edit pod payment
-     * @param Item $item
+     * @param ItemInvoice $itemInvoice
      * @return Pod
      */
-    public function afterEditPayment(Item $item);
+    public function afterEditPayment(ItemInvoice $itemInvoice);
 
     /**
      * Runs after PA switch package(plan) payment
-     * @param Item $item
+     * @param ItemInvoice $itemInvoice
      * @return Pod
      */
-    public function afterSwitchPayment(Item $item);
+    public function afterSwitchPayment(ItemInvoice $itemInvoice);
 
     /**
      * @param Service $service
@@ -60,4 +61,10 @@ interface BillingInterface
      * @return InvoiceItemCollection
      */
     public function firstInvoiceCorrection(Service $service);
+
+    /**
+     * @param ItemInvoice $itemInvoice
+     * @return void
+     */
+    public function beforePayment(ItemInvoice $itemInvoice);
 }
