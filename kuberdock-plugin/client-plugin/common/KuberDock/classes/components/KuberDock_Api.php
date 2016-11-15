@@ -236,8 +236,9 @@ class KuberDock_Api {
      * @return array
      * @throws CException
      * @throws WithoutBillingException
+     * @throws YamlValidationException
      */
-    public function apiCall($url, $params = array(), $type = 'GET')
+    public function apiCall($url, array $params = array(), $type = 'GET')
     {
         $this->url = $this->serverUrl . '/' . trim($url, '/');
 
@@ -324,6 +325,10 @@ class KuberDock_Api {
         return $this->apiCall('/api/predefined-apps/validate-template', array('template' => $template), 'POST');
     }
 
+    public function fillTemplate($templateId, $planId)
+    {
+        return $this->apiCall('/api/v1/yamlapi/fill/' . $templateId . '/' . $planId);
+    }
 
     /**
      * @param array $params
