@@ -23,7 +23,7 @@ try {
     $client = \models\billing\Client::byDomain($user, $domains)->first();
 
     if (!$client) {
-        throw new \exceptions\NotFoundException('User not found');
+        throw new \exceptions\NotFoundException('User not found. Probably you have no service with your current domain.');
     }
 
     $packageRelation = \models\addon\PackageRelation::byReferer($kdServer)->first();

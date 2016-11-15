@@ -15,6 +15,8 @@ define(['backbone', 'application/utils', 'application/pods/model'], function (Ba
 
     Predefined.Collection = Backbone.Collection.extend({
         model: Pod.Model,
+        template_id: null,
+
         url: function () {
             return rootURL + '?request=predefined/' + this.template_id;
         },

@@ -126,20 +126,20 @@ define([
             var self = this,
                 view;
 
-            if (!this.predefinedCollection) {
-                this.predefinedCollection = new Predefined.Collection(null, {
-                    template_id: id
-                });
-                this.predefinedCollection.fetch({async:false});
-            }
+            this.predefinedCollection = new Predefined.Collection(null, {
+                template_id: id
+            });
+            this.predefinedCollection.fetch({async:false});
 
             if (this.predefinedCollection.length == 0) {
                 App.navigate('predefined/new/' + id, {trigger: true});
             } else if (this.predefinedCollection.length == 1) {
                 App.navigate('pod/' + encodeURIComponent(this.predefinedCollection.at(0).get('name')), {trigger: true});
             } else {
-                this.podCollection = this.predefinedCollection;
-                App.navigate('/', {trigger: true});
+                view = new Views.itemListView({
+                    collection: this.predefinedCollection
+                });
+                this.layout.showChildView('content', view);
             }
         },
 

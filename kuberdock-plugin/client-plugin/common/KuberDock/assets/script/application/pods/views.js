@@ -42,9 +42,15 @@ define(['app', 'application/utils',
             'click @ui.addNewButton': 'searchPod'
         },
 
-        searchPod: function(e) {
+        searchPod: function (e) {
             e.preventDefault();
-            App.navigate('pod/image/search', {trigger: true});
+            var templateId = $(e.target).data('template');
+
+            if (templateId) {
+                App.navigate('predefined/new/' + templateId, {trigger: true});
+            } else {
+                App.navigate('pod/image/search', {trigger: true});
+            }
         }
     });
 
@@ -165,7 +171,13 @@ define(['app', 'application/utils',
         template: podListTpl,
         childView: PodView.itemList,
         //emptyView : '',
-        childViewContainer  : 'tbody'
+        childViewContainer  : 'tbody',
+
+        templateHelpers: function() {
+            return {
+                collection: this.collection
+            };
+        }
     });
 
     // Images list
@@ -692,7 +704,7 @@ define(['app', 'application/utils',
 
         back: function (e) {
             e.preventDefault();
-            App.navigate('/');
+            App.back();
         },
 
         searchImages: function (e) {

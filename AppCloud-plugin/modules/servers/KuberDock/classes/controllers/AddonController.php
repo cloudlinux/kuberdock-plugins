@@ -183,18 +183,16 @@ class AddonController extends Controller {
         if (Tools::isAjaxRequest()) {
             $productId = Tools::model()->getParam('productId');
             $serviceId = Tools::model()->getParam('serviceId');
+            $service = Service::find($serviceId);
+            $package = Package::find($productId);
 
-            if ($productId && $serviceId) {
-                $service = Service::find($serviceId);
-
+            if ($productId && $service) {
                 echo json_encode(array(
                     'kuberdock' => $service->package->isKuberDock(),
                     'nextinvoicedate' => Tools::getFormattedDate($service->nextinvoicedate),
                     'nextduedate' => Tools::getFormattedDate($service->nextduedate),
                 ));
-            } elseif ($productId) {
-                $package = Package::find($productId);
-
+            } elseif ($package) {
                 echo json_encode(array(
                     'kuberdock' => $package->isKuberDock(),
                     'trial' => $package->getEnableTrial(),
