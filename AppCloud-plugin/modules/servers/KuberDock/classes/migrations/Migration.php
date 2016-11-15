@@ -23,7 +23,7 @@ class Migration
         foreach ($available as $versionNumber) {
             self::run($versionNumber, 'up');
 
-            MigrationModel::newOrCreate([
+            MigrationModel::firstOrCreate([
                 'version' => $versionNumber,
             ]);
         }

@@ -393,7 +393,6 @@ class KuberDock_Api {
                 case KuberDock_ApiStatusCode::HTTP_NOT_FOUND:
                 case KuberDock_ApiStatusCode::HTTP_UNAUTHORIZED:
                 case KuberDock_ApiStatusCode::HTTP_CONFLICT:
-                    print_r($response);
                     if (filter_var($responseData, FILTER_VALIDATE_URL)) {
                         throw new CException(
                             sprintf('You have no billing account, please buy product at <a href="%s">%s</a>'
