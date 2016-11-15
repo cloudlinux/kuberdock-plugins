@@ -30,11 +30,6 @@ class Client extends Model
         return $this->belongsTo('models\billing\Currency', 'currency');
     }
 
-    public function services()
-    {
-        return $this->hasMany('models\billing\Service', 'userid');
-    }
-
     /**
      * @param $query
      * @param string $user

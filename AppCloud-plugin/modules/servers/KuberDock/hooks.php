@@ -10,7 +10,7 @@ use models\addon\Resources;
 use components\Tools;
 use exceptions\CException;
 
-include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'init.php';
+include_once __DIR__ . DIRECTORY_SEPARATOR . 'init.php';
 
 /**
  * Run After the cron has completed and the cron email has sent, but before the database backups.
