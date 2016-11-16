@@ -80,6 +80,10 @@ function(Backbone, Marionette, Utils, MessageModel, MessageView) {
         Backbone.history.navigate(route, options);
     };
 
+    App.back = function () {
+        Backbone.history.history.back();
+    };
+
     App.eventHandler = function (token2) {
         var source = new EventSource(rootURL + '?request=stream/' + token2);
 
@@ -107,6 +111,10 @@ function(Backbone, Marionette, Utils, MessageModel, MessageView) {
             App.Controller.pod.fetch();
         } else if (App.Controller.podCollection) {
             App.Controller.podCollection.fetch({reset: true});
+
+            if (App.Controller.predefinedCollection) {
+                App.Controller.predefinedCollection.fetch({reset: true});
+            }
         }
     };
 

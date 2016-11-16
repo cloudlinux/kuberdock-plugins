@@ -319,7 +319,7 @@ class PredefinedApp {
      */
     public function getPods()
     {
-        if(!$this->panel->billing->getService()) {
+        if (!$this->panel->billing->getService()) {
             return array();
         }
 
@@ -327,12 +327,12 @@ class PredefinedApp {
 
         $existingPods = array_map(function($e) {
             $pod = $this->command->describePod($e['name']);
-            if(isset($pod['template_id']) && $pod['template_id'] == $this->templateId) {
+            if (isset($pod['template_id']) && $pod['template_id'] == $this->templateId) {
                 return $pod;
             }
         }, $pods);
 
-        return array_filter($existingPods);
+        return array_values(array_filter($existingPods));
     }
 
     /**

@@ -35,7 +35,11 @@
     </div>
     <div class="row">
         <div class="col-md-12">
-            <a href="#" class="add-new-app btn btn-primary pull-right">Create custom application</a>
+            <% if (collection.template_id) { %>
+                <a href="#" class="add-new-app btn btn-primary pull-right" data-template="<%- collection.template_id %>">Add more apps</a>
+            <% } else { %>
+                <a href="#" class="add-new-app btn btn-primary pull-right">Create custom application</a>
+            <% } %>
             <div class="clearfix"></div>
         </div>
     </div>

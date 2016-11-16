@@ -231,7 +231,9 @@ function KuberDock_InvoiceCreationPreEmail($params)
 {
     if ($params['source'] == 'autogen') {
         $invoice = \models\billing\Invoice::find($params['invoiceid']);
-        (new \models\addon\Item())->invoiceCorrection($invoice);
+        if ($invoice) {
+            (new \models\addon\Item())->invoiceCorrection($invoice);
+        }
     }
 }
 add_hook('InvoiceCreationPreEmail', 1, 'KuberDock_InvoiceCreationPreEmail');
