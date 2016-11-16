@@ -784,14 +784,17 @@ class Api {
 
     /**
      * @param int $id
+     * @param bool $force
      * @return ApiResponse
      * @throws CException
      * @throws Exception
      * @throws NotFoundException
      */
-    public function deletePD($id)
+    public function deletePD($id, $force = false)
     {
-        return $this->makeCall('/api/pstorage/' . $id, 'DELETE');
+        return $this->makeCall('/api/pstorage/' . $id, [
+            'force' => $force,
+        ], 'DELETE');
     }
 
     /**

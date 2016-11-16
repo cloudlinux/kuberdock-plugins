@@ -233,7 +233,7 @@ class Resources extends Model
         foreach ($pd->getData() as $v) {
             if ($v['name'] == $this->name) {
                 try {
-                    $item->service->getApi()->deletePD($v['id']);
+                    $item->service->getApi()->deletePD($v['id'], true);
                 } catch (\Exception $e) {
                     \exceptions\CException::log($e);
                 }
@@ -275,7 +275,7 @@ class Resources extends Model
         $pd = $api->getPD()->getData();
 
         foreach ($pd as $v) {
-            $api->deletePD($v['id']);
+            $api->deletePD($v['id'], true);
         }
 
         foreach ($api->getPods()->getData() as $pod) {
