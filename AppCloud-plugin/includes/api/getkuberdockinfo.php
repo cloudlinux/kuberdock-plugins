@@ -26,7 +26,7 @@ try {
         throw new \exceptions\NotFoundException('User not found. Probably you have no service with your current domain.');
     }
 
-    $packageRelation = \models\addon\PackageRelation::byReferer($kdServer)->first();
+    $packageRelation = \models\addon\PackageRelation::byReferer($kdServer)->count();
     $server = \models\billing\Server::typeKuberDock()->byReferer($kdServer)->first();
 
     if (!$packageRelation) {
@@ -38,20 +38,21 @@ try {
     $adminApi = $server->getApi();
 
     $service = \models\billing\Service::where('userid', $client->id)
-        ->where('packageid', $packageRelation->product_id)
+        ->where('server', $server->id)
         ->where('domainstatus', 'Active')
         ->first();
 
     if ($service) {
+        $kdPackageId = $service->package->relatedKuberDock->product_id;
         $data['service'] = [
             'id' => $service->id,
             'product_id' => $service->packageid,
             'token' => $service->getToken(),
             'domainstatus' => $service->domainstatus,
             'orderid' => $service->orderid,
-            'kuber_product_id' => $packageRelation->kuber_product_id,
+            'kuber_product_id' => $kdPackageId,
         ];
-        $data['package'] = $service->getAdminApi()->getPackageById($packageRelation->kuber_product_id, true)->getData();
+        $data['package'] = $service->getAdminApi()->getPackageById($kdPackageId, true)->getData();
     } else {
         $data['packages'] = $adminApi->getPackages(true)->getData();
     }
