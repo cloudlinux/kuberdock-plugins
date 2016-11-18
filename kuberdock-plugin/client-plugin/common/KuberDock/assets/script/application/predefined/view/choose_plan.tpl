@@ -29,13 +29,18 @@
                             <span class="plan-name"><%- plan.name %></span>
                             <div class="price-wrapper">
                                 <div class="price">
+                                <% if (!_.isEmpty(model.getKube(k))) { %>
                                     <%- planPackage.prefix %> <%- model.getTotalPrice(k) %><wbr>
                                     <span>
                                         <%- planPackage.suffix %> / <%- planPackage.period %>
                                     </span>
+                                <% } else { %>
+                                    <span class="left">Package has no such kube type</span>
+                                <% } %>
                                 </div>
                             </div>
                         </div>
+                    <% if (!_.isEmpty(model.getKube(k))) { %>
                         <div class="description">
                             <strong>Good for</strong>
                             <span><%- plan.goodFor %></span>
@@ -49,6 +54,7 @@
                                 Choose package
                             </a>
                         </div>
+                    <% } %>
                     </div>
                 </div>
             <% }); %>

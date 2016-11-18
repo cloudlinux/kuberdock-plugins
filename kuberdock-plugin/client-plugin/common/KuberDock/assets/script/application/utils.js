@@ -7,7 +7,7 @@ define(['app', 'bbcode', 'bootstrap'], function(App) {
 
             return _.first(_.filter(p['kubes'], function (e) {
                 return e.id == kubeId;
-            }));
+            })) || {};
         },
 
         getKubes: function (sorted) {
