@@ -40,10 +40,11 @@ try {
     $service = \models\billing\Service::where('userid', $client->id)
         ->where('server', $server->id)
         ->where('domainstatus', 'Active')
+        ->orderBy('id', 'desc')
         ->first();
 
     if ($service) {
-        $kdPackageId = $service->package->relatedKuberDock->product_id;
+        $kdPackageId = $service->package->relatedKuberDock->kuber_product_id;
         $data['service'] = [
             'id' => $service->id,
             'product_id' => $service->packageid,
