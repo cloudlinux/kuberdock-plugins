@@ -47,13 +47,13 @@ abstract class API
         $this->method = $_SERVER['REQUEST_METHOD'];
         if ($this->method == 'POST') {
             if (array_key_exists('HTTP_X_HTTP_METHOD', $_SERVER)
-                    && in_array($_SERVER['HTTP_X_HTTP_METHOD'], array('DELETE', 'PUT'))) {
+                    && in_array($_SERVER['HTTP_X_HTTP_METHOD'], array('DELETE', 'PUT', 'PATCH'))) {
                 $this->method = $_SERVER['HTTP_X_HTTP_METHOD'];
             } elseif (isset($_SERVER['X-HTTP-Method-Override'])
-                    && in_array($_SERVER['X-HTTP-Method-Override'], array('DELETE', 'PUT'))) {
+                    && in_array($_SERVER['X-HTTP-Method-Override'], array('DELETE', 'PUT', 'PATCH'))) {
                 // Backbone.emulateHTTP = true;
                 $this->method = $_SERVER['X-HTTP-Method-Override'];
-            } elseif (isset($_POST['_method']) && in_array($_POST['_method'], array('DELETE', 'PUT'))) {
+            } elseif (isset($_POST['_method']) && in_array($_POST['_method'], array('DELETE', 'PUT', 'PATCH'))) {
                 // Backbone.emulateJSON = true;
                 $this->method = $_POST['_method'];
             }
@@ -69,6 +69,7 @@ abstract class API
                 $this->request = $this->cleanInputs($_GET);
                 break;
             case 'PUT':
+            case 'PATCH':
                 $this->request = $this->cleanInputs($_GET);
                 $this->file = file_get_contents("php://input");
                 break;

@@ -524,7 +524,7 @@ define(['app', 'application/utils',
             Backbone.ajax({
                 url: rootURL + '?request=pods',
                 method: 'POST',
-                data: this.ui.createForm.serialize(),
+                data: this.ui.createForm.serialize() + '&' + $.param(panelToken),
                 dataType: 'json'
             }).done(function (response) {
                 App.Controller.pod = new Pod.Model();

@@ -1,9 +1,48 @@
-var editor = null;
+var editor;
+var KDReq = requirejs.config({
+    baseUrl: '/modules/KuberDock/assets/script/lib/',
+    urlArgs: "bust=" +  (new Date()).getTime(),
+    paths: {
+        jquery: 'jquery.min',
+        noconflict: '../plesk/admin/noconflict',
+        bootstrap: 'bootstrap.min',
+        CodeMirrorYaml: 'codemirror/mode/yaml/yaml',
+        CodeMirror: 'codemirror/codemirror.min',
+        formValidator: 'jquery.form-validator.min',
+        'jquery.ui.widget': 'fileupload/js/vendor/jquery.ui.widget',
+        'jquery.iframe.transport': 'fileupload/js/jquery.iframe-transport',
+        fileupload: 'fileupload/js/jquery.fileupload'
+    },
+    shim: {
+        bootstrap: {
+            deps: ['jquery']
+        },
+        CodeMirror: {
+            deps: ['CodeMirrorYaml']
+        },
+        formValidator: ['jquery'],
+        'jquery.ui.widget': ['jquery'],
+        'jquery.iframe.transport': ['jquery'],
+        fileupload: {
+            exports: ['jquery'],
+            deps: ['jquery', 'jquery.iframe.transport']
+        }
+    },
+    map: {
+        '*': {
+            'jquery': 'noconflict'
+        },
+        'noconflict': {
+            'jquery': 'jquery'
+        }
+    },
+    waitSeconds: 30
+});
 
-jQuery(function () {
+require(['jquery', 'CodeMirror', 'fileupload', 'formValidator'], function ($, CodeMirror) {
     'use strict';
 
-    jQuery.validate();
+    $.validate();
 
     editor = CodeMirror.fromTextArea(document.getElementById('template'), {
         mode: "yaml",
@@ -11,46 +50,49 @@ jQuery(function () {
         lineWrapping: true
     });
 
-    var setProgress = function(percent) {
-        var name = jQuery('#yaml_file').data('name');
+    $('#yaml_file-element').append('<div id="progress" class="progress">' +
+        '<div class="progress-bar progress-bar-success"></div>' +
+        '<div class="clearfix"></div>' +
+    '</div>');
+
+    var setProgress = function(percent, name) {
         if (percent) {
             name += ' (uploaded: ' + percent + '%)';
         }
-        jQuery('#yaml_file-label').text(name);
+        $('.progress-bar').width(percent + '%').text(name);
     };
 
-    jQuery('#yaml_file').after('<span class="help-block form-error yaml_file_error"></span>');
+    $('#yaml_file').after('<span class="help-block form-error yaml_file_error"></span>');
 
-    jQuery('#yaml_file').on('change', function() {
-        jQuery('div.alert.upload').html('').hide();
-        jQuery('#progress .progress-bar').width('0px');
-        jQuery('.progress-bar').text('');
+    $('#yaml_file').on('change', function() {
+        $('div.alert.upload').html('').hide();
+        $('#progress .progress-bar').width('0px');
+        $('.progress-bar').text('');
     });
 
-    jQuery('#yaml_file').fileupload({
+    $('#yaml_file').fileupload({
         url: '/modules/KuberDock/index.php/admin/extract-yaml',
         dataType: 'json',
         done: function (e, data) {
             if(!data.result.error) {
                 editor.getDoc().setValue(data.result.yaml);
-                jQuery('.yaml_file_error').text('');
+                $('.yaml_file_error').text('');
             } else {
-                jQuery('.yaml_file_error').text(data.result.error);
+                $('.yaml_file_error').text(data.result.error);
             }
-            setProgress();
+            setProgress(100, data.files[0].name);
         },
         progressall: function (e, data) {
             var progress = parseInt(data.loaded / data.total * 100, 10);
             setProgress(progress);
         }
-    }).prop('disabled', !jQuery.support.fileInput)
-        .parent().addClass(jQuery.support.fileInput ? undefined : 'disabled');
+    }).prop('disabled', !$.support.fileInput)
+        .parent().addClass($.support.fileInput ? undefined : 'disabled');
 
-    jQuery('#button-confirm').on('click', function (e) {
-        jQuery('form').data('submit', true).trigger('submit');
+    $('#button-confirm').on('click', function (e) {
+        $('form').data('submit', true).trigger('submit');
     })
 });
-
 
 function validate_form()
 {

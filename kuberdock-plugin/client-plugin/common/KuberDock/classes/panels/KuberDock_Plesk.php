@@ -176,4 +176,19 @@ class KuberDock_Plesk extends KuberDock_Panel
         list($domain, $directory) = $this->kdCommon->getUserMainDomain($this->getUser());
         return $domain;
     }
+
+    /**
+     * Since Plesk 17 backend check token for POST requests
+     * @return array
+     */
+    public function getCSRFToken()
+    {
+        if (isset($_SESSION['panel']['forgeryProtectionToken'])) {
+            return array(
+                'forgery_protection_token' => $_SESSION['panel']['forgeryProtectionToken'],
+            );
+        }
+
+        return parent::getCSRFToken();
+    }
 }

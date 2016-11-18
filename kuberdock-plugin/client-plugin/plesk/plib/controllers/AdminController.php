@@ -54,14 +54,7 @@ class AdminController extends pm_Controller_Action
         ));
 
         $this->view->assets->registerScripts(array(
-            'script/lib/jquery.min',
-            'script/lib/codemirror/codemirror.min',
-            'script/lib/codemirror/mode/yaml/yaml',
-            'script/lib/jquery.form-validator.min',
-            'script/lib/fileupload/js/vendor/jquery.ui.widget',
-            'script/lib/bootstrap.min',
-            'script/lib/fileupload/js/jquery.iframe-transport',
-            'script/lib/fileupload/js/jquery.fileupload',
+            'script/lib/require.min',
             'script/plesk/admin/application',
         ));
 
