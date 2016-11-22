@@ -25,4 +25,16 @@ class Trial extends Model
      * @var array
      */
     protected $fillable = ['user_id', 'service_id'];
+
+    /**
+     * @return \Closure
+     */
+    public function getSchema()
+    {
+        return function ($table) {
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
+            $table->integer('user_id');
+            $table->integer('service_id')->unique();
+        };
+    }
 }

@@ -29,6 +29,26 @@ class Item extends Model
     protected $fillable = ['pod_id', 'user_id', 'service_id', 'status', 'type'];
 
     /**
+     * @return \Closure
+     */
+    public function getSchema()
+    {
+        return function ($table) {
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
+            $table->increments('id');
+            $table->integer('user_id');
+            $table->integer('service_id');
+            $table->string('pod_id', 64)->nullable();
+            $table->integer('billable_item_id')->nullable();
+            $table->string('status', 32)->default(Resources::STATUS_ACTIVE);
+            $table->string('type', 64)->default(Resources::TYPE_POD);
+
+            $table->index('pod_id');
+            $table->index('billable_item_id');
+        };
+    }
+
+    /**
      *
      */
     protected static function boot()

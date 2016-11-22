@@ -63,6 +63,26 @@ class Resources extends Model
     protected $fillable = ['user_id', 'billable_item_id', 'name', 'type', 'status'];
 
     /**
+     * @return \Closure
+     */
+    public function getSchema()
+    {
+        return function ($table) {
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
+            $table->increments('id');
+            $table->integer('user_id');
+            $table->string('name');
+            $table->enum('type', array(
+                Resources::TYPE_IP,
+                Resources::TYPE_PD,
+            ));
+            $table->string('status', 32)->default(\models\addon\Resources::STATUS_ACTIVE );
+
+            $table->index('name');
+        };
+    }
+
+    /**
      * @param Pod $pod
      * @param Item $item
      */

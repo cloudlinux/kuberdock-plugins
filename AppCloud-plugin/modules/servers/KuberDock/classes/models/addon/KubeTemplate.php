@@ -36,6 +36,28 @@ class KubeTemplate extends Model
     ];
 
     /**
+     * @return \Closure
+     */
+    public function getSchema()
+    {
+        return function ($table) {
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
+            $table->increments('id');
+            $table->integer('kuber_kube_id');
+            $table->string('kube_name');
+            $table->tinyInteger('kube_type')->default(0);
+            $table->decimal('cpu_limit', 10, 4);
+            $table->integer('memory_limit');
+            $table->integer('hdd_limit');
+            $table->decimal('traffic_limit', 10, 2);
+            $table->integer('server_id');
+
+            $table->index('id');
+            $table->index('kuber_kube_id');
+        };
+    }
+
+    /**
      *
      */
     protected static function boot()

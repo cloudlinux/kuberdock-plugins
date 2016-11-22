@@ -27,6 +27,27 @@ class State extends Model
     protected $dates = ['checkin_date'];
 
     /**
+     * @return \Closure
+     */
+    public function getSchema()
+    {
+        return function ($table) {
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
+            $table->increments('id');
+            $table->integer('hosting_id');
+            $table->integer('product_id');
+            $table->date('checkin_date');
+            $table->integer('kube_count');
+            $table->integer('ps_size');
+            $table->integer('ip_count');
+            $table->float('total_sum');
+            $table->text('details');
+
+            $table->foreign('product_id')->references('product_id')->on('KuberDock_products')->onDelete('cascade');
+        };
+    }
+
+    /**
      * @return Package
      */
     public function package()

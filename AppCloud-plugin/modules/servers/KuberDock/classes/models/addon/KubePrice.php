@@ -28,6 +28,26 @@ class KubePrice extends Model
     protected $dates = ['change_time'];
 
     /**
+     * @return \Closure
+     */
+    public function getSchema()
+    {
+        return function ($table) {
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
+            $table->increments('id');
+            $table->integer('template_id', false, true);
+            $table->integer('product_id');
+            $table->integer('kuber_product_id');
+            $table->decimal('kube_price', 10, 2);
+
+            $table->index('template_id');
+
+            $table->foreign('template_id')->references('id')->on('KuberDock_kubes_templates')->onDelete('cascade');
+            $table->foreign('product_id')->references('product_id')->on('KuberDock_products')->onDelete('cascade');
+        };
+    }
+
+    /**
      *
      */
     protected static function boot()

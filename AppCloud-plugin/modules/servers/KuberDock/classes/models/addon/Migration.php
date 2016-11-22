@@ -21,4 +21,18 @@ class Migration extends Model
      * @var array
      */
     protected $fillable = ['version'];
+
+    /**
+     * @return \Closure
+     */
+    public function getSchema()
+    {
+        return function ($table) {
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
+            $table->integer('version');
+            $table->timestamp('timestamp');
+
+            $table->primary('version');
+        };
+    }
 }

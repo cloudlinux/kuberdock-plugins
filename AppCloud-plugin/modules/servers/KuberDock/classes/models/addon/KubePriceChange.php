@@ -18,10 +18,32 @@ class KubePriceChange extends Model
      * @var string
      */
     protected $table = 'KuberDock_price_changes';
+
     /**
      * @var
      */
     protected $currency;
+
+    /**
+     * @return \Closure
+     */
+    public function getSchema()
+    {
+        return function ($table) {
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
+            $table->increments('id');
+            $table->string('login');
+            $table->dateTime('change_time');
+            $table->integer('type_id');
+            $table->integer('package_id');
+            $table->float('old_value')->nullable();
+            $table->float('new_value')->nullable();
+
+            $table->index('new_value');
+
+            $table->foreign('package_id')->references('kuber_product_id')->on('KuberDock_products')->onDelete('cascade');
+        };
+    }
 
     /**
      *

@@ -41,6 +41,32 @@ class ItemInvoice extends Model
     protected $fillable = ['invoice_id', 'status', 'type', 'params'];
 
     /**
+     * @return \Closure
+     */
+    public function getSchema()
+    {
+        return function ($table) {
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
+            $table->increments('id');
+            $table->integer('item_id', false, true);
+            $table->integer('invoice_id');
+            $table->string('status', 16);
+            $table->enum('type', [
+                ItemInvoice::TYPE_ORDER,
+                ItemInvoice::TYPE_EDIT,
+                ItemInvoice::TYPE_SWITCH,
+            ])->default(ItemInvoice::TYPE_ORDER);
+            $table->text('params')->nullable();
+            $table->timestamps();
+
+            $table->index('invoice_id');
+            $table->index('item_id');
+
+            $table->foreign('item_id')->references('id')->on('KuberDock_items')->onDelete('cascade');
+        };
+    }
+
+    /**
      * @return array
      */
     public static function getTypes()

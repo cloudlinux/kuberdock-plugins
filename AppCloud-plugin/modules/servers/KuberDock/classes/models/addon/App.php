@@ -28,6 +28,32 @@ class App extends Model
     protected $table = 'KuberDock_preapps';
 
     /**
+     * @return \Closure
+     */
+    public function getSchema()
+    {
+        return function ($table) {
+            /* @var \Illuminate\Database\Schema\Blueprint $table */
+            $table->increments('id');
+            $table->integer('user_id');
+            $table->integer('product_id');
+            $table->integer('kuber_product_id');
+            $table->string('pod_id', 64);
+            $table->text('data');
+            $table->enum('type', [
+                ResourceFactory::TYPE_POD,
+                ResourceFactory::TYPE_YAML,
+            ])->default(ResourceFactory::TYPE_POD);
+            $table->text('referer');
+
+            $table->index('pod_id');
+            $table->index('user_id');
+
+            $table->foreign('product_id')->references('product_id')->on('KuberDock_products')->onDelete('cascade');
+        };
+    }
+
+    /**
      * @return Package
      */
     public function package()
