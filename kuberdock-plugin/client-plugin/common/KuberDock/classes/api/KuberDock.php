@@ -3,7 +3,6 @@
 namespace Kuberdock\classes\api;
 
 use Kuberdock\classes\components\Proxy;
-use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\models\Pod;
 use Kuberdock\classes\Base;
 use Kuberdock\classes\exceptions\ApiException;
@@ -16,16 +15,9 @@ class KuberDock extends API
 {
     protected function get_pods($name = null)
     {
-        if ($name) {
-            $pod = $this->getPod()->loadByName($name);
-
-            return $pod->asArray();
-        } else {
-            return array_map(function($pod) {
-                /** @var $pod Pod */
-                return $pod->asArray();
-            }, $this->getPod()->getPods());
-        }
+        return $name
+            ? $this->getPod()->loadByName($name)->asArray()
+            : $this->getPod()->getPods(true);
     }
 
     protected function post_pods()
@@ -88,9 +80,7 @@ class KuberDock extends API
 
     protected function get_predefined($template_id)
     {
-        $app = new PredefinedApp($template_id);
-
-        return $app->getPods();
+        return PredefinedApp::byId($template_id)->getPods();
     }
 
     protected function put_predefined($template_id)
@@ -98,7 +88,7 @@ class KuberDock extends API
         $this->checkNumeric($template_id);
         $data = (array) $this->getJSONData();
 
-        $app = new PredefinedApp($template_id);
+        $app = PredefinedApp::byId($template_id);
         $app->getVariables();
 
         $validator = new Validator(array(
@@ -117,7 +107,6 @@ class KuberDock extends API
             throw new ApiException($validator->getErrorsAsString());
         };
 
-        $app->setPackageId($data['package_id']);
         $app->createApp($data);
 
         $pod = $app->getPod()->loadByName($app->template->getPodName());
@@ -172,9 +161,8 @@ class KuberDock extends API
     protected function get_templates_setup($id)
     {
         $this->checkNumeric($id);
-        $app = new PredefinedApp($id);
 
-        return $app->getVariables();
+        return PredefinedApp::byId($id)->getVariables();
     }
 
     protected function get_persistent_drives()

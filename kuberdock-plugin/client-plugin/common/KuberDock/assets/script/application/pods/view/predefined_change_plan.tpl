@@ -16,7 +16,7 @@
             </div>
 
             <div class="row col-xs-12 nopadding plans-area centered">
-            <% _.each(templateModel.getPlans(), function (plan, k) { %>
+            <% _.each(templateModel.get('plans'), function (plan, k) { %>
                 <% if(plan.recommended) { %>
                 <div class="col-md-3 col-sm-6 col-xs-12" >
                     <div class="item recommended">
@@ -29,10 +29,8 @@
                             <span class="plan-name"><%- plan.name %></span>
                             <div class="price-wrapper">
                                 <div class="price">
-                                    <%- planPackage.prefix %> <%- templateModel.getTotalPrice(k) %><wbr>
-                                    <span>
-                                        <%- planPackage.suffix %> / <%- planPackage.period %>
-                                    </span>
+                                    <%- plan.info.prefix %> <%- plan.info.price.toFixed(2) %><wbr>
+                                    <span><%- plan.info.suffix %> / <%- plan.info.period %></span>
                                 </div>
                             </div>
                         </div>

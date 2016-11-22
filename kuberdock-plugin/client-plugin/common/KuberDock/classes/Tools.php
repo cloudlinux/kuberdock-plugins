@@ -6,6 +6,9 @@
 
 namespace Kuberdock\classes;
 
+
+use Symfony\Component\Yaml\Yaml;
+
 class Tools {
     /**
      * Get param from $_GET variable
@@ -98,4 +101,25 @@ class Tools {
 
         return strtolower(implode($pass));
     }
+
+    /**
+     * @param string $string A string containing YAML
+     *
+     * @return mixed The YAML converted to a PHP value
+     */
+    public static function parseYaml($string)
+    {
+        return Yaml::parse($string);
+    }
+
+    /**
+     * @param mixed $data  The PHP value
+     *
+     * @return string A YAML string representing the original PHP value
+     */
+    public static function dumpYaml($data)
+    {
+        return Yaml::dump($data);
+    }
+
 } 

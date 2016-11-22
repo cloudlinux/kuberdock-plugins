@@ -300,9 +300,10 @@ class Pod {
     }
 
     /**
+     * @param bool $asArray
      * @return Pod[] Pods
      */
-    public function getPods()
+    public function getPods($asArray = false)
     {
         $data = array();
 
@@ -315,9 +316,7 @@ class Pod {
             $pod = $this->loadByName($pod['name']);
             $pod = clone($pod);
             $pod->containers[0]['ports'] = $this->parsePorts($pod->containers[0]['ports']);
-            /*$container['env'] = $this->parseEnv($container['env']);
-            $container['volumeMounts'] = $this->parseVolumeMounts($container['volumeMounts']);*/
-            $data[] = $pod;
+            $data[] = $asArray ? $pod->asArray() : $pod;
         }
 
         return $data;
@@ -386,7 +385,7 @@ class Pod {
         $this->_data = $details;
 
         if (isset($details['template_id']) && $details['template_id']) {
-            $app = new PredefinedApp($details['template_id']);
+            $app = PredefinedApp::byId($details['template_id']);
             $this->_data['postDescription'] = $app->getPostInstallPostDescription($details);
         }
 

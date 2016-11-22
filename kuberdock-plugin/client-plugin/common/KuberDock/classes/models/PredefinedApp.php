@@ -69,6 +69,11 @@ class PredefinedApp {
         $this->init();
     }
 
+    public static function byId($templateId)
+    {
+        return new PredefinedApp($templateId);
+    }
+
     /**
      * @param $name
      * @return \ArrayObject|mixed
@@ -152,25 +157,6 @@ class PredefinedApp {
     }
 
     /**
-     * @param string $podName
-     * @return array|bool
-     */
-    public function getTemplateByPodName($podName)
-    {
-        return $this->template->getTemplateByPath($this->getAppPath($podName));
-    }
-
-    /**
-     * @param $packageId
-     * @throws CException
-     */
-    public function setPackageId($packageId)
-    {
-        $this->panel->billing->getPackageById($packageId);
-        $this->pod->packageId = $packageId;
-    }
-
-    /**
      * @return array
      */
     public function getVariables()
@@ -183,7 +169,7 @@ class PredefinedApp {
                 $path[] = $iterator->getSubIterator($depth)->key();
             }
 
-            $sPath = join('.', $path);
+            $sPath = implode('.', $path);
             $variable = $this->parseTemplateString($row, $sPath);
             $this->variables = array_merge($this->variables, $variable);
 
@@ -233,13 +219,11 @@ class PredefinedApp {
      */
     public function createApp($data = array())
     {
-        $this->setVariables($data);
+        $this->template->fillData($data);
 
         // Create order with kuberdock product
         $pod = $this->pod->createProduct();
         $this->command = $pod->getCommand();
-
-        $this->template->data['kuberdock']['kuberdock_template_id'] = (int) $this->templateId;
 
         $fileManager = Base::model()->getStaticPanel()->getFileManager();
         $fileManager->putFileContent($this->getAppPath(), Spyc::YAMLDump($this->template->data));
@@ -250,7 +234,6 @@ class PredefinedApp {
             throw new CException(preg_replace('/^kube_type:\s/i', '', $e->getMessage())); // AC-3003
         }
 
-//        $fileManager->putFileContent($this->getAppPath(), Spyc::YAMLDump($this->template->data));
         $fileManager->putFileContent($this->getAppPath($this->template->getPodName()), Spyc::YAMLDump($this->template->data));
 
         $fileManager->chmod($this->getAppPath(), 0640);
@@ -267,7 +250,6 @@ class PredefinedApp {
 
         $this->template->data['kuberdock']['postDescription'] = $data['postDescription'];
 
-        $this->setVariables($data);
         $this->setPostInstallVariables($data);
 
         return $this->template->data['kuberdock']['postDescription'];
@@ -374,7 +356,7 @@ class PredefinedApp {
 
         switch($value) {
             case 'autogen':
-                return $this->generatePassword();
+                return Tools::generatePassword();
             default:
                 return $value;
         }
@@ -416,22 +398,11 @@ class PredefinedApp {
     private function getVariableData($type)
     {
         switch($type) {
-            case 'kube_type':
-                return $this->getKubeTypes();
             case 'user_domain_list':
                 return $this->panel->getUserDomains();
             default:
                 return '';
-                break;
         }
-    }
-
-    /**
-     * @return string
-     */
-    private function generatePassword()
-    {
-        return Tools::generatePassword();
     }
 
     /**
@@ -455,17 +426,6 @@ class PredefinedApp {
             $temp = (int) $temp;
 
         return $data;
-    }
-
-    /**
-     * @param $templateId
-     * @param $podName
-     * @return array|bool
-     */
-    public static function getTemplateById($templateId, $podName)
-    {
-        $appPath = self::getAppPathByTemplateId($templateId, $podName);
-        return Template::getTemplateByPath($appPath);
     }
 
     /**
@@ -525,83 +485,6 @@ class PredefinedApp {
     /**
      * @param array $data
      */
-    private function setVariables($data)
-    {
-        $this->setDefaultVariables();
-
-        array_walk_recursive($this->template->data, function(&$e) use ($data) {
-            // bug with returned type of value (preg_replace_callback)
-            if(preg_match(self::VARIABLE_REGEXP, $e)) {
-                $e = $this->replaceTemplateVariable($e, $data);
-            }
-        });
-
-        foreach($data as $k => $v) {
-            if(isset($this->variables[$k])) {
-                $this->variables[$k]['value'] = $v;
-                $this->setByPath($this->template->data, $this->variables[$k]['path'], $this->variables[$k]['replace'], $v);
-            }
-        }
-
-        if(!isset($this->template->data['kuberdock']['packageID'])) {
-            $this->template->setPackageId();
-        }
-
-        // TODO: Add few pod support
-        if(isset($data['plan'])) {
-            $defaults = $this->panel->billing->getDefaults();
-            $plan = $this->template->getPlan($data['plan']);
-            $containers = $this->template->getContainers();
-            $volumes = $this->template->getVolumes();
-
-            foreach($plan['pods'] as $pod) {
-                $this->template->setKubeType(isset($pod['kubeType']) ? $pod['kubeType'] : $defaults['kubeType']);
-
-                foreach($pod['containers'] as $container) {
-                    foreach($containers as &$row) {
-                        if($row['name'] == $container['name']) {
-                            $row['kubes'] = $container['kubes'];
-                        }
-                    }
-                }
-                if (isset($pod['persistentDisks'])) {
-                    foreach ($pod['persistentDisks'] as $pd) {
-                        foreach ($volumes as &$row) {
-                            if ($row['name'] == $pd['name']) {
-                                $row['persistentDisk']['pdSize'] = isset($pd['pdSize']) ? $pd['pdSize'] : 1;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if(isset($plan['publicIP']) && !(bool) $plan['publicIP']) {
-                foreach($containers as &$row) {
-                    if(!isset($row['ports'])) continue;
-
-                    foreach($row['ports'] as &$port) {
-                        $port['isPublic'] = false;
-                    }
-                }
-            }
-
-            if (isset($plan['baseDomain'])) {
-                $this->template->setBaseDomain($plan['baseDomain']);
-            }
-
-            if(isset($plan['packagePostDescription'])) {
-                $this->template->addPackagePostDescription($plan['packagePostDescription']);
-            }
-
-            $this->template->setContainers($containers);
-            $this->template->setVolumes($volumes);
-            $this->template->setPlanName($plan['name']);
-        }
-    }
-
-    /**
-     * @param array $data
-     */
     private function setPostInstallVariables($data)
     {
         $variables = array();
@@ -634,19 +517,5 @@ class PredefinedApp {
         }
 
         return '"Public IP address not set"';
-    }
-
-    /**
-     * @return $this
-     */
-    private function setDefaultVariables()
-    {
-        $this->variables['USER_DOMAIN'] = array(
-            'replace' => '%USER_DOMAIN%',
-            'type' => 'autogen',
-            'value' => 'http://' . $this->panel->getUserMainDomain(),
-        );
-
-        return $this;
     }
 }

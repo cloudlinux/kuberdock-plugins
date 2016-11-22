@@ -66,12 +66,7 @@ define(['backbone', 'application/utils', 'application/pods/model'], function (Ba
         },
 
         getPlan: function (key) {
-            var plans = this.getPlans();
-            return plans[key] || {};
-        },
-
-        getPlans: function () {
-            return this.getKDSection().appPackages;
+            return this.get('plans')[key] || {};
         },
 
         getKubes: function (planKey) {

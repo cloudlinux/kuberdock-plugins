@@ -34,7 +34,6 @@ define(['app', 'application/utils', 'application/predefined/model', 'application
             return {
                 model: this.model,
                 planDescription: this.planDescription,
-                planPackage: this.model.getPackage()
             };
         },
 

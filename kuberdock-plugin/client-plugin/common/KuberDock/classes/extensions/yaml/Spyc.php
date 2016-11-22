@@ -12,6 +12,8 @@
 
 namespace Kuberdock\classes\extensions\yaml;
 
+use Kuberdock\classes\exceptions\CException;
+
 if (!function_exists('spyc_load')) {
   /**
    * Parses YAML to array.

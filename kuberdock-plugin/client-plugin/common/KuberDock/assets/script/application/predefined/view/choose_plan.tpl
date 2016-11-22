@@ -16,7 +16,7 @@
             </div>
 
             <div class="row col-xs-12 nopadding plans-area centered">
-            <% _.each(model.getPlans(), function (plan, k) { %>
+            <% _.each(model.get('plans'), function (plan, k) { %>
                 <% if(plan.recommended) { %>
                 <div class="col-md-3 col-sm-6 col-xs-12" >
                     <div class="item recommended">
@@ -30,10 +30,8 @@
                             <div class="price-wrapper">
                                 <div class="price">
                                 <% if (!_.isEmpty(model.getKube(k))) { %>
-                                    <%- planPackage.prefix %> <%- model.getTotalPrice(k) %><wbr>
-                                    <span>
-                                        <%- planPackage.suffix %> / <%- planPackage.period %>
-                                    </span>
+                                    <%- plan.info.prefix %> <%- plan.info.price.toFixed(2) %><wbr>
+                                    <span><%- plan.info.suffix %> / <%- plan.info.period %></span>
                                 <% } else { %>
                                     <span class="left">Package has no such kube type</span>
                                 <% } %>

@@ -2,18 +2,13 @@
 
 namespace Kuberdock\classes\models;
 
+
 use Kuberdock\classes\panels\KuberDock_Panel;
 use Kuberdock\classes\Base;
 use Kuberdock\classes\exceptions\CException;
 use Kuberdock\classes\extensions\yaml\Spyc;
-use Kuberdock\classes\KuberDock_View;
+use Kuberdock\classes\Tools;
 
-/**
- * Created by PhpStorm.
- * User: user
- * Date: 12/27/15
- * Time: 9:47 AM
- */
 class Template
 {
     /**
@@ -46,7 +41,7 @@ class Template
     public function getById($id)
     {
         $this->id = $id;
-        $template = $this->panel->getAdminApi()->getTemplate($id);
+        $template = $this->panel->getAdminApi()->getTemplate($id, true);
 
         if(!$template) {
             throw new CException('Template not exists');
@@ -54,17 +49,24 @@ class Template
 
         $this->data = Spyc::YAMLLoadString($template['template']);
         $this->data['kuberdock']['name'] = $template['name'];
+        $this->data['plans'] = $template['plans'];
 
         $this->setDefaults();
 
         return $this->data;
     }
 
+    public function fillData($data)
+    {
+        $filled = $this->panel->getAdminApi()->fillTemplate($data);
+        $this->data = Tools::parseYaml($filled);
+    }
+
     /**
-     * @param $id
-     * @return array
-     * @throws CException
-     */
+    -     * @param $id
+    -     * @return array
+    -     * @throws CException
+    -     */
     public function getByPath($path, $id)
     {
         $this->id = $id;
@@ -235,6 +237,11 @@ class Template
         return $plans[$id];
     }
 
+    public function getDomain()
+    {
+        return $this->panel->domain;
+    }
+
     /**
      * @return bool
      */
@@ -287,22 +294,6 @@ class Template
     public function setKubeType($id)
     {
         $this->data['kuberdock']['appPackage']['kubeType'] = $id;
-    }
-
-    /**
-     * @param int|null $id
-     * @throws CException
-     */
-    public function setPackageId($id = null)
-    {
-        $defaults = $this->panel->billing->getDefaults();
-
-        if($id) {
-            $this->data['kuberdock']['packageID'] = $id;
-        } elseif(!isset($this->data['kuberdock']['packageID'])) {
-            $defaultPackageId = isset($defaults['packageId']) ? $defaults['packageId'] : 0;
-            $this->data['kuberdock']['packageID'] = $defaultPackageId;
-        }
     }
 
     public function setBaseDomain($baseDomain)

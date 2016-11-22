@@ -131,15 +131,9 @@ class Proxy {
      */
     public function addRuleToPod(Pod $pod)
     {
-        $directory = $domain = $port = '';
-        $template = PredefinedApp::getTemplateById($pod->template_id, $pod->name);
-        $pod = (new Pod)->loadByName($pod->name);
-
         try {
-            $data = $this->getProxyData($pod, $template);
-            extract($data);
-            // vars from extract
-            $this->addProxy($pod->name, $directory, $domain, $port);
+            $data = $this->getProxyData($pod);
+            $this->addProxy($pod->name, $data['directory'], $data['domain'], $data['port']);
         } catch (\Exception $e) {
             // pass
         }
@@ -151,16 +145,10 @@ class Proxy {
      */
     public function removeRuleFromPod(Pod $pod)
     {
-        $directory = $domain = $port = '';
-        $template = PredefinedApp::getTemplateById($pod->template_id, $pod->name);
-        $pod = (new Pod)->loadByName($pod->name);
-
         try {
-            $data = $this->getProxyData($pod, $template);
-            extract($data);
-            // vars from extract
-            $htaccessPath = $this->getHtaccessPathByDomain($domain);
-            $rule = $this->getRewriteRule($directory, '%s', $port);
+            $data = $this->getProxyData($pod);
+            $htaccessPath = $this->getHtaccessPathByDomain($data['domain']);
+            $rule = $this->getRewriteRule($data['directory'], '%s', $data['port']);
             $this->removeRule($htaccessPath, sprintf($rule, $pod->podIP));
         } catch (\Exception $e) {
             //pass
@@ -218,7 +206,6 @@ class Proxy {
 
     /**
      * @param Pod $pod
-     * @param array $template
      * @return array (
             'directory' => proxy dir,
             'domain' => proxy domain,
@@ -226,26 +213,26 @@ class Proxy {
      * )
      * @throws CException
      */
-    private function getProxyData(Pod $pod, $template)
+    private function getProxyData(Pod $pod)
     {
-        if (isset($template['kuberdock']['proxy'])) {
-            foreach ($template['kuberdock']['proxy'] as $dir => $proxy) {
-                if (isset($proxy['domain']) && isset($proxy['container'])) {
-                    $container = $pod->getContainerByName($proxy['container']);
-                    if ($ports = $container['ports']) {
-                        foreach ($ports as $port) {
-                            $port = isset($port['hostPort']) ? $port['hostPort'] : $port['containerPort'];
-                            return array(
-                                'directory' => $dir,
-                                'domain' => $proxy['domain'],
-                                'port' => $port
-                            );
-                        }
+        $template = PredefinedApp::byId($pod->template_id)->getTemplate();
+
+        foreach ($template->getProxy() as $dir => $proxy) {
+            if (isset($proxy['domain'], $proxy['container'])) {
+                $container = $pod->getContainerByName($proxy['container']);
+                if ($ports = $container['ports']) {
+                    foreach ($ports as $port) {
+                        $port = isset($port['hostPort']) ? $port['hostPort'] : $port['containerPort'];
+                        return [
+                            'directory' => $dir,
+                            'domain' => $template->getDomain(),
+                            'port' => $port
+                        ];
                     }
                 }
             }
         }
 
-        throw new CException('Can\'t get proxy data');
+        return ['directory' => '', 'domain' => '', 'port' => ''];
     }
 }

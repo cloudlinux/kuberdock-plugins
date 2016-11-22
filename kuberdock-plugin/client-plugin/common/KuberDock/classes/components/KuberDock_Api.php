@@ -325,11 +325,6 @@ class KuberDock_Api {
         return $this->apiCall('/api/predefined-apps/validate-template', array('template' => $template), 'POST');
     }
 
-    public function fillTemplate($templateId, $planId)
-    {
-        return $this->apiCall('/api/v1/yamlapi/fill/' . $templateId . '/' . $planId);
-    }
-
     public function isVolumeResizable()
     {
         return $this->apiCall('/api/v1/pstorage/is_volume_resizable');
@@ -793,16 +788,14 @@ class KuberDock_Api {
      * @throws CException
      * @throws WithoutBillingException
      */
-    public function getTemplate($id)
+    public function getTemplate($id, $withPlans = false)
     {
-        $this->url = $this->serverUrl . '/api/predefined-apps/' . $id;
-        $response = $this->call(array(), 'GET');
+        return $this->apiCall('/api/v1/predefined-apps/' . $id, ['with-plans' => $withPlans]);
+    }
 
-        if(!$response->getStatus()) {
-            throw new CException($response->getMessage());
-        }
-
-        return $response->getData();
+    public function fillTemplate($data)
+    {
+        return $this->apiCall('/api/v1/yamlapi/fill/' . $data['id'] . '/' . $data['plan'], $data, 'POST');
     }
 
     /**

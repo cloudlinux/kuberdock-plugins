@@ -850,7 +850,7 @@ define(['app', 'application/utils',
             var isVolumeResizableModel = this.model.get('isVolumeResizableModel');
 
             if (!isVolumeResizableModel.get('resizable')) {
-                var currentPlan = _.findWhere(templateModel.getPlans(), {
+                var currentPlan = _.findWhere(templateModel.get('plans'), {
                     name: this.model.get('template_plan_name')
                 });
                 templateModel.setCurrentPlan(currentPlan);
@@ -859,7 +859,6 @@ define(['app', 'application/utils',
             return {
                 model: this.model,
                 templateModel: templateModel,
-                planPackage: templateModel.getPackage(),
                 planDescription: this.planDescription
             };
         },

@@ -507,8 +507,6 @@ class KcliCommand extends Command {
     /**
      * @param string $filePath
      * @return array
-     * @deprecated
-     * @see \Kuberdock\classes\components\KuberDock_Api::fillTemplate()
      */
     public function createPodFromYaml($filePath)
     {

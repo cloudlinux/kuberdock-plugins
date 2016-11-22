@@ -10,15 +10,17 @@ define ('CURLOPT_RETURNTRANSFER', 19913);
 define ('CURLOPT_SSL_VERIFYHOST', 81);
 define ('CURLOPT_SSL_VERIFYPEER', 64);
 define ('CURLOPT_FOLLOWLOCATION', 52);
+define ('CURLOPT_POSTFIELDS', 10015);
+define ('CURLOPT_HTTPHEADER', 10023);
 
 
 $testLoader = function($className) {
-    $className = ltrim($className, '\\tests\\Kuberdock\\');
-
+    $className = preg_replace("/^(?:\\\\)?tests\\\\(?:Kuberdock\\\\)?/", '', $className);
     $testDir = __DIR__ . DS . '..' . DS . '..' . DS .  '..' . DS . 'tests' . DS . 'common' . DS;
 
     if ($pos = strrpos($className, '\\')) {
         $nameSpace = str_replace('\\', DS, substr($className, 0, $pos));
+
         $className = substr($className, $pos+1);
 
         $filePath = $testDir . $nameSpace . DS . $className . '.php';
