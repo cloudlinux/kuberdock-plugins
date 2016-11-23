@@ -228,11 +228,15 @@ class Service extends Model
     }
 
     /**
-     * @param string $token
+     * @param $name
+     * @param $value
      */
-    public function setToken($token)
+    public function setCustomField($name, $value)
     {
-        $customField = CustomField::where('type', 'product')->where('relid', $this->package->id)->first();
+        $customField = CustomField::where('type', 'product')
+            ->where('relid', $this->package->id)
+            ->where('fieldname', $name)
+            ->first();
 
         CustomFieldValue::firstOrCreate([
             'relid' => $this->id,
@@ -242,23 +246,46 @@ class Service extends Model
         CustomFieldValue::where('fieldid', $customField->id)
             ->where('relid', $this->id)
             ->update([
-                'value' => $token,
+                'value' => $value,
             ]);
     }
 
     /**
+     * @param string $name
      * @return string
+     * @throws \Exception
      */
-    public function getToken()
+    public function getCustomField($name)
     {
         $data = $this->select('tblcustomfieldsvalues.*')
             ->join('tblcustomfieldsvalues', 'tblhosting.id', '=', 'tblcustomfieldsvalues.relid')
             ->join('tblcustomfields', 'tblcustomfields.id', '=', 'tblcustomfieldsvalues.fieldid')
-            ->where('tblcustomfields.fieldname', 'Token')
+            ->where('tblcustomfields.fieldname', $name)
             ->where('tblhosting.id', $this->id)
             ->first();
 
+        if (!$data) {
+            return '';
+        }
+
         return $data->value;
+    }
+
+    /**
+     * @param string $value
+     */
+    public function setToken($value)
+    {
+        $this->setCustomField('Token', $value);
+    }
+
+    /**
+     * @return string
+     * @throws \Exception
+     */
+    public function getToken()
+    {
+        return $this->getCustomField('Token');
     }
 
     /**

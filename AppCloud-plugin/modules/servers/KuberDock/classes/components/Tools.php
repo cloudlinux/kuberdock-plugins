@@ -110,6 +110,12 @@ class Tools extends Component
      */
     public static function jsRedirect($url, $data = [])
     {
+        global $whmcs;
+
+        if ($whmcs && !$whmcs->isClientAreaRequest()) {
+            return;
+        }
+
         if ($data) {
             echo <<<HTML
 <html>
@@ -136,8 +142,8 @@ HTML;
     window.location.href = '{$url}';
 </script>
 SCRIPT;
+            exit(0);
         }
-        exit();
     }
 
     /**

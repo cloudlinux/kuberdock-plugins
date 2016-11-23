@@ -28,6 +28,7 @@ try {
     $pod = new \models\addon\resource\Pod($service->package);
     $pod->load($oldPod);
     $pod->edited_config = json_decode($newPod, true);
+    $pod->setReferer($postFields->params->referer);
 
     $results = $service->package->getBilling()->processApiOrder($pod, $service, \models\addon\ItemInvoice::TYPE_SWITCH);
 

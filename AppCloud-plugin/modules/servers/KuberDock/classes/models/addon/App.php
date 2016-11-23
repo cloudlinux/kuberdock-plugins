@@ -62,6 +62,15 @@ class App extends Model
     }
 
     /**
+     * @param $query
+     * @return mixed
+     */
+    public function scopeNotCreated($query)
+    {
+        return $query->whereNull('pod_id');
+    }
+
+    /**
      *
      */
     public function addToSession()

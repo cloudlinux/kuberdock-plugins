@@ -92,9 +92,11 @@ class ClientArea extends Component
                 return;
             }
 
+            $service = Service::find($this->smartyValues['serviceid']);
             $now = new \DateTime();
             $now->setTime(0, 0, 0);
-            $expireDate = Carbon::createFromFormat(Tools::getDateFormat(), $this->smartyValues['regdate']);
+
+            $expireDate = $service->regdate;
             $expireDate->addDays($package->getTrialTime());
 
             if ($package->getEnableTrial() && $now >= $expireDate) {

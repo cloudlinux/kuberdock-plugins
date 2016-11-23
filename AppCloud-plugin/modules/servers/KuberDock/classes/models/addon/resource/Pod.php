@@ -11,12 +11,15 @@ use components\InvoiceItemCollection;
 use components\Units;
 use models\addon\KubeTemplate;
 use models\addon\Resources;
-use models\billing\Package;
-use models\billing\Server;
-use models\billing\Service;
+use models\addon\App;
 
 class Pod extends ResourceFactory
 {
+    /**
+     * @var string
+     */
+    protected $referer = '';
+
     /**
      * @param $data
      * @return $this
@@ -99,6 +102,7 @@ class Pod extends ResourceFactory
     /**
      * @param bool $unpaid
      * @return ApiResponse
+     * @throws \Exception
      */
     public function start($unpaid = false)
     {
@@ -110,6 +114,14 @@ class Pod extends ResourceFactory
 
         $response = $this->service->getApi()->startPod($this->id);
         $this->setAttributes($response->getData());
+    }
+
+    /**
+     * @param string $value
+     */
+    public function setReferer($value)
+    {
+        $this->referer = $value;
     }
 
     /**
@@ -137,46 +149,90 @@ class Pod extends ResourceFactory
     }
 
     /**
-     * @return mixed
+     * @return integer
      */
     public function getKubeType()
     {
         return $this->kube_type;
     }
 
+    /**
+     * @return string
+     */
     public function getName()
     {
         return $this->name;
     }
 
+    /**
+     * @return string
+     */
     public function getPackageName()
     {
         return $this->getName();
     }
 
+    /**
+     *
+     */
     public function create()
     {
         // TODO: Implement create() method.
     }
 
     /**
+     * @return App
+     */
+    public function saveApp()
+    {
+        $packageRelation = $this->package->relatedKuberDock;
+        $app = App::where('pod_id', $this->id)->where('service_id', $this->service->id)->first();
+
+        if (!$app) {
+            $app = new App();
+        }
+
+        $app->setRawAttributes([
+            'user_id' => $this->service->userid,
+            'kuber_product_id' => $packageRelation->kuber_product_id,
+            'product_id' => $packageRelation->product_id,
+            'pod_id' => $this->id,
+            'data' => json_encode($this->getAttributes()),
+            'referer' => $this->referer,
+            'type' => ResourceFactory::TYPE_POD,
+            'service_id' => $this->service->id,
+        ]);
+        $app->save();
+
+        return $app;
+    }
+
+    /**
      * @param bool $js
+     * @throws \Exception
      */
     public function redirect($js = true)
     {
         global $whmcs;
+
         if ($whmcs && !$whmcs->isClientAreaRequest()) {
             return;
         }
 
-        $token = $this->service->getApi()->getJWTToken();
-        $url = sprintf('%s/?token2=%s#pods/%s', $this->service->serverModel->getUrl(), $token, $this->id);
+        $app = App::where('pod_id', $this->id)->where('service_id', $this->service->id)->first();
+
+        if ($app && $app->referer) {
+            $url = $app->referer;
+        } else {
+            $token = $this->service->getApi()->getJWTToken();
+            $url = sprintf('%s/?token2=%s#pods/%s', $this->service->serverModel->getUrl(), $token, $this->id);
+        }
 
         if ($js) {
             echo sprintf('<script>window.location.href = "%s";</script>', $url);
+            exit(0);
         } else {
             header('Location: ' . $url);
         }
-        exit(0);
     }
 }

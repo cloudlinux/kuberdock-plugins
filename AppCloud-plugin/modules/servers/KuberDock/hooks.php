@@ -7,6 +7,8 @@
 use models\addon\App;
 use models\addon\ItemInvoice;
 use models\addon\Resources;
+use models\addon\resource\Pod;
+use models\billing\Service;
 use components\Tools;
 use exceptions\CException;
 
@@ -264,7 +266,6 @@ function KuberDock_InvoicePaid($params)
     foreach ($itemInvoices as $itemInvoice) {
         try {
             $itemInvoice->invoice->addFirstDeposit();
-
             $pod = $itemInvoice->afterPayment();
 
             Resources::redirectToUnpaidInvoice($itemInvoice);
@@ -273,16 +274,11 @@ function KuberDock_InvoicePaid($params)
         }
     }
 
-    global $whmcs;
-    if ($whmcs && !$whmcs->isClientAreaRequest()) {
-        return;
-    }
-
     if (!isset($pod) || !$pod) {
         $service = \models\billing\Service::find($itemInvoices->last()->item->service_id);
         Tools::jsRedirect($service->getLoginLink());
     } else {
-        $pod->redirect();
+        $pod->redirect(true);
     }
 }
 add_hook('InvoicePaid', 1, 'KuberDock_InvoicePaid');
@@ -342,6 +338,19 @@ function KuberDock_AcceptOrder($params)
 add_hook('AcceptOrder', 1, 'KuberDock_AcceptOrder');
 
 /**
+ * Run: After the checkout button is pressed, once the order has been added to the database.
+ */
+add_hook('AfterShoppingCartCheckout', 1, function ($params) {
+    $app = App::getFromSession();
+    $service = Service::whereIn('id', $params['ServiceIDs'])->typeKuberDock()->first();
+
+    if ($app && $service) {
+        $app->service_id = $service->id;
+        $app->save();
+    }
+});
+
+/**
  * Runs Immediately after a new server is added to the database
  * @param array $params
  */
@@ -372,7 +381,6 @@ function KuberDock_ServerEdit($params)
 }
 add_hook('ServerEdit', 1, 'KuberDock_ServerEdit');
 
-
 /**
  * Runs When the Delete Client link is clicked on the Client Summary in the Admin area
  * @param $params
@@ -401,7 +409,7 @@ function KuberDock_AdminServiceEdit($params)
     $nextDueDate = Tools::getPost('nextduedate');
     $service = \models\billing\Service::find($params['serviceid']);
 
-    if ($service->package->isKuberDock()) {
+    if ($service->package->isKuberDock() && $nextDueDate) {
         $service->nextduedate = \Carbon\Carbon::createFromFormat(Tools::getDateFormat(), $nextDueDate);
         $service->save();
     }
@@ -458,30 +466,10 @@ add_hook('ClientAdd', 1, 'KuberDock_ClientAdd');
  */
 function KuberDock_AfterModuleCreate($params)
 {
-    $service = \models\billing\Service::find($params['params']['serviceid']);
+    $service = Service::find($params['params']['serviceid']);
 
     try {
-        $app = App::getFromSession();
-        $billing = $service->package->getBilling();
-
-        $billing->afterModuleCreate($service);
-
-        if ($app) {
-            $service->moduleCreate = true;
-            $invoice = $billing->order($app->getResource(), $service);
-
-            if ($invoice->isPaid()) {
-                global $whmcs;
-
-                if ($whmcs && $whmcs->isClientAreaRequest()) {
-                    $item = ItemInvoice::where('invoice_id', $invoice->id)->first()->item;
-                    $pod = new \models\addon\resource\Pod($item->service->package);
-                    $pod->setService($item->service);
-                    $pod->loadById($item->pod_id);
-                    $pod->redirect();
-                }
-            }
-        }
+        $service->package->getBilling()->afterModuleCreate($service);
     } catch (Exception $e) {
         CException::log($e);
     }

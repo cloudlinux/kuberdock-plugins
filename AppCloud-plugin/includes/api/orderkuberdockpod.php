@@ -32,6 +32,7 @@ try {
 
     $pod = new \models\addon\resource\Pod($service->package);
     $pod->load(html_entity_decode(urldecode($postFields->params->pod), ENT_QUOTES));
+    $pod->setReferer($postFields->params->referer);
 
     $results = $service->package->getBilling()->processApiOrder($pod, $service, \models\addon\ItemInvoice::TYPE_ORDER);
 

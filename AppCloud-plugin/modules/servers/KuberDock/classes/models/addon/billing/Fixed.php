@@ -51,7 +51,7 @@ class Fixed extends Component implements BillingInterface
         // On 1st service order
         $paidItemInvoice = $item->invoices()->paid()->first();
         if ($service->moduleCreate && $paidItemInvoice) {
-            $this->afterOrderPayment($item);
+            $this->afterOrderPayment($paidItemInvoice);
 
             return $paidItemInvoice->invoice;
         }
@@ -103,8 +103,8 @@ class Fixed extends Component implements BillingInterface
         $pod->setService($item->service);
 
         try {
-            $response = $item->service->getAdminApi()->applyEdit($item->pod_id)->getData();
-            $pod->setAttributes($response['edited_config']);
+            $item->service->getAdminApi()->applyEdit($item->pod_id)->getData();
+            $pod->loadById($item->pod_id);
         } catch (\Exception $e) {
             CException::log($e);
         }
@@ -143,10 +143,28 @@ class Fixed extends Component implements BillingInterface
 
     /**
      * @param Service $service
+     * @throws \Exception
      */
     public function afterModuleCreate(Service $service)
     {
-        // Not used
+        $billing = $service->package->getBilling();
+        $app = App::notCreated()->where('service_id', $service->id)->first();
+
+        if ($app) {
+            $service->moduleCreate = true;
+            $invoice = $billing->order($app->getResource(), $service);
+
+            $item = ItemInvoice::where('invoice_id', $invoice->id)->first()->item;
+            $app->pod_id = $item->pod_id;
+            $app->save();
+            $pod = new Pod($item->service->package);
+            $pod->setService($item->service);
+            $pod->loadById($item->pod_id);
+
+            if ($invoice->isPaid()) {
+                $pod->redirect();
+            }
+        }
     }
 
     /**
@@ -155,9 +173,12 @@ class Fixed extends Component implements BillingInterface
      * @param string $type
      * @return array
      * @throws CException
+     * @throws \Exception
      */
     public function processApiOrder(Pod $pod, Service $service, $type)
     {
+        $pod->setService($service);
+        $pod->saveApp();
         $invoice = $this->getInvoice($pod, $service, $type);
 
         try {

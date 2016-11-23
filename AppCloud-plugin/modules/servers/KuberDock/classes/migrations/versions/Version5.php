@@ -42,6 +42,8 @@ class Version5 implements \migrations\VersionInterface
                 ResourceFactory::TYPE_POD,
                 ResourceFactory::TYPE_YAML,
             ])->default(ResourceFactory::TYPE_POD);
+            $table->integer('service_id')->nullable();
+
             $table->dropColumn('session_id');
         });
 
