@@ -49,7 +49,7 @@ class Response
 
     private static function output($array, $code, $redirect)
     {
-        Base::model()->getPanel()->renderResponseHeaders($code);
+        Base::model()->getStaticPanel()->renderResponseHeaders($code);
 
         if ($redirect) {
             $array['redirect'] = $redirect;

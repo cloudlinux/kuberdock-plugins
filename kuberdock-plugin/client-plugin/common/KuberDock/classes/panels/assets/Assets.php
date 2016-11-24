@@ -67,7 +67,7 @@ class Assets {
                 foreach ($script as $attr => $data) {
                     $attributes[] = sprintf('%s="%s"', $attr, $data);
                 }
-                $html .= sprintf('<script src="%s"%s></script>', $relPath, implode(' ', $attributes));
+                $html .= sprintf('<script src="%s" %s></script>', $relPath, implode(' ', $attributes));
             } else {
                 $relPath = $this->getRelativePath($script). '.' . self::SCRIPT_EXT;
                 $html .= sprintf('<script src="%s"></script>', $relPath);

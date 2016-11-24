@@ -15,6 +15,7 @@ if ($panelType=='DirectAdmin') {
     var rootURL = '<?php echo $rootURL ?>';
     var imageRegistryURL = '<?php echo $imageRegistryURL ?>';
     var panelType = '<?php echo $panelType ?>';
+    var panelToken = <?php echo $panelToken ?>;
 </script>
 
 <?php echo \Kuberdock\classes\Base::model()->getStaticPanel()->getAssets()->renderScripts(); ?>

@@ -304,4 +304,12 @@ abstract class KuberDock_Panel
         // Strange fix, but it works!
         header('X-Accel-Buffering: no');    // for Plesk
     }
+
+    /**
+     * @return array
+     */
+    public function getCSRFToken() 
+    {
+        return array();
+    }
 }

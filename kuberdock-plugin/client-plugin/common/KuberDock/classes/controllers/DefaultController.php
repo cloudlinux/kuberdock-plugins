@@ -12,9 +12,8 @@ class DefaultController extends KuberDock_Controller {
         $this->assets = Base::model()->getStaticPanel()->getAssets();
         $panel = Base::model()->getPanelType();
         $this->assets->registerScripts(array(
-            'script/lib/require.min' => array(
-                'data-main' => $this->assets->getRelativePath('script/main'),
-            ),
+            'script/lib/require.min',
+            'script/main',
         ));
 
         $this->assets->registerStyles(array(
@@ -43,6 +42,7 @@ class DefaultController extends KuberDock_Controller {
             'rootURL' => $panel->getApiUrl(),
             'imageRegistryURL' => $panel->getApi()->getRegistryUrl(),
             'panelType' => Base::model()->getPanelType(),
+            'panelToken' => json_encode($panel->getCSRFToken()),
         ));
     }
 
