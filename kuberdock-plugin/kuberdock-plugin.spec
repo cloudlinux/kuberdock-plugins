@@ -1,7 +1,7 @@
 Version: 1.2
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 2%{?dist}.cloudlinux
+Release: 3%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -63,6 +63,12 @@ fi
 %{python_sitelib}/kd_common/*
 
 %changelog
+
+* Fri Nov 25 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-3
+- AC-4920 Hosting panels. Resize PD in change appPackage
+- Hosting panels. Catch error if package has no kube type specified in the plan
+- AC-5207 Plesk. KD plugin doesn't work with 17 Plesk version
+- AC-5097 cPanel. Unable to run the same PA
 
 * Tue Oct 18 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-2
 - updated EULA
