@@ -10,6 +10,7 @@ use components\InvoiceItemCollection;
 use components\Units;
 use exceptions\CException;
 use exceptions\NotEnoughFundsException;
+use models\addon\App;
 use models\addon\Item;
 use models\addon\ItemInvoice;
 use models\addon\Resources;
@@ -24,6 +25,10 @@ use models\Model;
 
 class Payg extends Component implements BillingInterface
 {
+    /**
+     * @var App
+     */
+    protected $app;
 
     /**
      * @param ResourceFactory $resource
@@ -42,7 +47,12 @@ class Payg extends Component implements BillingInterface
             CException::log($e);
         }
 
-        $resource->redirect();
+        if ($this->app) {
+            $this->app->pod_id = $resource->id;
+            $this->app->save();
+        }
+
+        $resource->redirect(true);
     }
 
     /**
@@ -97,6 +107,14 @@ class Payg extends Component implements BillingInterface
             'status' => Resources::STATUS_ACTIVE,
             'type' => Resources::TYPE_POD,
         ]);
+
+        $billing = $service->package->getBilling();
+        $app = App::notCreated()->where('service_id', $service->id)->first();
+
+        if ($app) {
+            $this->app = $app;
+            $billing->order($app->getResource(), $service);
+        }
     }
 
     /**

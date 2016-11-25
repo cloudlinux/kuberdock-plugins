@@ -9,6 +9,7 @@ use exceptions\CException;
 use components\Tools;
 use components\View;
 use models\billing\Service;
+use models\billing\Server;
 use models\billing\Package;
 
 include_once __DIR__ . DIRECTORY_SEPARATOR . 'init.php';
@@ -204,9 +205,22 @@ function KuberDock_ClientArea($params) {
  * @throws Exception
  */
 function KuberDock_AdminLink($params) {
-    $server = \models\billing\Server::find($params['serverid']);
+    $server = Server::typeKuberDock()->find($params['serverid']);
+
+    if (!$server) {
+        return '';
+    }
+
     $api = $server->getApi();
-    $api->setTimeout(5);
+    $api->setTimeout(3);
+
+    // Until addon not activated or product with KuberDock server was not edited manually hooks not works
+    try {
+        $server->accesshash = $api->getToken();
+        $server->save();
+    } catch (Exception $e) {
+        CException::log($e);
+    }
 
     try {
         $token = $api->getJWTToken(array(), true);

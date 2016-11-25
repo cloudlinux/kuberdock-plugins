@@ -87,6 +87,12 @@ class Fixed extends Component implements BillingInterface
             CException::log($e);
         }
 
+        $app = App::notCreated()->where('service_id', $item->service->id)->first();
+        if ($app) {
+            $app->pod_id = $pod->id;
+            $app->save();
+        }
+
         Resources::add($pod, $item);
 
         return $pod;
@@ -163,7 +169,7 @@ class Fixed extends Component implements BillingInterface
             $pod->loadById($item->pod_id);
 
             if ($invoice->isPaid()) {
-                $pod->redirect();
+                $pod->redirect(true);
             }
         }
     }

@@ -504,6 +504,14 @@ class Package extends Model
     }
 
     /**
+     * @return bool
+     */
+    public function isAutosetupPayment()
+    {
+        return $this->autosetup === 'payment';
+    }
+
+    /**
      * @return string
      */
     public function getRole()

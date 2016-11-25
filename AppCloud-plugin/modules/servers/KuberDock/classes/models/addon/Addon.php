@@ -129,18 +129,19 @@ class Addon extends \components\Component {
      */
     private function dropTables()
     {
-        \models\addon\PackageRelation::dropTable();
-        \models\addon\KubeTemplate::dropTable();
-        \models\addon\KubePrice::dropTable();
-        \models\addon\Trial::dropTable();
-        \models\addon\State::dropTable();
-        \models\addon\App::dropTable();
-        \models\addon\KubePriceChange::dropTable();
-        \models\addon\Item::dropTable();
-        \models\addon\ItemInvoice::dropTable();
-        \models\addon\Migration::dropTable();
-        \models\addon\Resources::dropTable();
+        // Depending to the foreign keys order is important
         \models\addon\ResourcePods::dropTable();
+        \models\addon\Resources::dropTable();
+        \models\addon\ItemInvoice::dropTable();
+        \models\addon\Item::dropTable();
+        \models\addon\KubePriceChange::dropTable();
+        \models\addon\KubePrice::dropTable();
+        \models\addon\KubeTemplate::dropTable();
+        \models\addon\App::dropTable();
+        \models\addon\State::dropTable();
+        \models\addon\PackageRelation::dropTable();
+        \models\addon\Trial::dropTable();
+        \models\addon\Migration::dropTable();
     }
 
     /**

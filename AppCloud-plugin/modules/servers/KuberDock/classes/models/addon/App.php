@@ -38,7 +38,8 @@ class App extends Model
             $table->integer('user_id');
             $table->integer('product_id');
             $table->integer('kuber_product_id');
-            $table->string('pod_id', 64);
+            $table->integer('service_id')->nullable();
+            $table->string('pod_id', 64)->nullable();
             $table->text('data');
             $table->enum('type', [
                 ResourceFactory::TYPE_POD,
