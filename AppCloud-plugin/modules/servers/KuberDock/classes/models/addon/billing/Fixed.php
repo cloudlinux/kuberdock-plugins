@@ -87,8 +87,7 @@ class Fixed extends Component implements BillingInterface
             CException::log($e);
         }
 
-        // TODO: Separated resources - disabled for 1.1.0
-        //Resources::add($pod, $item);
+        Resources::add($pod, $item);
 
         return $pod;
     }
