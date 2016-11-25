@@ -87,7 +87,8 @@ class Fixed extends Component implements BillingInterface
             CException::log($e);
         }
 
-        Resources::add($pod, $item);
+        // TODO: Separated resources - disabled for 1.1.0
+        //Resources::add($pod, $item);
 
         return $pod;
     }
@@ -103,14 +104,15 @@ class Fixed extends Component implements BillingInterface
         $pod->setService($item->service);
 
         try {
-            $item->service->getAdminApi()->applyEdit($item->pod_id)->getData();
-            $pod->loadById($item->pod_id);
+            $response = $item->service->getAdminApi()->applyEdit($item->pod_id)->getData();
+            $pod->setAttributes($response['edited_config']);
+            $item->billableItem->amount = $pod->getPrice();
+            $item->billableItem->save();
         } catch (\Exception $e) {
             CException::log($e);
         }
 
-        $item->billableItem->amount = $pod->getPrice();
-        $item->billableItem->save();
+        $pod->loadById($item->pod_id);
 
         return $pod;
     }

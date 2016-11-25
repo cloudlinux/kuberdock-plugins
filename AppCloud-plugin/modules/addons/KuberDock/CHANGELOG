@@ -1,3 +1,15 @@
+* 1.1.0
+- AC-4920 WHMCS. Resize PD in change appPackage
+- AC-5037 WHCMS. isTrialExpired must be an instance of DateTime
+- AC-4959 WHMCS. Use single unpaid command
+- AC-4508 WHMCS. Plugin hooks not runs for newly installed WHMCS
+- AC-4576 WHMCS. User doesnt unsuspend automaticaly after paid for invoice
+- AC-4464 WHMCS. After choose Trial settings, prices are not set to zero
+- AC-4844 WHMCS. Pod running even if first deposit not paid
+- AC-4898 WHMCS. No invoice when kube type changed (PAYG)
+- AC-4550 WHMCS. Module will not work without specified date.timezone
+- Moved to eloquent
+
 * 1.0.8.1
 - WHMCS. Fixed user undelete for KuberDock 1.5
 - AC-4734 WHMCS. Test plugin with WHMCS 7.0
