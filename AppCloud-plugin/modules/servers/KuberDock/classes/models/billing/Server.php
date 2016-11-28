@@ -77,7 +77,7 @@ class Server extends Model
     public function getApi()
     {
         $url = $this->getUrl();
-        $password = BillingApi::model()->decryptPassword($this->password);;
+        $password = BillingApi::model()->decryptPassword($this->password);
 
         $api = new Api($this->username, $password, $url);
 

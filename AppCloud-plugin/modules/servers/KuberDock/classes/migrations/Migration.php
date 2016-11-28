@@ -3,6 +3,7 @@
 namespace migrations;
 
 use models\addon\Migration as MigrationModel;
+use Illuminate\Database\Capsule\Manager as Capsule;
 
 class Migration
 {
@@ -16,6 +17,10 @@ class Migration
 
     public static function up()
     {
+        if (!Capsule::schema()->hasTable(MigrationModel::tableName())) {
+            throw new \Exception('There is no table ' . MigrationModel::tableName());
+        }
+
         $last = self::last();
 
         $available = self::getAvailable($last);
@@ -69,7 +74,7 @@ class Migration
         return -1;
     }
 
-    public static function getAvailable($min)
+    public static function getAvailable($min = 0)
     {
         $versions_path = __DIR__ . '/versions';
 
@@ -86,5 +91,13 @@ class Migration
         sort($files);
 
         return $files;
+    }
+
+    public static function fillByActivation()
+    {
+        $migrations = \migrations\Migration::getAvailable();
+        foreach ($migrations as $version) {
+            MigrationModel::create(['version' => $version]);
+        }
     }
 }

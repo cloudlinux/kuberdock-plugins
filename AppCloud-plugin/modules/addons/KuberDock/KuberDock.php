@@ -3,7 +3,7 @@
  * @project whmcs-plugin
  * @author: Ruslan Rakhmanberdiev
  */
-require dirname(__FILE__) . '/../../servers/KuberDock/init.php';
+require __DIR__ . '/../../servers/KuberDock/init.php';
 
 function KuberDock_config()
 {

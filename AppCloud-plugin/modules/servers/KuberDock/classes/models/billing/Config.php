@@ -34,11 +34,10 @@ class Config extends Model
 
         if (!self::$component) {
             self::$component = new Component();
-            if (isset($CONFIG) && $CONFIG) {
-                self::$component->setAttributes($CONFIG);
-            } else {
-                self::$component->setAttributes(Config::all()->toArray());
-            }
+            $config = (isset($CONFIG) && $CONFIG)
+                ? $CONFIG
+                : Config::all()->lists('value','setting');
+            self::$component->setAttributes($config);
         }
 
         return self::$component;

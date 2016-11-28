@@ -5,17 +5,11 @@ namespace tests;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Eloquent\Model as Eloquent;
+use models\Model;
 
-class DbTestCase extends TestCase
+trait EloquentMock
 {
     protected $schema;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->configureDatabase();
-    }
 
     protected function configureDatabase()
     {
@@ -33,5 +27,23 @@ class DbTestCase extends TestCase
         Eloquent::unguard();
 
         $this->schema = Capsule::schema();
+    }
+
+    abstract public function mockTables();
+
+    public function createTables()
+    {
+        foreach ($this->mockTables() as $table) {
+            /** @var $table Model */
+            $table::createTable();
+        }
+    }
+
+    public function dropTables()
+    {
+        foreach (array_reverse($this->mockTables()) as $table) {
+            /** @var $table Model */
+            $table::dropTable();
+        }
     }
 }

@@ -5,6 +5,7 @@ namespace models\addon;
 
 
 use models\Model;
+use Illuminate\Database\Capsule\Manager as Capsule;
 
 class Migration extends Model
 {
@@ -30,7 +31,7 @@ class Migration extends Model
         return function ($table) {
             /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->integer('version');
-            $table->timestamp('timestamp');
+            $table->timestamp('timestamp')->default(Capsule::connection()->raw('CURRENT_TIMESTAMP'));
 
             $table->primary('version');
         };

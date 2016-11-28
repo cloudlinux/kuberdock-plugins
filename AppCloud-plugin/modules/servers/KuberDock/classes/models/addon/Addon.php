@@ -6,7 +6,6 @@
 
 namespace models\addon;
 
-use models\addon\resource\ResourceFactory;
 use models\billing\Server;
 use models\billing\Config;
 use models\billing\PackageGroup;
@@ -29,7 +28,7 @@ class Addon extends \components\Component {
     public function activate()
     {
         if (version_compare(phpversion(), self::REQUIRED_PHP_VERSION) < 0) {
-            throw new CException('KuberDock plugin require PHP version' . self::REQUIRED_PHP_VERSION . ' or greater.');
+            throw new CException('KuberDock plugin require PHP version ' . self::REQUIRED_PHP_VERSION . ' or greater.');
         }
 
         if (!class_exists('PDO')) {
@@ -56,6 +55,7 @@ class Addon extends \components\Component {
         if ($ipAddress && !filter_var($ipAddress, FILTER_VALIDATE_IP)) {
             throw new CException('KuberDock server IP address is wrong. Please edit it on ' . $url);
         }
+
         $hostname = current(explode(':', $server->hostname));
         if ($hostname && !filter_var(gethostbyname($hostname), FILTER_VALIDATE_IP)) {
             throw new CException('KuberDock server hostname is wrong. Please edit it on ' . $url);
@@ -65,15 +65,13 @@ class Addon extends \components\Component {
             'name' => PackageGroup::DEFAULT_NAME,
         ));
 
+        $this->dropTables();
+
         try {
             $this->createTables();
 
             // TODO: use \Illuminate migrations
-            $migrations = \migrations\Migration::getAvailable('');
-            foreach ($migrations as $version) {
-                \models\Model::getConnectionResolver()->connection()->table('KuberDock_migrations')
-                    ->insert(array('version' => $version));
-            }
+            \migrations\Migration::fillByActivation();
 
             // Create email templates
             EmailTemplate::createTemplates();
@@ -155,6 +153,7 @@ class Addon extends \components\Component {
         foreach ($servers as $server) {
             /* @var Server $server */
             $kdPackages = $server->getApi()->getPackages(true)->getData();
+
             Config::addAllowedApiIP('KuberDock', $server->ipaddress);
 
             foreach ($server->getApi()->getKubes()->getData() as $kube) {

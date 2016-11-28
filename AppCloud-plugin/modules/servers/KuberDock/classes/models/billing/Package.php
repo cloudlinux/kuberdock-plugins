@@ -9,7 +9,6 @@ use components\InvoiceItem as ComponentsInvoiceItem;
 use components\Tools;
 use components\Units;
 use exceptions\CException;
-use exceptions\ExistException;
 use models\addon\KubePrice;
 use models\addon\KubeTemplate;
 use models\addon\PackageRelation;
@@ -17,7 +16,6 @@ use models\addon\Resources;
 use models\addon\billing\BillingInterface;
 use models\addon\billing\Fixed;
 use models\addon\billing\Payg;
-use models\billing\Currency;
 use models\Model;
 
 class Package extends Model

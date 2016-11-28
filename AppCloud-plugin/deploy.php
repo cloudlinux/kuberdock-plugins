@@ -4,11 +4,13 @@ const SITE_URL = 'http://repo.cloudlinux.com/kuberdock/';
 const WHMCS_BILLING = 'whmcs';
 
 if (PHP_SAPI !== 'cli') {
-    die('Command line execution only');
+    die('Command line execution only' . PHP_EOL);
 }
 
+chdir(__DIR__);
+
 // By adding another billing system: this must be called only in whmcs
-require 'init.php';
+require __DIR__ . '/init.php';
 
 BillingPlugin::deploy(WHMCS_BILLING);
 
@@ -29,6 +31,7 @@ class BillingPlugin
             'help::',
             'user::',
             'forced::',
+            'local::',
             'migrate::',
             'kd_hostname::',
             'kd_ip::',
@@ -49,34 +52,42 @@ class BillingPlugin
         if ($billingName === WHMCS_BILLING) {
             $billing = new WhmcsPlugin($billingName);
         } else {
-            die('Wrong billing');
+            die('Wrong billing' . PHP_EOL);
         }
 
         if (!$billing->command_exist('unzip')) {
-            die("Unzip command not found.\nPlease install unzip\n\n");
+            die("Unzip command not found." . PHP_EOL . "Please install unzip" . PHP_EOL . PHP_EOL);
         };
-
-        $billing->setServer();
-
-        $versionTo = $billing->getLastVersionAndLink();
 
         $versionFrom = $billing->getCurrentVersion();
 
+        $versionTo = $billing->issetOption('local')
+            ? $billing->getLocalVersionAndLink($billing->getOption('local'))
+            : $billing->getLastVersionAndLink();
+
         if ($billing->issetOption('migrate')) {
             $billing->migrate();
-            die("Db migration performed. Files not copied\n\n");
+            die("Db migration performed. Files not copied" . PHP_EOL . PHP_EOL);
         }
 
         if ($versionFrom==$versionTo && !$billing->issetOption('forced')) {
-            die("KuberDock plugin is already up-to-date.\n\n");
+            die("KuberDock plugin is already up-to-date." . PHP_EOL . PHP_EOL);
         }
 
-        $tmpName = '/tmp/' . $billing->link;
-        $billing->downloadFile(SITE_URL . $billing->link, $tmpName);
+        $tmpName = '/tmp/kuberdock-pligin.zip';
+
+        if ($billing->issetOption('local')) {
+            $billing->copyFile($billing->link, $tmpName);
+        } else {
+            $billing->downloadFile($billing->link, $tmpName);
+        }
+
         $result = $billing->unZip($tmpName);
 
         $billing->changeOwner($result);
         unlink($tmpName);
+
+        $billing->setServer();
 
         if (!is_null($versionFrom)) {
             $billing->migrate();
@@ -151,6 +162,17 @@ HELP;
         return isset($this->options[$option]) || isset($this->options[$short]);
     }
 
+    protected function getLocalVersionAndLink($local)
+    {
+        $this->link = $local;
+        $regexp = '/' . $this->billingName . "\-kuberdock\-plugin\-([\d\.\-]*)\.zip/";
+        preg_match($regexp, $local, $match);
+        $versionTo = $match ? $match[1] : 'local';
+        $this->say('Will be installed local version: ' . $versionTo);
+
+        return $versionTo;
+    }
+
     protected function getLastVersionAndLink()
     {
         // get site
@@ -159,7 +181,7 @@ HELP;
         $site = curl_exec($ch);
         $status = curl_getinfo($ch);
         if ($status['http_code'] != 200) {
-            die('Cannot download file ' . SITE_URL . "\n\n");
+            die('Cannot download file ' . SITE_URL . PHP_EOL);
         }
         curl_close ($ch);
 
@@ -171,10 +193,12 @@ HELP;
             foreach ($matches[1] as $index => $currentUrl) {
                 $versionTo = $this->getMax($versionTo, $matches[2][$index]);
                 if ($versionTo==$matches[2][$index]) {
-                    $this->link = $currentUrl;
+                    $this->link = SITE_URL . $currentUrl;
                 }
             }
         }
+
+        $this->say('Will be installed last version: ' . $versionTo);
 
         return $versionTo;
     }
@@ -186,6 +210,7 @@ HELP;
 
     protected function unZip($file)
     {
+        $this->say('Unzip plugin');
         return shell_exec('unzip -o ' . $file);
     }
 
@@ -200,6 +225,8 @@ HELP;
         if (!stripos($user, ':')) {
             $user = $user . ':' . $user;
         }
+
+        $this->say('Change group:user to ' . $user);
 
         $lines = explode("\n", $string);
         foreach ($lines as $line) {
@@ -236,17 +263,30 @@ HELP;
         }
     }
 
+    protected function copyFile($url, $path)
+    {
+        $file = file_get_contents($url);
+        file_put_contents($path, $file);
+    }
+
     protected function downloadFile($url, $path)
     {
+        $this->say('Download plugin from ' . $url);
+
         $ch = curl_init($url);
         $fp = fopen($path, 'wb');
         if (!$fp) {
-            die("Cannot write file: $path\n");
+            die("Cannot write file: $path" . PHP_EOL);
         }
 
         curl_setopt($ch, CURLOPT_FILE, $fp);
         curl_setopt($ch, CURLOPT_HEADER, 0);
         curl_exec($ch);
+
+        if(curl_errno($ch)){
+            die('Cannot download file: ' . curl_error($ch) . PHP_EOL);
+        }
+
         curl_close($ch);
 
         fclose($fp);
@@ -316,13 +356,15 @@ class WhmcsPlugin extends BillingPlugin
     {
         // try to load KuberDock.php, if failure - plugin not installed
         set_error_handler(array($this, "warningHandler"), E_WARNING);
-        if ((include 'modules/addons/KuberDock/KuberDock.php') === false) {
+        if ((include __DIR__ . '/modules/addons/KuberDock/KuberDock.php') === false) {
+            $this->say('KuberDock plugin not installed. Performing installation');
             return null;
         }
         restore_error_handler();
 
         $config = KuberDock_config();
 
+        $this->say('Current version is ' . $config['version']);
         return $config['version'];
     }
 
@@ -335,7 +377,7 @@ class WhmcsPlugin extends BillingPlugin
         $result = json_decode($result, true);
 
         if ($result['status']!= 'OK') {
-            die('Error: ' . $result['data']);
+            die('Error: ' . $result['data'] . PHP_EOL);
         }
 
         return $result['token'];
@@ -347,32 +389,36 @@ class WhmcsPlugin extends BillingPlugin
         $result = shell_exec("curl -k 'https://" . $hostname . "/api/settings/sysapi?token=" . $token . "' 2>/dev/null");
         $result = json_decode($result, true);
 
-        if ($result['status']!= 'OK') {
-            die('Error: ' . $result['data']);
+        if ($result['status'] !== 'OK') {
+            die('Error: ' . $result['data'] . PHP_EOL);
         }
 
         foreach ($result['data'] as $item) {
-            if ($item['name'] == 'sso_secret_key') {
+            if ($item['name'] === 'sso_secret_key') {
                 return $item['value'];
             }
         }
     }
 
-    protected function setSecret($secret)
+    public function setSecret($secret)
     {
         $configFile = "configuration.php";
 
         if (preg_match('/\$autoauthkey = \".+\"/i', file_get_contents($configFile)) == 0) {
-            $hl = fopen($configFile, "a+");
-            fwrite($hl, '$autoauthkey = "' . $secret . '";' . PHP_EOL);
-            fclose($hl);
+            $secretKeyLine = PHP_EOL . '$autoauthkey = "' . $secret . '";' . PHP_EOL;
+            file_put_contents($configFile, $secretKeyLine, FILE_APPEND);
             $this->say('Secret key added');
         }
     }
 
     protected function migrate()
     {
-        \migrations\Migration::up();
+        $this->say('Performing DB migration');
+        try {
+            \migrations\Migration::up();
+        } catch (Exception $e) {
+            die('DB migration not possible: ' . $e->getMessage() . PHP_EOL);
+        }
     }
 
     private function encryptPassword()

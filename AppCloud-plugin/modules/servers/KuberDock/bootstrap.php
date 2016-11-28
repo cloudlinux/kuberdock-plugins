@@ -6,6 +6,15 @@ if (is_file(__DIR__ . '/dev-config.php')) {
     include __DIR__ . '/dev-config.php';
 }
 
+defined ('CURLOPT_URL') || define ('CURLOPT_URL', 10002);
+defined ('CURLOPT_TIMEOUT') || define ('CURLOPT_TIMEOUT', 13);
+define ('CURLOPT_CUSTOMREQUEST', 10036);
+define ('CURLOPT_USERPWD', 10005);
+define ('CURLOPT_RETURNTRANSFER', 19913);
+define ('CURLOPT_SSL_VERIFYHOST', 81);
+define ('CURLOPT_SSL_VERIFYPEER', 64);
+define ('CURLOPT_FOLLOWLOCATION', 52);
+
 $testLoader = function($className) {
     $className = ltrim($className, '\\tests\\');
 
