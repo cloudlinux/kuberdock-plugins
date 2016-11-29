@@ -77,15 +77,18 @@ class PackageRelation extends Model
      */
     public function scopeByReferer($query, $referer)
     {
+        $data = parse_url($referer);
+        $url = $data['host'];
+
         return $query->select('KuberDock_products.*')
             ->join('tblproducts', 'tblproducts.id', '=', 'KuberDock_products.product_id')
             ->join('tblservergroups', 'tblservergroups.id', '=', 'tblproducts.servergroup')
             ->join('tblservergroupsrel', 'tblservergroupsrel.groupid', '=', 'tblservergroups.id')
             ->join('tblservers', 'tblservers.id', '=', 'tblservergroupsrel.serverid')
             ->where('tblproducts.hidden', '!=', 1)
-            ->where(function ($query) use ($referer) {
-                $query->whereRaw('INSTR(?, tblservers.ipaddress) > 0', [$referer])
-                    ->orWhereRaw('INSTR(?, tblservers.hostname) > 0', [$referer]);
+            ->where(function ($query) use ($url) {
+                $query->where('tblservers.ipaddress', 'like', "%$url%")
+                    ->orWhere('tblservers.hostname', 'like', "%$url%");
             });
     }
 }

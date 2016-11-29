@@ -54,9 +54,12 @@ class Server extends Model
      */
     public function scopeByReferer($query, $referer)
     {
-        return $query->where(function ($query) use ($referer) {
-            $query->whereRaw('INSTR(?, tblservers.ipaddress) > 0', [$referer])
-                ->orWhereRaw('INSTR(?, tblservers.hostname) > 0', [$referer]);
+        $data = parse_url($referer);
+        $url = $data['host'];
+
+        return $query->where(function ($query) use ($url) {
+            $query->where('tblservers.ipaddress', 'like', "%$url%")
+                ->orWhere('tblservers.hostname', 'like', "%$url%");
         });
     }
 
