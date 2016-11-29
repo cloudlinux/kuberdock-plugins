@@ -948,12 +948,7 @@ class KuberDock_Api {
      */
     public function requestToken()
     {
-        $this->url = $this->serverUrl . '/api/auth/token';
-        $response = $this->call(array(), 'GET');
-
-        if (!$response->getStatus()) {
-            throw new CException($response->getMessage());
-        }
+        $response = $this->apiCall('/api/auth/token', array(), 'GET');
 
         return $response->parsed['token'];
     }
@@ -984,5 +979,26 @@ class KuberDock_Api {
     public function getPod($id)
     {
         return $this->apiCall('/api/podapi/' . $id);
+    }
+
+    /**
+     * @param array $data
+     * @return array
+     */
+    public function createPod($data)
+    {
+        return $this->apiCall('/api/podapi', $data, 'POST');
+    }
+
+    /**
+     * @return array
+     */
+    public function getDomains()
+    {
+        try {
+            return $this->apiCall('/api/domains');
+        } catch (\Exception $e) {
+            return array();
+        }
     }
 }

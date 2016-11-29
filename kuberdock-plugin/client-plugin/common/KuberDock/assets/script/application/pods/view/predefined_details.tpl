@@ -21,7 +21,13 @@
                     <thead>
                     <tr>
                         <th class="col-md-4">Limits</th>
-                        <th class="col-md-2">Public IP</th>
+                        <th class="col-md-2">
+                        <% if (!isUrl) { %>
+                            Public IP
+                        <% } else { %>
+                            Service address
+                        <% } %>
+                        </th>
                         <th class="col-md-2">Pod IP</th>
                         <th class="col-md-2">Status</th>
                         <th class="col-md-2">Actions</th>
@@ -47,7 +53,11 @@
                             </div>
                         </td>
                         <td>
+                        <% if (isUrl) { %>
+                            <a href="<%- model.getPublicIp() %>" target="_blank"><%- model.getPublicIp() %></a>
+                        <% } else { %>
                             <%- model.getPublicIp() %>
+                        <% } %>
                             <br>
                             <%
                                 var ports = [];

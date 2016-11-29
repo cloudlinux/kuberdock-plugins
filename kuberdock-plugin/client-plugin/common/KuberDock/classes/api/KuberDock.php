@@ -31,6 +31,10 @@ class KuberDock extends API
         $pod->packageId = Tools::getPost('package_id');
         $pod->kube_type = Tools::getPost('kube_id');
 
+        if (Tools::getPost('public_access_type') == 'domain') {
+            $pod->domain = Tools::getPost('public_access_domain');
+        }
+
         $kubeCount = Tools::getPost('kube_count');
         $pod->checkMaxKubes($kubeCount);
 

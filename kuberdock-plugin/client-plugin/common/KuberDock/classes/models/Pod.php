@@ -498,7 +498,7 @@ class Pod {
     }
 
     /**
-     *
+     * @throws CException
      */
     public function save()
     {
@@ -513,7 +513,29 @@ class Pod {
             $this->command->setMountPath($this->name, $container['image'], $index, $data, $container['kubes']);
         }
 
-        $this->command->saveContainer($this->name);
+        // TODO: move to kcli when functional will be added (or kdctl)
+        //$this->command->saveContainer($this->name);
+
+        if ($this->domain) {
+            $this->command->putToPodScheme($this->name, array(
+                'domain' => $this->domain,
+            ));
+        }
+
+        $panel = Base::model()->getPanel();
+        $path = $this->command->getPodSchemePath($this->name);
+        $scheme = $panel->getFileManager()->getFileContent($path);
+        $scheme = json_decode($scheme, true);
+
+        $kubes = $this->getCommand()->getKubes();
+        foreach ($kubes as $row) {
+            if ($row['name'] == $scheme['kube_type']) {
+                $scheme['kube_type'] = $row['id'];
+            }
+        }
+
+        $panel->getApi()->createPod($scheme);
+        @unlink($path);
     }
 
     /**

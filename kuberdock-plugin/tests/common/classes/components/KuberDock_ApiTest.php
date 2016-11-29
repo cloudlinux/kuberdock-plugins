@@ -3,6 +3,7 @@
 namespace tests\Kuberdock\classes\components;
 
 
+use Kuberdock\classes\exceptions\CException;
 use tests\TestCase;
 use tests\CurlMock;
 
@@ -72,5 +73,17 @@ class KuberDock_ApiTest extends TestCase
             restore_error_handler();
             throw $e;
         }
+    }
+
+    public function testGetDomains()
+    {
+        $expectedJson = '{ "data": [{ "id": 1, "name": "domain.com" }], "status": "OK" }';
+
+        $this->curl_exec->expects($this->once())->willReturn($expectedJson);
+        $this->curl_getinfo->expects($this->once())->willReturn(['http_code' => 200]);
+
+        $result = $this->api->getDomains();
+
+        $this->assertEquals($result, json_decode($expectedJson, true)['data']);
     }
 }

@@ -1,0 +1,4 @@
+<?php
+
+require_once __DIR__ . DS . 'vendor/autoload.php';
+defined('SELECTOR_DEBUG') || define('SELECTOR_DEBUG', false);

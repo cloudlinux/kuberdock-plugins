@@ -76,10 +76,43 @@
                                 <th></th>
                             </tr>
 
-                            <% _.each(model.get('ports'), function(port, i) { %>
+                            <% _.each(model.get('ports'), function (port, i) { %>
                                 <%= renderPort(port, i) %>
                             <% }); %>
                         </table>
+
+                        <div class="public-access-type-section">
+                            <p>Public access type *:</p>
+
+                            <label class="radio-inline">
+                                <input type="radio" name="public_access_type" value="public" checked>
+                                Public IP
+                            </label>
+
+                            <label class="radio-inline">
+                                <input type="radio" name="public_access_type" value="domain">
+                                Domain name
+                            </label>
+
+                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip"
+                                  data-placement="right" title="Support only 80 and 443 at pod port">
+                            </span>
+
+                            <div class="public-access-domain-section top-offset">
+                                <label style="display: block">Select domain</label>
+
+                                <select name="public_access_domain">
+                                <% _.each(kdDomains, function (e) { %>
+                                    <option value="<%- e.name %>"><%- e.name %></option>
+                                <% }); %>
+                                </select>
+
+                            </div>
+
+                            <p class="public-access-type-notice top-offset">
+                                <small>* Type will apply for each container</small>
+                            </p>
+                        </div>
                     </div>
                 </div>
 

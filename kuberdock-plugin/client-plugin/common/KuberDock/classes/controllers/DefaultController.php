@@ -43,6 +43,7 @@ class DefaultController extends KuberDock_Controller {
             'imageRegistryURL' => $panel->getApi()->getRegistryUrl(),
             'panelType' => Base::model()->getPanelType(),
             'panelToken' => json_encode($panel->getCSRFToken()),
+            'domains' => json_encode($panel->getAdminApi()->getDomains()),
         ));
     }
 

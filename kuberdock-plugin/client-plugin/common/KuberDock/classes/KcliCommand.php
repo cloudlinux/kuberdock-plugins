@@ -20,6 +20,10 @@ class KcliCommand extends Command {
      * KCLI pod templates directory
      */
     const KCLI_POD_DIR = '.kube_containers';
+    /**
+     * Default registry URL
+     */
+    const DEFAULT_REGISTRY = 'registry.hub.docker.com';
 
     /**
      * @var string
@@ -28,26 +32,14 @@ class KcliCommand extends Command {
     /**
      * @var string
      */
-    private $username;
-    /**
-     * @var string
-     */
-    private $password;
-    /**
-     * @var string
-     */
-    private $token;
+    protected $token;
 
     /**
-     * @param string $username
-     * @param string $password
      * @param string $token
      */
-    public function __construct($username = '', $password = '', $token = '')
+    public function __construct($token = '')
     {
         $this->commandPath = self::COMMAND_PATH;
-        $this->username = $username;
-        $this->password = $password;
         $this->token = $token;
         $this->returnType = '--'.self::DATA_TYPE_JSON;
 
@@ -59,30 +51,19 @@ class KcliCommand extends Command {
      */
     protected function getAuth()
     {
-        if($this->confPath) {
-            return array(
-                '-c' => $this->confPath,
-            );
-        }
-
-        if($this->token) {
-            return array(
-                '--token' => sprintf("'%s'", $this->token),
-            );
-        } else {
-            return array(
-                '--user' => $this->username,
-                '--password' => sprintf("'%s'", $this->password),
-            );
-        }
+        return array(
+            '-c' => $this->confPath,
+        );
     }
 
     /**
-     * @return string
+     * @param string $value
+     * @return $this
      */
-    public function getUsername()
+    public function setToken($value)
     {
-        return $this->username;
+        $this->token = $value;
+        return $this;
     }
 
     /**
@@ -154,6 +135,7 @@ class KcliCommand extends Command {
 
     /**
      * @return array
+     * @throws CException
      */
     public function getKubes()
     {
@@ -163,12 +145,13 @@ class KcliCommand extends Command {
             'kube-types',
         ));
 
-        foreach($kubes as $k => $row) {
-            $kubes[$row['id']] = $row;
-            unset($kubes[$k]);
+        $data = array();
+
+        foreach ($kubes as $k => $row) {
+            $data[$row['id']] = $row;
         }
 
-        return $kubes;
+        return $data;
     }
 
     /**
@@ -284,7 +267,8 @@ class KcliCommand extends Command {
             '--kubes' => $kubes,
         );
 
-        if (isset($params['persistent']) && $params['persistent'] && (!$params['name'] || !$params['size'])) {
+        if (isset($params['persistent']) && $params['persistent']
+            && (!isset($params['name']) || !isset($params['size']))) {
             throw new CException('Persistent storage name or size is empty.');
         }
 
@@ -324,7 +308,7 @@ class KcliCommand extends Command {
         return $this->execute(array(
             $this->returnType,
             'kuberdock',
-            'start' => sprintf('"%s"', $name),
+            'start' => sprintf("'%s'", $name),
         ));
     }
 
@@ -337,7 +321,7 @@ class KcliCommand extends Command {
         return $this->execute(array(
             $this->returnType,
             'kuberdock',
-            'stop' => sprintf('"%s"', $name),
+            'stop' => sprintf("'%s'", $name),
         ));
     }
 
@@ -520,13 +504,44 @@ class KcliCommand extends Command {
     }
 
     /**
+     * @param string $value
+     * @return string
+     * @throws CException
+     */
+    public function getPodSchemePath($value)
+    {
+        $panel = Base::model()->getStaticPanel();
+        $path = $panel->getHomeDir() . DS . self::KCLI_POD_DIR . DS . base64_encode($value) . '.kube';
+
+        if (file_exists($path)) {
+            return $path;
+        }
+
+        throw new CException('Pod scheme file not found');
+    }
+
+    /**
+     * @param string $name
+     * @param array $data
+     */
+    public function putToPodScheme($name, $data = array())
+    {
+        $panel = Base::model()->getStaticPanel();
+        $path = $this->getPodSchemePath($name);
+        $scheme = json_decode($panel->getFileManager()->getFileContent($path), true);
+        $scheme = array_merge($scheme, $data);
+        $panel->getFileManager()->putFileContent($path, json_encode($scheme));
+    }
+
+    /**
      * Get user config file data
      * @param bool $global
      * @return array
      */
     static public function getConfig($global = false)
     {
-        $path = self::getUserConfigPath($global);
+        $command = new self;
+        $path = $command->getUserConfigPath($global);
         $data = array();
         $fp = fopen($path, 'r');
 
@@ -561,7 +576,8 @@ class KcliCommand extends Command {
                 'url' => $globalConfig['global']['url'],
             ),
             'defaults' => array(
-                'registry' => $config['defaults']['registry'],
+                'registry' => isset($config['defaults']['registry']) && $config['defaults']['registry']
+                    ? $config['defaults']['registry'] : self::DEFAULT_REGISTRY,
             ),
         );
 
@@ -584,8 +600,8 @@ class KcliCommand extends Command {
         });
 
         $fileManager = Base::model()->getStaticPanel()->getFileManager();
-        $fileManager->putFileContent(self::getUserConfigPath(), implode("\n", $data));
-        $fileManager->chmod(self::getUserConfigPath(), 0660);
+        $fileManager->putFileContent($this->getUserConfigPath(), implode("\n", $data));
+        $fileManager->chmod($this->getUserConfigPath(), 0660);
     }
 
     /**
@@ -593,7 +609,7 @@ class KcliCommand extends Command {
      * @return string
      * @throws CException
      */
-    static private function  getUserConfigPath($global = false)
+    public function  getUserConfigPath($global = false)
     {
         if(!file_exists(self::GLOBAL_CONF_FILE)) {
             throw new CException('Global config file not found');
@@ -624,7 +640,7 @@ class KcliCommand extends Command {
      * @param string $name
      * @return mixed bool|array
      */
-    private function findPersistentDriveByName($name)
+    protected function findPersistentDriveByName($name)
     {
         $drives = $this->getPersistentDrives();
 

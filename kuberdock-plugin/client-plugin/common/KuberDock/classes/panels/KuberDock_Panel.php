@@ -126,7 +126,7 @@ abstract class KuberDock_Panel
             $token = '';
         }
 
-        $this->command = new KcliCommand('', '', $token);
+        $this->command = new KcliCommand($token);
         $this->kdCommon = new KDCommonCommand();
 
         if (!$this->isNoBilling()) {
@@ -279,7 +279,7 @@ abstract class KuberDock_Panel
         $data = $this->getAdminApi()->createUser($data);
         $token = $this->getAdminApi()->getUserToken($this->user, $password);
 
-        $this->command = new KcliCommand('', '', $token);
+        $this->command = new KcliCommand($token);
         $this->command->setConfig();
 
         return $data;

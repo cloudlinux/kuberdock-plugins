@@ -311,7 +311,11 @@ define(['app', 'application/utils',
             pdVolumeSize: 'input.volume-size',
             pdVolumeName: 'input.volume-name',
             createForm: 'form.pod-install',
-            tooltip: "[data-toggle='tooltip']"
+            tooltip: "[data-toggle='tooltip']",
+            publicAccessSection: 'div.public-access-type-section',
+            publicAccessIP: 'input[name="public_access_type"][value="public"]',
+            publicAccessDomain: 'input[name="public_access_type"][value="domain"]',
+            publicAccessDomainSection: 'div.public-access-domain-section'
         },
 
         events: {
@@ -330,7 +334,9 @@ define(['app', 'application/utils',
             'click @ui.deleteEnvButton': 'deleteSection',
             'click @ui.addVolumeButton': 'addVolumeSection',
             'click @ui.deleteVolumeButton': 'deleteSection',
-            'click @ui.startButton': 'create'
+            'click @ui.startButton': 'create',
+            'change @ui.publicAccessIP': 'processAccessType',
+            'change @ui.publicAccessDomain': 'processAccessType'
         },
 
         initialize: function () {
@@ -373,6 +379,7 @@ define(['app', 'application/utils',
             this.ui.kubeSlider.Link().to(this.ui.kubeCountInput);
 
             this.calculate();
+            this.processAccessType();
         },
 
         calculate: function() {
@@ -407,6 +414,8 @@ define(['app', 'application/utils',
             } else {
                 this.ui.startButton.text('Start your app');
             }
+
+            this.processAccessType();
         },
 
         getTotalPDSize: function() {
@@ -517,6 +526,28 @@ define(['app', 'application/utils',
             }
         },
 
+        processAccessType: function () {
+            var isPublic = this.getPublicIP();
+
+            if (isPublic) {
+                this.ui.publicAccessSection.show();
+            } else {
+                this.ui.publicAccessIP.prop('checked', true);
+                this.ui.publicAccessSection.hide();
+            }
+
+            if (kdDomains.length) {
+                if (this.ui.publicAccessIP.prop('checked')) {
+                    this.ui.publicAccessDomainSection.hide();
+                } else {
+                    this.ui.publicAccessDomainSection.show();
+                }
+            } else {
+                this.ui.publicAccessDomain.prop('disabled', true);
+                this.ui.publicAccessDomainSection.hide();
+            }
+        },
+
         create: function (e) {
             e.preventDefault();
             var self = this;
@@ -594,7 +625,8 @@ define(['app', 'application/utils',
                 escape: Utils.escapeHtml,
                 showDescription: function () {
                     return self.description;
-                }
+                },
+                isUrl: Utils.isUrl(this.model.getPublicIp())
             };
         },
 

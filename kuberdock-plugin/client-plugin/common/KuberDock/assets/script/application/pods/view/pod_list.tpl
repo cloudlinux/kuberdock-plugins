@@ -22,7 +22,7 @@
                 <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Public IP</th>
+                    <th>Access endpoint</th>
                     <th>Pod IP</th>
                     <th>Status</th>
                     <th>Action</th>
