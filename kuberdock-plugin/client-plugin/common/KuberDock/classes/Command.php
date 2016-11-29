@@ -21,10 +21,6 @@ abstract class Command {
      * Command execution error response value
      */
     const STATUS_ERROR = 'ERROR';
-    /**
-     * Command execution partial response value
-     */
-    const STATUS_PARTIAL = 'PARTIAL';
 
     /**
      * Absolute command path
@@ -175,11 +171,6 @@ abstract class Command {
                 throw new CException('Command execution error.' . (SELECTOR_DEBUG && !LOG_ERRORS ? ' ' . $this->commandString : '') .
                     (isset($parsedResponse['message']) ? ' ' . $parsedResponse['message'] : ''));
             }
-        }
-
-        if(isset($parsedResponse['status']) && $parsedResponse['status'] == self::STATUS_PARTIAL) {
-            throw new CException('Command execution partial error.'. (SELECTOR_DEBUG && !LOG_ERRORS ? ' '.$this->commandString : '') .
-                (isset($parsedResponse['message']) ? ' '. $parsedResponse['message'] : ''));
         }
 
         if(isset($parsedResponse['status']) && count($parsedResponse) == 1 && $parsedResponse['status'] != 'OK' && !in_array($parsedResponse['status'], array('pending', 'stopped'))) {

@@ -244,7 +244,7 @@ class KuberDock_Api {
 
         $response = $this->call($params, $type);
 
-        if(!$response->getStatus()) {
+        if (!$response->getStatus()) {
             throw new CException($response->getMessage());
         }
 
@@ -438,11 +438,20 @@ class KuberDock_Api {
         $this->response = new KuberDock_ApiResponse();
         $this->response->raw = $response;
 
-        if($this->dataType == self::DATA_TYPE_JSON) {
-            $this->response->parsed = json_decode($response, true);
-        } elseif($this->dataType == self::DATA_TYPE_PLAIN) {
-            if(preg_match_all('/(.+)/m', $response, $match)) {
-                foreach($match[1] as $row) {
+        if ($this->dataType == self::DATA_TYPE_JSON) {
+            $json = json_decode($response, true);
+            if ($json) {
+                $this->response->parsed = json_decode($response, true);
+            } else {
+                // TODO: /api/yamlapi/fill/.. should return normal json {data: .., status: OK|ERROR}
+                $this->response->parsed = array(
+                    'data' => $response,
+                    'status' => 'OK',
+                );
+            }
+        } elseif ($this->dataType == self::DATA_TYPE_PLAIN) {
+            if (preg_match_all('/(.+)/m', $response, $match)) {
+                foreach ($match[1] as $row) {
                     list($key, $value) = explode(':', $row);
                     $this->response->parsed[$key] = $value;
                 }

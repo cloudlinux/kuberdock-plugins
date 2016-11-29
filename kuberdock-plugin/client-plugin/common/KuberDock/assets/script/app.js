@@ -92,7 +92,7 @@ function(Backbone, Marionette, Utils, MessageModel, MessageView) {
         }, false);
 
         source.addEventListener('pod:delete', function(e) {
-            App.sync('delete');
+            App.sync();
         }, false);
 
         source.addEventListener('message', function(e) {
@@ -106,10 +106,8 @@ function(Backbone, Marionette, Utils, MessageModel, MessageView) {
         }, false);
     };
 
-    App.sync = function (type) {
-        if (App.Controller.pod && type != 'delete') {
-            App.Controller.pod.fetch();
-        } else if (App.Controller.podCollection) {
+    App.sync = function () {
+        if (App.Controller.podCollection) {
             App.Controller.podCollection.fetch({reset: true});
 
             if (App.Controller.predefinedCollection) {

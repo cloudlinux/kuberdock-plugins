@@ -40,19 +40,19 @@ class KuberDock_ApiResponse {
      */
     public function getMessage()
     {
-        if(isset($this->parsed['message'])) {
+        if (isset($this->parsed['message'])) {
             return $this->parsed['message'];
-        } elseif(isset($this->parsed['status'])) {
-            if(isset($this->parsed['data']) && $this->parsed['data']) {
-                if(is_array($this->parsed['data'])) {
+        } elseif (isset($this->parsed['status'])) {
+            if (isset($this->parsed['data']) && $this->parsed['data']) {
+                if (is_array($this->parsed['data'])) {
                     $response = array();
                     $iterator = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($this->parsed['data']));
-                    foreach($iterator as $row) {
+                    foreach ($iterator as $row) {
                         $path = array();
-                        foreach(range(0, $iterator->getDepth()) as $depth) {
+                        foreach (range(0, $iterator->getDepth()) as $depth) {
                             $path[] = $iterator->getSubIterator($depth)->key();
                         }
-                        $variable = array(join(': ', $path) . ' - ' . $row);
+                        $variable = array(implode(': ', $path) . ' - ' . $row);
                         $response = array_merge($response, $variable);
                     }
                     return implode('<br>', $response);

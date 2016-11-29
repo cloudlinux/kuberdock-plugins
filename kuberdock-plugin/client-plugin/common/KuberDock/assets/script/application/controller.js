@@ -34,7 +34,8 @@ define([
         },
 
         podDetails: function (name, description) {
-            var view;
+            var view,
+                self = this;
 
             if (_.isEmpty(userPackage)) {
                 $.ajax({
@@ -47,27 +48,19 @@ define([
             }
 
             if (this.podCollection && this.podCollection.get(name)) {
-                this.pod = this.podCollection.get(name);
                 view = new Views.Details({
-                    model: this.pod,
-                    description: description
-                });
-                this.layout.showChildView('content', view);
-            } else if (this.pod) {
-                view = new Views.Details({
-                    model: this.pod,
+                    model: this.podCollection.get(name),
                     description: description
                 });
                 this.layout.showChildView('content', view);
             } else {
-                this.pod = new Pod.Model({name: name});
-                view = new Views.Details({
-                    model: this.pod,
-                    description: description
-                });
-                var self = this;
+                this.podCollection = new Pod.Collection;
 
-                $.when(this.pod.fetch({silent: true})).done(function() {
+                $.when(this.podCollection.fetch()).done(function() {
+                    view = new Views.Details({
+                        model: self.podCollection.get(name),
+                        description: description
+                    });
                     self.layout.showChildView('content', view);
                 });
             }
@@ -104,19 +97,19 @@ define([
         podUpgrade: function (name) {
             var view;
 
-            if (this.pod) {
+            if (this.podCollection && this.podCollection.get(name)) {
                 view = new Views.Upgrade({
-                    model: this.pod
+                    model: this.podCollection.get(name)
                 });
                 this.layout.showChildView('content', view);
             } else {
-                this.pod = new Pod.Model({name: name});
-                view = new Views.Upgrade({
-                    model: this.pod
-                });
+                this.podCollection = new Pod.Collection;
                 var self = this;
 
-                $.when(this.pod.fetch({silent: true})).done(function() {
+                $.when(this.podCollection.fetch()).done(function() {
+                    view = new Views.Upgrade({
+                        model: self.podCollection.get(name)
+                    });
                     self.layout.showChildView('content', view);
                 });
             }
@@ -185,16 +178,17 @@ define([
         },
 
         predefinedChangePlan: function (name) {
-            if (this.pod && this.templateModel && this.isVolumeResizableModel) {
+            if (this.podCollection && this.podCollection.get(name) && this.templateModel && this.isVolumeResizableModel) {
                 this.predefinedChangePlanSetView(name);
             } else {
-                this.pod = new Pod.Model({name: name});
+                this.podCollection = new Pod.Collection;
 
                 var self = this;
 
-                this.pod.fetch({silent: true}).done(function () {
+                $.when(this.podCollection.fetch()).done(function () {
+                    var pod = this.podCollection.get(name);
                     self.templateModel = new Predefined.TemplateModel({
-                        id: self.pod.get('template_id')
+                        id: pod.get('template_id')
                     });
                     self.isVolumeResizableModel = new Predefined.IsVolumeResizableModel();
 
@@ -209,11 +203,13 @@ define([
         },
 
         predefinedChangePlanSetView: function (name) {
-            var view;
-            this.pod.set('templateModel', this.templateModel);
-            this.pod.set('isVolumeResizableModel', this.isVolumeResizableModel);
+            var view,
+                pod = this.podCollection.get(name);
+
+            pod.set('templateModel', this.templateModel);
+            pod.set('isVolumeResizableModel', this.isVolumeResizableModel);
             view = new Views.ChangePlan({
-                model: this.pod
+                model: pod
             });
             this.layout.showChildView('content', view);
         }
