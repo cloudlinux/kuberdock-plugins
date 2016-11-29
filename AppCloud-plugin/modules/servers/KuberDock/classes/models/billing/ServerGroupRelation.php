@@ -15,7 +15,7 @@ class ServerGroupRelation extends Model
     /**
      * @var string
      */
-    protected $primaryKey = 'groupid';
+    protected $primaryKey = 'serverid';
     /**
      * @var string
      */

@@ -469,6 +469,12 @@ function KuberDock_AfterModuleCreate($params)
     $service = Service::find($params['params']['serviceid']);
 
     try {
+        Service::typeKuberDock()
+            ->where('userid', $service->userid)
+            ->where('server', $service->server)
+            ->where('id', '!=', $service->id)
+            ->delete();
+
         $service->package->getBilling()->afterModuleCreate($service);
     } catch (Exception $e) {
         CException::log($e);

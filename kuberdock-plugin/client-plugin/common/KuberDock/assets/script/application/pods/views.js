@@ -553,6 +553,7 @@ define(['app', 'application/utils',
 
             this.listenTo(this.model, 'change:command', this.processCommand);
             this.listenTo(this.model, 'sync', this.render);
+            this.listenTo(this.model, 'change', this.render);
         },
 
         ui: {
@@ -704,7 +705,7 @@ define(['app', 'application/utils',
 
         back: function (e) {
             e.preventDefault();
-            App.back();
+            App.navigate('/');
         },
 
         searchImages: function (e) {
@@ -800,7 +801,10 @@ define(['app', 'application/utils',
             var formData = this.ui.form.serializeArray(),
                 editedConfig = $.extend(true, {}, this.model.attributes),
                 self = this,
-                p = ['kube_type', 'restartPolicy', 'volumes', 'containers', 'kuberdock_resolve', 'domain', 'sid'];
+                allowedFields = [
+                    'kube_type', 'restartPolicy', 'volumes', 'containers',
+                    'kuberdock_resolve', 'domain', 'sid', 'status'
+                ];
 
             _.each(editedConfig.containers, function (c, i) {
                 _.each(formData, function (e) {
@@ -811,7 +815,7 @@ define(['app', 'application/utils',
             });
 
             _.map(editedConfig, function (v, k) {
-                if (_.indexOf(p, k) < 0) {
+                if (_.indexOf(allowedFields, k) < 0) {
                     delete editedConfig[k];
                 }
             });

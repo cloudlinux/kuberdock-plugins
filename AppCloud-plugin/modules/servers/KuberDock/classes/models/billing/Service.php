@@ -82,6 +82,14 @@ class Service extends Model
     }
 
     /**
+     * @return Order
+     */
+    public function order()
+    {
+        return $this->belongsTo('models\billing\Order', 'orderid');
+    }
+
+    /**
      * @param $query
      * @return mixed
      */
@@ -89,7 +97,7 @@ class Service extends Model
     {
         return $query->whereHas('package', function ($query) {
             $query->where('servertype', KUBERDOCK_MODULE_NAME);
-        });
+        })->orderBy('id', 'desc');
     }
 
     /**

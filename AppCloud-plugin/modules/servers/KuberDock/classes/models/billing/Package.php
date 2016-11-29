@@ -576,7 +576,14 @@ class Package extends Model
     {
         /* @var Api $api */
         $currency = Currency::getDefault();
-        $api = $this->serverGroup->servers()->typeKuberDock()->active()->first()->getApi();
+        $server = $this->serverGroup->servers()->typeKuberDock()->active()->first();
+
+        if (!$server) {
+            CException::log(new \Exception('Can\'t get API for package ' . $this->name));
+            return;
+        }
+
+        $api = $server->getApi();
 
         CustomField::firstOrCreate(array(
             'type' => 'product',

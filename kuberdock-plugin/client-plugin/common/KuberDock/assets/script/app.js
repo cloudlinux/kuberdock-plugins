@@ -108,7 +108,7 @@ function(Backbone, Marionette, Utils, MessageModel, MessageView) {
 
     App.sync = function () {
         if (App.Controller.podCollection) {
-            App.Controller.podCollection.fetch({reset: true});
+            App.Controller.podCollection.fetch();
 
             if (App.Controller.predefinedCollection) {
                 App.Controller.predefinedCollection.fetch({reset: true});

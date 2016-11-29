@@ -34,7 +34,8 @@ try {
         throw new \exceptions\NotFoundException('Product not found');
     }
 
-    $service = \models\billing\Service::where('userid', $client->id)
+    $service = \models\billing\Service::typeKuberDock()
+        ->where('userid', $client->id)
         ->where('packageid', $packageRelation->product_id)
         ->where('domainstatus', 'Active')
         ->first();

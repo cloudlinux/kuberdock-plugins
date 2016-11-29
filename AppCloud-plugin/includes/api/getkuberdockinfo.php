@@ -37,7 +37,8 @@ try {
 
     $adminApi = $server->getApi();
 
-    $service = \models\billing\Service::where('userid', $client->id)
+    $service = \models\billing\Service::typeKuberDock()
+        ->where('userid', $client->id)
         ->where('server', $server->id)
         ->where('domainstatus', 'Active')
         ->orderBy('id', 'desc')

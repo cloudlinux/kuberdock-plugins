@@ -23,7 +23,7 @@ class ServerGroup extends Model
     public function servers()
     {
         return $this->hasManyThrough(
-            'models\billing\Server', 'models\billing\ServerGroupRelation', 'serverid', 'id'
+            'models\billing\Server', 'models\billing\ServerGroupRelation', 'groupid', 'id'
         );
     }
 }

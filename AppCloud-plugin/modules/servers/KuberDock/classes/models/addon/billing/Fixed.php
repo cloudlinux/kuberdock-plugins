@@ -363,7 +363,8 @@ class Fixed extends Component implements BillingInterface
                 $item->billableItem->amount = $newPod->getPrice();
                 $item->billableItem->save();
             } else {
-                $this->afterEditPayment($item);
+                $itemInvoice = $item->invoices()->paid()->first();
+                $this->afterEditPayment($itemInvoice);
             }
 
             $invoice = new Invoice();
