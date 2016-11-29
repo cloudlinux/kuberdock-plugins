@@ -31,6 +31,11 @@ class Pod extends ResourceFactory
         return $this;
     }
 
+    public function safeLoad($data)
+    {
+        return $this->load(html_entity_decode(urldecode($data), ENT_QUOTES));
+    }
+
     /**
      * Load pod by id
      * @param string $id

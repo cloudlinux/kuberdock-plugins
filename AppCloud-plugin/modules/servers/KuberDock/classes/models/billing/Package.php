@@ -64,6 +64,7 @@ class Package extends Model
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @see PackageRelation
      */
     public function relatedKuberDock()
     {

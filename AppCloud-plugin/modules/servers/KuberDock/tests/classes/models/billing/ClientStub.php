@@ -3,9 +3,9 @@
 namespace tests\models\billing;
 
 
-use models\billing\CustomField;
+use models\billing\Client;
 
-class CustomFieldStub extends CustomField
+class ClientStub extends Client
 {
     /**
      * @return \Closure
@@ -15,10 +15,8 @@ class CustomFieldStub extends CustomField
         return function ($table) {
             /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
-            $table->text('type');
-            $table->integer('relid');
-            $table->text('fieldname');
-            $table->text('adminonly')->nullable();
+            $table->text('defaultgateway');
+            $table->enum('status', ['Active','Inactive','Closed']);
             $table->timestamps();
         };
     }

@@ -3,9 +3,9 @@
 namespace tests\models\billing;
 
 
-use models\billing\CustomField;
+use models\billing\Invoice;
 
-class CustomFieldStub extends CustomField
+class InvoiceStub extends Invoice
 {
     /**
      * @return \Closure
@@ -15,11 +15,7 @@ class CustomFieldStub extends CustomField
         return function ($table) {
             /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
-            $table->text('type');
-            $table->integer('relid');
-            $table->text('fieldname');
-            $table->text('adminonly')->nullable();
-            $table->timestamps();
+            $table->integer('userid');
         };
     }
 }

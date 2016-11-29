@@ -321,7 +321,7 @@ class BillingApi extends Component
      * @param array $vars
      * @return object
      */
-    public function getApiParams($vars) {
+    public static function getApiParams($vars) {
         $param = [
             'action' => [],
             'params' => []

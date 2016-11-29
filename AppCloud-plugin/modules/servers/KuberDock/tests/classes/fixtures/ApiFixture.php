@@ -143,4 +143,44 @@ class ApiFixture
             ],
         ];
     }
+
+    public static function getDefaultKubeType()
+    {
+        return [
+            'default' => [
+                'kubeType' => [
+                    'available' => true,
+                    'cpu' => 0.25,
+                    'cpu_units' => 'Cores',
+                    'disk_space' => 1,
+                    'disk_space_units' => 'GB',
+                    'id' => 1,
+                    'included_traffic' => 0,
+                    'is_default' => true,
+                    'memory' => 128,
+                    'memory_units' => 'MB',
+                    'name' => 'Standard',
+                ],
+            ],
+        ];
+    }
+
+    public static function getDefaultPackageId()
+    {
+        return [
+            'count_type' => 'fixed',
+            'currency' => 'USD',
+            'first_deposit' => 0,
+            'id' => 0,
+            'is_default' => true,
+            'name' => 'Standard package',
+            'period' => 'month',
+            'prefix' => '$',
+            'price_ip' => 2,
+            'price_over_traffic' => 0,
+            'price_pstorage' => 3,
+            'suffix' => ' USD',
+        ];
+    }
+
 }

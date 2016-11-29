@@ -162,26 +162,6 @@ class ItemInvoice extends Model
     }
 
     /**
-     * Find Items of deleted pods of this ItemInvoice's user and stop invoicing them
-     * @deprecated  - delete after AC-5136 is done
-     */
-    public function stopInvoicingDeleted()
-    {
-        $podIds = Tools::array_column($this->item->service->getApi()->getPods()->getData(), 'id');
-
-        $items = Item::fixed()
-            ->user($this->item->user_id)
-            ->type(Resources::TYPE_POD)
-            ->where('status', '!=', Resources::STATUS_DELETED)
-            ->whereNotIn('pod_id', $podIds)
-            ->get();
-
-        foreach ($items as $item) {
-            $item->stopInvoicing();
-        }
-    }
-
-    /**
      * If user have unpaid invoices for same action (switch same pod) - delete them
      */
     public function deleteUnpaidSiblings()

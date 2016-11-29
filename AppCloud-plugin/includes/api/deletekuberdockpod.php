@@ -6,4 +6,4 @@ if (!defined('WHMCS')) {
 
 require_once __DIR__ . '/../../modules/servers/KuberDock/init.php';
 
-$apiresults = \api\whmcs\EditKubes::call(get_defined_vars());
+$apiresults = \api\whmcs\DeletePod::call(get_defined_vars());
