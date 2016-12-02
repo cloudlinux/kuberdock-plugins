@@ -143,9 +143,10 @@ class Resources extends Model
 
     /**
      * @param ComponentsInvoiceItem $item
+     * @param string|null $podId
      * @return bool
      */
-    public function divide(ComponentsInvoiceItem $item)
+    public function divide(ComponentsInvoiceItem $item, $podId = null)
     {
         $addonItem = $this->resourcePods()->first()->item;
         $billableItem = $addonItem->billableItem;
@@ -175,9 +176,9 @@ class Resources extends Model
         $newAddonItem->type = $this->type;
         $newAddonItem->save();
 
-        $this->resourcePods()->save(ResourcePods::firstOrNew([
+        $newAddonItem->resourcePods()->attach(ResourcePods::firstOrNew([
             'resource_id' => $this->id,
-            'item_id' => $newAddonItem->id,
+            'pod_id' => $podId,
         ]));
 
         // Change resource status
@@ -196,18 +197,18 @@ class Resources extends Model
     {
         $query = ItemInvoice::select('i.*')
             ->from('KuberDock_item_invoices as i')
-            ->join('KuberDock_resource_pods as rp2', 'rp2.item_id', '=', 'i.item_id')
-            ->join('KuberDock_resource_pods as rp1', 'rp1.resource_id', '=', 'rp2.resource_id')
-            ->join('KuberDock_resources as r', 'r.id', '=', 'rp2.resource_id')
+            ->join('KuberDock_resource_items as ri', 'ri.item_id', '=', 'i.item_id')
+            ->join('KuberDock_resource_pods as rp', 'rp.id', '=', 'ri.resource_pod_id')
+            ->join('KuberDock_resources as r', 'r.id', '=', 'rp.resource_id')
             ->where('i.status', Invoice::STATUS_UNPAID)
             ->where('r.status', '=', self::STATUS_DIVIDED)
             ->where('i.invoice_id', '!=', $itemInvoice->invoice_id)
             ->groupBy('i.item_id');
 
         if ($itemInvoice->item->pod_id) {
-            $query->where('rp1.pod_id', $itemInvoice->item->pod_id);
+            $query->where('rp.pod_id', $itemInvoice->item->pod_id);
         } else {
-            $query->where('rp1.item_id', $itemInvoice->item_id);
+            $query->where('ri.item_id', $itemInvoice->item_id);
         }
 
         return $query->get();
@@ -359,11 +360,11 @@ class Resources extends Model
             'type' => $type,
         ]);
 
-        $resourcePods = ResourcePods::firstOrNew(array(
+        $resourcePods = ResourcePods::firstOrNew([
             'pod_id' => $pod->id,
             'resource_id' => $resource->id,
-            'item_id' => $item->id,
-        ));
+        ]);
         $resource->resourcePods()->save($resourcePods);
+        $item->resourcePods()->attach($resourcePods);
     }
 }

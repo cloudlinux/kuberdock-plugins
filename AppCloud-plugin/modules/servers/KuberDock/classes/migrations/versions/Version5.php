@@ -50,6 +50,7 @@ class Version5 implements \migrations\VersionInterface
         $scheme->table('KuberDock_items', function ($table) {
             /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->string('type', 64)->default(Resources::TYPE_POD);
+            $table->date('due_date');
             $table->dropColumn('app_id');
             $table->dropColumn('invoice_id');
         });

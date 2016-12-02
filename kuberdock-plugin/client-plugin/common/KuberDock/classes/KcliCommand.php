@@ -414,8 +414,8 @@ class KcliCommand extends Command {
     {
         $conf = self::getConfig();
 
-        return strpos($conf['registry'], 'http') !== false ?
-            $conf['registry'] : sprintf('http://%s', $conf['registry']);
+        return strpos($conf['defaults']['registry'], 'http') !== false ?
+            $conf['defaults']['registry'] : sprintf('http://%s', $conf['defaults']['registry']);
     }
 
     /**
@@ -425,8 +425,8 @@ class KcliCommand extends Command {
     {
         $conf = self::getConfig();
 
-        return strpos($conf['url'], 'http') !== false ?
-            $conf['url'] : sprintf('http://%s', $conf['url']);
+        return strpos($conf['global']['url'], 'http') !== false ?
+            $conf['global']['url'] : sprintf('http://%s', $conf['global']['url']);
     }
 
     /**
@@ -530,11 +530,16 @@ class KcliCommand extends Command {
         $data = array();
         $fp = fopen($path, 'r');
 
-        while($line = fgets($fp)) {
-            if(in_array(substr($line, 0, 1), array('#', '/'))) continue;
+        while ($line = fgets($fp)) {
+            if (in_array(substr($line, 0, 1), array('#', '/'))) continue;
 
-            if(preg_match('/^(.*)=(.*)$/', $line, $match)) {
-                $data[trim($match[1])] = trim($match[2]);
+            if (preg_match('/^\[(.*)\]$/', $line, $match)) {
+                $section = trim($match[1]);
+            }
+
+            if (preg_match('/^(.*)=(.*)$/', $line, $match)) {
+                $data[$section][trim($match[1])] = trim($match[2]);
+
             }
         }
 
@@ -553,10 +558,10 @@ class KcliCommand extends Command {
 
         $newConfig = array(
             'global' => array(
-                'url' => $globalConfig['url'],
+                'url' => $globalConfig['global']['url'],
             ),
             'defaults' => array(
-                'registry' => $config['registry'],
+                'registry' => $config['defaults']['registry'],
             ),
         );
 
@@ -564,11 +569,15 @@ class KcliCommand extends Command {
             $newConfig['defaults']['token'] = $this->token;
         }
 
+        if ($newConfig == $config) {
+            return;
+        }
+
         $data = array();
-        array_walk($newConfig, function($row, $section) use (&$data) {
-            if(is_array($row)) {
+        array_walk($newConfig, function ($row, $section) use (&$data) {
+            if (is_array($row)) {
                 $data[] = sprintf('[%s]', $section);
-                array_walk($row, function($value, $attr) use (&$data) {
+                array_walk($row, function ($value, $attr) use (&$data) {
                     $data[] = sprintf('%s = %s', $attr, $value);
                 });
             }

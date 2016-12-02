@@ -182,11 +182,10 @@ define([
                 this.predefinedChangePlanSetView(name);
             } else {
                 this.podCollection = new Pod.Collection;
-
                 var self = this;
 
                 $.when(this.podCollection.fetch()).done(function () {
-                    var pod = this.podCollection.get(name);
+                    var pod = self.podCollection.get(name);
                     self.templateModel = new Predefined.TemplateModel({
                         id: pod.get('template_id')
                     });

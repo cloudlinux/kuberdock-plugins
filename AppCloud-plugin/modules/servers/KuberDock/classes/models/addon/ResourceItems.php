@@ -6,7 +6,7 @@ namespace models\addon;
 
 use models\Model;
 
-class ResourcePods extends Model
+class ResourceItems extends Model
 {
     /**
      * @var bool
@@ -15,11 +15,11 @@ class ResourcePods extends Model
     /**
      * @var string
      */
-    protected $table = 'KuberDock_resource_pods';
+    protected $table = 'KuberDock_resource_items';
     /**
      * @var array
      */
-    protected $fillable = ['pod_id', 'resource_id'];
+    protected $fillable = ['resource_pod_id', 'item_id'];
 
     /**
      * @return \Closure
@@ -29,22 +29,20 @@ class ResourcePods extends Model
         return function ($table) {
             /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
-            $table->string('pod_id', 64);
-            $table->integer('resource_id', false, true);
+            $table->integer('resource_pod_id', false, true);
+            $table->integer('item_id', false, true);
 
-            $table->index('pod_id');
-            $table->index('resource_id');
-
-            $table->foreign('resource_id')->references('id')->on(Resources::tableName())->onDelete('cascade');
+            $table->foreign('resource_pod_id')->references('id')->on(ResourcePods::tableName())->onDelete('cascade');
+            $table->foreign('item_id')->references('id')->on(Item::tableName())->onDelete('cascade');
         };
     }
 
     /**
      * @return Item
      */
-    public function items()
+    public function item()
     {
-        return $this->hasManyThrough('models\addon\Item', 'models\addon\ResourceItems', 'item_id');
+        return $this->belongsTo('models\addon\Item', 'item_id');
     }
 
     /**

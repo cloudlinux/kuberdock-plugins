@@ -155,6 +155,7 @@ class Payg extends Component implements BillingInterface
 
                 if ($package->getEnableTrial()) {
                     $this->processTrial($service);
+                    continue;
                 }
 
                 // override auto suspend

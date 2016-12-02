@@ -4,6 +4,7 @@
 namespace models\addon;
 
 
+use Carbon\Carbon;
 use components\BillingApi;
 use models\billing\BillableItem;
 use models\billing\Client;
@@ -27,6 +28,10 @@ class Item extends Model
      * @var array
      */
     protected $fillable = ['pod_id', 'user_id', 'service_id', 'status', 'type'];
+    /**
+     * @var array
+     */
+    protected $dates = ['due_date'];
 
     /**
      * @return \Closure
@@ -42,6 +47,7 @@ class Item extends Model
             $table->integer('billable_item_id')->nullable();
             $table->string('status', 32)->default(Resources::STATUS_ACTIVE);
             $table->string('type', 64)->default(Resources::TYPE_POD);
+            $table->date('due_date');
 
             $table->index('pod_id');
             $table->index('billable_item_id');
@@ -85,7 +91,7 @@ class Item extends Model
      */
     public function resourcePods()
     {
-        return $this->hasMany('models\addon\ResourcePods', 'item_id');
+        return $this->belongsToMany('models\addon\ResourcePods', 'KuberDock_resource_items', 'item_id', 'resource_pod_id');
     }
 
     /**
@@ -206,7 +212,7 @@ class Item extends Model
             }
         }
 
-        ResourcePods::where('item_id', $this->id)->delete();
+        $this->resourcePods()->detach();
 
         $this->billableItem->delete();
         $this->status = Resources::STATUS_DELETED;

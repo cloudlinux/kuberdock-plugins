@@ -102,13 +102,15 @@ function(Backbone, Marionette, Utils, MessageModel, MessageView) {
         source.addEventListener('error', function(e) {
             console.info('SSE connection lost');
             source.close();
-            setTimeout(App.eventHandler(token2), 5000);
+            setTimeout(function () {
+                App.eventHandler(token2);
+            }, 30000);
         }, false);
     };
 
     App.sync = function () {
         if (App.Controller.podCollection) {
-            App.Controller.podCollection.fetch();
+            App.Controller.podCollection.fetch({reset: true});
 
             if (App.Controller.predefinedCollection) {
                 App.Controller.predefinedCollection.fetch({reset: true});

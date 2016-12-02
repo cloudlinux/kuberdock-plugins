@@ -209,9 +209,9 @@ class KuberDock_Api {
     public function initUser()
     {
         $config = KcliCommand::getConfig();
-        $this->token = isset($config['token']) ? $config['token'] : '';
-        $this->serverUrl = $config['url'];
-        $this->registryURL = isset($config['registry']) ? $config['registry'] : '';
+        $this->token = isset($config['defaults']['token']) ? $config['defaults']['token'] : '';
+        $this->serverUrl = $config['global']['url'];
+        $this->registryURL = isset($config['defaults']['registry']) ? $config['defaults']['registry'] : '';
     }
 
     /**
@@ -225,8 +225,8 @@ class KuberDock_Api {
         $this->username = $username;
         $this->password = $password;
         $this->token = $token;
-        $this->serverUrl = $config['url'];
-        $this->registryURL = isset($config['registry']) ? $config['registry'] : '';
+        $this->serverUrl = $config['global']['url'];
+        $this->registryURL = isset($config['defaults']['registry']) ? $config['defaults']['registry'] : '';
     }
 
     /**

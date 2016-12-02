@@ -45,7 +45,7 @@ class Fixed extends Component implements BillingInterface
         }
 
         $invoiceItems = $resource->getInvoiceItems();
-        $invoiceItems->filterPaidResources($service);
+        $invoiceItems->filterPaidResources($service, $resource->id);
         $item = $this->createBillableItem($invoiceItems, $service, Resources::TYPE_POD, $resource);
 
         // On 1st service order
@@ -92,6 +92,9 @@ class Fixed extends Component implements BillingInterface
             $app->pod_id = $pod->id;
             $app->save();
         }
+
+        $item->due_date = $item->billableItem->duedate;
+        $item->save();
 
         Resources::add($pod, $item);
 

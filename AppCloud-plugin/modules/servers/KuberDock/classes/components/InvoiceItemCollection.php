@@ -116,21 +116,21 @@ class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
                     }
 
                     if ($resource->isActive() && !$resource->isSamePod($pod_id)) {
-                        return $resource->divide($item);
+                        return $resource->divide($item, $pod_id);
                     }
 
                     break;
                 case Resources::TYPE_IP:
                     $ipStat = $service->getApi()->getIpPoolStat()->getData();
-                    $resource = Resources::notDeleted($service->userid)->where('name', count($ipStat) + 1)
+                    $resource = Resources::notDeleted($service->userid)->where('name', count($ipStat))
                         ->typeIp()->first();
 
                     if (!$resource) {
                         return true;
                     }
 
-                    if ($resource->isActive()) {
-                        return $resource->divide($item);
+                    if ($resource->isActive() && !$resource->isSamePod($pod_id)) {
+                        return $resource->divide($item, $pod_id);
                     }
 
                     break;

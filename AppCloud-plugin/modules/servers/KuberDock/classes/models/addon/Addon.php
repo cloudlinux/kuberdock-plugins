@@ -121,6 +121,7 @@ class Addon extends \components\Component {
         \models\addon\Migration::createTable();
         \models\addon\Resources::createTable();
         \models\addon\ResourcePods::createTable();
+        \models\addon\ResourceItems::createTable();
     }
 
     /**
@@ -129,6 +130,7 @@ class Addon extends \components\Component {
     private function dropTables()
     {
         // Depending to the foreign keys order is important
+        \models\addon\ResourceItems::dropTable();
         \models\addon\ResourcePods::dropTable();
         \models\addon\Resources::dropTable();
         \models\addon\ItemInvoice::dropTable();
