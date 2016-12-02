@@ -15,6 +15,7 @@ use models\billing\Currency;
 use models\billing\Pricing;
 use models\billing\CustomField;
 use exceptions\CException;
+use models\billing\ServerGroup;
 
 class Addon extends \components\Component {
     /**
@@ -182,7 +183,7 @@ class Addon extends \components\Component {
                         'paytype' => 'onetime',
                         'autosetup' => 'order',
                         'servertype' => KUBERDOCK_MODULE_NAME,
-                        'servergroup' => $server->groups()->first()->id,
+                        'servergroup' => ServerGroup::byServerId($server->id)->id,
                     ]);
 
                     foreach (Currency::all() as $currency) {

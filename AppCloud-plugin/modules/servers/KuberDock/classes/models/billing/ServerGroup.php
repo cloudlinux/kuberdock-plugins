@@ -26,4 +26,18 @@ class ServerGroup extends Model
             'models\billing\Server', 'models\billing\ServerGroupRelation', 'groupid', 'id'
         );
     }
+
+    public function grouprels()
+    {
+        return $this->hasMany(
+            'models\billing\ServerGroupRelation', 'groupid'
+        );
+    }
+
+    public function scopeByServerId($query, $server_id)
+    {
+        return $query->whereHas('grouprels', function ($query) use ($server_id) {
+            $query->where('serverid', $server_id);
+        })->first();
+    }
 }
