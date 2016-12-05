@@ -222,6 +222,7 @@ class PredefinedApp {
         $this->template->fillData($data);
 
         // Create order with kuberdock product
+        $this->pod->packageId = $this->template->getPackageId();
         $pod = $this->pod->createProduct();
         $this->command = $pod->getCommand();
 
