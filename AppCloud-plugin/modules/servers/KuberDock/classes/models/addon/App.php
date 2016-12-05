@@ -5,6 +5,7 @@ namespace models\addon;
 
 
 use exceptions\CException;
+use models\addon\resource\Pod;
 use models\addon\resource\PredefinedApp;
 use models\addon\resource\ResourceFactory;
 use models\billing\Package;
@@ -111,7 +112,7 @@ class App extends Model
         if ($this->type == ResourceFactory::TYPE_YAML) {
             $resource = new PredefinedApp($this->package);
         } else if ($this->type == ResourceFactory::TYPE_POD) {
-            $resource = '';
+            $resource = new Pod($this->package);
         } else {
             throw new CException('Unknown resource type');
         }

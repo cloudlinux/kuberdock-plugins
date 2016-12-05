@@ -19,6 +19,7 @@ use models\addon\resource\ResourceFactory;
 use models\addon\State;
 use models\billing\EmailTemplate;
 use models\billing\Invoice;
+use models\billing\InvoiceItem;
 use models\billing\Package;
 use models\billing\Service;
 use models\Model;

@@ -164,7 +164,7 @@ class ClientArea extends Component
                 $product['productinfo']['name'] = ucfirst($resource->getName());
             }
 
-            if ($depositPrice = $package->getFirstDeposit() && !$service) {
+            if (($depositPrice = $package->getFirstDeposit()) && !$service) {
                 $product['pricing']['minprice']['price'] =
                     ' First Deposit ' . $this->currency->getFullPrice($depositPrice);
 

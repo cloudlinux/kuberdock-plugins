@@ -7,7 +7,8 @@
 use models\addon\App;
 use models\addon\ItemInvoice;
 use models\addon\Resources;
-use models\addon\resource\Pod;
+use models\billing\InvoiceItem;
+use models\billing\Invoice;
 use models\billing\Service;
 use components\Tools;
 use exceptions\CException;
@@ -257,6 +258,17 @@ add_hook('InvoiceCreated', 1, 'KuberDock_InvoiceCreated');
  */
 function KuberDock_InvoicePaid($params)
 {
+    // TODO: change
+    // Add first deposit
+    $invoiceItem = InvoiceItem::where('type', 'Hosting')
+        ->where('invoiceid', $params['invoiceid'])
+        ->where('description', Invoice::FIRST_DEPOSIT_DESCRIPTION)
+        ->first();
+
+    if ($invoiceItem) {
+        $invoiceItem->invoice->addFirstDeposit();
+    }
+
     $itemInvoices = ItemInvoice::where('invoice_id', $params['invoiceid'])->get();
 
     if (!$itemInvoices->count()) {
@@ -265,7 +277,6 @@ function KuberDock_InvoicePaid($params)
 
     foreach ($itemInvoices as $itemInvoice) {
         try {
-            $itemInvoice->invoice->addFirstDeposit();
             $pod = $itemInvoice->afterPayment();
 
             Resources::redirectToUnpaidInvoice($itemInvoice);

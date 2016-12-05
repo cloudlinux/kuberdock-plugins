@@ -12,6 +12,7 @@ use models\billing\Invoice;
 use models\billing\Order;
 use models\billing\Package;
 use models\billing\Service;
+use models\billing\InvoiceItem as BillingInvoiceItem;
 
 class BillingApi extends Component
 {
@@ -197,35 +198,35 @@ class BillingApi extends Component
     }
 
     /**
-     * @param InvoiceItem $invoiceItem
-     * @return InvoiceItem
+     * @param BillingInvoiceItem $invoiceItem
+     * @return BillingInvoiceItem
      * @throws \Exception
      */
-    public function addCredit(InvoiceItem $invoiceItem)
+    public function addCredit(BillingInvoiceItem $invoiceItem)
     {
         BillingApi::request('addcredit', [
             'clientid' => $invoiceItem->userid,
-            'description' => $invoiceItem->description,
+            'description' => 'Adding funds for first deposit',
             'amount' => $invoiceItem->amount,
         ]);
 
-        return InvoiceItem::find($invoiceItem->id);
+        return BillingInvoiceItem::find($invoiceItem->id);
     }
 
     /**
-     * @param InvoiceItem $invoiceItem
-     * @return InvoiceItem
+     * @param BillingInvoiceItem $invoiceItem
+     * @return BillingInvoiceItem
      * @throws \Exception
      */
-    public function removeCredit(InvoiceItem $invoiceItem)
+    public function removeCredit(BillingInvoiceItem $invoiceItem)
     {
         BillingApi::request('addcredit', [
             'clientid' => $invoiceItem->userid,
-            'description' => $invoiceItem->description . ' (Remove)',
+            'description' => 'Remove funds for first deposit',
             'amount' => -$invoiceItem->amount,
         ]);
 
-        return InvoiceItem::find($invoiceItem->id);
+        return BillingInvoiceItem::find($invoiceItem->id);
     }
 
     /**
