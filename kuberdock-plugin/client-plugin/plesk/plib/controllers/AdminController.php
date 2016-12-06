@@ -143,7 +143,6 @@ class AdminController extends pm_Controller_Action
         $form = new \Kuberdock\classes\plesk\forms\KubeCli;
         $model = new \Kuberdock\classes\models\KubeCli('Plesk');
 
-
         if ($this->getRequest()->isPost() && $form->isValid($this->getRequest()->getPost())) {
             try {
                 $model->save($form->getValues());
@@ -160,6 +159,21 @@ class AdminController extends pm_Controller_Action
 
     public function deleteAction()
     {
+        $this->actionPost('delete', 'deleted');
+    }
+
+    public function installAction()
+    {
+        $this->actionPost('install', 'installed');
+    }
+
+    public function uninstallAction()
+    {
+        $this->actionPost('uninstall', 'uninstalled');
+    }
+
+    private function actionPost($action, $message)
+    {
         if (!$this->getRequest()->isPost()) {
             throw new Exception('post only required');
         }
@@ -169,9 +183,9 @@ class AdminController extends pm_Controller_Action
 
         try {
             $model = new \Kuberdock\classes\models\App('Plesk');
-            $model->delete($id);
+            $model->$action($id);
 
-            $this->_status->addMessage('info', 'Template ' . $name . ' was successfully deleted.');
+            $this->_status->addMessage('info', 'Template ' . $name . ' was successfully ' . $message . '.');
         } catch (Exception $e) {
             $this->_status->addMessage('error', $e->getMessage());
         }

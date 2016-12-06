@@ -49,6 +49,16 @@ class App
         $this->api->deleteTemplate($id);
     }
 
+    public function uninstall($id)
+    {
+        $this->api->uninstallTemplate($id);
+    }
+
+    public function install($id)
+    {
+        $this->api->installTemplate($id);
+    }
+
     /**
      * List of predefined apps to display in admin panels
      *
@@ -64,13 +74,17 @@ class App
         $data = array();
         $index = 0;
         foreach ($templates as $template) {
-            $actions = $panel::getAdminUpdateAppButton($template) . ' ' . $panel::getAdminDeleteAppButton($template);
-            $data[] = array(
+            $actions = $panel::getAdminInstallAppButton($template) . ' ' .
+                $panel::getAdminUpdateAppButton($template) . ' ' .
+                $panel::getAdminDeleteAppButton($template);
+
+            $data[] = [
                 'index' => ++$index,
                 'id' => $template['id'],
                 'name' => $template['name'],
+                'search_available' => $template['search_available'],
                 'actions' => $actions,
-            );
+            ];
         }
 
         return $data;

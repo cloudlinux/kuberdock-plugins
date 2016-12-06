@@ -8,7 +8,6 @@ use tests\MakePublicTrait;
 use PHPUnit\Framework\TestCase;
 use Kuberdock\classes\KcliCommand;
 
-
 class KcliCommandTest extends TestCase
 {
     use MakePublicTrait;

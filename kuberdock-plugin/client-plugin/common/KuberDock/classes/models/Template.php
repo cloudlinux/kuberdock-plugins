@@ -98,10 +98,10 @@ class Template
      * @return array
      * @throws CException
      */
-    public function getAll()
+    public function getClientTemplates()
     {
         $data = array();
-        $templates = $this->panel->getAdminApi()->getTemplates(strtolower(Base::model()->getPanelType()));
+        $templates = $this->panel->getAdminApi()->getClientTemplates();
 
         foreach($templates as &$row) {
             $row['template'] = Spyc::YAMLLoadString($row['template']);

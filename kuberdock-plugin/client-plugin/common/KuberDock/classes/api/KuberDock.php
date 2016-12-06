@@ -157,9 +157,12 @@ class KuberDock extends API
     {
         $this->checkNumeric($id);
 
+        $panel = $this->getPod()->getPanel();
+        $template = new Template($panel);
+
         return $id
-            ? $this->getTemplate()->getById($id)
-            : $this->getTemplate()->getAll();
+            ? $template->getById($id)
+            : $template->getClientTemplates();
     }
 
     protected function get_templates_setup($id)
@@ -261,11 +264,5 @@ class KuberDock extends API
     private function getPod()
     {
         return new Pod;
-    }
-
-    private function getTemplate()
-    {
-        $panel = $this->getPod()->getPanel();
-        return new Template($panel);
     }
 }

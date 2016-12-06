@@ -145,6 +145,18 @@ class KuberDock_Plesk extends KuberDock_Panel
         return $data;
     }
 
+    public static function getAdminInstallAppButton($template)
+    {
+        $class = $template['search_available'] ? 'btn-warning' : 'btn-success';
+        $title = $template['search_available'] ? 'Uninstall' : 'Install';
+        $action = $template['search_available'] ? 'uninstall' : 'install';
+
+        return '<a href="' . \pm_Context::getActionUrl('admin', $action)
+            . '" data-id="'  . $template['id']
+            . '" data-name="'  . $template['name']
+            . '" class="' . $class . ' btn btn-xs btn_action">' . $title . '</a>';
+    }
+
     public static function getAdminUpdateAppButton($template)
     {
         return '<a href="' . \pm_Context::getActionUrl('admin', 'application')
@@ -157,7 +169,7 @@ class KuberDock_Plesk extends KuberDock_Panel
         return '<a href="' . \pm_Context::getActionUrl('admin', 'delete')
             . '" data-id="'  . $template['id']
             . '" data-name="'  . $template['name']
-            . '" class="btn btn_delete">Delete</a>';
+            . '" class="btn btn_delete btn_action">Delete</a>';
     }
 
     /**

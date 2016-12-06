@@ -35,6 +35,18 @@ sub validateYaml {
     return $self->request('/api/predefined-apps/validate-template', 'POST', $json->encode({template => $template}));
 }
 
+sub installTemplate {
+    my ($self, $template_id) = @_;
+
+    return $self->request('/api/predefined-apps/' . $template_id, 'PUT', '{"search_available":true}');
+}
+
+sub uninstallTemplate {
+    my ($self, $template_id) = @_;
+
+    return $self->request('/api/predefined-apps/' . $template_id, 'PUT', '{"search_available":false}');
+}
+
 sub getPackages {
     my ($self) = @_;
 
