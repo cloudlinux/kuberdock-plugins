@@ -66,7 +66,7 @@ class Fixed extends Component implements BillingInterface
      */
     public function beforePayment(ItemInvoice $itemInvoice)
     {
-        $itemInvoice->stopInvoicingDeleted();
+        // Not used
     }
 
     /**
@@ -591,6 +591,8 @@ class Fixed extends Component implements BillingInterface
 
     /**
      * Stop invoicing for deleted pods
+     *
+     * For case when api deletekuberdockpod was not received from KD
      */
     private function processDeletedPods()
     {

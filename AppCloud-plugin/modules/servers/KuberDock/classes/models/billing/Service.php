@@ -1,6 +1,5 @@
 <?php
 
-
 namespace models\billing;
 
 
@@ -13,6 +12,15 @@ use models\addon\Resources;
 use models\addon\Trial;
 use models\Model;
 
+/**
+ * Class Service
+ *
+ * @property Package $package
+ * @property int $id
+ * @property int $packageid
+ * @property int $orderid
+ * @property string $domainstatus
+ */
 class Service extends Model
 {
     /**

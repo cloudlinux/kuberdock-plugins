@@ -3,16 +3,15 @@
 
 namespace models;
 
-use Illuminate\Database\Eloquent\Model as EloquentModel;
 
+use Illuminate\Database\Eloquent\Model as EloquentModel;
 
 class Model extends EloquentModel
 {
     public static function createTable()
     {
-        $scheme = self::getSchemaBuilder();
         $class = new static;
-        $scheme->create($class->getTable(), $class->getSchema());
+        self::DB()->getSchemaBuilder()->create(self::tableName(), $class->getSchema());
     }
 
     /**
@@ -25,9 +24,7 @@ class Model extends EloquentModel
 
     public static function dropTable()
     {
-        $scheme = self::getSchemaBuilder();
-        $class = new static;
-        $scheme->dropIfExists($class->getTable());
+        self::DB()->getSchemaBuilder()->dropIfExists(self::tableName());
     }
 
     public static function tableName()
@@ -37,13 +34,16 @@ class Model extends EloquentModel
 
     public static function tableExists()
     {
-        $scheme = self::getSchemaBuilder();
-        $class = new static;
-        return $scheme->hasTable($class->getTable());
+        return self::DB()->getSchemaBuilder()->hasTable(self::tableName());
     }
 
-    private static function getSchemaBuilder()
+    public static function truncateTable()
     {
-        return \models\Model::getConnectionResolver()->connection()->getSchemaBuilder();
+        self::DB()->table(self::tableName())->truncate();
+    }
+
+    private static function DB()
+    {
+        return \models\Model::getConnectionResolver()->connection();
     }
 }
