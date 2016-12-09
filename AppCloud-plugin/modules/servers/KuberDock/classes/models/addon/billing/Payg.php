@@ -279,7 +279,7 @@ class Payg extends Component implements BillingInterface
             ->join('tblhosting', 'tblhosting.id', '=', 'KuberDock_items.service_id')
             ->join('tblproducts', 'tblproducts.id', '=', 'tblhosting.packageid')
             ->whereNull('KuberDock_items.billable_item_id')
-            ->where('KuberDock_items.status', '=', Resources::STATUS_ACTIVE)
+            ->whereIn('KuberDock_items.status', [Resources::STATUS_ACTIVE, Resources::STATUS_SUSPENDED])
             ->where('KuberDock_item_invoices.status', Invoice::STATUS_UNPAID)
             ->where('tblinvoices.duedate', '<', $now)
             ->where('tblproducts.configoption3', '!=', 'hourly')
