@@ -6,6 +6,7 @@ namespace models\addon;
 
 use Carbon\Carbon;
 use components\BillingApi;
+use models\addon\resource\Pod;
 use models\billing\BillableItem;
 use models\billing\Client;
 use models\billing\Invoice;
@@ -290,5 +291,59 @@ class Item extends Model
         $invoiceItem->type = 'Hosting';
         $invoiceItem->relid = $service->id;
         $invoiceItem->save();
+    }
+
+    /**
+     * Restore paid deleted pod
+     * @throws \Exception
+     */
+    public function restore()
+    {
+        if ($this->due_date <= new Carbon()) {
+            throw new \Exception('Overdue, can\'t restore pod');
+        }
+
+        $pod = $this->getPod();
+        $invoiceItems = $pod->getInvoiceItems();
+        $price = $invoiceItems->sum();
+
+        if (!$this->billableItem) {
+            $billableItem = new BillableItem();
+            $billableItem->setRawAttributes([
+                'userid' => $this->service->userid,
+                'description' => $invoiceItems->getDescription(),
+                'recurfor' => 0,
+                'invoiceaction' => BillableItem::CREATE_RECUR_ID,
+                'amount' => $price,
+                'invoicecount' => 1,
+            ]);
+            $billableItem->setRecur($this->service->package);
+            $billableItem->duedate = $this->due_date;
+            $billableItem->save();
+
+            $this->billable_item_id = $billableItem->id;
+        } else {
+            $this->billableItem->setRawAttributes([
+                'recurfor' => 0,
+                'invoiceaction' => BillableItem::CREATE_RECUR_ID,
+                'amount' => $price,
+                'invoicecount' => 1,
+            ]);
+            $this->billableItem->save();
+        }
+
+        $this->status = Resources::STATUS_ACTIVE;
+        $this->save();
+    }
+
+    /**
+     * @return Pod
+     */
+    public function getPod()
+    {
+        $pod = new Pod($this->service->package);
+        $pod->setService($this->service);
+
+        return $pod->loadById($this->pod_id);
     }
 }

@@ -2,5 +2,9 @@
     "require": {
         "firebase/php-jwt": "^4.0",
         "symfony/yaml": "^3.1"
+    },
+    "require-dev": {
+        "illuminate/database": "5.3.*",
+        "php-mock/php-mock-phpunit": "1.1.*"
     }
 }

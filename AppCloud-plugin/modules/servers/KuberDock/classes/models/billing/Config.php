@@ -10,6 +10,11 @@ use models\Model;
 class Config extends Model
 {
     /**
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
      * @var string
      */
     protected $table = 'tblconfiguration';
@@ -34,10 +39,17 @@ class Config extends Model
 
         if (!self::$component) {
             self::$component = new Component();
-            $config = (isset($CONFIG) && $CONFIG)
-                ? $CONFIG
-                : Config::all()->lists('value','setting');
-            self::$component->setAttributes($config);
+            if (isset($CONFIG) && $CONFIG) {
+                self::$component->setAttributes($CONFIG);
+            } else {
+                $collection = Config::all();
+
+                // Since Eloquent 5.3 method list removed, added pluck
+                // TODO: when we stop support 6.3
+                $data = method_exists($collection, 'list') ?
+                    $collection->lists('value','setting') : $collection->pluck('value','setting')->all();
+                self::$component->setAttributes($data);
+            }
         }
 
         return self::$component;

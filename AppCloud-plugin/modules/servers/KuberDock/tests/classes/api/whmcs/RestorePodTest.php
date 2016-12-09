@@ -2,17 +2,19 @@
 
 namespace tests\api\whmcs;
 
+use api\whmcs\RestorePod;
+use models\addon\Item;
 
-use api\whmcs\DeletePod;
 use tests\fixtures\WhmcsApiFixture;
 use tests\TestCase;
 use tests\EloquentMock;
-
-use models\addon\Item;
-
 use tests\models\billing\BillableItemStub as BillableItem;
+use tests\models\billing\ServiceStub as Service;
+use tests\models\billing\PackageStub as Package;
+use tests\models\billing\AdminStub as Admin;
 
-class DeletePodTest extends TestCase
+
+class RestorePodTest extends TestCase
 {
     use EloquentMock;
 
@@ -21,6 +23,9 @@ class DeletePodTest extends TestCase
         return [
             Item::class,
             BillableItem::class,
+            Service::class,
+            Package::class,
+            Admin::class,
         ];
     }
 
@@ -28,17 +33,13 @@ class DeletePodTest extends TestCase
     {
         $vars = WhmcsApiFixture::getVars(['pod_id' => 'wrong_id']);
 
-        $result = DeletePod::call($vars);
+        $result = RestorePod::call($vars);
 
         $this->assertEquals('error', $result['result']);
         $this->assertEquals('Pod not found', $result['message']);
     }
 
-
-    /**
-     * @group ee
-     */
-    public function testAnswer()
+    public function testAnswer_Overdue()
     {
         $pod_id = 'some_pod_id';
         $vars = WhmcsApiFixture::getVars(['pod_id' => $pod_id]);
@@ -52,9 +53,9 @@ class DeletePodTest extends TestCase
             'due_date' => '2016-12-01',
         ]);
 
-        $result = DeletePod::call($vars);
+        $result = RestorePod::call($vars);
 
-        $this->assertEquals('success', $result['result']);
-        $this->assertEquals('Pod deleted', $result['results']);
+        $this->assertEquals('error', $result['result']);
+        $this->assertEquals('Overdue, can\'t restore pod', $result['message']);
     }
 }
