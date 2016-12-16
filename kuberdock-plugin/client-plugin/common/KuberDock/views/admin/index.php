@@ -31,6 +31,6 @@ $variables = compact(array_diff(
             helpdesk@kuberdock.com</a> <br>or create a request in helpdesk <a href="https://helpdesk.cloudlinux.com">
             https://helpdesk.cloudlinux.com</a>
         <br>
-        Plugin version: <?php echo \Kuberdock\classes\models\Version::get();?>
+        Plugin version: <?php echo \Kuberdock\classes\DI::get('Version')->get();?>
     </div>
 </div>

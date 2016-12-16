@@ -2,6 +2,9 @@
 
 namespace Kuberdock\classes\plesk\lists;
 
+
+use Kuberdock\classes\DI;
+
 class App extends \pm_View_List_Simple
 {
     protected $_pageable = false;
@@ -28,7 +31,8 @@ class App extends \pm_View_List_Simple
             ),
         ]);
 
-        $model = new \Kuberdock\classes\models\App('Plesk');
+        /** @var \Kuberdock\classes\models\App $model */
+        $model = DI::get('\Kuberdock\classes\models\App')->setPanel('Plesk');
 
         $this->setData($model->getAll());
     }

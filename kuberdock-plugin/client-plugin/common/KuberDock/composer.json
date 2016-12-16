@@ -1,9 +1,10 @@
 {
-    "require": {
-        "symfony/yaml": "^3.1"
-    },
-    "require-dev": {
-      "illuminate/database": "5.3.*",
-      "php-mock/php-mock-phpunit": "1.1.*"
-    }
+  "require": {
+    "symfony/yaml": "^3.1",
+    "php-di/php-di": "^5.4"
+  },
+  "require-dev": {
+    "illuminate/database": "5.3.*",
+    "php-mock/php-mock-phpunit": "1.1.*"
+  }
 }

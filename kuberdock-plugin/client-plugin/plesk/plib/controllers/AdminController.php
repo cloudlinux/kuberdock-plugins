@@ -1,5 +1,8 @@
 <?php
 
+
+use Kuberdock\classes\DI;
+
 class AdminController extends pm_Controller_Action
 {
     protected $_accessLevel = 'admin';
@@ -58,8 +61,11 @@ class AdminController extends pm_Controller_Action
             'script/plesk/admin/application',
         ));
 
-        $model = new \Kuberdock\classes\models\App('Plesk');
-        $form = new \Kuberdock\classes\plesk\forms\App;
+        /** @var \Kuberdock\classes\models\App $model */
+        $model = DI::get('\Kuberdock\classes\models\App')->setPanel('Plesk');
+
+        /** @var \Kuberdock\classes\plesk\forms\App $form */
+        $form = DI::get('\Kuberdock\classes\plesk\forms\App');
 
         if ($this->getRequest()->isPost() && $form->isValid($this->getRequest()->getPost())) {
             $values = $form->getValues();
@@ -104,7 +110,8 @@ class AdminController extends pm_Controller_Action
 
     public function validateYamlAction()
     {
-        $model = new \Kuberdock\classes\models\App('Plesk');
+        /** @var \Kuberdock\classes\models\App $model */
+        $model = DI::get('\Kuberdock\classes\models\App')->setPanel('Plesk');
         $errors = $model->validate($_POST['template']);
 
         echo json_encode(array('errors' => $errors));
@@ -182,7 +189,8 @@ class AdminController extends pm_Controller_Action
         $name = $this->getRequest()->getPost('name');
 
         try {
-            $model = new \Kuberdock\classes\models\App('Plesk');
+            /** @var \Kuberdock\classes\models\App $model */
+            $model = DI::get('\Kuberdock\classes\models\App')->setPanel('Plesk');
             $model->$action($id);
 
             $this->_status->addMessage('info', 'Template ' . $name . ' was successfully ' . $message . '.');

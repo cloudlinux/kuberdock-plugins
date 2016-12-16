@@ -10,12 +10,18 @@ class App
 
     private $panelName;
 
-    public function __construct($panelName)
+    /**
+     * @param string $panelName
+     * @return $this
+     */
+    public function setPanel($panelName)
     {
         $kubeCliModel = new \Kuberdock\classes\models\KubeCli($panelName);
         $adminData = $kubeCliModel->read();
         $this->api = KuberDock_Api::create($adminData);
         $this->panelName = $panelName;
+
+        return $this;
     }
 
     public function read($id)

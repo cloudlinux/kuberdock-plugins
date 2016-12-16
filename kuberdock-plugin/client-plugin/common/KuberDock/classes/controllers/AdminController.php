@@ -4,6 +4,7 @@ namespace Kuberdock\classes\controllers;
 
 use Kuberdock\classes\KuberDock_Controller;
 use Kuberdock\classes\Base;
+use Kuberdock\classes\DI;
 
 
 class AdminController extends KuberDock_Controller
@@ -51,7 +52,8 @@ class AdminController extends KuberDock_Controller
             }
             $defaults = $defaultsModel->read();
 
-            $appModel = new \Kuberdock\classes\models\App($this->panelName);
+            /** @var \Kuberdock\classes\models\App $appModel */
+            $appModel = DI::get('\Kuberdock\classes\models\App')->setPanel($this->panelName);
             $apps = $appModel->getAll();
 
         } catch (\Exception $e){
@@ -87,7 +89,8 @@ class AdminController extends KuberDock_Controller
             'script/lib/codemirror/codemirror',
         ));
 
-        $appModel = new \Kuberdock\classes\models\App($this->panelName);
+        /** @var \Kuberdock\classes\models\App $appModel */
+        $appModel = DI::get('\Kuberdock\classes\models\App')->setPanel($this->panelName);
 
         $id = isset($_GET['id'])
             ? (int) $_GET['id']
@@ -147,7 +150,8 @@ class AdminController extends KuberDock_Controller
         $id = (int) $_GET['id'];
 
         try {
-            $model = new \Kuberdock\classes\models\App($this->panelName);
+            /** @var \Kuberdock\classes\models\App $model */
+            $model = DI::get('\Kuberdock\classes\models\App')->setPanel($this->panelName);
             $model->$action($id);
             $this->setLocalStorage('flash', [$message => 'info']);
         } catch (\Exception $e) {
@@ -208,7 +212,8 @@ class AdminController extends KuberDock_Controller
 
     public function validateYamlAjaxAction()
     {
-        $model = new \Kuberdock\classes\models\App($this->panelName);
+        /** @var \Kuberdock\classes\models\App $model */
+        $model = DI::get('\Kuberdock\classes\models\App')->setPanel($this->panelName);
         $errors = $model->validate($_POST['template']);
 
         echo json_encode(array('errors' => $errors));
