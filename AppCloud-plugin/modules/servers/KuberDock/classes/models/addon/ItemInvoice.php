@@ -102,6 +102,12 @@ class ItemInvoice extends Model
         return $query->where('status', Invoice::STATUS_UNPAID)->orderBy('invoice_id', 'desc');
     }
 
+    /**
+     * @param $query
+     * @param $type
+     * @return mixed
+     * @throws \Exception
+     */
     public function scopeType($query, $type)
     {
         if (!in_array($type, self::getTypes())) {

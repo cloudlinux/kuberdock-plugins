@@ -4,6 +4,7 @@
 namespace models\billing;
 
 
+use Carbon\Carbon;
 use models\addon\Item;
 use models\Model;
 
@@ -73,11 +74,11 @@ class BillableItem extends Model
      */
     public function getProRate()
     {
-        $now = new \DateTime();
-        $daysRemain = $this->duedate->diff($now)->format('%a') + 1;
-        $periodStart = clone $this->duedate;
+        $now = new Carbon();
+        $daysRemain = $this->duedate->diffInDays($now);
+        $periodStart = $this->duedate;
         $periodStart = $periodStart->modify(str_replace('+', '-', $this->getRecurPeriod()));
-        $totalDays = $periodStart->diff($this->duedate)->format('%a');
+        $totalDays = $periodStart->diffInDays($this->duedate);
 
         return $daysRemain / $totalDays;
     }

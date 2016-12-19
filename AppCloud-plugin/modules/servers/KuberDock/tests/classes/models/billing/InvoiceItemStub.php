@@ -16,8 +16,11 @@ class InvoiceItemStub extends InvoiceItem
             /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
             $table->integer('invoiceid');
-            $table->string('type', 30);
-            $table->integer('relid');
+            $table->integer('userid');
+            $table->string('type', 30)->nullable();
+            $table->integer('relid')->nullable();
+            $table->decimal('amount');
+            $table->string('description');
         };
     }
 }

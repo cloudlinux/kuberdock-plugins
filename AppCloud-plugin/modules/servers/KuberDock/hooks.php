@@ -268,7 +268,7 @@ function KuberDock_InvoicePaid($params)
     if ($invoiceItem) {
         $invoiceItem->invoice->addFirstDeposit();
     }
-
+    $unpaidResourceInvoices = [];
     $itemInvoices = ItemInvoice::where('invoice_id', $params['invoiceid'])->get();
 
     if (!$itemInvoices->count()) {
@@ -279,10 +279,19 @@ function KuberDock_InvoicePaid($params)
         try {
             $pod = $itemInvoice->afterPayment();
 
-            Resources::redirectToUnpaidInvoice($itemInvoice);
+            $unpaid = Resources::getUnpaidItemInvoices($itemInvoice);
+            if ($unpaid->count()) {
+                $unpaidResourceInvoices[] = $unpaid;
+            }
         } catch (Exception $e) {
             CException::log($e);
         }
+    }
+
+    // Get last unpaid invoice item
+    if ($unpaidResourceInvoices) {
+        $itemInvoice = last($unpaidResourceInvoices)->first();
+        Tools::jsRedirect($itemInvoice->invoice->getUrl());
     }
 
     if (!isset($pod) || !$pod) {

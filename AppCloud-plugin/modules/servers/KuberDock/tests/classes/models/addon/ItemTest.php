@@ -4,6 +4,7 @@
 namespace classes\models\addon;
 
 
+use Carbon\Carbon;
 use models\addon\Item;
 use models\addon\KubePrice;
 use models\addon\KubeTemplate;
@@ -27,13 +28,13 @@ class ItemTest extends TestCase
     {
         parent::setUp();
 
-        Package::create(DatabaseFixture::getPackage());
-        PackageRelation::create(DatabaseFixture::getPackageRelation());
-        KubeTemplate::insert(DatabaseFixture::getKubeTemplates());
-        KubePrice::insert(DatabaseFixture::getKubePrices());
-        Item::create(DatabaseFixture::getFixedItem());
-        Service::create(DatabaseFixture::getService());
-        Admin::create(DatabaseFixture::getAdmin());
+        Package::create(DatabaseFixture::package());
+        PackageRelation::create(DatabaseFixture::packageRelation());
+        KubeTemplate::insert(DatabaseFixture::kubeTemplates());
+        KubePrice::insert(DatabaseFixture::kubePrices());
+        Item::create(DatabaseFixture::fixedItem());
+        Service::create(DatabaseFixture::service());
+        Admin::create(DatabaseFixture::admin());
     }
 
     public function mockTables()
@@ -53,7 +54,7 @@ class ItemTest extends TestCase
     public function testRestore_NoBillableItem()
     {
         $service = Service::first();
-        $pod = (new Pod($service->package))->setAttributes(ApiFixture::getPodById('pod_id'));
+        $pod = (new Pod($service->package))->setAttributes(ApiFixture::getPodWithResources('pod_id'));
 
         $stub = $this->getMockBuilder(Item::class)->setMethods(['getPod'])->getMock();
         $stub = $stub->first();
@@ -71,7 +72,7 @@ class ItemTest extends TestCase
             'invoiceaction' => 4,
             'amount' => 3.2,
             'invoicecount' => 1,
-            'duedate' => '2016-12-19 00:00:00',
+            'duedate' => (new Carbon())->addDays(10)->format('Y-m-d 00:00:00'),
         ];
 
         $this->assertEquals($expected, BillableItem::first()->getAttributes());
@@ -82,7 +83,7 @@ class ItemTest extends TestCase
     public function testRestore_WithBillableItem()
     {
         $service = Service::first();
-        $pod = (new Pod($service->package))->setAttributes(ApiFixture::getPodById('pod_id'));
+        $pod = (new Pod($service->package))->setAttributes(ApiFixture::getPodWithResources('pod_id'));
 
         BillableItem::create([
             'id' => DatabaseFixture::$billableItemId,

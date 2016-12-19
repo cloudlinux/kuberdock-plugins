@@ -3,6 +3,7 @@
 namespace models\addon\billing;
 
 
+use Carbon\Carbon;
 use components\BillingApi;
 use components\Component;
 use components\InvoiceItemCollection;
@@ -14,7 +15,6 @@ use exceptions\NotFoundException;
 use models\addon\App;
 use models\addon\Item;
 use models\addon\ItemInvoice;
-use models\addon\ResourcePods;
 use models\addon\Resources;
 use models\addon\resource\Pod;
 use models\addon\resource\ResourceFactory;
@@ -22,12 +22,15 @@ use models\billing\BillableItem;
 use models\billing\Client;
 use models\billing\Config;
 use models\billing\Invoice;
-use models\billing\InvoiceItem;
 use models\billing\Service;
-use models\Model;
+
 
 class Fixed extends Component implements BillingInterface
 {
+    /**
+     * @var App
+     */
+    public $app;
     /**
      * @var float
      */
@@ -45,20 +48,18 @@ class Fixed extends Component implements BillingInterface
         }
 
         $invoiceItems = $resource->getInvoiceItems();
-        $invoiceItems->filterPaidResources($service, $resource->id);
+        $invoiceItems->setResource($resource);
+        $invoiceItems->filterPaidResources($service);
         $item = $this->createBillableItem($invoiceItems, $service, Resources::TYPE_POD, $resource);
 
         // On 1st service order
         $paidItemInvoice = $item->invoices()->paid()->first();
         if ($service->moduleCreate && $paidItemInvoice) {
             $this->afterOrderPayment($paidItemInvoice);
-
             return $paidItemInvoice->invoice;
         }
 
-        $invoice = $item->invoices()->unpaid()->first()->invoice;
-
-        return $invoice;
+        return $item->invoices()->unpaid()->first()->invoice;
     }
 
     /**
@@ -122,6 +123,8 @@ class Fixed extends Component implements BillingInterface
 
         $pod->loadById($item->pod_id);
 
+        Resources::add($pod, $item);
+
         return $pod;
     }
 
@@ -161,6 +164,7 @@ class Fixed extends Component implements BillingInterface
         $app = App::notCreated()->where('service_id', $service->id)->first();
 
         if ($app) {
+            $this->app = $app;
             $service->moduleCreate = true;
             $invoice = $billing->order($app->getResource(), $service);
 
@@ -219,6 +223,7 @@ class Fixed extends Component implements BillingInterface
 
         // Process deleted pods
         $this->processDeletedPods();
+        $this->processDeletedResources();
 
         // Process unpaid items
         $unpaidItems = Item::select('KuberDock_items.*')
@@ -236,16 +241,30 @@ class Fixed extends Component implements BillingInterface
             ->get();
 
         foreach ($unpaidItems as $item) {
+            /* @var Item $item */
             $itemInvoice = $item->invoices()->unpaid()->orderBy('id', 'asc')->first();
 
             // Free resources
             switch ($item->type) {
                 case Resources::TYPE_POD:
-                    // TODO: remove PD\IP
                     try {
                         $item->service->getAdminApi()->updatePod($item->pod_id, [
                             'unpaid' => true,
                         ]);
+
+                        if (!$settings->isTerminated($itemInvoice->invoice->duedate)) {
+                            break;
+                        }
+
+                        foreach ($item->resourcePods as $resourcePod) {
+                            if ($resourcePod->resources->isDeleted()) {
+                                if ($resourcePod->resources->type === Resources::TYPE_PD) {
+                                    $resourcePod->resources->freePD($item);
+                                } else {
+                                    $resourcePod->resources->freeIP($item);
+                                }
+                            }
+                        }
                     } catch (NotFoundException $e) {
                         break;
                     } catch (\Exception $e) {
@@ -348,7 +367,9 @@ class Fixed extends Component implements BillingInterface
         $this->proRate = $item->billableItem->getProRate();
 
         $invoiceItems = $this->collectEditInvoiceItems($pod, $newPod);
-        $invoiceItems->filterPaidResources($service, $pod->id);
+        $invoiceItems->setItem($item);
+        $invoiceItems->setResource($pod);
+        $invoiceItems->filterPaidResources($service);
 
         if (isset($newPod->template_plan_name)) {
             $attributes['plan'] = $newPod->template_plan_name;
@@ -356,7 +377,7 @@ class Fixed extends Component implements BillingInterface
         }
 
         if ($invoiceItems->sum() <= 0) {
-            if ($type == ItemInvoice::TYPE_SWITCH) {
+            if ($type === ItemInvoice::TYPE_SWITCH) {
                 try {
                     $item->service->getAdminApi()->switchPodPlan($item->pod_id, $attributes['plan']);
                 } catch (\Exception $e) {
@@ -399,7 +420,6 @@ class Fixed extends Component implements BillingInterface
     {
         $invoiceItems = new InvoiceItemCollection();
         $package = $new->getPackage();
-
         $packageKubes = $old->getPackage()->getKubes();
 
         $oldKubeType = $packageKubes[$old->getKubeType()];
@@ -573,7 +593,7 @@ class Fixed extends Component implements BillingInterface
      * @param Service $service
      * @return Invoice
      */
-    private function processTypeEdit(Pod $pod, Item $item, Service $service)
+    public function processTypeEdit(Pod $pod, Item $item, Service $service)
     {
         return $this->createEditInvoice($pod, $item, $service);
     }
@@ -602,7 +622,6 @@ class Fixed extends Component implements BillingInterface
             ->get();
 
         foreach ($items as $item) {
-
             try {
                 /** @var Service $service */
                 $service = $item->service;
@@ -611,8 +630,31 @@ class Fixed extends Component implements BillingInterface
                 }
             } catch (NotFoundException $e) {
                 $item->stopInvoicing();
+                $item->changeStatus();
             } catch (\Exception $e) {
                 CException::log($e);
+            }
+        }
+    }
+
+    /**
+     * Clean resources
+     */
+    private function processDeletedResources()
+    {
+        $query = Resources::select('r.*')
+            ->from('KuberDock_items as i')
+            ->join('KuberDock_resource_items as ri', 'ri.item_id', '=', 'i.id')
+            ->join('KuberDock_resource_pods as rp', 'rp.id', '=', 'ri.resource_pod_id')
+            ->join('KuberDock_resources as r', 'r.id', '=', 'rp.resource_id')
+            ->where('i.due_date', '<=', new Carbon())
+            ->groupBy('r.id');
+        $resources = $query->get();
+
+        foreach ($resources as $resource) {
+            if (!$resource->hasPaidItems()) {
+                $resource->status = Resources::STATUS_DELETED;
+                $resource->save();
             }
         }
     }

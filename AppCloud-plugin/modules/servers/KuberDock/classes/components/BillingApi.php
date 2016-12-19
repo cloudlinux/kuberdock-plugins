@@ -147,6 +147,10 @@ class BillingApi extends Component
                 $values['itemtaxed' . $count] = true;
             }
 
+            if ($item->notes) {
+                $values['itemnotes' . $count] = json_encode($item->notes);
+            }
+
             if (!$item->isShort() && $template == 'kuberdock') {
                 $values['notes'] .= $item->getHtml($count);
             }

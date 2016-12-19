@@ -48,19 +48,11 @@ class Item extends Model
             $table->integer('billable_item_id')->nullable();
             $table->string('status', 32)->default(Resources::STATUS_ACTIVE);
             $table->string('type', 64)->default(Resources::TYPE_POD);
-            $table->date('due_date');
+            $table->date('due_date')->nullable();
 
             $table->index('pod_id');
             $table->index('billable_item_id');
         };
-    }
-
-    /**
-     *
-     */
-    protected static function boot()
-    {
-        parent::boot();
     }
 
     /**
@@ -92,7 +84,7 @@ class Item extends Model
      */
     public function resourcePods()
     {
-        return $this->belongsToMany('models\addon\ResourcePods', 'KuberDock_resource_items', 'item_id', 'resource_pod_id');
+        return $this->belongsToMany('models\addon\ResourcePods', ResourceItems::tableName(), 'item_id', 'resource_pod_id');
     }
 
     /**
@@ -121,11 +113,21 @@ class Item extends Model
         return $query->where('billable_item_id', '>', 0);
     }
 
+    /**
+     * @param $query
+     * @param $userId
+     * @return mixed
+     */
     public function scopeUser($query, $userId)
     {
         return $query->where('user_id', $userId);
     }
 
+    /**
+     * @param $query
+     * @param $type
+     * @return mixed
+     */
     public function scopeType($query, $type)
     {
         return $query->where('type', $type);
@@ -178,6 +180,38 @@ class Item extends Model
     }
 
     /**
+     *
+     */
+    public function changeStatus()
+    {
+        if ($this->due_date >= new Carbon()) {
+            $this->status = Resources::STATUS_PAID_DELETED;
+        } else {
+            $this->status = Resources::STATUS_DELETED;
+        }
+
+        $this->save();
+    }
+
+    /**
+     * @return float
+     */
+    public function getProrate()
+    {
+        $now = new Carbon();
+        $now->setTime(0, 0, 0);
+
+        if ($this->due_date <= $now) {
+            return 1;
+        }
+
+        $next = $this->due_date->modify($this->service->package->getNextShift());
+        $period = $this->due_date->diffInDays($next);
+
+        return 1 - $this->due_date->diffInDays($now) / $period;
+    }
+
+    /**
      * @throws \Exception
      */
     public function stopInvoicing()
@@ -213,11 +247,7 @@ class Item extends Model
             }
         }
 
-        $this->resourcePods()->detach();
-
         $this->billableItem->delete();
-        $this->status = Resources::STATUS_DELETED;
-        $this->save();
     }
 
     /**
@@ -231,7 +261,7 @@ class Item extends Model
             ->where('relid', '>', 0)
             ->where('invoiceid', '>', 0)
             ->where('type', BillableItem::TYPE)
-             ->get();
+            ->get();
 
         foreach ($invoiceItems as $invoiceItem) {
             $addonItem = $invoiceItem->billableItem->addonItem;

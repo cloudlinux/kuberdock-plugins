@@ -4,9 +4,13 @@
 namespace components;
 
 
+use models\addon\Item;
+use models\addon\resource\Pod;
+use models\addon\resource\ResourceFactory;
 use models\addon\Resources;
 use models\addon\State;
 use models\billing\Service;
+use models\Model;
 
 class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
 {
@@ -18,6 +22,14 @@ class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
      * @var string
      */
     protected $description;
+    /**
+     * @var Item
+     */
+    protected $item;
+    /**
+     * @var ResourceFactory $resource
+     */
+    protected $resource;
 
     /**
      *
@@ -65,6 +77,22 @@ class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
     }
 
     /**
+     * @param Item $item
+     */
+    public function setItem(Item $item)
+    {
+        $this->item = $item;
+    }
+
+    /**
+     * @param ResourceFactory $resource
+     */
+    public function setResource(ResourceFactory $resource)
+    {
+        $this->resource = $resource;
+    }
+
+    /**
      * @return float
      */
     public function sum()
@@ -96,44 +124,23 @@ class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
     }
 
     /**
-     * Walk through items and divide PD\IP resources which already used
+     * Walk through items and divide PD\IP resources which already used (Fixed)
      *
      * @param Service $service
-     * @param string $pod_id
      */
-    public function filterPaidResources(Service $service, $pod_id = null)
+    public function filterPaidResources(Service $service)
     {
-        $this->data = array_filter($this->data, function ($item) use ($service, $pod_id) {
-            /** @var InvoiceItem $item */
-            switch ($item->getType()) {
-                /** @var Resources $resource */
+        $this->data = array_filter($this->data, function ($invoiceItem) use ($service) {
+            /**
+             * @var InvoiceItem $invoiceItem
+             * @var Resources $resource
+             * @var Item $item
+             */
+            switch ($invoiceItem->getType()) {
                 case Resources::TYPE_PD:
-                    $resource = Resources::notDeleted($service->userid)->where('name', $item->getName())
-                        ->typePd()->first();
-
-                    if (!$resource) {
-                        return true;
-                    }
-
-                    if ($resource->isActive() && !$resource->isSamePod($pod_id)) {
-                        return $resource->divide($item, $pod_id);
-                    }
-
-                    break;
+                    return $this->filterPaidPD($invoiceItem, $service);
                 case Resources::TYPE_IP:
-                    $ipStat = $service->getApi()->getIpPoolStat()->getData();
-                    $resource = Resources::notDeleted($service->userid)->where('name', count($ipStat))
-                        ->typeIp()->first();
-
-                    if (!$resource) {
-                        return true;
-                    }
-
-                    if ($resource->isActive() && !$resource->isSamePod($pod_id)) {
-                        return $resource->divide($item, $pod_id);
-                    }
-
-                    break;
+                    return $this->filterPaidIP($invoiceItem, $service);
             }
 
             return true;
@@ -141,6 +148,51 @@ class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
     }
 
     /**
+     * @param InvoiceItem $invoiceItem
+     * @param Service $service
+     * @return bool
+     */
+    public function filterPaidPD(InvoiceItem $invoiceItem, Service $service)
+    {
+        /* @var Resources $resource */
+        $resource = Resources::notDeleted($service->userid)->where('name', $invoiceItem->getName())
+            ->typePd()->first();
+
+        if (!$resource || !$resource->isActive()) {
+            return true;
+        }
+
+        return $this->processFilterPaidResources($invoiceItem, $resource);
+    }
+
+    /**
+     * @param InvoiceItem $invoiceItem
+     * @param Service $service
+     * @return bool
+     */
+    public function filterPaidIP(InvoiceItem $invoiceItem, Service $service)
+    {
+        /* @var Resources $resource */
+        $ipStat = $service->getApi()->getIpPoolStat()->getData();
+        $total = count($ipStat);
+
+        // Order new pod with public IP
+        if (!$this->item) {
+            $total++;
+        }
+
+        $resource = Resources::notDeleted($service->userid)->where('name', $total)
+            ->typeIp()->first();
+
+        if (!$resource || !$resource->isActive()) {
+            return true;
+        }
+
+        return $this->processFilterPaidResources($invoiceItem, $resource);
+    }
+
+    /**
+     * Filter paid resources (PAYG)
      * @param State $state
      */
     public function filterPaidState(State $state)
@@ -164,5 +216,35 @@ class InvoiceItemCollection implements \IteratorAggregate, \JsonSerializable
 
             return true;
         });
+    }
+
+    /**
+     * @param InvoiceItem $invoiceItem
+     * @param Resources $resource
+     * @return bool
+     */
+    protected function processFilterPaidResources(InvoiceItem $invoiceItem, Resources $resource)
+    {
+        $paidDeleted = $resource->resourcePods()->paidDeletedItems()->first();
+
+        if ($paidDeleted) {
+            $prorate = $paidDeleted->items->first()->getProrate();
+
+            // current day
+            if ($prorate == 0) {
+                return false;
+            }
+
+            $invoiceItem->proratePrice($prorate);
+
+            return true;
+        }
+
+        if (!$this->item || ($this->item && $this->item->pod_id !== $this->resource->id)) {
+            $resource->divide($invoiceItem);
+            return false;
+        }
+
+        return true;
     }
 }

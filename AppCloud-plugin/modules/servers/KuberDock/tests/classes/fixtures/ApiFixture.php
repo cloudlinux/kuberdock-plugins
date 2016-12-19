@@ -183,7 +183,7 @@ class ApiFixture
         ];
     }
 
-    public static function getPodById($podId)
+    public static function getPodWithResources($podId)
     {
         return [
             'id' => $podId,
@@ -225,6 +225,108 @@ class ApiFixture
                     ],
                 ],
             ],
+            'public_ip' => '192.168.1.1',
+        ];
+    }
+
+    public static function getPodWithoutResources($podId)
+    {
+        return [
+            'id' => $podId,
+            'name' => 'New Pod #1',
+            'volumes' => [],
+            'kube_type' => 1,
+            'containers' => [
+                [
+                    'kubes' => 1,
+                    'name' => 'kniyq4s',
+                    'image' => 'nginx',
+                    'volumeMounts' => [
+                        [
+                            'mountPath' => '/var/log',
+                            'name' => 'tp5547kq4d'
+                        ]
+                    ],
+                    'ports' => [
+                        [
+                            'isPublic' => false,
+                            'protocol' => 'tcp',
+                            'containerPort' => 443,
+                            'hostPort' => 443
+                        ],
+                        [
+                            'isPublic' => false,
+                            'protocol' => 'tcp',
+                            'containerPort' => 80,
+                            'hostPort' => 80
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    public static function createPodFromYaml()
+    {
+        return [
+            'status' => 'OK',
+            'data' => [
+                'id' => 'pod_id',
+                'name' => 'redis',
+                'volumes' => [
+                    [
+                        'persistentDisk' => [
+                            'pdSize' => 1,
+                            'pdName' => 'redis_random'
+                        ],
+                        'name' => 'tp5547kq4d'
+                    ]
+                ],
+                'kube_type' => 1,
+                'containers' => [
+                    [
+                        'kubes' => 1,
+                        'name' => 'kniyq4s',
+                        'image' => 'redis:3',
+                        'volumeMounts' => [
+                            [
+                                'mountPath' => '/data',
+                                'name' => 'redis-persistent-storage'
+                            ]
+                        ],
+                        'ports' => [
+                            [
+                                'isPublic' => true,
+                                'protocol' => 'tcp',
+                                'containerPort' => 6379,
+                                'hostPort' => 6379
+                            ]
+                        ],
+                    ],
+                ],
+            ]
+        ];
+    }
+
+    public static function getIpPoolStatWithIp()
+    {
+        return [
+            'data' => [
+                [
+                    'id' => '192.168.1.1',
+                    'pod' => 'redis',
+                    'pod_id' => 'pod_id#1',
+                ],
+            ],
+            'status' => 'OK',
+        ];
+    }
+
+    public static function getIpPoolStatNoIp()
+    {
+        return [
+            'data' => [],
+            'status' => 'OK',
         ];
     }
 }

@@ -38,12 +38,29 @@ class InvoiceItem extends Model
     }
 
     /**
+     * @param string $value
+     * @return mixed
+     */
+    public function getNotesAttribute($value)
+    {
+        return json_decode($value);
+    }
+
+    /**
+     * @param array $value
+     */
+    public function setNotesAttribute($value)
+    {
+        $this->attributes['notes'] = json_encode($value);
+    }
+
+    /**
      * @param BillableItem $item
      * @return $this
      */
     public function assignBillableItem(BillableItem $item)
     {
-        if ($this->type == 'Hosting') {
+        if ($this->type === 'Hosting') {
             return $this;
         }
 
