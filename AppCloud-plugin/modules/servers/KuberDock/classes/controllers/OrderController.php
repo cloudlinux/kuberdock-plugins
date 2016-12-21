@@ -10,6 +10,7 @@ use Exception;
 use exceptions\CException;
 use models\addon\App;
 use models\billing\Server;
+use models\billing\Service;
 
 
 class OrderController extends Controller {
@@ -68,7 +69,7 @@ class OrderController extends Controller {
             ];
         }
 
-        $service = Server::find($serviceId);
+        $service = Service::find($serviceId);
 
         try {
             $service->getAdminApi()->redeployPod($podId, $values);
