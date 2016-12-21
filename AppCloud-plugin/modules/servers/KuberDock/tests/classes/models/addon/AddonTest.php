@@ -185,7 +185,7 @@ class AddonTest extends TestCase
         ServerGroup::create(['name' => 'KuberDock group', 'filltype' => 1]);
         ServerGroupRelation::create(['groupid' => 1, 'serverid' => 1]);
 
-        Item::create(['user_id' => 1, 'service_id' => 1]);
+        Item::create(['user_id' => 1, 'service_id' => 1, 'due_date' => '2016-12-01']);
         Addon::model()->activate();
 
         // package group is created
@@ -227,7 +227,9 @@ class AddonTest extends TestCase
             'APIAllowedIPs' => 'a:1:{i:0;a:2:{s:2:"ip";s:7:"8.8.8.8";s:4:"note";s:9:"KuberDock";}}',
             'ModuleHooks' => 'KuberDock',
         ];
-        $this->assertEquals($expectedConfig, Config::all()->lists('value','setting'));
+        $c = Config::all();
+        $d = method_exists($c, 'list') ? $c->lists('value','setting') : $c->pluck('value','setting')->all();
+        $this->assertEquals($expectedConfig, $d);
 
         // 3 kube templates created
         $this->assertEquals(3, KubeTemplate::all()->count());

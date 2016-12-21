@@ -183,4 +183,48 @@ class ApiFixture
         ];
     }
 
+    public static function getPodById($podId)
+    {
+        return [
+            'id' => $podId,
+            'name' => 'New Pod #1',
+            'volumes' => [
+                [
+                    'persistentDisk' => [
+                        'pdSize' => 2,
+                        'pdName' => 'nginx_test'
+                    ],
+                    'name' => 'tp5547kq4d'
+                ]
+            ],
+            'kube_type' => 1,
+            'containers' => [
+                [
+                    'kubes' => 1,
+                    'name' => 'kniyq4s',
+                    'image' => 'nginx',
+                    'volumeMounts' => [
+                        [
+                            'mountPath' => '/var/log',
+                            'name' => 'tp5547kq4d'
+                        ]
+                    ],
+                    'ports' => [
+                        [
+                            'isPublic' => true,
+                            'protocol' => 'tcp',
+                            'containerPort' => 443,
+                            'hostPort' => 443
+                        ],
+                        [
+                            'isPublic' => true,
+                            'protocol' => 'tcp',
+                            'containerPort' => 80,
+                            'hostPort' => 80
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
 }
