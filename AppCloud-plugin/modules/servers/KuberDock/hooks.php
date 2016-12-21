@@ -478,6 +478,7 @@ add_hook('ClientAdd', 1, 'KuberDock_ClientAdd');
 function KuberDock_AfterModuleCreate($params)
 {
     $service = Service::find($params['params']['serviceid']);
+    $billing = $service->package->getBilling();
 
     try {
         Service::typeKuberDock()
@@ -486,8 +487,12 @@ function KuberDock_AfterModuleCreate($params)
             ->where('id', '!=', $service->id)
             ->delete();
 
-        $service->package->getBilling()->afterModuleCreate($service);
+        $billing->afterModuleCreate($service);
     } catch (Exception $e) {
+        if ($billing->app) {
+            Tools::jsRedirect($billing->app->referer . '&error=' . urlencode($e->getMessage()));
+        }
+
         CException::log($e);
     }
 }

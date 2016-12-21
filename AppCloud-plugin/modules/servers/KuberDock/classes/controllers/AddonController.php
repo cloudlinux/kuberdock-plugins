@@ -141,6 +141,11 @@ class AddonController extends Controller {
             Csrf::check();
 
             $kubePrice = Tools::model()->getPost('kube_price', '');
+
+            if ($kubePrice !== '' && (float) $kubePrice === 0.00) {
+                throw new \InvalidArgumentException('Kube price should be more than 0');
+            }
+
             $id = (int) Tools::model()->getPost('id');
             $productId = (int) Tools::model()->getPost('product_id');
             $templateId = (int) Tools::model()->getPost('template_id');
@@ -149,7 +154,7 @@ class AddonController extends Controller {
 
             $kubeTemplate = KubeTemplate::find($templateId);
 
-            if ($kubePrice == '') {
+            if ($kubePrice === '') {
                 KubePrice::find($id)->delete();
             } else {
                 $kube = $id ? KubePrice::find($id) : new KubePrice();

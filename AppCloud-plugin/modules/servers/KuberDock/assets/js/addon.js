@@ -25,6 +25,7 @@ jQuery.noConflict(true);
             var input = $('#price_input_' + $(this).data('input'));
             var checked = this.checked;
             var prev = input.data('prev');
+            prev = prev ? prev : 0.01;
 
             input
                 .val(checked ? prev : '')
@@ -109,21 +110,6 @@ jQuery.noConflict(true);
             if (_this.data('prev')==_this.val()) {
                 _this.siblings('span').addClass('hidden');
             }
-        });
-
-        $(document).on('click', 'button.migration', function(e) {
-            var self = $(this);
-
-            $.ajax({
-                url: 'addonmodules.php?module=KuberDock&a=migrate',
-                type: 'POST',
-                dataType: 'json'
-            }).success(function(data) {
-                var modal = $('#myModal');
-                modal.find('.modal-body').html(data.message);
-                modal.modal('show');
-                self.remove();
-            });
         });
 
         $(document).on('click', 'button.kube-delete', function (e) {
