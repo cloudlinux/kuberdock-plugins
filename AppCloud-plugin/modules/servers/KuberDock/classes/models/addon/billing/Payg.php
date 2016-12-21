@@ -29,7 +29,7 @@ class Payg extends Component implements BillingInterface
     /**
      * @var App
      */
-    protected $app;
+    public $app;
 
     /**
      * @param ResourceFactory $resource
@@ -88,7 +88,7 @@ class Payg extends Component implements BillingInterface
     }
 
     /**
-     * @param Item $item
+     * @param ItemInvoice $itemInvoice
      * @return Pod
      */
     public function afterSwitchPayment(ItemInvoice $itemInvoice)
@@ -208,25 +208,25 @@ class Payg extends Component implements BillingInterface
         $settings = new AutomationSettings();
         $package = $service->package;
 
-        $now = new \DateTime();
+        $now = new Carbon();
         $now->setTime(0, 0, 0);
-        $expireDate = clone $service->regdate;
-        $expireDate->modify('+' . $package->getTrialTime() . ' day');
+        $expireDate = $service->regdate;
+        $expireDate->addDays($package->getTrialTime());
 
         if ($now >= $expireDate) {
+            // If suspend module then user can't change product via client area
+            $service->getAdminApi()->updateUser(['suspended' => true], $service->username);
+
             if ($expireDate == $now) {
                 if ($package->getSendTrialExpire()) {
                     BillingApi::model()->sendPreDefinedEmail($this->id, EmailTemplate::TRIAL_EXPIRED_NAME, [
                         'trial_end_date' => $expireDate->format('Y-m-d'),
                     ]);
                 }
-
-                // If suspend module then user can't change product via client area
-                $service->getAdminApi()->updateUser(['suspended' => true], $service->username);
-            } else if ($settings->isSuspended($expireDate)) {
+            } else if ($settings->isTerminated($expireDate)) {
                 $resources = new Resources();
                 $resources->freeAll($service);
-            };
+            }
         } else {
             $trialNoticeEvery = $package->getTrialNoticeEvery() != ''
                 ? $package->getTrialNoticeEvery() : 7;
