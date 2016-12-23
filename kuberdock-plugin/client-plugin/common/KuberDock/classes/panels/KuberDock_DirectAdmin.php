@@ -164,6 +164,17 @@ class KuberDock_DirectAdmin extends KuberDock_Panel
         return $data;
     }
 
+    public static function getAdminInstallAppButton($template)
+    {
+        $class = $template['search_available'] ? 'btn btn-warning btn-xs' : 'btn btn-success btn-xs';
+        $title = $template['search_available'] ? 'Uninstall' : 'Install';
+        $action = $template['search_available'] ? 'appUninstall' : 'appInstall';
+
+        return '<a href="?a=' . $action . '&id=' . $template['id'] . '">
+                <button type="button" class="' . $class . '" title="Install">' . $title . '</button>
+            </a>';
+    }
+
     public static function getAdminUpdateAppButton($template)
     {
         return '<a href="?a=app&id=' . $template['id'] . '">

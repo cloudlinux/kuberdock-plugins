@@ -142,19 +142,34 @@ class AdminController extends KuberDock_Controller
         ));
     }
 
-    public function appDeleteAction()
+    private function actionPost($action, $message)
     {
         $id = (int) $_GET['id'];
 
         try {
             $model = new \Kuberdock\classes\models\App($this->panelName);
-            $model->delete($id);
-            $this->setLocalStorage('flash', array('Template was successfully deleted'=>'info'));
+            $model->$action($id);
+            $this->setLocalStorage('flash', [$message => 'info']);
         } catch (\Exception $e) {
-            $this->setLocalStorage('flash', array($e->getMessage() => 'danger'));
+            $this->setLocalStorage('flash', [$e->getMessage() => 'danger']);
         }
 
         $this->redirect('#pre_apps');
+    }
+
+    public function appDeleteAction()
+    {
+        $this->actionPost('delete', 'Template was successfully deleted');
+    }
+
+    public function appInstallAction()
+    {
+        $this->actionPost('install', 'Template was successfully installed');
+    }
+
+    public function appUninstallAction()
+    {
+        $this->actionPost('uninstall', 'Template was successfully uninstalled');
     }
 
     /**

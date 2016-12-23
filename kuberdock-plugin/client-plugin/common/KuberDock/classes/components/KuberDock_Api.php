@@ -759,28 +759,23 @@ class KuberDock_Api {
      */
     public function getTemplates($origin, $page = 1)
     {
-        $this->url = $this->serverUrl . '/api/predefined-apps';
-        $response = $this->call(array(
-            'page' => $page,
-        ), 'GET');
+        $data = $this->apiCall('/api/predefined-apps', ['page' => $page]);
 
-        if(!$response->getStatus()) {
-            throw new CException($response->getMessage());
-        }
-
-        return array_filter($response->getData(), function ($e) use ($origin) {
-            if ($e['origin'] == $origin) {
-                return true;
-            }
+        return array_filter($data, function ($e) use ($origin) {
+            return $e['origin'] === $origin;
         });
     }
 
     public function getClientTemplates()
     {
         $base = \Kuberdock\classes\Base::model();
-        $apps = $base->getPanel()->getAdminApi()->getTemplates(strtolower($base->getPanelType()));
+        $apps = $this->getTemplates(strtolower($base->getPanelType()));
         $panelUrl = $base->getPanel()->getClientUrl();
         $defaultImage = $base->getPanel()->getAssets()->getRelativePath('images/default_transparent.png');
+
+        $apps = array_filter($apps, function ($e) {
+            return isset($e['search_available']) && $e['search_available'];
+        });
 
         array_walk($apps, function (&$e) use ($panelUrl, $defaultImage) {
             $yaml = \Kuberdock\classes\extensions\yaml\Spyc::YAMLLoadString($e['template']);
@@ -849,7 +844,27 @@ class KuberDock_Api {
      */
     public function deleteTemplate($id)
     {
-        return $this->apiCall('/api/predefined-apps/' . $id, array(), 'DELETE');
+        return $this->apiCall('/api/predefined-apps/' . $id, [], 'DELETE');
+    }
+
+    /**
+     * @param $id
+     * @return array
+     * @throws CException
+     */
+    public function uninstallTemplate($id)
+    {
+        return $this->apiCall('/api/predefined-apps/' . $id, ['search_available' => false], 'PUT');
+    }
+
+    /**
+     * @param $id
+     * @return array
+     * @throws CException
+     */
+    public function installTemplate($id)
+    {
+        return $this->apiCall('/api/predefined-apps/' . $id, ['search_available' => true], 'PUT');
     }
 
     /**
@@ -948,7 +963,12 @@ class KuberDock_Api {
      */
     public function requestToken()
     {
-        $response = $this->apiCall('/api/auth/token', array(), 'GET');
+        $this->url = $this->serverUrl . '/api/auth/token';
+        $response = $this->call();
+
+        if (!$response->getStatus()) {
+            throw new CException($response->getMessage());
+        }
 
         return $response->parsed['token'];
     }

@@ -1,6 +1,6 @@
 <div class="container pull-left">
     <div class="row">
-        <div class="col-xs-8 col-md-8">
+        <div class="col-xs-9 col-md-9">
             <div class="top-offset">
                 <a name="add" href="?a=app" class="btn btn-primary">Add app</a>
             </div>
@@ -9,8 +9,8 @@
                 <thead>
                 <tr>
                     <th class="text-center col-xs-1 col-md-1">#</th>
-                    <th class="text-center col-xs-3 col-md-6">App name</th>
-                    <th class="text-center col-xs-4 col-md-5">Actions</th>
+                    <th class="text-center col-xs-4 col-md-4">App name</th>
+                    <th class="text-center col-xs-7 col-md-7">Actions</th>
                 </tr>
                 </thead>
                 <?php foreach ($apps as $app):?>

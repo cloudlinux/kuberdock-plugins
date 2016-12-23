@@ -1,5 +1,5 @@
 jQuery(function () {
-    jQuery(document).on('click', '.btn_delete', function(e) {
+    jQuery(document).on('click', '.btn_action', function(e) {
         e.preventDefault();
         var self = jQuery(this);
         jQuery.ajax({

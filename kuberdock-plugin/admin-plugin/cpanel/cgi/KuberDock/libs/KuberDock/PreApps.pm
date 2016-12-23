@@ -229,6 +229,10 @@ sub install() {
         KuberDock::Exception::throw('Plugin already installed');
         return 0;
     }
+
+    my $api = KuberDock::API->new;
+    $api->installTemplate($self->{_templateId});
+
     my $json = KuberDock::JSON->new();
     my $details = $json->loadFile($self->getFilePath('install.json'));
     my $tar = Archive::Tar->new();
@@ -261,6 +265,10 @@ sub uninstall() {
         KuberDock::Exception::throw('Plugin already uninstalled');
         return 0;
     }
+
+    my $api = KuberDock::API->new;
+    $api->uninstallTemplate($self->{_templateId});
+
     my $json = KuberDock::JSON->new();
     my $details = $json->loadFile($self->getFilePath('install.json'));
 

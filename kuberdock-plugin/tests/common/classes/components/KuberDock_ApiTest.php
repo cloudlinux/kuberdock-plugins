@@ -86,4 +86,20 @@ class KuberDock_ApiTest extends TestCase
 
         $this->assertEquals($result, json_decode($expectedJson, true)['data']);
     }
+
+    public function testGetTemplates()
+    {
+        $data = [
+            ['id' => 1, 'origin' => 'some_origin'],
+            ['id' => 2, 'origin' => 'other_origin'],
+        ];
+
+        $this->curl_exec->expects($this->once())->willReturn('{ "data": ' . json_encode($data) . ', "status": "OK" }');
+        $this->curl_getinfo->expects($this->once())->willReturn(['http_code' => 200]);
+
+        $result = $this->api->getTemplates('some_origin');
+
+        $this->assertEquals(1, count($result));
+        $this->assertEquals(1, $result[0]['id']);
+    }
 }
