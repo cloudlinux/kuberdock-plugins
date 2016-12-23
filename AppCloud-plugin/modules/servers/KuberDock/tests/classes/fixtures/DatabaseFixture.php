@@ -12,6 +12,7 @@ use models\billing\Admin;
 class DatabaseFixture
 {
     public static $packageIdFixed = 2;
+    public static $packageIdPayg = 3;
     public static $podId = 'pod_id';
     public static $serviceId = 124;
     public static $userId = 13;
@@ -20,27 +21,50 @@ class DatabaseFixture
     public static function package()
     {
         return [
-            'id' => self::$packageIdFixed,
-            'gid' => 1,
-            'type' => 'other',
-            'name' => 'KuberDock',
-            'paytype' => 'onetime',
-            'autosetup' => 'order',
-            'servertype' => KUBERDOCK_MODULE_NAME,
-            'servergroup' => 1,
-            'hidden' => 0,
-            'configoption3' => 'monthly',   // payment type
-            'configoption5' => 1,           // price IP
-            'configoption6' => 1,           // price PD
-            'configoption9' => 'Fixed price',
+            [
+                'id' => self::$packageIdFixed,
+                'gid' => 1,
+                'type' => 'other',
+                'name' => 'KuberDock',
+                'paytype' => 'onetime',
+                'autosetup' => 'order',
+                'servertype' => KUBERDOCK_MODULE_NAME,
+                'servergroup' => 1,
+                'hidden' => 0,
+                'configoption3' => 'monthly',   // payment type
+                'configoption5' => 1,           // price IP
+                'configoption6' => 1,           // price PD
+                'configoption9' => 'Fixed price', // Payment type
+            ],
+            [
+                'id' => self::$packageIdPayg,
+                'gid' => 1,
+                'type' => 'other',
+                'name' => 'KuberDock',
+                'paytype' => 'onetime',
+                'autosetup' => 'order',
+                'servertype' => KUBERDOCK_MODULE_NAME,
+                'servergroup' => 1,
+                'hidden' => 0,
+                'configoption3' => 'monthly',   // payment type
+                'configoption5' => 1,           // price IP
+                'configoption6' => 1,           // price PD
+                'configoption9' => 'PAYG',
+            ],
         ];
     }
 
     public static function packageRelation()
     {
         return [
-            'product_id' => self::$packageIdFixed,
-            'kuber_product_id' => 0,
+            [
+                'product_id' => self::$packageIdFixed,
+                'kuber_product_id' => 0,
+            ],
+            [
+                'product_id' => self::$packageIdPayg,
+                'kuber_product_id' => 1,
+            ],
         ];
     }
 
@@ -71,6 +95,13 @@ class DatabaseFixture
                 'kuber_product_id' => 0,
                 'kube_price' => 0.2,
             ],
+            [
+                'id' => 2,
+                'template_id' => 1,
+                'product_id' => self::$packageIdPayg,
+                'kuber_product_id' => 1,
+                'kube_price' => 0.4,
+            ],
         ];
     }
 
@@ -83,6 +114,18 @@ class DatabaseFixture
             'pod_id' => self::$podId,
             'billable_item_id' => self::$billableItemId,
             'due_date' => (new Carbon())->addDays(10)->toDateString(),
+        ];
+    }
+
+    public static function paygItem()
+    {
+        return [
+            'id' => 13,
+            'user_id' => self::$userId,
+            'service_id' => self::$serviceId,
+            'pod_id' => null,
+            'billable_item_id' => null,
+            'due_date' => null,
         ];
     }
 

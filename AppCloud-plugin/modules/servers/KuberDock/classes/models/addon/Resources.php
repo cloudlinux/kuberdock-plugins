@@ -7,6 +7,7 @@ namespace models\addon;
 use Carbon\Carbon;
 use components\InvoiceItem as ComponentsInvoiceItem;
 use components\Tools;
+use exceptions\CException;
 use exceptions\NotFoundException;
 use models\addon\resource\Pod;
 use models\billing\Invoice;
@@ -284,7 +285,11 @@ class Resources extends Model
         $pd = $api->getPD()->getData();
 
         foreach ($pd as $v) {
-            $api->deletePD($v['id'], true);
+            try {
+                $api->deletePD($v['id'], true);
+            } catch (\Exception $e) {
+                CException::log($e);
+            }
         }
 
         foreach ($api->getPods()->getData() as $pod) {

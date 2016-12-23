@@ -195,7 +195,8 @@ class Payg extends Component implements BillingInterface
             }
         }
 
-        $this->suspendAll();
+        $settings = new AutomationSettings();
+        $this->suspendAll($settings);
     }
 
     /**
@@ -265,11 +266,11 @@ class Payg extends Component implements BillingInterface
     }
 
     /**
+     * @param AutomationSettings $settings
      * @throws \Exception
      */
-    protected function suspendAll()
+    protected function suspendAll(AutomationSettings $settings)
     {
-        $settings = new AutomationSettings();
         $now = new \DateTime();
         $now->setTime(0, 0, 0);
 
@@ -305,8 +306,7 @@ class Payg extends Component implements BillingInterface
             }
 
             if ($settings->isTerminated($invoice->duedate)) {
-                $resources = new Resources();
-                $resources->freeAll($item->service);
+                $this->freeAllResources($item->service);
 
                 BillingApi::model()->sendPreDefinedEmail($item->service->id,
                     EmailTemplate::RESOURCES_NOTICE_NAME, [
@@ -317,6 +317,15 @@ class Payg extends Component implements BillingInterface
                 ]);
             }
         }
+    }
+
+    /**
+     * @param Service $service
+     */
+    protected function freeAllResources(Service $service)
+    {
+        $resources = new Resources();
+        $resources->freeAll($service);
     }
 
     /**
