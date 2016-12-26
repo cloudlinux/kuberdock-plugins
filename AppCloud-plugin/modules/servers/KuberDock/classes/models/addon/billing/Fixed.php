@@ -115,8 +115,7 @@ class Fixed extends Component implements BillingInterface
         try {
             $response = $item->service->getAdminApi()->applyEdit($item->pod_id)->getData();
             $pod->setAttributes($response['edited_config']);
-            $item->billableItem->amount = $item->service->getRatedPrice($pod->getPrice());
-            $item->billableItem->save();
+            $item->billableItem->recalculate($pod);
         } catch (\Exception $e) {
             CException::log($e);
         }

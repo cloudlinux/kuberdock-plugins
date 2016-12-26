@@ -6,6 +6,8 @@ namespace models\billing;
 
 use Carbon\Carbon;
 use models\addon\Item;
+use models\addon\resource\Pod;
+use models\addon\Resources;
 use models\Model;
 
 class BillableItem extends Model
@@ -106,6 +108,45 @@ class BillableItem extends Model
                 $this->recurcycle = self::CYCLE_YEAR;
                 break;
         }
+    }
+
+    /**
+     * Recalculate after payment for edited pod
+     * @param Pod $pod
+     * @return $this
+     */
+    public function recalculate(Pod $pod)
+    {
+        $service = $pod->getService();
+        $price = $pod->getPrice();
+
+        foreach ($pod->getPersistentDisk() as $row) {
+            $resource = Resources::divided()->typePd()
+                ->where('name', $row['pdName'])
+                ->where('user_id', $service->userid)
+                ->first();
+
+            if (!$resource) {
+                continue;
+            }
+
+            $item = Item::where('type', Resources::TYPE_PD)
+                ->where('pod_id', $resource->id)
+                ->where('status', Resources::STATUS_ACTIVE)
+                ->first();
+
+            if ($item) {
+                $storagePrice = $row['pdSize'] * $service->package->getPricePS();
+                $item->billableItem->amount = $storagePrice;
+                $item->billableItem->save();
+                $price -= $storagePrice;
+            }
+        }
+
+        $this->amount = $price;
+        $this->save();
+
+        return $this;
     }
 
     /**

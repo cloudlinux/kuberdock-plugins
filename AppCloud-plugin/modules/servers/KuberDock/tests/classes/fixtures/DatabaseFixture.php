@@ -7,6 +7,7 @@ namespace tests\fixtures;
 use Carbon\Carbon;
 use models\addon\App;
 use models\addon\resource\ResourceFactory;
+use models\addon\Resources;
 use models\billing\Admin;
 
 class DatabaseFixture
@@ -17,6 +18,8 @@ class DatabaseFixture
     public static $serviceId = 124;
     public static $userId = 13;
     public static $billableItemId = 45;
+    public static $pdBillableItemId = 22;
+    public static $pdResourceId = 1;
 
     public static function package()
     {
@@ -126,6 +129,58 @@ class DatabaseFixture
             'pod_id' => null,
             'billable_item_id' => null,
             'due_date' => null,
+        ];
+    }
+
+    public static function pdItem()
+    {
+        return [
+            'id' => 14,
+            'user_id' => self::$userId,
+            'service_id' => self::$serviceId,
+            'pod_id' => self::$pdResourceId,
+            'billable_item_id' => self::$pdBillableItemId,
+            'type' => Resources::TYPE_PD,
+            'due_date' => null,
+        ];
+    }
+
+    public static function billableItem()
+    {
+        return [
+            'id' => self::$billableItemId,
+            'userid' => self::$userId,
+            'description' => 'Standard package - Pod Name #1',
+            'amount' => 2.2,
+            'recur' => 1,
+            'recurcycle' => 'Months',
+            'invoiceaction' => 4,
+            'duedate' => (new Carbon())->addDays(30),
+        ];
+    }
+
+    public static function billableItemPD()
+    {
+        return [
+            'id' => self::$pdBillableItemId,
+            'userid' => self::$userId,
+            'description' => 'Storage: some storage name #1',
+            'amount' => 1,
+            'recur' => 1,
+            'recurcycle' => 'Months',
+            'invoiceaction' => 4,
+            'duedate' => (new Carbon())->addDays(30),
+        ];
+    }
+
+    public static function resourcePD()
+    {
+        return [
+            'id' => self::$pdResourceId,
+            'user_id' => self::$userId,
+            'name' => 'nginx_test',
+            'type' => Resources::TYPE_PD,
+            'status' => Resources::STATUS_DIVIDED,
         ];
     }
 

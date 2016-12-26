@@ -133,6 +133,15 @@ class Resources extends Model
      * @param $query
      * @return mixed
      */
+    public function scopeDivided($query)
+    {
+        return $query->where('status', self::STATUS_DIVIDED);
+    }
+
+    /**
+     * @param $query
+     * @return mixed
+     */
     public function scopeTypePd($query)
     {
         return $query->where('type', self::TYPE_PD);
