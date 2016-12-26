@@ -115,7 +115,7 @@ define(['backbone', 'application/utils'], function(Backbone, Utils) {
                 total = 0;
 
             total += this.getKubes() * kube.price;
-            total += (this.get('public_ip') ? 1 : 0) * userPackage.price_ip;
+            total += (this.getPublicIp() !== 'none' ? 1 : 0) * userPackage.price_ip;
             total += this.getPersistentSize() * userPackage.price_pstorage;
 
             if (full) {
@@ -141,6 +141,25 @@ define(['backbone', 'application/utils'], function(Backbone, Utils) {
 
         getName: function () {
             return encodeURIComponent(this.get('name'));
+        },
+
+        getUrl: function () {
+            var publicIP = this.getPublicIp(),
+                scheme = 'http';
+
+            if (publicIP === 'none') {
+                return '';
+            }
+
+            _.each(this.get('containers'), function (c) {
+                _.each(c.ports, function (p) {
+                    if (p.isPublic) {
+                        scheme = p.containerPort == 443 ? 'https' : 'http';
+                    }
+                })
+            });
+
+            return scheme + '://' + publicIP;
         }
     });
 

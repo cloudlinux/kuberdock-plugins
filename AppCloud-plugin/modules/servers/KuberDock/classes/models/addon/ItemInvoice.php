@@ -183,6 +183,8 @@ class ItemInvoice extends Model
             $sibling->delete();
         }
 
-        Invoice::whereIn('id', $invoiceIds)->delete();
+        if ($invoiceIds) {
+            Invoice::whereIn('id', $invoiceIds)->delete();
+        }
     }
 }

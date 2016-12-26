@@ -529,7 +529,7 @@ class KcliCommand extends Command {
         $panel = Base::model()->getStaticPanel();
         $path = $this->getPodSchemePath($name);
         $scheme = json_decode($panel->getFileManager()->getFileContent($path), true);
-        $scheme = array_merge($scheme, $data);
+        $scheme = array_replace_recursive($data, $scheme);
         $panel->getFileManager()->putFileContent($path, json_encode($scheme));
     }
 

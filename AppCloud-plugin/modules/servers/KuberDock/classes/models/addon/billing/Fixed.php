@@ -380,6 +380,7 @@ class Fixed extends Component implements BillingInterface
             if ($type === ItemInvoice::TYPE_SWITCH) {
                 try {
                     $item->service->getAdminApi()->switchPodPlan($item->pod_id, $attributes['plan']);
+                    $newPod->loadById($item->pod_id);
                 } catch (\Exception $e) {
                     CException::log($e);
                 }

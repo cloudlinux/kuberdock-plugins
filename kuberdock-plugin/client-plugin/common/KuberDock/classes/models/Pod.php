@@ -163,15 +163,15 @@ class Pod {
         $volumes = array();
         $attributes = array('mountPath', 'size', 'persistent', 'name');
 
-        foreach($values as $row) {
+        foreach ($values as $row) {
             $volume = array();
 
-            if(!is_array($row)) {
+            if (!is_array($row)) {
                 $volume['mountPath'] = $row;
             }
 
-            foreach($attributes as $attr) {
-                if(isset($row[$attr])) {
+            foreach ($attributes as $attr) {
+                if (isset($row[$attr])) {
                     $volume[$attr] = $row[$attr];
                 }
             }
@@ -511,6 +511,27 @@ class Pod {
 
         foreach($container['volumeMounts'] as $index => $data) {
             $this->command->setMountPath($this->name, $container['image'], $index, $data, $container['kubes']);
+
+            // TODO: move to kcli when functional will be added (or kdctl)
+            if (!isset($data['name'])) {
+                $data['name'] = preg_replace('/[^A-Za-z?!]/', '', $data['mountPath']);
+                $this->command->putToPodScheme($this->name, array(
+                    'containers' => [
+                        0 => [
+                            'volumeMounts' => [
+                                $index => $data,
+                            ],
+                        ],
+                    ],
+                ));
+                $this->command->putToPodScheme($this->name, array(
+                    'volumes' => [
+                        $index => [
+                            'name' => $data['name'],
+                        ],
+                    ],
+                ));
+            }
         }
 
         // TODO: move to kcli when functional will be added (or kdctl)

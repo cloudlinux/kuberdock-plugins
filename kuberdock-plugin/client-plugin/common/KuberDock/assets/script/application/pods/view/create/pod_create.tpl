@@ -86,12 +86,20 @@
 
                             <label class="radio-inline">
                                 <input type="radio" name="public_access_type" value="public" checked>
+                            <% if (kdSetupInfo.AWS) { %>
+                                Standard domain
+                            <% } else { %>
                                 Public IP
+                            <% } %>
                             </label>
 
                             <label class="radio-inline">
                                 <input type="radio" name="public_access_type" value="domain">
+                            <% if (kdSetupInfo.AWS) { %>
+                                Specific domain
+                            <% } else { %>
                                 Domain name
+                            <% } %>
                             </label>
 
                             <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip"

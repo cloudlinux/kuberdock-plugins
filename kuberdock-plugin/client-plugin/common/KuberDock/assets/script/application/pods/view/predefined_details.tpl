@@ -54,7 +54,7 @@
                         </td>
                         <td>
                         <% if (isUrl) { %>
-                            <a href="<%- model.getPublicIp() %>" target="_blank"><%- model.getPublicIp() %></a>
+                            <a href="<%- model.getUrl() %>" target="_blank"><%- model.getUrl() %></a>
                         <% } else { %>
                             <%- model.getPublicIp() %>
                         <% } %>

@@ -773,8 +773,9 @@ class KuberDock_Api {
         $panelUrl = $base->getPanel()->getClientUrl();
         $defaultImage = $base->getPanel()->getAssets()->getRelativePath('images/default_transparent.png');
 
+        // TODO: Remove !isset($e['search_available']) when AC-5106 released (KD 1.6)
         $apps = array_filter($apps, function ($e) {
-            return isset($e['search_available']) && $e['search_available'];
+            return !isset($e['search_available']) || isset($e['search_available']) && $e['search_available'];
         });
 
         array_walk($apps, function (&$e) use ($panelUrl, $defaultImage) {
@@ -1017,6 +1018,18 @@ class KuberDock_Api {
     {
         try {
             return $this->apiCall('/api/domains');
+        } catch (\Exception $e) {
+            return array();
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function getSetupInfo()
+    {
+        try {
+            return $this->apiCall('/api/settings/setup-info');
         } catch (\Exception $e) {
             return array();
         }

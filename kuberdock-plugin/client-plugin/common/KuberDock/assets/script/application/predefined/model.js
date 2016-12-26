@@ -84,12 +84,7 @@ define(['backbone', 'application/utils', 'application/pods/model'], function (Ba
 
         getPublicIP: function (planKey) {
             var plan = this.getPlan(planKey),
-                containerPublic = false,
-                planPublic = false;
-
-            if(plan) {
-                planPublic = plan.getPublicIP || false;
-            }
+                containerPublic = false;
 
             _.each(this.getContainers() , function (c) {
                 _.each(c.ports, function (p) {
@@ -98,7 +93,7 @@ define(['backbone', 'application/utils', 'application/pods/model'], function (Ba
                 });
             });
 
-            return containerPublic && !planPublic ? containerPublic : planPublic;
+            return (plan && plan.publicIP !== undefined) ? plan.publicIP : containerPublic;
         },
 
         hasBaseDomain: function(planKey) {

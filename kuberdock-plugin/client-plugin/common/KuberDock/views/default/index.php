@@ -1,5 +1,5 @@
 <?php
-if ($panelType=='DirectAdmin') {
+if ($panelType === 'DirectAdmin') {
     $this->renderPartial('tabs', array('active' => 'index'));
 }
 ?>
@@ -17,6 +17,7 @@ if ($panelType=='DirectAdmin') {
     var panelType = '<?php echo $panelType ?>';
     var panelToken = <?php echo $panelToken ?>;
     var kdDomains = <?php echo $domains ?>;
+    var kdSetupInfo = <?php echo $setupInfo ?>;
 </script>
 
 <?php echo \Kuberdock\classes\Base::model()->getStaticPanel()->getAssets()->renderScripts(); ?>

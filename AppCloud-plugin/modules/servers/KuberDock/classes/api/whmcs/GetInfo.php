@@ -42,7 +42,7 @@ class GetInfo extends Api
         $service = Service::typeKuberDock()
             ->where('userid', $client->id)
             ->where('server', $server->id)
-            ->where('domainstatus', 'Active')
+            ->whereIn('domainstatus', ['Active', 'Suspended'])
             ->orderBy('id', 'desc')
             ->first();
 

@@ -225,7 +225,7 @@ class Pod extends ResourceFactory
         }
 
         $app = App::where('pod_id', $this->id)->where('service_id', $this->service->id)->first();
-
+        
         if ($app && $app->referer && stripos($app->referer, '/apps/') === false) {
             $url = $app->referer;
         } else {

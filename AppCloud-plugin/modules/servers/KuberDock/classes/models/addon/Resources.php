@@ -363,6 +363,10 @@ class Resources extends Model
      */
     private function addResource($name, Pod $pod, Item $item, $type)
     {
+        if (!$name) {
+            return;
+        }
+
         $resource = Resources::firstOrCreate([
             'user_id' => $pod->getService()->userid,
             'name' => $name,
