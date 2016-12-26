@@ -1,7 +1,7 @@
 Version: 1.2
 Name: kuberdock-plugin
 Summary: KuberDock plugins
-Release: 3%{?dist}.cloudlinux
+Release: 4%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
 License: CloudLinux Commercial License
@@ -63,6 +63,11 @@ fi
 %{python_sitelib}/kd_common/*
 
 %changelog
+
+* Mon Dec 26 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-4
+- AC-4834 cPanel. User side > User can buy and run PA that not installed in admin side
+- AC-5007 Hosting panels. Make it possible to choose domain instead IP for custom pod
+- AC-4905 Hosting panels. Missing registry path in kubecli.conf
 
 * Fri Nov 25 2016 Prokhor Sednev <psednev@cloudlinux.com>, Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com> 1.2-3
 - AC-4920 Hosting panels. Resize PD in change appPackage
