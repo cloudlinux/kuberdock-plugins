@@ -51,7 +51,7 @@ class Invoice extends Model
     /**
      * @var array
      */
-    protected $dates = ['duedate'];
+    protected $dates = ['duedate', 'date', 'datepaid'];
 
     /**
      * @param array $dates

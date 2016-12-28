@@ -9,6 +9,11 @@ use models\billing\Currency;
 
 class InvoiceItem implements \JsonSerializable
 {
+    /**
+     * @var array
+     */
+    public $notes = [];
+
     /** @var bool Short invoices have only description and total. No units, quantity and price */
     private $short = false;
     /**
@@ -228,11 +233,36 @@ class InvoiceItem implements \JsonSerializable
     }
 
     /**
+     * @param string $description
+     */
+    public function setCustomDescription($description)
+    {
+        $this->customDescription = $description;
+    }
+
+    /**
+     * @return Resources
+     */
+    public function getResource()
+    {
+        return $this->resource;
+    }
+
+    /**
+     * @param Resources $resource
+     */
+    public function setResource(Resources $resource)
+    {
+        $this->resource = $resource;
+    }
+
+    /**
      * @param float $prorate
      */
     public function proratePrice($prorate)
     {
         $this->price *= $prorate;
+        $this->setCustomDescription(sprintf('%s (prorate %1.2f)', $this->getDescription(), $prorate));
     }
 
     /**

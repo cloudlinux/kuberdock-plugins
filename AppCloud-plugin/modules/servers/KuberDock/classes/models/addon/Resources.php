@@ -4,6 +4,7 @@
 namespace models\addon;
 
 
+use Carbon\Carbon;
 use components\InvoiceItem as ComponentsInvoiceItem;
 use components\Tools;
 use exceptions\NotFoundException;
@@ -46,6 +47,10 @@ class Resources extends Model
      *
      */
     const STATUS_SUSPENDED = 'Suspended';
+    /**
+     *
+     */
+    const STATUS_PAID_DELETED = 'PaidDeleted';
 
     /**
      * @var bool
@@ -76,7 +81,7 @@ class Resources extends Model
                 Resources::TYPE_IP,
                 Resources::TYPE_PD,
             ));
-            $table->string('status', 32)->default(\models\addon\Resources::STATUS_ACTIVE );
+            $table->string('status', 32)->default(self::STATUS_ACTIVE);
 
             $table->index('name');
         };
@@ -142,51 +147,64 @@ class Resources extends Model
     }
 
     /**
-     * @param ComponentsInvoiceItem $item
-     * @param string|null $podId
-     * @return bool
+     * @param null $notItemId
+     * @return mixed
      */
-    public function divide(ComponentsInvoiceItem $item, $podId = null)
+    public function hasPaidItems($notItemId = null)
     {
-        $addonItem = $this->resourcePods()->first()->item;
+        $query = Resources::select('r.*')
+            ->from('KuberDock_items as i')
+            ->join('KuberDock_resource_items as ri', 'ri.item_id', '=', 'i.id')
+            ->join('KuberDock_resource_pods as rp', 'rp.id', '=', 'ri.resource_pod_id')
+            ->join('KuberDock_resources as r', 'r.id', '=', 'rp.resource_id')
+            ->where('i.due_date', '>', new Carbon());
+
+        if ($notItemId) {
+            $query->where('i.id', '!=', $notItemId);
+        }
+
+        $query->groupBy('r.id');
+
+        return $query->get()->count();
+    }
+
+    /**
+     * @param ComponentsInvoiceItem $invoiceItem
+     */
+    public function divide(ComponentsInvoiceItem $invoiceItem)
+    {
+        $addonItem = $this->resourcePods->last()->items()->first();
         $billableItem = $addonItem->billableItem;
 
         if (!$billableItem) {
-            return true;
+            return;
         }
 
-        $billableItem->amount -= $item->getTotal();
+        $billableItem->amount -= $invoiceItem->getTotal();
         $billableItem->save();
 
         if ($this->type == self::TYPE_IP) {
-            $item->setName('#' . $this->name);
+            $invoiceItem->setName('#' . $this->name);
         }
 
         // Separate billable item
         $newBillableItem = $billableItem->replicate();
-        $newBillableItem->description = $item->getDescription();
-        $newBillableItem->amount = $item->getTotal();
+        $newBillableItem->description = $invoiceItem->getDescription();
+        $newBillableItem->amount = $invoiceItem->getTotal();
         $newBillableItem->invoicecount = 0;
         $newBillableItem->save();
 
         // Separate addon item
         $newAddonItem = $addonItem->replicate();
-        $newAddonItem->pod_id = null;
+        $newAddonItem->pod_id = $this->id;
         $newAddonItem->billable_item_id = $newBillableItem->id;
         $newAddonItem->type = $this->type;
         $newAddonItem->save();
-
-        $newAddonItem->resourcePods()->attach(ResourcePods::firstOrNew([
-            'resource_id' => $this->id,
-            'pod_id' => $podId,
-        ]));
 
         // Change resource status
         $this->update([
             'status' => self::STATUS_DIVIDED,
         ]);
-
-        return false;
     }
 
     /**
@@ -212,15 +230,6 @@ class Resources extends Model
         }
 
         return $query->get();
-    }
-
-    public static function redirectToUnpaidInvoice($itemInvoice)
-    {
-        $unpaidItemInvoices = self::getUnpaidItemInvoices($itemInvoice);
-
-        if ($unpaidItemInvoices->count()) {
-            Tools::jsRedirect($unpaidItemInvoices->first()->invoice->getUrl());
-        }
     }
 
     /**
@@ -288,23 +297,6 @@ class Resources extends Model
     }
 
     /**
-     * @return string
-     */
-    public function getPodId()
-    {
-        return $this->resourcePods()->first()->pod_id;
-    }
-
-    /**
-     * @param string|null $pod_id
-     * @return bool
-     */
-    public function isSamePod($pod_id)
-    {
-        return !is_null($pod_id) && $this->getPodId() == $pod_id;
-    }
-
-    /**
      * @return bool
      */
     public function isActive()
@@ -318,6 +310,14 @@ class Resources extends Model
     public function isDivided()
     {
         return $this->status == self::STATUS_DIVIDED;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDeleted()
+    {
+        return $this->status == self::STATUS_DELETED;
     }
 
     /**
@@ -337,6 +337,10 @@ class Resources extends Model
      */
     private function addIP(Pod $pod, Item $item)
     {
+        if (!$pod->getPublicIP()) {
+            return;
+        }
+
         $ipPoolData = $pod->getService()->getApi()->getIpPoolStat()->getData();
 
         if (!$ipPoolData) {
@@ -366,5 +370,15 @@ class Resources extends Model
         ]);
         $resource->resourcePods()->save($resourcePods);
         $item->resourcePods()->attach($resourcePods);
+
+        // Attach resource to divided items
+        $resourceItems = Item::where('type', '!=', Resources::TYPE_POD)
+            ->where('user_id', $resource->user_id)
+            ->where('pod_id', $resource->id)
+            ->get();
+
+        foreach ($resourceItems as $resourceItem) {
+            $resourceItem->resourcePods()->attach($resourcePods);
+        }
     }
 }

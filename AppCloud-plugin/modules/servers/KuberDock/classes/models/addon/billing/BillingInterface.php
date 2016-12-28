@@ -5,7 +5,6 @@ namespace models\addon\billing;
 
 
 use components\InvoiceItemCollection;
-use models\addon\Item;
 use models\addon\ItemInvoice;
 use models\addon\resource\Pod;
 use models\addon\resource\ResourceFactory;

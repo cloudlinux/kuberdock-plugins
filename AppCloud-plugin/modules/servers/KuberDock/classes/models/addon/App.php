@@ -109,9 +109,9 @@ class App extends Model
      */
     public function getResource()
     {
-        if ($this->type == ResourceFactory::TYPE_YAML) {
+        if ($this->type === ResourceFactory::TYPE_YAML) {
             $resource = new PredefinedApp($this->package);
-        } else if ($this->type == ResourceFactory::TYPE_POD) {
+        } else if ($this->type === ResourceFactory::TYPE_POD) {
             $resource = new Pod($this->package);
         } else {
             throw new CException('Unknown resource type');

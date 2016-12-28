@@ -4,6 +4,7 @@
 namespace models\addon;
 
 
+use Carbon\Carbon;
 use models\Model;
 
 class ResourcePods extends Model
@@ -44,7 +45,7 @@ class ResourcePods extends Model
      */
     public function items()
     {
-        return $this->hasManyThrough('models\addon\Item', 'models\addon\ResourceItems', 'item_id');
+        return $this->belongsToMany('models\addon\Item', ResourceItems::tableName(), 'resource_pod_id', 'item_id');
     }
 
     /**
@@ -54,4 +55,18 @@ class ResourcePods extends Model
     {
         return $this->belongsTo('models\addon\Resources', 'resource_id');
     }
+
+    /**
+     * @param $query
+     * @return mixed
+     */
+    public function scopePaidDeletedItems($query)
+    {
+        return $query->with('items')
+            ->whereHas('items', function ($query) {
+                $query->where('status', Resources::STATUS_PAID_DELETED)
+                    ->where('due_date', '>=', new Carbon());
+            });
+    }
+
 }

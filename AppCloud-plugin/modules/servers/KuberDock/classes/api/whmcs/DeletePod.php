@@ -26,6 +26,7 @@ class DeletePod extends Api
         }
 
         $item->stopInvoicing();
+        $item->changeStatus();
 
         return 'Pod deleted';
     }
