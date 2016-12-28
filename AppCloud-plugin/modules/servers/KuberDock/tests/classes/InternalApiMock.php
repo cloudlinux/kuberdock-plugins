@@ -14,15 +14,22 @@ trait InternalApiMock
 {
     use PHPMock;
 
+    public $calledTimes = [];
+
     public function internalApiMock()
     {
         $this->getFunctionMock('components', 'localAPI')
             ->expects($this->any())
             ->willReturnCallback(function () {
                 $args = func_get_args();
+
                 switch ($args[0]) {
                     case 'createinvoice':
                         return $this->createInvoice($args[1]);
+                    case 'modulesuspend':
+                        return $this->moduleSuspend($args[1]);
+                    case 'sendemail':
+                        return $this->sendEmail($args[1]);
                 }
             });
     }
@@ -57,6 +64,20 @@ trait InternalApiMock
 
         InvoiceItem::insert($items);
 
+        $this->calledTimes['createinvoice']++;
+
         return ['result' => 'success', 'invoiceid' => $invoice->id];
+    }
+
+    public function moduleSuspend($data)
+    {
+        $this->calledTimes['suspendmodule']++;
+        return ['result' => 'success', 'data' => $data];
+    }
+
+    public function sendEmail($data)
+    {
+        $this->calledTimes['sendemail']++;
+        return ['result' => 'success', 'data' => $data];
     }
 }

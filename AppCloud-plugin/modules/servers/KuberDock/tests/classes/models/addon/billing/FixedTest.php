@@ -53,8 +53,8 @@ class FixedTest extends TestCase
     {
         parent::setUp();
 
-        Package::create(DatabaseFixture::package());
-        PackageRelation::create(DatabaseFixture::packageRelation());
+        Package::insert(DatabaseFixture::package());
+        PackageRelation::insert(DatabaseFixture::packageRelation());
         KubeTemplate::insert(DatabaseFixture::kubeTemplates());
         KubePrice::insert(DatabaseFixture::kubePrices());
         Item::create(DatabaseFixture::fixedItem());

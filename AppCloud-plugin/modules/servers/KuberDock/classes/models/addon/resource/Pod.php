@@ -220,7 +220,7 @@ class Pod extends ResourceFactory
     {
         global $whmcs;
 
-        if ($whmcs && !$whmcs->isClientAreaRequest()) {
+        if (!$whmcs || ($whmcs && !$whmcs->isClientAreaRequest())) {
             return;
         }
 

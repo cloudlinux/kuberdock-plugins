@@ -75,7 +75,8 @@ class AutomationSettings extends Component
     {
         $overdueDays = (new Carbon())->diffInDays($date);
 
-        return $this->isTerminateEnabled() && $overdueDays == abs($this->terminationDays - $this->invoiceReminderDays);
+        return $this->invoiceReminderDays && $this->isTerminateEnabled()
+            && $overdueDays == abs($this->terminationDays - $this->invoiceReminderDays);
 
     }
 }

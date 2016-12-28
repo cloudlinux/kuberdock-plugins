@@ -517,7 +517,7 @@ class Fixed extends Component implements BillingInterface
      * @param InvoiceItemCollection $invoiceItems
      * @return void
      */
-    protected function addVolumeInvoiceItems(Pod $old, Pod $new, InvoiceItemCollection &$invoiceItems)
+    protected function addVolumeInvoiceItems(Pod $old, Pod $new, InvoiceItemCollection $invoiceItems)
     {
         $oldVolumes = self::sortVolumes($old->volumes);
         $newVolumes = self::sortVolumes($new->volumes);
