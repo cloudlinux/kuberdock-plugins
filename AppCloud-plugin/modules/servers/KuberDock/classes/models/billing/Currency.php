@@ -22,30 +22,36 @@ class Currency extends Model
      */
     protected $table = 'tblcurrencies';
 
+    /**
+     * @param double $price
+     * @return double
+     */
+    public function getRatedPrice($price)
+    {
+        return (double) $price * $this->rate;
+    }
 
     /**
-     * @param $price
+     * @param double $price
      * @return string
      */
     public function getFullPrice($price)
     {
-        $price = $price * $this->rate;
+        $price = $this->getRatedPrice($price);
 
         if (function_exists('formatCurrency')) {
             return formatCurrency($price);
         } else {
-            return sprintf("%s%s %s", $this->prefix, $this->getFormatted($price), $this->suffix);
+            return sprintf('%s%s %s', $this->prefix, $this->getFormatted($price), $this->suffix);
         }
     }
 
     /**
-     * @param $value
-     * @return float|string
+     * @param double $value
+     * @return double
      */
     public function getFormatted($value)
     {
-        $value = (float) $value * $this->rate;
-
         switch ($this->format) {
             case self::FORMAT_1:
                 $value = number_format($value, 2, '.', '');

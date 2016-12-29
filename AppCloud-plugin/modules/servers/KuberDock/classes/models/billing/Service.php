@@ -327,4 +327,13 @@ class Service extends Model
 
         return $this->package->getEnableTrial() && $now >= $expireDate;
     }
+
+    /**
+     * @param float $price
+     * @return float
+     */
+    public function getRatedPrice($price)
+    {
+        return $this->client->currencyModel->getRatedPrice($price);
+    }
 }

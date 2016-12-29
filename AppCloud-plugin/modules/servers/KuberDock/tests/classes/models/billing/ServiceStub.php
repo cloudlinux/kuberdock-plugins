@@ -22,6 +22,8 @@ class ServiceStub extends Service
             $table->text('username');
             $table->text('domain');
             $table->enum('domainstatus', ['Pending','Active','Suspended','Terminated','Cancelled','Fraud']);
+            $table->date('regdate')->nullable();
+            $table->date('nextduedate')->nullable();
             $table->timestamps();
         };
     }

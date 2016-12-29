@@ -151,6 +151,30 @@ class DatabaseFixture
         ];
     }
 
+    public static function currency()
+    {
+        return [
+            [
+                'id' => 1,
+                'code' => 'USD',
+                'prefix' => '$',
+                'suffix' => 'USD',
+                'format' => 1,
+                'rate' => 1,
+                'default' => 1,
+            ],
+            [
+                'id' => 2,
+                'code' => 'GBP',
+                'prefix' => '£',
+                'suffix' => 'GBP',
+                'format' => 1,
+                'rate' => 0.5,
+                'default' => 0,
+            ],
+        ];
+    }
+
     public static function apps()
     {
         return [
@@ -277,6 +301,7 @@ spec:
             'id' => self::$userId,
             'defaultgateway' => 'mailin',
             'status' => 'Active',
+            'currency' => 1,
         ];
     }
 }

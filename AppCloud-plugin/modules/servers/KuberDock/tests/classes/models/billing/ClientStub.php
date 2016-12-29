@@ -17,6 +17,7 @@ class ClientStub extends Client
             $table->increments('id');
             $table->text('defaultgateway');
             $table->enum('status', ['Active','Inactive','Closed']);
+            $table->integer('currency');
             $table->timestamps();
         };
     }

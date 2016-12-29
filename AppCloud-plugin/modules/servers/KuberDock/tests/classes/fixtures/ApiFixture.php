@@ -187,7 +187,7 @@ class ApiFixture
     {
         return [
             'id' => $podId,
-            'name' => 'New Pod #1',
+            'name' => 'Name ' . $podId,
             'volumes' => [
                 [
                     'persistentDisk' => [
@@ -233,7 +233,7 @@ class ApiFixture
     {
         return [
             'id' => $podId,
-            'name' => 'New Pod #1',
+            'name' => 'Name ' . $podId,
             'volumes' => [],
             'kube_type' => 1,
             'containers' => [
@@ -327,6 +327,53 @@ class ApiFixture
         return [
             'data' => [],
             'status' => 'OK',
+        ];
+    }
+
+    public static function getUsage()
+    {
+        return [
+            'status' => 'OK',
+            'data' => [
+                'ip_usage' =>  [
+                    [
+                        'start' => '2016-10-02 10:00:00',
+                        'end' =>  '2016-10-02 20:00:00',
+                        'ip_address' => '192.168.1.1',
+                        'pod_id' => 'pod_id'
+                    ]
+                ],
+                'pd_usage' => [
+                    [
+                        'start' => '2016-10-02 10:00:00',
+                        'end' => '2016-10-02 20:00:00',
+                        'pd_name' => 'storage name',
+                        'size' => 1
+                    ]
+                ],
+                'pods_usage' => [
+                    [
+                        'id' => 'pod_id',
+                        'kube_id' => 1,
+                        'kubes' => 2,
+                        'name' => 'pod_name',
+                        'time' => [
+                        'redis' => [
+                                [
+                                    'start' => '2016-10-02 10:00:00',
+                                    'end' => '2016-10-02 20:00:00',
+                                    'kubes' => 1
+                                ],
+                                [
+                                    'start' => '2016-10-02 10:00:00',
+                                    'end' => '2016-10-02 20:00:00',
+                                    'kubes' => 2
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+            ]
         ];
     }
 }

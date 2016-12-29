@@ -115,7 +115,7 @@ class Fixed extends Component implements BillingInterface
         try {
             $response = $item->service->getAdminApi()->applyEdit($item->pod_id)->getData();
             $pod->setAttributes($response['edited_config']);
-            $item->billableItem->amount = $pod->getPrice();
+            $item->billableItem->amount = $item->service->getRatedPrice($pod->getPrice());
             $item->billableItem->save();
         } catch (\Exception $e) {
             CException::log($e);
@@ -146,7 +146,7 @@ class Fixed extends Component implements BillingInterface
             CException::log($e);
         }
 
-        $item->billableItem->amount = $pod->getPrice();
+        $item->billableItem->amount = $item->service->getRatedPrice($pod->getPrice());
         $item->billableItem->save();
 
         $itemInvoice->deleteUnpaidSiblings();
@@ -309,7 +309,7 @@ class Fixed extends Component implements BillingInterface
             'description' => $invoiceItems->getDescription(),
             'recurfor' => 0,
             'invoiceaction' => BillableItem::CREATE_RECUR_ID,
-            'amount' => $price,
+            'amount' => $service->getRatedPrice($price),
             'invoicecount' => 1,
         ]);
         $billableItem->setRecur($service->package);
@@ -385,7 +385,7 @@ class Fixed extends Component implements BillingInterface
                     CException::log($e);
                 }
 
-                $item->billableItem->amount = $newPod->getPrice();
+                $item->billableItem->amount = $service->getRatedPrice($newPod->getPrice());
                 $item->billableItem->save();
             } else {
                 $itemInvoice = $item->invoices()->paid()->first();

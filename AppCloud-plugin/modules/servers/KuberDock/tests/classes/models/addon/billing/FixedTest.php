@@ -30,6 +30,7 @@ use tests\models\billing\InvoiceStub as Invoice;
 use tests\models\billing\InvoiceItemStub as InvoiceItem;
 use tests\models\billing\PackageStub as Package;
 use tests\models\billing\ServiceStub as Service;
+use tests\models\billing\CurrencyStub as Currency;
 use tests\models\billing\ClientStub as Client;
 use tests\TestCase;
 
@@ -61,6 +62,7 @@ class FixedTest extends TestCase
         Service::create(DatabaseFixture::service());
         Admin::create(DatabaseFixture::admin());
         App::insert(DatabaseFixture::apps());
+        Currency::insert(DatabaseFixture::currency());
         Client::create(DatabaseFixture::client());
 
         // Mock KD API
@@ -93,6 +95,7 @@ class FixedTest extends TestCase
             Client::class,
             Invoice::class,
             InvoiceItem::class,
+            Currency::class,
         ];
     }
 
@@ -127,6 +130,20 @@ class FixedTest extends TestCase
     }
 
     /**
+     * Order predefined app with GBP currency
+     */
+    public function testOrder_PredefinedApp_CurrencyGBP()
+    {
+        Client::first()->update(['currency' => 2]);
+        $app = App::find(1);
+        $invoice = $this->service->package->getBilling()->order($app->getResource(), $this->service);
+        $this->assertEquals(1.1, $invoice->subtotal);
+
+        $itemInvoice = ItemInvoice::where('invoice_id', $invoice->id)->first();
+        $this->assertEquals(1.1, $itemInvoice->item->billableItem->amount);
+    }
+
+    /**
      * Order pod
      */
     public function testOrder_Pod()
@@ -145,7 +162,7 @@ class FixedTest extends TestCase
         $expected = [
             'id' => 1,
             'userid' => 13,
-            'description' => 'KuberDock - Pod New Pod #1',
+            'description' => 'KuberDock - Pod Name pod_id#2',
             'recur' => 1,
             'recurcycle' => 'Months',
             'recurfor' => 0,
@@ -155,6 +172,21 @@ class FixedTest extends TestCase
             'duedate' => (new Carbon())->addMonth()->toDateTimeString(),    // TODO: can be not equal if machine is slow
         ];
         $this->assertEquals($expected, $itemInvoice->item->billableItem->getAttributes());
+    }
+
+    /**
+     * Order pod with GBP currency
+     */
+    public function testOrder_Pod_CurrencyGBP()
+    {
+        Client::first()->update(['currency' => 2]);
+        $app = App::find(2);
+
+        $invoice = $this->service->package->getBilling()->order($app->getResource(), $this->service);
+        $this->assertEquals(1.6, $invoice->subtotal);
+
+        $itemInvoice = ItemInvoice::where('invoice_id', $invoice->id)->first();
+        $this->assertEquals(1.6, $itemInvoice->item->billableItem->amount);
     }
 
     public function testAfterOrderPayment()
@@ -233,40 +265,7 @@ class FixedTest extends TestCase
         $method = $this->getMethod('createEditInvoice', $billing);
 
         $pod = new Pod($this->service->package);
-        $pod->setAttributes([
-            'id' => 'pod_id#2',
-            'name' => 'New Pod #1',
-            'volumes' => [
-            ],
-            'kube_type' => 1,
-            'containers' => [
-                [
-                    'kubes' => 1,
-                    'name' => 'kniyq4s',
-                    'image' => 'nginx',
-                    'volumeMounts' => [
-                        [
-                            'mountPath' => '/var/log',
-                            'name' => 'tp5547kq4d'
-                        ]
-                    ],
-                    'ports' => [
-                        [
-                            'isPublic' => false,
-                            'protocol' => 'tcp',
-                            'containerPort' => 443,
-                            'hostPort' => 443
-                        ],
-                        [
-                            'isPublic' => false,
-                            'protocol' => 'tcp',
-                            'containerPort' => 80,
-                            'hostPort' => 80
-                        ],
-                    ],
-                ],
-            ]
-        ]);
+        $pod->setAttributes(ApiFixture::getPodWithoutResources('pod_id#2'));
         $pod->edited_config = ApiFixture::getPodWithResources('pod_id#2');
 
         $itemInvoice->status = Invoice::STATUS_PAID;
@@ -274,5 +273,28 @@ class FixedTest extends TestCase
 
         $invoice = $method->invokeArgs($billing, [$pod, $itemInvoice->item, $this->service]);
         $this->assertEquals(3, $invoice->subtotal);
+    }
+
+    public function testCreateEditInvoice_CurrencyGBP()
+    {
+        Client::first()->update(['currency' => 2]);
+        $app = App::find(3);
+        $billing = $this->service->package->getBilling();
+
+        $invoice = $billing->order($app->getResource(), $this->service);
+        $itemInvoice = ItemInvoice::where('invoice_id', $invoice->id)->first();
+        $itemInvoice->item->setRelation('service', $this->service);
+
+        $method = $this->getMethod('createEditInvoice', $billing);
+
+        $pod = new Pod($this->service->package);
+        $pod->setAttributes(ApiFixture::getPodWithoutResources('pod_id#2'));
+        $pod->edited_config = ApiFixture::getPodWithResources('pod_id#2');
+
+        $itemInvoice->status = Invoice::STATUS_PAID;
+        $itemInvoice->save();
+
+        $invoice = $method->invokeArgs($billing, [$pod, $itemInvoice->item, $this->service]);
+        $this->assertEquals(1.5, $invoice->subtotal);
     }
 }

@@ -335,7 +335,7 @@ class Item extends Model
 
         $pod = $this->getPod();
         $invoiceItems = $pod->getInvoiceItems();
-        $price = $invoiceItems->sum();
+        $price = $this->service->getRatedPrice($invoiceItems->sum());
 
         if (!$this->billableItem) {
             $billableItem = new BillableItem();

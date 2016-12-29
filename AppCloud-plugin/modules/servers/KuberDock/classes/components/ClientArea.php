@@ -326,6 +326,8 @@ class ClientArea extends Component
     public function productPricingOverride($productId)
     {
         $package = Package::find($productId);
+        $client = new Client();
+        $currency = $client->getSessionCurrency();
 
         if (!$package->isKuberDock()) {
             return [];
@@ -358,8 +360,8 @@ class ClientArea extends Component
             : $recurring;
 
         return [
-            'setup' => $package->getFirstDeposit() + $setupFee,
-            'recurring' => $recurring,
+            'setup' => $currency->getRatedPrice($package->getFirstDeposit() + $setupFee),
+            'recurring' => $currency->getRatedPrice($recurring),
         ];
     }
 
@@ -393,15 +395,15 @@ class ClientArea extends Component
                 continue;
             }
 
-            $kube = $kubePrice->template;
-            $description['Kube ' . $kube['kube_name']] = vsprintf(
+            $template = $kubePrice->template;
+            $description['Kube ' . $template['kube_name']] = vsprintf(
                 '<strong>%s / %s</strong><br/><em>CPU %s, Memory %s, <br/>Disk Usage %s</em>',
                 [
-                    $this->currency->getFullPrice($kube['kube_price']),
+                    $this->currency->getFullPrice($kubePrice['kube_price']),
                     $package->getPaymentType(),
-                    number_format($kube['cpu_limit'], 2) . ' ' . Units::getCPUUnits(),
-                    $kube['memory_limit'] . ' ' . Units::getMemoryUnits(),
-                    $kube['hdd_limit'] . ' ' . Units::getHDDUnits(),
+                    number_format($template['cpu_limit'], 2) . ' ' . Units::getCPUUnits(),
+                    $template['memory_limit'] . ' ' . Units::getMemoryUnits(),
+                    $template['hdd_limit'] . ' ' . Units::getHDDUnits(),
                     //$kube['traffic_limit'].' '.Units::getTrafficUnits() // AC-3783
                 ]
             );
