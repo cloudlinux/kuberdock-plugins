@@ -22,7 +22,7 @@ try {
     $price = $postFields->params->price;    // Not used
     $paymentMethod = $postFields->params->payment_method;   // Not used
 
-    $client = \models\billing\Client::byDomain($user, $domains)->first();
+    $client = \models\billing\Client::byDomain($user, $domains);
 
     if (!$client) {
         throw new \exceptions\NotFoundException('User not found');
