@@ -174,14 +174,17 @@ class Resources extends Model
      */
     public function divide(ComponentsInvoiceItem $invoiceItem)
     {
+        /* @var Service $service */
         $addonItem = $this->resourcePods->last()->items()->first();
         $billableItem = $addonItem->billableItem;
+        $service = $addonItem->service;
 
-        if (!$billableItem) {
+        if (!$billableItem || !$service) {
             return;
         }
 
-        $billableItem->amount -= $invoiceItem->getTotal();
+        $price = $service->getRatedPrice($invoiceItem->getTotal());
+        $billableItem->amount -= $price;
         $billableItem->save();
 
         if ($this->type == self::TYPE_IP) {
@@ -191,7 +194,7 @@ class Resources extends Model
         // Separate billable item
         $newBillableItem = $billableItem->replicate();
         $newBillableItem->description = $invoiceItem->getDescription();
-        $newBillableItem->amount = $invoiceItem->getTotal();
+        $newBillableItem->amount = $price;
         $newBillableItem->invoicecount = 0;
         $newBillableItem->save();
 

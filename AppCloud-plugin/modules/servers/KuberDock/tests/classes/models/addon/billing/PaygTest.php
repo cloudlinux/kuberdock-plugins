@@ -6,6 +6,8 @@ namespace classes\models\addon;
 
 use api\Api;
 use Carbon\Carbon;
+use components\BillingApi;
+use components\InvoiceItemCollection;
 use models\addon\App;
 use models\addon\billing\AutomationSettings;
 use models\addon\billing\Payg;
@@ -17,6 +19,7 @@ use models\addon\PackageRelation;
 use models\addon\ResourceItems;
 use models\addon\ResourcePods;
 use models\addon\Resources;
+use models\addon\State;
 use tests\EloquentMock;
 use tests\ExternalApiMock;
 use tests\fixtures\DatabaseFixture;
@@ -29,6 +32,7 @@ use tests\models\billing\InvoiceItemStub as InvoiceItem;
 use tests\models\billing\PackageStub as Package;
 use tests\models\billing\ServiceStub as Service;
 use tests\models\billing\ClientStub as Client;
+use tests\models\billing\CurrencyStub as Currency;
 use tests\TestCase;
 
 class PaygTest extends TestCase
@@ -60,6 +64,7 @@ class PaygTest extends TestCase
         Admin::create(DatabaseFixture::admin());
         App::insert(DatabaseFixture::apps());
         Client::create(DatabaseFixture::client());
+        Currency::insert(DatabaseFixture::currency());
 
         // Mock KD API
         $this->api = (new ExternalApiMock())->externalApiMock();
@@ -87,6 +92,7 @@ class PaygTest extends TestCase
             KubePrice::class,
             Item::class,
             ItemInvoice::class,
+            State::class,
             BillableItem::class,
             Service::class,
             Package::class,
@@ -98,6 +104,7 @@ class PaygTest extends TestCase
             Client::class,
             Invoice::class,
             InvoiceItem::class,
+            Currency::class,
         ];
     }
 
@@ -171,5 +178,50 @@ class PaygTest extends TestCase
 
         $item = Item::first();
         $this->assertEquals(Resources::STATUS_DELETED, $item->status);
+    }
+
+    public function testGetPeriodicUsage()
+    {
+        $now = new Carbon();
+        $now->setTime(0, 0, 0);
+        $this->service->regdate = $now->addDay(-1);
+
+        $payg = new Payg();
+        $method = $this->getMethod('getPeriodicUsage', $payg);
+
+        $invoiceItems = $method->invokeArgs($payg, [$this->service]);
+        $this->assertInstanceOf(InvoiceItemCollection::class, $invoiceItems);
+        $this->assertEquals(2.8, $invoiceItems->sum());
+    }
+
+    public function testProcessCron_InvoiceCreate()
+    {
+        $now = new Carbon();
+        $now->setTime(0, 0, 0);
+        $this->service->regdate = $now->addDay(-1);
+
+        $payg = new Payg();
+        $method = $this->getMethod('getPeriodicUsage', $payg);
+
+        $invoiceItems = $method->invokeArgs($payg, [$this->service]);
+
+        $invoice = BillingApi::model()->createInvoice($this->service->client, $invoiceItems, false);
+        $this->assertEquals(2.8, $invoice->subtotal);
+    }
+
+    public function testProcessCron_InvoiceCreate_CurrencyGBP()
+    {
+        Client::first()->update(['currency' => 2]);
+        $now = new Carbon();
+        $now->setTime(0, 0, 0);
+        $this->service->regdate = $now->addDay(-1);
+
+        $payg = new Payg();
+        $method = $this->getMethod('getPeriodicUsage', $payg);
+
+        $invoiceItems = $method->invokeArgs($payg, [$this->service]);
+
+        $invoice = BillingApi::model()->createInvoice($this->service->client, $invoiceItems, false);
+        $this->assertEquals(1.4, $invoice->subtotal);
     }
 }

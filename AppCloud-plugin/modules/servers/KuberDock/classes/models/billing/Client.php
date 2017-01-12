@@ -46,12 +46,31 @@ class Client extends Model
     }
 
     /**
+     * @return $this|null
+     */
+    public function getCurrent()
+    {
+        if (isset($_SESSION['uid'])) {
+            return self::find($_SESSION['uid']);
+        }
+
+        return null;
+    }
+
+    /**
      * @return Currency
      */
     public function getSessionCurrency()
     {
-        return isset($_SESSION['currency'])
-            ? Currency::find($_SESSION['currency']) : Currency::where('default', 1)->first();
+        $client = $this->getCurrent();
+
+        if ($client) {
+            return $client->currencyModel;
+        } else if (isset($_SESSION['currency'])) {
+            return Currency::find($_SESSION['currency']);
+        }
+
+        return Currency::where('default', 1)->first();
     }
 
     /**

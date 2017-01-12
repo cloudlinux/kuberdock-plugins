@@ -5,6 +5,7 @@ namespace tests;
 
 use api\Api;
 use api\ApiResponse;
+use Carbon\Carbon;
 use tests\fixtures\ApiFixture;
 
 class ExternalApiMock extends TestCase
@@ -27,6 +28,7 @@ class ExternalApiMock extends TestCase
             'updatePod',
             'startPod',
             'applyEdit',
+            'getUsage',
         ])->getMock();
 
         $apiResponse = new ApiResponse();
@@ -55,6 +57,11 @@ class ExternalApiMock extends TestCase
         $this->api->expects($this->any())->method('applyEdit')->willReturnCallback(function () {
             $args = func_get_args();
             return $this->applyEdit($args[0]);
+        });
+
+        $this->api->expects($this->any())->method('getUsage')->willReturnCallback(function () {
+            $args = func_get_args();
+            return $this->getUsage($args[0], $args[1], $args[2]);
         });
 
         return $this->api;
@@ -90,5 +97,13 @@ class ExternalApiMock extends TestCase
         return [
             'edited_config' => '',
         ];
+    }
+
+    public function getUsage($username, Carbon $dateStart, Carbon $dateEnd)
+    {
+        $response = new ApiResponse();
+        $response->parsed = ApiFixture::getUsage();
+
+        return $response;
     }
 }

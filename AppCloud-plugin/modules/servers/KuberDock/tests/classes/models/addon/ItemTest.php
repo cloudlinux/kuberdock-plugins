@@ -18,6 +18,8 @@ use tests\models\billing\AdminStub as Admin;
 use tests\models\billing\BillableItemStub as BillableItem;
 use tests\models\billing\PackageStub as Package;
 use tests\models\billing\ServiceStub as Service;
+use tests\models\billing\ClientStub as Client;
+use tests\models\billing\CurrencyStub as Currency;
 use tests\TestCase;
 
 class ItemTest extends TestCase
@@ -35,6 +37,8 @@ class ItemTest extends TestCase
         Item::create(DatabaseFixture::fixedItem());
         Service::create(DatabaseFixture::service());
         Admin::create(DatabaseFixture::admin());
+        Currency::insert(DatabaseFixture::currency());
+        Client::create(DatabaseFixture::client());
     }
 
     public function mockTables()
@@ -48,6 +52,8 @@ class ItemTest extends TestCase
             Service::class,
             Package::class,
             Admin::class,
+            Client::class,
+            Currency::class,
         ];
     }
 
@@ -65,7 +71,7 @@ class ItemTest extends TestCase
         $expected = [
             'id' => 1,
             'userid' => DatabaseFixture::$userId,
-            'description' => 'KuberDock - Pod New Pod #1',
+            'description' => 'KuberDock - Pod Name pod_id',
             'recur' => 1,
             'recurcycle' => 'Months',
             'recurfor' => 0,
@@ -88,7 +94,7 @@ class ItemTest extends TestCase
         BillableItem::create([
             'id' => DatabaseFixture::$billableItemId,
             'userid' => DatabaseFixture::$userId,
-            'description' => 'KuberDock - Pod New Pod #1',
+            'description' => 'KuberDock - Pod Name pod_id',
             'recur' => 1,
             'recurcycle' => 'Months',
             'recurfor' => 0,
@@ -107,7 +113,7 @@ class ItemTest extends TestCase
         $expected = [
             'id' => DatabaseFixture::$billableItemId,
             'userid' => DatabaseFixture::$userId,
-            'description' => 'KuberDock - Pod New Pod #1',
+            'description' => 'KuberDock - Pod Name pod_id',
             'recur' => 1,
             'recurcycle' => 'Months',
             'recurfor' => 0,

@@ -166,7 +166,8 @@ class GetInfoTest extends TestCase
         Client::create([
             'id' => $this->client_id,
             'defaultgateway' => $this->defaultgateway,
-            'status' => 'Active'
+            'status' => 'Active',
+            'currency' => 1,
         ]);
 
         Server::create([

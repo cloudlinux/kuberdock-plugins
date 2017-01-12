@@ -38,6 +38,14 @@ class InvoiceItem extends Model
     }
 
     /**
+     * @return Client
+     */
+    public function client()
+    {
+        return $this->belongsTo('models\billing\Client', 'userid');
+    }
+
+    /**
      * @param string $value
      * @return mixed
      */

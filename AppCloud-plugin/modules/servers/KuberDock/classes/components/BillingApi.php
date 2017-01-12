@@ -141,7 +141,7 @@ class BillingApi extends Component
             $count++;
 
             $values['itemdescription' . $count] = $item->getDescription();
-            $values['itemamount' . $count] = $item->getTotal();
+            $values['itemamount' . $count] = $client->currencyModel->getRatedPrice($item->getTotal());
 
             if ($item->getTaxed()) {
                 $values['itemtaxed' . $count] = true;
