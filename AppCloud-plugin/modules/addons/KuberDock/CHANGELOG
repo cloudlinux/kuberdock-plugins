@@ -1,3 +1,14 @@
+* 1.1.1
+- AC-5554 WHMCS. Calculate all prices depending on client currency
+- AC-5412 WHMCS. Unbind Public IP and PD is going ahead of time
+- AC-4680 WHMCS. Doesn't allow set null price for kubes
+- AC-5485 WHMCS. jQuery problems on addon page with WHMCS 7.1
+- WHMCS. Fixed PAYG clean resources
+- WHMCS. Fixed first deposit
+- AC-4342 WHMCS. Don't pay for pods with status paid_deleted
+- AC-5147 WHMCS. Integration of deleting PS with force flag
+- AC-5029 - Deleted billable item should be deleted as soon as user delete it
+
 * 1.1.0
 - AC-4920 WHMCS. Resize PD in change appPackage
 - AC-5037 WHCMS. isTrialExpired must be an instance of DateTime
