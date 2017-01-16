@@ -23,7 +23,7 @@ class GetInfo extends Api
         $user = $this->getParam('user');
         $domains = explode(',',  $this->getParam('userDomains'));
 
-        $client = Client::byDomain($user, $domains);
+        $client = Client::byDomain($user, $domains)->first();
         if (!$client) {
             throw new NotFoundException('User not found. Probably you have no service with your current domain.');
         }

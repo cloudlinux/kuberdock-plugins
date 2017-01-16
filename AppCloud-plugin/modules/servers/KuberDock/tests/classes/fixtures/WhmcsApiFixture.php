@@ -15,4 +15,10 @@ class WhmcsApiFixture
 
         return ['_POST' => $post];
     }
+
+    public static function updateVar($vars, $key, $value)
+    {
+        $vars['_POST'][$key] = $value;
+        return $vars;
+    }
 }

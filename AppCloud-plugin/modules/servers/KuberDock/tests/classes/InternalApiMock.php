@@ -28,8 +28,8 @@ trait InternalApiMock
                         return $this->createInvoice($args[1]);
                     case 'modulesuspend':
                         return $this->moduleSuspend($args[1]);
-                    case 'sendemail':
-                        return $this->sendEmail($args[1]);
+                    default:
+                        return $this->defaultCallback($args[0], $args[1]);
                 }
             });
     }
@@ -64,20 +64,28 @@ trait InternalApiMock
 
         InvoiceItem::insert($items);
 
-        $this->calledTimes['createinvoice']++;
-
+        $this->incrementCalled('createinvoice');
         return ['result' => 'success', 'invoiceid' => $invoice->id];
     }
 
     public function moduleSuspend($data)
     {
-        $this->calledTimes['suspendmodule']++;
+        $this->incrementCalled('suspendmodule');
         return ['result' => 'success', 'data' => $data];
     }
 
-    public function sendEmail($data)
+    public function defaultCallback($method, $values)
     {
-        $this->calledTimes['sendemail']++;
-        return ['result' => 'success', 'data' => $data];
+        $this->incrementCalled($method);
+        return ['result' => 'success', 'data' => $values];
+    }
+
+    private function incrementCalled($key)
+    {
+        if (!isset($this->calledTimes[$key])) {
+            $this->calledTimes[$key] = 1;
+        } else {
+            $this->calledTimes[$key]++;
+        }
     }
 }
