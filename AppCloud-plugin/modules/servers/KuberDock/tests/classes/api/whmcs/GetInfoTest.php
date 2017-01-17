@@ -5,6 +5,7 @@ namespace tests\api\whmcs;
 
 use api\whmcs\GetInfo;
 use tests\fixtures\WhmcsApiFixture;
+use tests\fixtures\DatabaseFixture;
 use tests\TestCase;
 use tests\EloquentMock;
 use tests\CurlMock;
@@ -29,12 +30,10 @@ class GetInfoTest extends TestCase
 
     private $vars;
 
-    private $client_id = 22;
     private $server_id = 14;
     private $service_id = 144;
     private $package_id = 12;
     private $SystemURL = 'some_SystemURL';
-    private $defaultgateway = 'some_defaultgateway';
     private $server_ipaddress = '8.8.8.8';
     private $server_hostname = 'some_hostname';
     private $service_token = 'some_serviceToken';
@@ -110,8 +109,8 @@ class GetInfoTest extends TestCase
             'package' => 'some_getPackageById',
             'billingUser' =>
                 array (
-                    'id' => $this->client_id,
-                    'defaultgateway' => $this->defaultgateway,
+                    'id' => DatabaseFixture::$userId,
+                    'defaultgateway' => 'mailin',
                 ),
             'billing' => 'WHMCS',
             'billingLink' => $this->SystemURL,
@@ -146,8 +145,8 @@ class GetInfoTest extends TestCase
             'packages' => 'some_getPackages',
             'billingUser' =>
                 array (
-                    'id' => $this->client_id,
-                    'defaultgateway' => $this->defaultgateway,
+                    'id' => DatabaseFixture::$userId,
+                    'defaultgateway' => 'mailin',
                 ),
             'billing' => 'WHMCS',
             'billingLink' => $this->SystemURL,
@@ -163,12 +162,7 @@ class GetInfoTest extends TestCase
 
     private function createAll()
     {
-        Client::create([
-            'id' => $this->client_id,
-            'defaultgateway' => $this->defaultgateway,
-            'status' => 'Active',
-            'currency' => 1,
-        ]);
+        Client::create(DatabaseFixture::client());
 
         Server::create([
             'id' => $this->server_id,
@@ -206,7 +200,7 @@ class GetInfoTest extends TestCase
         ]);
         $service = Service::create([
             'id' => $this->service_id,
-            'userid' => $this->client_id,
+            'userid' => DatabaseFixture::$userId,
             'username' => 'some_user',
             'domain' => 'domain.com',
             'domainstatus' => 'Active',

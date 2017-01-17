@@ -63,6 +63,11 @@ class BillingApi extends Component
         return $response['password'];
     }
 
+    public static function editUser($data)
+    {
+        BillingApi::request('updateclient', $data);
+    }
+
     /**
      * @param Service $service
      * @throws \Exception
@@ -335,6 +340,10 @@ class BillingApi extends Component
         unset($vars['_POST']['username']);
         unset($vars['_POST']['password']);
         unset($vars['_POST']['action']);
+        if (isset($vars['_POST']['responsetype'])) {
+            $param['responsetype'] = $vars['_POST']['responsetype'];
+            unset($vars['_POST']['responsetype']);
+        }
         $param['params'] = (object) $vars['_POST'];
 
         return (object) $param;

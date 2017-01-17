@@ -16,6 +16,9 @@ class ClientStub extends Client
             /* @var \Illuminate\Database\Schema\Blueprint $table */
             $table->increments('id');
             $table->text('defaultgateway');
+            $table->text('email');
+            $table->text('firstname');
+            $table->text('lastname');
             $table->enum('status', ['Active','Inactive','Closed']);
             $table->integer('currency');
             $table->timestamps();

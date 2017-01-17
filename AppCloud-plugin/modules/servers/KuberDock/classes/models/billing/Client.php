@@ -42,7 +42,7 @@ class Client extends Model
             $query->where('username', $user)
                 ->where('status', 'Active')
                 ->whereIn('domain', $domain);
-        })->first();
+        });
     }
 
     /**

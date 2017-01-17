@@ -302,6 +302,9 @@ spec:
             'defaultgateway' => 'mailin',
             'status' => 'Active',
             'currency' => 1,
+            'email' => 'prev@mail.com',
+            'lastname' => "prevlastname",
+            'firstname' => "prevfirstname",
         ];
     }
 }

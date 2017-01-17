@@ -21,7 +21,7 @@ abstract class Api
             $this->postFields = BillingApi::getApiParams($vars);
 
             foreach ($this->getRequiredParams() as $attr) {
-                if (!isset($this->postFields->params->{$attr}) || !$this->postFields->params->{$attr}) {
+                if (!isset($this->postFields->params->{$attr})) {
                     throw new \exceptions\CException(sprintf("Field '%s' required", $attr));
                 }
             }
