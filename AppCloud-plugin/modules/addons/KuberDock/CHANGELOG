@@ -1,3 +1,6 @@
+* 1.1.2
+- WHMCS. Fixed aftermodulecreate exception for non-KD product
+
 * 1.1.1
 - AC-5554 WHMCS. Calculate all prices depending on client currency
 - AC-5412 WHMCS. Unbind Public IP and PD is going ahead of time

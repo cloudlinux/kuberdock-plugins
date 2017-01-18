@@ -487,6 +487,11 @@ add_hook('ClientAdd', 1, 'KuberDock_ClientAdd');
 function KuberDock_AfterModuleCreate($params)
 {
     $service = Service::find($params['params']['serviceid']);
+
+    if (!$service->package->isKuberDock()) {
+        return;
+    }
+
     $billing = $service->package->getBilling();
 
     try {
@@ -521,6 +526,12 @@ function KuberDock_PreModuleChangePackage($params)
      * @var \models\billing\Package $oldPackage
      */
     $response = [];
+
+    $service = Service::find($params['params']['serviceid']);
+
+    if ($service && !$service->package->isKuberDock()) {
+        return $response;
+    }
 
     $packageUpgrade = \models\billing\PackageUpgrade::where('relid', $params['params']['serviceid'])
         ->orderBy('id', 'desc')
