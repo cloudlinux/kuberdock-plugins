@@ -55,7 +55,7 @@ class BillingPlugin
             die('Wrong billing' . PHP_EOL);
         }
 
-        if (!$billing->command_exist('unzip')) {
+        if (!$billing->commandExists('unzip')) {
             die("Unzip command not found." . PHP_EOL . "Please install unzip" . PHP_EOL . PHP_EOL);
         };
 
@@ -183,13 +183,13 @@ HELP;
         if ($status['http_code'] != 200) {
             die('Cannot download file ' . SITE_URL . PHP_EOL);
         }
-        curl_close ($ch);
+        curl_close($ch);
 
         $regexp = "href=[\'\"](" . $this->billingName . "\-kuberdock\-plugin\-([\d\.]*)\.zip)[\'\"]";
 
         // get last link
         $versionTo = null;
-        if(preg_match_all("/$regexp/siU", $site, $matches)) {
+        if (preg_match_all("/$regexp/siU", $site, $matches)) {
             foreach ($matches[1] as $index => $currentUrl) {
                 $versionTo = $this->getMax($versionTo, $matches[2][$index]);
                 if ($versionTo==$matches[2][$index]) {
@@ -283,7 +283,7 @@ HELP;
         curl_setopt($ch, CURLOPT_HEADER, 0);
         curl_exec($ch);
 
-        if(curl_errno($ch)){
+        if (curl_errno($ch)) {
             die('Cannot download file: ' . curl_error($ch) . PHP_EOL);
         }
 
@@ -292,7 +292,7 @@ HELP;
         fclose($fp);
     }
 
-    protected function command_exist($cmd)
+    protected function commandExists($cmd)
     {
         return (bool) shell_exec("which $cmd 2>/dev/null");
     }
@@ -300,7 +300,7 @@ HELP;
 
 class WhmcsPlugin extends BillingPlugin
 {
-    protected function setServer()
+    public function setServer()
     {
         if (
             (!$this->issetOption('kd_hostname') && !$this->issetOption('kd_ip'))
@@ -352,7 +352,7 @@ class WhmcsPlugin extends BillingPlugin
      *
      * @return null|string
      */
-    protected function getCurrentVersion()
+    public function getCurrentVersion()
     {
         // try to load KuberDock.php, if failure - plugin not installed
         set_error_handler(array($this, "warningHandler"), E_WARNING);
@@ -411,7 +411,7 @@ class WhmcsPlugin extends BillingPlugin
         }
     }
 
-    protected function migrate()
+    public function migrate()
     {
         $this->say('Performing DB migration');
         try {
@@ -434,7 +434,8 @@ class WhmcsPlugin extends BillingPlugin
         return localAPI($command, $params, "admin");
     }
 
-    private function getTable($table) {
+    private function getTable($table)
+    {
         return Illuminate\Database\Capsule\Manager::table($table);
     }
 }
