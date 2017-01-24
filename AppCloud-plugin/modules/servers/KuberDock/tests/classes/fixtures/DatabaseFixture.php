@@ -37,6 +37,7 @@ class DatabaseFixture
                 'configoption3' => 'monthly',   // payment type
                 'configoption5' => 1,           // price IP
                 'configoption6' => 1,           // price PD
+                'configoption8' => 0,           // first deposit
                 'configoption9' => 'Fixed price', // Payment type
             ],
             [
@@ -52,6 +53,7 @@ class DatabaseFixture
                 'configoption3' => 'monthly',   // payment type
                 'configoption5' => 1,           // price IP
                 'configoption6' => 1,           // price PD
+                'configoption8' => 5,           // first deposit
                 'configoption9' => 'PAYG',
             ],
         ];
@@ -347,6 +349,17 @@ spec:
                 'type' => ResourceFactory::TYPE_POD,
                 'referer' => '',
             ],
+            [
+                'id' => 4,
+                'user_id' => 0,
+                'product_id' => self::$packageIdPayg,
+                'kuber_product_id' => 0,
+                'service_id' => self::$serviceId,
+                'pod_id' => 'pod_id#2',
+                'data' => json_encode(ApiFixture::getPodWithResources('pod_id#2')),
+                'type' => ResourceFactory::TYPE_POD,
+                'referer' => '',
+            ],
         ];
     }
 
@@ -360,6 +373,84 @@ spec:
             'email' => 'prev@mail.com',
             'lastname' => "prevlastname",
             'firstname' => "prevfirstname",
+        ];
+    }
+
+    public static function pricing()
+    {
+        return [
+            // USD
+            [
+                'type' => 'product',
+                'currency' => 1,
+                'relid' => self::$packageIdFixed,
+                'msetupfee' => 0,
+                'qsetupfee' => 0,
+                'ssetupfee' => 0,
+                'asetupfee' => 0,
+                'bsetupfee' => 0,
+                'tsetupfee' => 0,
+                'monthly' => 0,
+                'quarterly' => -1,
+                'semiannually' => -1,
+                'annually' => -1,
+                'biennially' => -1,
+                'triennially' => -1,
+            ],
+            // USD
+            [
+                'type' => 'product',
+                'currency' => 1,
+                'relid' => self::$packageIdPayg,
+                'msetupfee' => 0,
+                'qsetupfee' => 0,
+                'ssetupfee' => 0,
+                'asetupfee' => 0,
+                'bsetupfee' => 0,
+                'tsetupfee' => 0,
+                'monthly' => 0,
+                'quarterly' => -1,
+                'semiannually' => -1,
+                'annually' => -1,
+                'biennially' => -1,
+                'triennially' => -1,
+            ],
+            // GBP
+            [
+                'type' => 'product',
+                'currency' => 2,
+                'relid' => self::$packageIdFixed,
+                'msetupfee' => 5,
+                'qsetupfee' => 10,
+                'ssetupfee' => 15,
+                'asetupfee' => 20,
+                'bsetupfee' => 25,
+                'tsetupfee' => 30,
+                'monthly' => 10,
+                'quarterly' => -1,
+                'semiannually' => -1,
+                'annually' => -1,
+                'biennially' => -1,
+                'triennially' => -1,
+            ],
+            // Non product type
+            [
+                'type' => 'domainregister',
+                'currency' => 1,
+                'relid' => self::$packageIdFixed,
+                'msetupfee' => 500,
+                'qsetupfee' => 0,
+                'ssetupfee' => 0,
+                'asetupfee' => 0,
+                'bsetupfee' => 0,
+                'tsetupfee' => 0,
+                'monthly' => 1000,
+                'quarterly' => -1,
+                'semiannually' => -1,
+                'annually' => -1,
+                'biennially' => -1,
+                'triennially' => -1,
+            ],
         ];
     }
 }

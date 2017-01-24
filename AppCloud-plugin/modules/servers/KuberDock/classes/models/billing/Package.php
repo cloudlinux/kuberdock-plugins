@@ -51,7 +51,8 @@ class Package extends Model
      */
     public function pricing()
     {
-        return $this->hasMany('models\billing\Pricing', 'relid');
+        return $this->hasMany('models\billing\Pricing', 'relid')
+            ->where('type', 'product');
     }
 
     /**
