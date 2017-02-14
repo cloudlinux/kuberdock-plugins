@@ -779,7 +779,7 @@ class KuberDock_Api {
         });
 
         array_walk($apps, function (&$e) use ($panelUrl, $defaultImage) {
-            $yaml = \Kuberdock\classes\extensions\yaml\Spyc::YAMLLoadString($e['template']);
+            $yaml = \Spyc::YAMLLoadString($e['template']);
             $e['path'] = $panelUrl . '#predefined/' . $e['id'];
             $e['icon'] = isset($yaml['kuberdock']['icon']) ? $yaml['kuberdock']['icon'] : $defaultImage;
         });

@@ -3,10 +3,10 @@
 namespace Kuberdock\classes\models;
 
 
+use Spyc;
 use Kuberdock\classes\panels\KuberDock_Panel;
 use Kuberdock\classes\Base;
 use Kuberdock\classes\exceptions\CException;
-use Kuberdock\classes\extensions\yaml\Spyc;
 use Kuberdock\classes\Tools;
 
 class Template

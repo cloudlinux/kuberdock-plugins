@@ -9,6 +9,7 @@ URL: http://www.cloudlinux.com
 Source0: %{name}-%{version}.tar.bz2
 
 BuildRequires: python
+BuildRequires: wget
 
 Requires: kuberdock-cli >= 1.0-3
 
@@ -24,6 +25,10 @@ Kuberdock plugins
 %setup -q
 
 %build
+cd client-plugin/common/KuberDock
+wget https://getcomposer.org/composer.phar
+php -d allow_url_fopen=1 composer.phar install --no-dev
+rm -f composer.phar
 
 %install
 rm -rf %{buildroot}

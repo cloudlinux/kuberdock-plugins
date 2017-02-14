@@ -6,11 +6,11 @@
 
 namespace Kuberdock\classes\models;
 
+use Spyc;
 use Kuberdock\classes\Base;
 use Kuberdock\classes\panels\KuberDock_cPanel;
 use Kuberdock\classes\KcliCommand;
 use Kuberdock\classes\exceptions\CException;
-use Kuberdock\classes\extensions\yaml\Spyc;
 use Kuberdock\classes\KuberDock_Controller;
 use Kuberdock\classes\Tools;
 

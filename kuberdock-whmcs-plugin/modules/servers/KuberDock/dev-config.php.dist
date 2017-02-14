@@ -1,0 +1,3 @@
+<?php
+
+include '<DEV_VENDOR_AUTOLOAD_PATH>.php';
