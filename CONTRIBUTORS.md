@@ -2,7 +2,7 @@
 
 - Oleg Bednarskiy
 - Ruslan Rakhmanberdiev <rrakhmanberdiev@cloudlinux.com>
-- Prokhor Sednev <psednev@cloudlinux.com> https://github.com/sedpro
+- Prokhor Sednev <psednev@cloudlinux.com>
 
 # Community contributors
 -
