@@ -1,6 +1,6 @@
 package Cpanel::API::KuberDock;
 
-# Cpanel/API/KuberDock.pm                 Copyright(c) 2015 CloudLinux
+# Cpanel/API/KuberDock.pm
 
 use strict;
 

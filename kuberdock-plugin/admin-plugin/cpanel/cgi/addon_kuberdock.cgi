@@ -3,9 +3,6 @@ eval 'if [ -x /usr/local/cpanel/3rdparty/bin/perl ]; then exec /usr/local/cpanel
 if 0;
 #!/usr/bin/perl
 
-# CloudLinux - whostmgr/docroot/cgi/addon_kuberdock.cgi Copyright(c) 2015 CloudLinux, Inc.
-#                                                                  All rights Reserved.
-#                                                             http://www.cloudlinux.com
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -25,7 +22,7 @@ if 0;
 #Title: cPanel KuberDock plugin.
 #Version: 0.1.5
 #Author:
-#Site: http://cloudLinux.com 
+#Site: https://cloudlinux.com
 
 BEGIN {
     unshift @INC, '/usr/local/cpanel';

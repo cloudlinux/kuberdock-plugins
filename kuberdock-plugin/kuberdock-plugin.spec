@@ -4,7 +4,7 @@ Summary: KuberDock plugins
 Release: 4%{?dist}.cloudlinux
 Group: Applications/System
 BuildArch: noarch
-License: CloudLinux Commercial License
+License: GNU GENERAL PUBLIC LICENSE
 URL: http://www.cloudlinux.com
 Source0: %{name}-%{version}.tar.bz2
 

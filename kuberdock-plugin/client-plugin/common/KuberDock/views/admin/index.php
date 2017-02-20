@@ -27,10 +27,6 @@ $variables = compact(array_diff(
     <?php endif; ?>
 
     <div class="container-fluid support text-center">
-        If you have a problem contact our support team via <a href="mailto:helpdesk@kuberdock.com">
-            helpdesk@kuberdock.com</a> <br>or create a request in helpdesk <a href="https://helpdesk.cloudlinux.com">
-            https://helpdesk.cloudlinux.com</a>
-        <br>
         Plugin version: <?php echo \Kuberdock\classes\DI::get('Version')->get();?>
     </div>
 </div>
